@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Allow specific files
+!package.json
+!package-lock.json
+!src
+!tsconfig.json
+!tsconfig.build.json
+!.env.common
