@@ -4,16 +4,6 @@ cd "$(dirname "$0")"
 cd ..
 . ./.env.development
 
-# 'npm run migration:run'을 실행하면 아래의 process.env.TYPEORM_*을 실행한다.
-# 그러나 .env.development를 로딩하게 할 수 없어서 아래처럼 export를 한다.
-# export TYPEORM_DATABASE=$TYPEORM_DATABASE
-# export TYPEORM_SCHEMA=$TYPEORM_SCHEMA
-# export TYPEORM_HOST=$TYPEORM_HOST
-# export TYPEORM_PORT=$TYPEORM_PORT
-# export TYPEORM_USERNAME=$TYPEORM_USERNAME
-# export TYPEORM_PASSWORD=$TYPEORM_PASSWORD
-# export TYPEORM_POOL_SIZE=$TYPEORM_POOL_SIZE
-
 VERSION=$(jq -r '.version' package.json)
 NAME=$(jq -r '.name' package.json)
 DOCKER_IMAGE="$NAME:$VERSION"
