@@ -6,6 +6,18 @@
 
 프로젝트를 실행하기 전에 Node.js가 설치되어 있어야 합니다. 이 프로젝트는 최신 LTS 버전의 Node.js를 사용하므로, 최신 LTS 버전을 설치하는 것이 좋습니다.
 
+### Sharing Git credentials with your container
+
+https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials
+
+컨테이너 생성 시 아래의 명령어를 반복하지 않으려면 위의 링크를 참조
+
+```
+git config --global pull.rebase true
+git config --global user.name "yourName"
+git config --global user.email "your@email.com"
+```
+
 ## Installation
 
 ```bash

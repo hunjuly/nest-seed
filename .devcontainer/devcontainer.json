@@ -4,9 +4,7 @@
     "name": "${containerWorkspaceFolderBasename}",
     "context": ".",
     "dockerFile": "Dockerfile",
-    "mounts": [
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ],
+    "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -32,7 +30,8 @@
         "--name",
         "vscode-${containerWorkspaceFolderBasename}"
     ],
-    "remoteEnv": {
+    "remoteEnv": {},
+    "containerEnv": {
         "WORKSPACE_ROOT": "${containerWorkspaceFolder}",
         "HOST_PATH": "${localWorkspaceFolder}",
         "NODE_ENV": "development"
