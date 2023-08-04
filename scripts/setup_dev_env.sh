@@ -20,13 +20,27 @@ start_redis() {
 }
 
 start_postgresql() {
-    docker rm -f $TYPEORM_HOST >/dev/null 2>&1
-    docker run --rm -d $NETWORK \
-        --name $TYPEORM_HOST \
-        -e POSTGRES_PASSWORD="postgres" \
-        -p $TYPEORM_PORT_FORWARD:5432 \
-        $POSTGRES_IMAGE
+    local port=5432
 
+    while :; do
+        docker rm -f $TYPEORM_HOST >/dev/null 2>&1
+
+        set +e
+        output=$(docker run --rm -d $NETWORK \
+            --name $TYPEORM_HOST \
+            -e POSTGRES_PASSWORD="postgres" \
+            -p $port:5432 \
+            $POSTGRES_IMAGE 2>&1)
+        set -e
+
+        if [[ $output != *"port is already allocated"* ]]; then
+            echo "PostgreSQL is running on port $port"
+            break
+        else
+            echo "Port $port is already in use. Trying next port..."
+            port=$((port + 1))
+        fi
+    done
 }
 
 run_psql() {
@@ -103,7 +117,7 @@ clean_up() {
     docker system prune -f
     docker volume prune -f
 
-    rm -rf dist coverage logs
+    rm -rf dist coverage logs config
 }
 
 builder_and_run_docker_container() {
@@ -123,6 +137,16 @@ builder_and_run_docker_container() {
     docker logs -f "$NAME"
 }
 
+set_allow_schema_reset() {
+    mkdir -p config
+    touch config/@DEV_ALLOW_SCHEMA_RESET
+}
+
+set_logging_during_testing() {
+    mkdir -p config
+    touch config/@DEV_LOGGING_DURING_TESTING
+}
+
 clear
 
 if [ -z "$1" ]; then
@@ -130,6 +154,8 @@ if [ -z "$1" ]; then
     echo "1. Infra Up"
     echo "2. Run PSQL"
     echo "3. build & run docker container"
+    echo "4. Allow Schema Reset"
+    echo "5. Logging during testing"
     echo "0. Clean up"
     echo ""
 
@@ -138,12 +164,19 @@ if [ -z "$1" ]; then
     case $choice in
     1)
         infra_up
+        set_allow_schema_reset
         ;;
     2)
         launch_psql
         ;;
     3)
         builder_and_run_docker_container
+        ;;
+    4)
+        set_allow_schema_reset
+        ;;
+    5)
+        set_logging_during_testing
         ;;
     0)
         clean_up

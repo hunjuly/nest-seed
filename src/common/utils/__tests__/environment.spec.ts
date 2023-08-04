@@ -1,4 +1,4 @@
-import { isDevelopment, isProduction } from '../env'
+import { isDevelopment, isProduction } from '../environment'
 
 it('common/utils/env', () => {
     const dev = isDevelopment()

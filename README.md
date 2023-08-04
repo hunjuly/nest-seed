@@ -38,7 +38,7 @@ npm test
 
 테스트는 Jest를 사용하여 실행됩니다. 테스트 실행 중에 파일이 변경되면 Jest는 변경된 파일에 대한 테스트만 재실행합니다. 테스트 커버리지 보고서를 생성하려면 npm run test:all을 실행하세요.
 
-@DEV_ENABLE_TEST_LOGGING 파일을 생성하면 테스트 로그를 출력할 수 있습니다.
+@DEV_LOGGING_DURING_TESTING 파일을 생성하면 테스트 로그를 출력할 수 있습니다.
 
 jest를 실행했을 때 아래처럼 에러가 발생하면 아래의 스크립트를 실행한다.
 

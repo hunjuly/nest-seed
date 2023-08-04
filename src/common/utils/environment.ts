@@ -10,6 +10,6 @@ export function envFilename() {
     return '.env.' + process.env.NODE_ENV?.toLowerCase()
 }
 
-export function addItemInDevelopment(items: any[], developmentItem: any): any[] {
-    return isDevelopment() ? [...items, developmentItem] : items
+export function addItemInDevelopment(items: any[], developmentItems: any[]): any[] {
+    return isDevelopment() ? [...items, ...developmentItems] : items
 }
