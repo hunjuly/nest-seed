@@ -24,7 +24,7 @@ start_postgresql() {
     docker run --rm -d $NETWORK \
         --name $TYPEORM_HOST \
         -e POSTGRES_PASSWORD="postgres" \
-        -p 5432:5432 \
+        -p $TYPEORM_PORT_FORWARD:5432 \
         $POSTGRES_IMAGE
 
 }
