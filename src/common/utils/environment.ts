@@ -9,3 +9,7 @@ export function isDevelopment() {
 export function envFilename() {
     return '.env.' + process.env.NODE_ENV?.toLowerCase()
 }
+
+export function addItemInDevelopment(items: any[], developmentItem: any): any[] {
+    return isDevelopment() ? [...items, developmentItem] : items
+}

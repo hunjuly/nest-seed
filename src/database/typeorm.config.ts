@@ -1,11 +1,19 @@
 import { Logger } from '@nestjs/common'
 import * as dotenv from 'dotenv'
 import { Seed } from 'src/_seeds'
-import { ConfigException, Path, TypeormLogger, envFilename, isDevelopment, isProduction } from 'src/common'
+import {
+    ConfigException,
+    Path,
+    TypeormLogger,
+    addItemInDevelopment,
+    envFilename,
+    isDevelopment,
+    isProduction
+} from 'src/common'
 import { User } from 'src/users/entities'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 
-const entities = [User, ...(isDevelopment() ? [Seed] : [])]
+const entities = addItemInDevelopment([User], [Seed])
 const migrations = [] as any[]
 
 type SupportedConnectionOptions = PostgresConnectionOptions
@@ -57,12 +65,12 @@ const getPoolSize = () => {
 }
 
 const typeormDevOptions = () => {
-    const isAutoReset = Path.isExistsSync('@DEV_TYPEORM_AUTO_RESET')
+    const allowSchemaReset = Path.isExistsSync('@DEV_ALLOW_SCHEMA_RESET')
 
-    if (isAutoReset) {
+    if (allowSchemaReset) {
         if (isProduction()) {
             throw new ConfigException(
-                'The @DEV_TYPEORM_AUTO_RESET option should not be set to true in a production environment.'
+                'The @DEV_ALLOW_SCHEMA_RESET option should not be set to true in a production environment.'
             )
         }
 
@@ -72,7 +80,7 @@ const typeormDevOptions = () => {
         }
     } else if (isDevelopment()) {
         throw new ConfigException(
-            'The @DEV_TYPEORM_AUTO_RESET option should be set to true in a development environment.'
+            'The @DEV_ALLOW_SCHEMA_RESET option should be set to true in a development environment.'
         )
     }
 

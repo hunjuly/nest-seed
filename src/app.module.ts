@@ -3,12 +3,12 @@ import { GlobalModule } from 'src/global'
 import { SeedsModule } from './_seeds'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { isDevelopment } from './common'
-import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module'
+import { addItemInDevelopment } from './common'
+import { UsersModule } from './users/users.module'
 
 @Module({
-    imports: [GlobalModule, UsersModule, AuthModule, ...(isDevelopment() ? [SeedsModule] : [])],
+    imports: addItemInDevelopment([GlobalModule, UsersModule, AuthModule], [SeedsModule]),
     controllers: [AppController],
     providers: [AppService]
 })

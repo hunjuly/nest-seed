@@ -1,7 +1,7 @@
 mkdir -p logs
 
-touch @DEV_TYPEORM_AUTO_RESET
-touch @DEV_TEST_LOG
+touch @DEV_ALLOW_SCHEMA_RESET
+touch @DEV_ENABLE_TEST_LOGGING
 
 npm install
 npm run infra:up

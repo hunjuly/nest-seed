@@ -43,9 +43,9 @@ export async function createHttpTestModule(metadata: ModuleMetadataEx) {
 
     const app = module.createNestApplication()
 
-    const isLoggingEnabled = Path.isExistsSync('@DEV_TEST_LOG')
+    const isTestLoggingEnabled = Path.isExistsSync('@DEV_ENABLE_TEST_LOGGING')
 
-    if (isLoggingEnabled) {
+    if (isTestLoggingEnabled) {
         try {
             const logger = app.get(AppLoggerService)
             app.useLogger(logger)
