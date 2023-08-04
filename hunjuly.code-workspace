@@ -4,9 +4,6 @@
             "path": "."
         }
     ],
-    "extensions": {
-        "recommendations": []
-    },
     "settings": {
         "files.watcherExclude": {
             "**/.git/objects/**": true,
@@ -25,44 +22,7 @@
             "package-lock.json": true,
             "src/react-app-env.d.ts": true
         },
-        "typescript.format.enable": false,
-        "javascript.format.enable": false,
         "typescript.tsc.autoDetect": "off",
-        "remote.downloadExtensionsLocally": true,
-        "workbench.iconTheme": "vscode-icons",
-        "typescript.disableAutomaticTypeAcquisition": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "[typescriptreact]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[html]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[json]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[jsonc]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[dockerfile]": {
-            "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-        },
-        "[shellscript]": {
-            "editor.defaultFormatter": "foxundermoon.shell-format"
-        },
-        "[ignore]": {
-            "editor.defaultFormatter": "foxundermoon.shell-format"
-        },
-        "[dotenv]": {
-            "editor.defaultFormatter": "foxundermoon.shell-format"
-        },
-        "remote.autoForwardPortsSource": "output",
-        "jestrunner.codeLensSelector": "**/{*.test,*.spec,__tests__/*}.{js,jsx,ts,tsx}",
-        "plantuml.server": "https://www.plantuml.com/plantuml",
-        "plantuml.render": "PlantUMLServer",
-        "markdown-preview-enhanced.plantumlServer": "https://www.plantuml.com/plantuml",
-        "[typescript]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        }
+        "typescript.disableAutomaticTypeAcquisition": true
     }
 }

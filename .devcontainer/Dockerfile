@@ -24,7 +24,4 @@ RUN DOCKER_PKG="docker-24.0.5.tgz";\
     curl -fsSLO --compressed "https://download.docker.com/linux/static/stable/$(arch)/$DOCKER_PKG"; \
     tar -xf $DOCKER_PKG --strip-components 1 --directory /usr/local/bin/ docker/docker; \
     rm -f $DOCKER_PKG
-# Docker Compose Install
-RUN apk add -f py-pip python3-dev libffi-dev openssl-dev gcc libc-dev make
-# RUN pip install docker-compose
 RUN apk add docker-cli-compose

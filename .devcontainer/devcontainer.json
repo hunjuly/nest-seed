@@ -4,7 +4,22 @@
     "name": "${containerWorkspaceFolderBasename}",
     "context": ".",
     "dockerFile": "Dockerfile",
-    "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ],
+    "containerEnv": {
+        "WORKSPACE_ROOT": "${containerWorkspaceFolder}",
+        "HOST_PATH": "${localWorkspaceFolder}",
+        "NODE_ENV": "development"
+    },
+    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} || true",
+    "postCreateCommand": "sh postCreateCommand.sh",
+    "runArgs": [
+        "--network",
+        "${containerWorkspaceFolderBasename}",
+        "--name",
+        "vscode-${containerWorkspaceFolderBasename}"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -18,23 +33,45 @@
                 "github.vscode-pull-request-github"
             ],
             "settings": {
+                "prettier.enableDebugLogs": true,
+                "livePreview.portNumber": 3030,
+                "remote.downloadExtensionsLocally": true,
+                "typescript.format.enable": false,
+                "javascript.format.enable": false,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "[dockerfile]": {
+                    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+                },
+                "[jsonc]": {
+                    "editor.defaultFormatter": "vscode.json-language-features"
+                },
+                "[dotenv]": {
+                    "editor.defaultFormatter": "foxundermoon.shell-format"
+                },
+                "[shellscript]": {
+                    "editor.defaultFormatter": "foxundermoon.shell-format"
+                },
+                "[ignore]": {
+                    "editor.defaultFormatter": "foxundermoon.shell-format"
+                },
+                "jestrunner.codeLensSelector": "**/{*.test,*.spec,__tests__/*}.{js,jsx,ts,tsx}",
                 "plantuml.server": "https://www.plantuml.com/plantuml",
-                "plantuml.render": "PlantUMLServer"
+                "plantuml.render": "PlantUMLServer",
+                "githubIssues.queries": [
+                    {
+                        "label": "My Issues",
+                        "query": "default"
+                    },
+                    {
+                        "label": "Created Issues",
+                        "query": "author:${user} state:open repo:${owner}/${repository} sort:created-desc"
+                    },
+                    {
+                        "label": "All Issues",
+                        "query": "repo:${owner}/${repository} sort:updated-desc"
+                    }
+                ]
             }
         }
-    },
-    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} || true",
-    "runArgs": [
-        "--network",
-        "${containerWorkspaceFolderBasename}",
-        "--name",
-        "vscode-${containerWorkspaceFolderBasename}"
-    ],
-    "remoteEnv": {},
-    "containerEnv": {
-        "WORKSPACE_ROOT": "${containerWorkspaceFolder}",
-        "HOST_PATH": "${localWorkspaceFolder}",
-        "NODE_ENV": "development"
-    },
-    "postCreateCommand": "sh postCreateCommand.sh"
+    }
 }

@@ -1,0 +1,106 @@
+import { Logger } from '@nestjs/common'
+import * as dotenv from 'dotenv'
+import { Seed } from 'src/_seeds'
+import { ConfigException, Path, TypeormLogger, envFilename, isDevelopment, isProduction } from 'src/common'
+import { User } from 'src/users/entities'
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
+
+const entities = [User, ...(isDevelopment() ? [Seed] : [])]
+const migrations = [] as any[]
+
+type SupportedConnectionOptions = PostgresConnectionOptions
+
+export const migrationOptions = (): SupportedConnectionOptions => {
+    if (process.env.TYPEORM_DATABASE) {
+        throw new ConfigException('migration을 실행할 때는 TYPEORM_DATABASE가 설정될 수 없다')
+    }
+
+    dotenv.config({
+        path: envFilename()
+    })
+
+    return typeormOptions()
+}
+
+const typeormOptions = (): SupportedConnectionOptions => {
+    const database = process.env.TYPEORM_DATABASE
+    const host = process.env.TYPEORM_HOST
+    const port = parseInt(process.env.TYPEORM_PORT ?? 'NaN')
+    const username = process.env.TYPEORM_USERNAME
+    const password = process.env.TYPEORM_PASSWORD
+    const schema = process.env.TYPEORM_SCHEMA
+
+    if (Number.isNaN(port)) {
+        throw new ConfigException('TYPEORM_PORT is not a number')
+    }
+    return {
+        type: 'postgres',
+        schema,
+        database,
+        host,
+        port,
+        username,
+        password,
+        migrations,
+        entities
+    }
+}
+
+const getPoolSize = () => {
+    const poolSize = parseInt(process.env.TYPEORM_POOL_SIZE ?? 'NaN')
+
+    if (Number.isNaN(poolSize)) {
+        throw new ConfigException('TYPEORM_POOL_SIZE is not a number')
+    }
+
+    return poolSize
+}
+
+const typeormDevOptions = () => {
+    const isAutoReset = Path.isExistsSync('@DEV_TYPEORM_AUTO_RESET')
+
+    if (isAutoReset) {
+        if (isProduction()) {
+            throw new ConfigException(
+                'The @DEV_TYPEORM_AUTO_RESET option should not be set to true in a production environment.'
+            )
+        }
+
+        return {
+            dropSchema: true,
+            synchronize: true
+        }
+    } else if (isDevelopment()) {
+        throw new ConfigException(
+            'The @DEV_TYPEORM_AUTO_RESET option should be set to true in a development environment.'
+        )
+    }
+
+    return {}
+}
+
+export const databaseModuleConfig = (): SupportedConnectionOptions => {
+    const logger = new TypeormLogger()
+    const poolSize = getPoolSize()
+
+    // typeormDevOptions가 기존 설정을 덮어쓸 수 있도록 마지막에 와야 한다.
+    let options = {
+        ...typeormOptions(),
+        logger,
+        poolSize,
+        ...typeormDevOptions()
+    }
+
+    if (options.type === 'postgres') {
+        // 설정은 했는데 동작하는 것을 못봤다.
+        options = {
+            ...options,
+            poolErrorHandler: (err: any) => Logger.error('poolErrorHandler', err),
+            logNotifications: true
+        }
+    } else {
+        throw new ConfigException(`Unsupported database type: ${options.type}`)
+    }
+
+    return options as SupportedConnectionOptions
+}
