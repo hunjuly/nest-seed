@@ -65,7 +65,7 @@ const getPoolSize = () => {
 }
 
 const typeormDevOptions = () => {
-    const allowSchemaReset = Path.isExistsSync('@DEV_ALLOW_SCHEMA_RESET')
+    const allowSchemaReset = Path.isExistsSync('config/@DEV_ALLOW_SCHEMA_RESET')
 
     if (allowSchemaReset) {
         if (isProduction()) {

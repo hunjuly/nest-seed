@@ -28,17 +28,31 @@ NPM 패키지를 설치합니다. 설치가 완료되면, 프로젝트를 실행
 
 ## Running Development Environment
 
+`.devcontainer/devcontainer.json`이 성공적으로 실행되면 개발환경 설정이 완료된다.
+
+개발환경을 다시 설정해야 한다면 `Rebuild Container`를 실행을 권장함. 그러나 수동으로 설정하려면 `bash scripts/init_dev_env.sh`을 실행한다.
+
+그 외 기본적으로 사용하는 명령들이다.
+
 ```bash
-npm run infra:up
 npm start
 npm test
 ```
 
 위의 스크립트를 실행하면 개발 환경이 시작됩니다. NestJS 애플리케이션을 디버그 모드로 시작하며, 파일 변경을 감지하여 자동으로 재시작합니다.
 
+### Development with Typeorm
+
+synchonize를 true로 하고 배포하면 치명적인 손상이 발생할 수 있다.
+가능성을 차단하기 위해서 개발 환경에서도 synchronize를 사용하지 않는다.
+
+그러나, 꼭 synchronize를 사용해야 하는 경우에는 `bash scripts/set_allow_schema_reset.sh`을 실행해서 `config/@DEV_ALLOW_SCHEMA_RESET` 파일을 생성하면 테스트 로그를 출력할 수 있습니다.
+
+### Testing with Jest
+
 테스트는 Jest를 사용하여 실행됩니다. 테스트 실행 중에 파일이 변경되면 Jest는 변경된 파일에 대한 테스트만 재실행합니다. 테스트 커버리지 보고서를 생성하려면 npm run test:all을 실행하세요.
 
-@DEV_LOGGING_DURING_TESTING 파일을 생성하면 테스트 로그를 출력할 수 있습니다.
+`bash scripts/set_logging_during_testing.sh`을 실행해서 `config/@DEV_LOGGING_DURING_TESTING` 파일을 생성하면 테스트 로그를 출력할 수 있습니다.
 
 jest를 실행했을 때 아래처럼 에러가 발생하면 아래의 스크립트를 실행한다.
 
@@ -62,11 +76,6 @@ vscode에 Jest Runner 및 code lens 확장 프로그램이 설치되어 있는 �
 1. 생성된 src/database/migrations/\*-nestex.ts 파일을 src/database/data-source.ts에 추가
 1. npm run typeorm:migration
 1. npm run typeorm:show로 적용된 것을 확인한다.
-
-synchonize를 true로 하고 배포하면 치명적인 손상이 발생할 수 있다.
-가능성을 차단하기 위해서 개발 환경에서도 synchronize를 사용하지 않는다.
-
-그러나, 꼭 synchronize를 사용해야 하는 경우에는 @DEV_ALLOW_SCHEMA_RESET 파일을 생성하면 된다.
 
 ## Production Deployment
 

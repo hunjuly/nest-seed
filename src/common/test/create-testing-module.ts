@@ -43,7 +43,7 @@ export async function createHttpTestModule(metadata: ModuleMetadataEx) {
 
     const app = module.createNestApplication()
 
-    const loggingDuringTesting = Path.isExistsSync('@DEV_LOGGING_DURING_TESTING')
+    const loggingDuringTesting = Path.isExistsSync('config/@DEV_LOGGING_DURING_TESTING')
 
     if (loggingDuringTesting) {
         try {

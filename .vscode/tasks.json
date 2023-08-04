@@ -1,0 +1,32 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Launch PSQL",
+            "type": "shell",
+            "command": "bash scripts/launch_psql.sh"
+        },
+        {
+            "label": "Clean up",
+            "type": "shell",
+            "command": "bash scripts/clean_up.sh"
+        },
+        {
+            "label": "Enable Logging During Testing",
+            "type": "shell",
+            "command": "bash scripts/set_logging_during_testing.sh"
+        },
+        {
+            "label": "Disable Logging During Testing",
+            "type": "shell",
+            "command": "rm -f config/@DEV_LOGGING_DURING_TESTING"
+        },
+        {
+            "label": "Generate Code Coverage",
+            "type": "shell",
+            "command": "npm run test:all"
+        }
+    ]
+}

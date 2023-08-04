@@ -13,7 +13,7 @@
         "NODE_ENV": "development"
     },
     "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} || true",
-    "postCreateCommand": "sh postCreateCommand.sh",
+    "postCreateCommand": "bash scripts/init_dev_env.sh ",
     "runArgs": [
         "--network",
         "${containerWorkspaceFolderBasename}",
