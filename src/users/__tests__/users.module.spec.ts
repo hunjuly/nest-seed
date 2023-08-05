@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { JwtAuthGuard, LocalAuthGuard } from 'src/auth/guards'
+import { JwtAuthGuard, LocalAuthGuard } from '../guards'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { GlobalModule } from 'src/global'
 import { User } from '../entities'

@@ -2,7 +2,7 @@ import { TestingModule } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
 import { createTestModule } from 'src/common/test'
 import { GlobalModule } from 'src/global'
-import { AuthModule } from '../auth.module'
+import { UsersModule } from '../users.module'
 import { AuthService } from '../auth.service'
 import { AuthConfigService } from '../services'
 
@@ -13,7 +13,7 @@ describe('AuthService', () => {
 
     beforeEach(async () => {
         module = await createTestModule({
-            imports: [GlobalModule, AuthModule]
+            imports: [GlobalModule, UsersModule]
         })
 
         authService = module.get(AuthService)

@@ -1,4 +1,4 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as jwt from 'jsonwebtoken'
 import { CacheService, convertTimeToSeconds, notUsed } from 'src/common'
@@ -11,7 +11,7 @@ import { AuthConfigService } from './services'
 @Injectable()
 export class AuthService {
     constructor(
-        @Inject(forwardRef(() => UsersService))
+        // TODO usersRepository로 변경
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly config: AuthConfigService,

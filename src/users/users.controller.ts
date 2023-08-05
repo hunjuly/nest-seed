@@ -8,16 +8,19 @@ import {
     Param,
     Patch,
     Post,
-    Query
+    Query,
+    UseGuards
 } from '@nestjs/common'
+import { AuthService } from './auth.service'
 import { UserDto, UsersQueryDto } from './dto'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { JwtAuthGuard } from './guards'
 import { UsersService } from './users.service'
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService, private readonly authService: AuthService) {}
 
     @Get()
     async findUsers(@Query() query: UsersQueryDto) {
@@ -56,6 +59,7 @@ export class UsersController {
     }
 
     @Delete(':userId')
+    @UseGuards(JwtAuthGuard)
     async removeUser(@Param('userId') userId: string) {
         await this.requireUserExists(userId)
 

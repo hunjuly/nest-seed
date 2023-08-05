@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { GlobalModule } from 'src/global'
 import { createUserDto } from 'src/users/__tests__'
-import { AuthModule } from '../auth.module'
+import { UsersModule } from '../users.module'
 import { AuthConfigService } from '../services'
 
 describe('AuthController (e2e)', () => {
@@ -15,7 +15,7 @@ describe('AuthController (e2e)', () => {
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
-            imports: [GlobalModule, AuthModule]
+            imports: [GlobalModule, UsersModule]
         })
 
         module = sut.module
