@@ -10,7 +10,8 @@ NETWORK="--network $(basename $(pwd))"
 
 docker rm -f "$NAME" >/dev/null 2>&1
 
-docker build -t $DOCKER_IMAGE .
+# docker build -t $DOCKER_IMAGE .
+docker build -t nestjs-seed:1.0 https://github.com/hunjuly/nestjs-seed.git#main
 
 docker run --rm -d $NETWORK \
     --name "$NAME" \
@@ -20,6 +21,3 @@ docker run --rm -d $NETWORK \
     $DOCKER_IMAGE
 
 docker logs -f "$NAME"
-
-# docker build https://github.com/docker/rootfs.git#container:docker
-# docker build https://github.com/hunjuly/nestjs-seed.git#main
