@@ -30,7 +30,8 @@
                 "foxundermoon.shell-format",
                 "well-ar.plantuml",
                 "ms-vscode.live-server",
-                "github.vscode-pull-request-github"
+                "github.vscode-pull-request-github",
+                "mutantdino.resourcemonitor"
             ],
             "settings": {
                 "typescript.tsc.autoDetect": "off",

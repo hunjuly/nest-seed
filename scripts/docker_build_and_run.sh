@@ -2,22 +2,24 @@
 set -e
 cd "$(dirname "$0")"
 cd ..
-. ./.env.development
 
 VERSION=$(jq -r '.version' package.json)
 NAME=$(jq -r '.name' package.json)
 DOCKER_IMAGE="$NAME:$VERSION"
 NETWORK="--network $(basename $(pwd))"
 
-npm run build:docker
-
 docker rm -f "$NAME" >/dev/null 2>&1
+
+docker build -t $DOCKER_IMAGE .
 
 docker run --rm -d $NETWORK \
     --name "$NAME" \
-    --env-file .env \
+    --env-file .env.development \
     -e NODE_ENV=production \
     -v $(pwd)/logs:/app/logs \
     $DOCKER_IMAGE
 
 docker logs -f "$NAME"
+
+# docker build https://github.com/docker/rootfs.git#container:docker
+# docker build https://github.com/hunjuly/nestjs-seed.git#main

@@ -8,7 +8,6 @@
         "test": "rm -rf dist && node --inspect=9230 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged --runInBand",
         "test:all": "jest --runInBand --coverage",
         "build": "nest build",
-        "build:docker": "docker build -t $npm_package_name:$npm_package_version .",
         "lint": "eslint src/**/*.ts --fix",
         "format": "prettier --write src/**/*.ts",
         "migration:generate": "npm run build && typeorm migration:generate -d ./dist/database/data-source.js ./src/database/migrations/$npm_package_name",
