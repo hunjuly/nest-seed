@@ -56,7 +56,7 @@ export class UsersService {
 
         const savedUser = await this.usersRepository.update(updatedUser)
 
-        Assert.equal(savedUser, updatedUser)
+        Assert.deepEquals(savedUser, updatedUser, 'update 요청과 결과가 다름')
 
         return savedUser
     }

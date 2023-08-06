@@ -4,29 +4,29 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Launch PSQL",
+            "label": "1. Generate Code Coverage",
+            "type": "shell",
+            "command": "npm run test:all"
+        },
+        {
+            "label": "2. Launch PSQL",
             "type": "shell",
             "command": "bash scripts/launch_psql.sh"
         },
         {
-            "label": "Clean up",
+            "label": "3. Clean up",
             "type": "shell",
             "command": "bash scripts/clean_up.sh"
         },
         {
-            "label": "Enable Logging During Testing",
+            "label": "4. Enable Logging During Testing",
             "type": "shell",
             "command": "bash scripts/set_logging_during_testing.sh"
         },
         {
-            "label": "Disable Logging During Testing",
+            "label": "5. Disable Logging During Testing",
             "type": "shell",
             "command": "rm -f config/@DEV_LOGGING_DURING_TESTING"
-        },
-        {
-            "label": "Generate Code Coverage",
-            "type": "shell",
-            "command": "npm run test:all"
         }
     ]
 }

@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { DataSource, QueryRunner } from 'typeorm'
-import { Assert } from '../assert'
-import { TransactionException } from '../exceptions'
-import { AggregateRoot } from './aggregate-root'
+import { DataSource } from 'typeorm'
+import { TransactionRepository } from './transaction.repository'
 
 @Injectable()
 export class TransactionService {
@@ -19,7 +17,7 @@ export class TransactionService {
 
             const result = await operation(repository)
 
-            if (repository.isRollbacked) {
+            if (repository.rollbackRequested) {
                 await queryRunner.rollbackTransaction()
             } else {
                 await queryRunner.commitTransaction()
@@ -42,50 +40,5 @@ export class TransactionService {
                 await queryRunner.release()
             }
         }
-    }
-}
-
-export class TransactionRepository {
-    // wantsRollback?
-    isRollbacked: boolean
-
-    constructor(private queryRunner: QueryRunner) {
-        this.isRollbacked = false
-    }
-
-    rollback() {
-        this.isRollbacked = true
-    }
-
-    async create<T extends AggregateRoot>(entity: T): Promise<T> {
-        Assert.undefined(entity.id, `EntityData already has an id${entity.id}`)
-
-        return this.save(entity)
-    }
-
-    async update<T extends AggregateRoot>(entity: T): Promise<T> {
-        Assert.defined(entity.id, "Entity doesn't have id")
-
-        return this.save(entity)
-    }
-
-    private async save<T extends AggregateRoot>(entity: T): Promise<T> {
-        /* istanbul ignore next */
-        if (!this.queryRunner.isTransactionActive) {
-            throw new TransactionException('Transaction is not active')
-        }
-
-        Assert.truthy(entity instanceof AggregateRoot, 'Invalid entity type')
-
-        return this.queryRunner.manager.save(entity)
-    }
-
-    async remove<T extends AggregateRoot>(entity: T): Promise<void> {
-        /* istanbul ignore next */
-        if (!this.queryRunner.isTransactionActive) {
-            throw new TransactionException('Transaction is not active')
-        }
-
-        await this.queryRunner.manager.remove(entity)
     }
 }

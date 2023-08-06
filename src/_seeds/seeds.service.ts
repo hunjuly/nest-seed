@@ -41,7 +41,7 @@ export class SeedsService {
 
         const savedSeed = await this.seedsRepository.update(updatedSeed)
 
-        Assert.equal(savedSeed, updatedSeed)
+        Assert.deepEquals(savedSeed, updatedSeed, 'update 요청과 결과가 다름')
 
         return savedSeed
     }

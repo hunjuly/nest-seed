@@ -12,7 +12,8 @@ export function createMemoryTypeormModule() {
 
 /**
  * sqlite에서는 열거형을 지원하지 않아서 변환해야 한다.
- *  @Column({ type: 'varchar', transformer: enumsTransformer<SeedEnum>() })
+ * ex)
+ * @Column({ type: 'varchar', transformer: enumsTransformer<SeedEnum>() })
  * enums: SeedEnum[]
  */
 export const enumsTransformer = <T>(): ValueTransformer => {

@@ -1,6 +1,6 @@
 import { isProduction, isDevelopment, envFilename, addItemInDevelopment } from '../environment'
 
-describe('environment', () => {
+describe('common/utils/environment', () => {
     it('NODE_ENV=production', () => {
         process.env.NODE_ENV = 'production'
 

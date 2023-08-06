@@ -2,53 +2,53 @@ import { Assert } from '../assert'
 import { LogicException } from '../exceptions'
 
 describe('Assert', () => {
-    describe('equal', () => {
-        it('should not throw an error when values are equal', () => {
+    describe('deepEquals', () => {
+        it('두 값이 같다', () => {
             const a = 10
             const b = 10
 
-            expect(() => Assert.equal(a, b)).not.toThrow()
+            expect(() => Assert.deepEquals(a, b, 'error messages')).not.toThrow()
         })
 
-        it('should throw a LogicException when values are not equal', () => {
+        it('두 값이 다르면 LogicException', () => {
             const a = 10
             const b = 20
 
-            expect(() => Assert.equal(a, b)).toThrow(LogicException)
-        })
-
-        it('should include the custom message in the thrown error', () => {
-            const a = 'hello'
-            const b = 'world'
-            const message = 'Custom message'
-
-            expect(() => Assert.equal(a, b, message)).toThrowError(
-                `Assert.equal failed: "hello" !== "world", ${message}`
-            )
+            expect(() => Assert.deepEquals(a, b, 'error message')).toThrow(LogicException)
         })
     })
 
     describe('defined', () => {
-        it('should not throw an error when value is defined', () => {
+        it('값은 유효해야 한다', () => {
             const value = 'test'
 
-            expect(() => Assert.defined(value, 'Value is not defined')).not.toThrow()
+            expect(() => Assert.defined(value, 'error message')).not.toThrow()
         })
 
-        it('should throw a LogicException when value is not defined', () => {
+        it('값이 유효하지 않으면 LogicException', () => {
             const value = undefined
 
-            expect(() => Assert.defined(value, 'Value is not defined')).toThrow(LogicException)
+            expect(() => Assert.defined(value, 'error message')).toThrow(LogicException)
         })
     })
 
     describe('truthy', () => {
-        it('should not throw an error when value is defined', () => {
-            expect(() => Assert.truthy(true, 'Value is not defined')).not.toThrow()
+        it('값은 true여야 한다', () => {
+            expect(() => Assert.truthy(true, 'error message')).not.toThrow()
         })
 
-        it('should throw a LogicException when value is not defined', () => {
-            expect(() => Assert.truthy(false, 'Value is not defined')).toThrow(LogicException)
+        it('true가 아니라면 LogicException', () => {
+            expect(() => Assert.truthy(false, 'error message')).toThrow(LogicException)
+        })
+    })
+
+    describe('falsy', () => {
+        it('값은 false여야 한다', () => {
+            expect(() => Assert.falsy(false, 'error message')).not.toThrow()
+        })
+
+        it('false 아니라면 LogicException', () => {
+            expect(() => Assert.falsy(true, 'error message')).toThrow(LogicException)
         })
     })
 })

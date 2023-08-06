@@ -31,8 +31,8 @@ export class SafeConfigService {
 
         if (!value) throw new ConfigException(`${key} undefined`)
 
-        if (value === 'true') return true
-        if (value === 'false') return false
+        if (value.toLowerCase() === 'true') return true
+        if (value.toLowerCase() === 'false') return false
 
         throw new ConfigException(`${key} not boolean`)
     }

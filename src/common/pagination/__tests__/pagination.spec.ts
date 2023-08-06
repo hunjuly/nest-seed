@@ -134,35 +134,33 @@ describe('Pagination', () => {
         expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
     })
 
-    describe('특수 케이스', () => {
-        it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
-            const res = await request.get({
-                url: `/samples`,
-                query: {
-                    skip: items_length,
-                    take: 5,
-                    orderby: 'name:asc'
-                }
-            })
-
-            expect(res.status).toEqual(HttpStatus.OK)
-            expect(res.body.items.length).toEqual(0)
+    it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
+        const res = await request.get({
+            url: `/samples`,
+            query: {
+                skip: items_length,
+                take: 5,
+                orderby: 'name:asc'
+            }
         })
 
-        it('skip 값이 아이템 총 개수보다 큰 경우 올바른 페이징 메타데이터 반환', async () => {
-            const res = await request.get({
-                url: '/samples',
-                query: {
-                    skip: 15,
-                    take: 5,
-                    orderby: 'name:asc'
-                }
-            })
+        expect(res.status).toEqual(HttpStatus.OK)
+        expect(res.body.items.length).toEqual(0)
+    })
 
-            expect(res.status).toEqual(HttpStatus.OK)
-            expect(res.body.total).toEqual(items_length)
-            expect(res.body.skip).toEqual(15)
-            expect(res.body.take).toEqual(5)
+    it('skip 값이 아이템 총 개수보다 큰 경우 올바른 페이징 메타데이터 반환', async () => {
+        const res = await request.get({
+            url: '/samples',
+            query: {
+                skip: 15,
+                take: 5,
+                orderby: 'name:asc'
+            }
         })
+
+        expect(res.status).toEqual(HttpStatus.OK)
+        expect(res.body.total).toEqual(items_length)
+        expect(res.body.skip).toEqual(15)
+        expect(res.body.take).toEqual(5)
     })
 })

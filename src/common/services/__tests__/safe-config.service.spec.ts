@@ -34,61 +34,67 @@ describe('SafeConfigService', () => {
         expect(service).toBeDefined()
     })
 
-    it('값이 있을 때, 올바른 문자열 환경 변수를 반환해야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => 'test_value')
+    describe('getString', () => {
+        it('문자열 환경 변수를 반환한다', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => 'test_value')
 
-        const value = service.getString('TEST_KEY')
-        expect(value).toBe('test_value')
+            const value = service.getString('TEST_KEY')
+            expect(value).toBe('test_value')
+        })
+
+        it('값이 없으면 ConfigException', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => undefined)
+
+            expect(() => service.getString('TEST_KEY')).toThrow(ConfigException)
+        })
     })
 
-    it('값이 없을 때, ConfigException을 발생시켜야 한다 (문자열)', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => undefined)
+    describe('getNumber', () => {
+        it('숫자 환경 변수를 반환한다', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => '123')
 
-        expect(() => service.getString('TEST_KEY')).toThrow(ConfigException)
+            const value = service.getNumber('TEST_KEY')
+            expect(value).toBe(123)
+        })
+
+        it('값이 없으면 ConfigException', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => undefined)
+
+            expect(() => service.getNumber('TEST_KEY')).toThrow(ConfigException)
+        })
+
+        it('값이 숫자가 아니면 ConfigException', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => 'not_a_number')
+
+            expect(() => service.getNumber('TEST_KEY')).toThrow(ConfigException)
+        })
     })
 
-    it('값이 있을 때, 올바른 숫자 환경 변수를 반환해야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => '123')
+    describe('getBoolean', () => {
+        it("값이 'true'면 true를 반환한다", () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => 'true')
 
-        const value = service.getNumber('TEST_KEY')
-        expect(value).toBe(123)
-    })
+            const value = service.getBoolean('TEST_KEY')
+            expect(value).toBe(true)
+        })
 
-    it('값이 없을 때, ConfigException을 발생시켜야 한다 (숫자)', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => undefined)
+        it("값이 'false'면 false를 반환한다", () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => 'false')
 
-        expect(() => service.getNumber('TEST_KEY')).toThrow(ConfigException)
-    })
+            const value = service.getBoolean('TEST_KEY')
+            expect(value).toBe(false)
+        })
 
-    it('값이 숫자가 아닐 때, ConfigException을 발생시켜야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => 'not_a_number')
+        it('값이 없으면 ConfigException', () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => undefined)
 
-        expect(() => service.getNumber('TEST_KEY')).toThrow(ConfigException)
-    })
+            expect(() => service.getBoolean('TEST_KEY')).toThrow(ConfigException)
+        })
 
-    it('값이 "true"일 때, 올바른 bool값을 반환해야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => 'true')
+        it("값이 'true'나 'false'가 아니면 ConfigException", () => {
+            jest.spyOn(configService, 'get').mockImplementation(() => 'not_a_bool')
 
-        const value = service.getBoolean('TEST_KEY')
-        expect(value).toBe(true)
-    })
-
-    it('값이 "false"일 때, 올바른 bool값을 반환해야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => 'false')
-
-        const value = service.getBoolean('TEST_KEY')
-        expect(value).toBe(false)
-    })
-
-    it('값이 없을 때, ConfigException을 발생시켜야 한다 (bool)', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => undefined)
-
-        expect(() => service.getBoolean('TEST_KEY')).toThrow(ConfigException)
-    })
-
-    it('값이 true/false가 아닐 때, ConfigException을 발생시켜야 한다', () => {
-        jest.spyOn(configService, 'get').mockImplementation(() => 'not_a_bool')
-
-        expect(() => service.getBoolean('TEST_KEY')).toThrow(ConfigException)
+            expect(() => service.getBoolean('TEST_KEY')).toThrow(ConfigException)
+        })
     })
 })

@@ -1,106 +1,89 @@
 import { TestingModule } from '@nestjs/testing'
-import { TransactionException } from 'src/common/exceptions'
 import { createTestModule } from '../../test'
 import { TransactionService } from '../transaction.service'
-import { SampleRepository, SamplesModule } from './base.repository.fixture'
+import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
 describe('TransactionService', () => {
-    let repository: SampleRepository
     let module: TestingModule
     let transactionService: TransactionService
+    let sampleRepository: SampleRepository
+    let entityCandidate: Sample
 
     beforeEach(async () => {
         module = await createTestModule({
             imports: [SamplesModule]
         })
 
-        repository = module.get(SampleRepository)
         transactionService = await module.resolve(TransactionService)
+        sampleRepository = module.get(SampleRepository)
+        entityCandidate = sampleRepository.createCandidate({ name: 'New Seed' })
     })
 
     afterEach(async () => {
         if (module) await module.close()
     })
 
-    it('commit transaction', async () => {
+    it('commit', async () => {
         let entityId = ''
 
-        await transactionService.execute(async (transaction) => {
-            const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-
-            const savedEntity = await transaction.create(entityCandidate)
+        await transactionService.execute(async (transactionRepository) => {
+            const savedEntity = await transactionRepository.create(entityCandidate)
 
             entityId = savedEntity.id
         })
 
-        const entity = await repository.findById(entityId)
+        const entity = await sampleRepository.findById(entityId)
 
         expect(entity).toBeDefined()
     })
 
-    it('rollback transaction', async () => {
+    it('rollback', async () => {
         let entityId = ''
 
-        await transactionService.execute(async (transaction) => {
-            const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-
-            const savedEntity = await transaction.create(entityCandidate)
+        await transactionService.execute(async (transactionRepository) => {
+            const savedEntity = await transactionRepository.create(entityCandidate)
 
             entityId = savedEntity.id
 
-            transaction.rollback()
+            transactionRepository.rollback()
         })
 
-        const entity = await repository.findById(entityId)
+        const entity = await sampleRepository.findById(entityId)
 
         expect(entity).toBeNull()
     })
 
-    it('update transaction', async () => {
+    it('update entity', async () => {
         let entityId = ''
 
-        await transactionService.execute(async (transaction) => {
-            const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-
-            const savedEntity = await transaction.create(entityCandidate)
+        await transactionService.execute(async (transactionRepository) => {
+            const savedEntity = await transactionRepository.create(entityCandidate)
             savedEntity.name = 'Updated Seed'
 
             entityId = savedEntity.id
 
-            await transaction.update(savedEntity)
+            await transactionRepository.update(savedEntity)
         })
 
-        const entity = await repository.findById(entityId)
+        const entity = await sampleRepository.findById(entityId)
 
         expect(entity?.name).toEqual('Updated Seed')
     })
 
-    it('remove transaction', async () => {
+    it('remove entity', async () => {
         let entityId = ''
 
-        await transactionService.execute(async (transaction) => {
-            const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-
-            const savedEntity = await transaction.create(entityCandidate)
+        await transactionService.execute(async (transactionRepository) => {
+            const savedEntity = await transactionRepository.create(entityCandidate)
             savedEntity.name = 'Updated Seed'
 
             entityId = savedEntity.id
 
-            await transaction.remove(savedEntity)
+            await transactionRepository.remove(savedEntity)
         })
 
-        const entity = await repository.findById(entityId)
+        const entity = await sampleRepository.findById(entityId)
 
         expect(entity).toBeNull()
-    })
-
-    it('should throw an error if trying to save or remove entity while transaction is not active', async () => {
-        let transactionRepository = {} as any
-
-        await transactionService.execute(async (transaction) => {
-            transactionRepository = transaction
-        })
-
-        await expect(transactionRepository.remove({} as any)).rejects.toThrow(TransactionException)
     })
 })
