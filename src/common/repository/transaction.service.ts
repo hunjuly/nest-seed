@@ -3,11 +3,6 @@ import { DataSource, QueryRunner } from 'typeorm'
 import { LogicException, TransactionException } from '../exceptions'
 import { AggregateRoot } from './aggregate-root'
 
-/**
- * Scope.REQUEST
- * Scope.TRANSIENT
- * 각각의 방법으로 구현하고 문제점을 알아보자.
- */
 @Injectable()
 export class TransactionService {
     constructor(private dataSource: DataSource) {}

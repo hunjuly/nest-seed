@@ -27,7 +27,7 @@ describe('CacheService', () => {
         cacheManager = module.get<Cache>(CACHE_MANAGER)
     })
 
-    it('캐시에 값을 설정하고, 같은 값을 다시 가져와야 합니다.', async () => {
+    it('캐시에 값을 설정한다', async () => {
         const key = 'key'
         const value = 'value'
         jest.spyOn(cacheManager, 'set').mockResolvedValueOnce(undefined)
@@ -39,7 +39,7 @@ describe('CacheService', () => {
         expect(fetchedValue).toEqual(value)
     })
 
-    it('캐시에서 값을 삭제하면, 해당 키로 값을 가져올 수 없어야 합니다.', async () => {
+    it('캐시에서 값을 삭제한다', async () => {
         const key = 'key'
         jest.spyOn(cacheManager, 'del').mockResolvedValueOnce(undefined)
         jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(undefined)
@@ -50,7 +50,7 @@ describe('CacheService', () => {
         expect(fetchedValue).toBeUndefined()
     })
 
-    it('만료 시간이 1000ms 보다 작으면 예외를 던져야 합니다.', async () => {
+    it('만료 시간이 1000ms 보다 작으면 ConfigException', async () => {
         const key = 'key'
         const value = 'value'
         const expireSeconds = 0.5 // 500ms
@@ -58,7 +58,7 @@ describe('CacheService', () => {
         await expect(cacheService.set(key, value, expireSeconds)).rejects.toThrow(ConfigException)
     })
 
-    it('만료 시간이 0 이하이면 예외를 던져야 합니다.', async () => {
+    it('만료 시간이 0 이하이면 ConfigException', async () => {
         const key = 'key'
         const value = 'value'
         const expireSeconds = -1

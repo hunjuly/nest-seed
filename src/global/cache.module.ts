@@ -18,11 +18,11 @@ import { CacheService, ConfigException, SafeConfigService } from 'src/common'
                     return {
                         store: redisStore,
                         host,
-                        port,
-                        ttl: 0 //기본값이 5라서 반드시 지정해야 한다.
+                        port
+                        // ttl: 기본값은 5
                     }
                 } else if (type === 'memory') {
-                    return { ttl: 0 }
+                    return {}
                 }
 
                 throw new ConfigException(`${type} unknown CACHE_TYPE`)

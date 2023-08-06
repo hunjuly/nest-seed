@@ -2,8 +2,8 @@ import { compare, hash } from 'bcrypt'
 import { LogicException } from '../exceptions'
 import { Coordinate } from '../types'
 
-export async function sleep(timeout: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, timeout))
+export async function sleep(timeoutInMS: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, timeoutInMS))
 }
 
 export function generateUUID() {

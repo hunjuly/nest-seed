@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, LogicException, hashPassword, updateIntersection, validatePassword } from 'src/common'
+import { Assert, hashPassword, updateIntersection } from 'src/common'
 import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto'
 import { User } from './entities'
 import { UsersRepository } from './users.repository'
@@ -44,17 +44,9 @@ export class UsersService {
     async getUser(userId: string): Promise<User> {
         const user = await this.usersRepository.findById(userId)
 
-        if (!user) {
-            throw new LogicException(`User with ID ${userId} not found`)
-        }
+        Assert.defined(user, `User with ID ${userId} not found`)
 
-        return user
-    }
-
-    async findUserByEmail(email: string): Promise<User | null> {
-        const user = await this.usersRepository.findByEmail(email)
-
-        return user
+        return user as User
     }
 
     async updateUser(userId: string, updateUserDto: UpdateUserDto) {
@@ -73,9 +65,5 @@ export class UsersService {
         const user = await this.getUser(userId)
 
         await this.usersRepository.remove(user)
-    }
-
-    async validateUser(plainPassword: string, hashedPassword: string): Promise<boolean> {
-        return validatePassword(plainPassword, hashedPassword)
     }
 }

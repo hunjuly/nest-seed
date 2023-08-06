@@ -13,9 +13,9 @@ export class CacheService implements OnModuleDestroy {
     }
 
     async set(key: string, value: string, expireSeconds?: number | undefined): Promise<void> {
+        // 만료 시간이 0이면 만료 시간이 없는 것이다
         const expireMiliseconds = expireSeconds ? expireSeconds * 1000 : 0
 
-        // 만료 시간이 0이면 만료 시간을 설정하지 않습니다.
         if (0 < expireMiliseconds && expireMiliseconds < 1000) {
             throw new ConfigException('expireSeconds must be greater than 1000ms')
         } else if (expireMiliseconds < 0) {

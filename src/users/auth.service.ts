@@ -1,28 +1,27 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as jwt from 'jsonwebtoken'
-import { CacheService, convertTimeToSeconds, notUsed } from 'src/common'
+import { CacheService, convertTimeToSeconds, notUsed, validatePassword } from 'src/common'
 import { User } from 'src/users/entities'
-import { UsersService } from 'src/users/users.service'
 import { v4 as uuidv4 } from 'uuid'
 import { JwtPayload, TokenPayload } from './interfaces'
 import { AuthConfigService } from './services'
+import { UsersRepository } from './users.repository'
 
 @Injectable()
 export class AuthService {
     constructor(
-        // TODO usersRepository로 변경
-        private readonly usersService: UsersService,
+        private usersRepository: UsersRepository,
         private readonly jwtService: JwtService,
         private readonly config: AuthConfigService,
         private readonly cache: CacheService
     ) {}
 
-    async getUser(email: string, password: string): Promise<User | null> {
-        const user = await this.usersService.findUserByEmail(email)
+    async validateUser(email: string, password: string): Promise<User | null> {
+        const user = await this.usersRepository.findByEmail(email)
 
         if (user) {
-            const valid = await this.usersService.validateUser(password, user.password)
+            const valid = await validatePassword(password, user.password)
 
             if (valid) {
                 return user
@@ -37,15 +36,12 @@ export class AuthService {
         const { id: userId, email } = user
 
         const tokenPayload = { userId, email }
-
         const tokenPair = await this.generateTokenPair(tokenPayload)
 
         return tokenPair
     }
 
     async refreshTokenPair(refreshToken: string) {
-        // refreshTokenPair이 실패한다고 해서 internal server 에러는 아니다.
-        // 사용자 입력이 잘못된 것이기 때문에 Expect.xxx로 검증하지 않는다.
         const decoded = this.decodeToken(refreshToken, this.config.refreshSecret)
 
         if (decoded) {

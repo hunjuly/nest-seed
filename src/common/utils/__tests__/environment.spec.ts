@@ -1,8 +1,19 @@
-import { isDevelopment, isProduction } from '../environment'
+import { isProduction, isDevelopment, envFilename, addItemInDevelopment } from '../environment'
 
-it('common/utils/env', () => {
-    const dev = isDevelopment()
-    const prod = isProduction()
+describe('environment', () => {
+    it('NODE_ENV=production', () => {
+        process.env.NODE_ENV = 'production'
 
-    expect(dev || prod).toBeTruthy()
+        expect(isProduction()).toEqual(true)
+        expect(envFilename()).toEqual('.env.production')
+        expect(addItemInDevelopment(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b'])
+    })
+
+    it('NODE_ENV=development', () => {
+        process.env.NODE_ENV = 'development'
+
+        expect(isDevelopment()).toEqual(true)
+        expect(envFilename()).toEqual('.env.development')
+        expect(addItemInDevelopment(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b', 'c', 'd'])
+    })
 })

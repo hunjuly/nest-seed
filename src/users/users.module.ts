@@ -10,7 +10,6 @@ import { PassportModule } from '@nestjs/passport'
 import { AuthService } from './auth.service'
 import { AuthConfigService } from './services'
 import { LocalStrategy, JwtStrategy } from './strategies'
-import { AuthController } from './auth.controller'
 
 function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
     return {
@@ -39,7 +38,7 @@ function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
         JwtModule.registerAsync(getJwtModuleAsyncOption('refresh')),
         JwtModule.registerAsync(getJwtModuleAsyncOption('access'))
     ],
-    controllers: [UsersController, AuthController],
+    controllers: [UsersController],
     providers: [
         UsersService,
         UsersRepository,

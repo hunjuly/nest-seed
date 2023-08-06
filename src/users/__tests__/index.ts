@@ -1,1 +1,1 @@
-export * from './users.test-utils'
+export * from './users.mocks'
