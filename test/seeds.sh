@@ -1,6 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-. ./@config.sh
+. ./common.cfg
 
 # 새로운 seed 생성
 res=$(

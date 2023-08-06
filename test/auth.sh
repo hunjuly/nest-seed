@@ -1,6 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-. ./@config.sh
+. ./common.cfg
 
 res=$(
     POST /users \
