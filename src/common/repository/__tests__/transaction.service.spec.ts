@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { LogicException, TransactionException } from 'src/common/exceptions'
+import { TransactionException } from 'src/common/exceptions'
 import { createTestModule } from '../../test'
 import { TransactionService } from '../transaction.service'
 import { SampleRepository, SamplesModule } from './base.repository.fixture'
@@ -92,40 +92,6 @@ describe('TransactionService', () => {
         const entity = await repository.findById(entityId)
 
         expect(entity).toBeNull()
-    })
-
-    it('should throw an error if trying to create entity with an id', async () => {
-        const result = async () =>
-            transactionService.execute(async (transaction) => {
-                const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-                entityCandidate.id = '123'
-
-                await transaction.create(entityCandidate)
-            })
-
-        await expect(result).rejects.toThrow(LogicException)
-    })
-
-    it('should throw an error if trying to update entity without an id', async () => {
-        const result = async () =>
-            transactionService.execute(async (transaction) => {
-                const entityCandidate = repository.createCandidate({ name: 'New Seed' })
-
-                await transaction.update(entityCandidate)
-            })
-
-        await expect(result).rejects.toThrow(LogicException)
-    })
-
-    it('should throw error if invalid entity type on save', async () => {
-        const result = async () =>
-            transactionService.execute(async (transaction) => {
-                const entityCandidate = { wrong: 'entity' }
-
-                await transaction.create(entityCandidate as any)
-            })
-
-        await expect(result).rejects.toThrow(LogicException)
     })
 
     it('should throw an error if trying to save or remove entity while transaction is not active', async () => {

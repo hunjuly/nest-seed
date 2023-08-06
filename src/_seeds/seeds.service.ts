@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, LogicException, updateIntersection } from 'src/common'
+import { Assert, updateIntersection } from 'src/common'
 import { CreateSeedDto, SeedsQueryDto, UpdateSeedDto } from './dto'
 import { Seed } from './entities'
 import { SeedsRepository } from './seeds.repository'
@@ -29,11 +29,9 @@ export class SeedsService {
     async getSeed(seedId: string): Promise<Seed> {
         const seed = await this.seedsRepository.findById(seedId)
 
-        if (!seed) {
-            throw new LogicException(`Seed(${seedId}) not found`)
-        }
+        Assert.defined(seed, `Seed(${seedId}) not found`)
 
-        return seed
+        return seed as Seed
     }
 
     async updateSeed(seedId: string, updateSeedDto: UpdateSeedDto) {

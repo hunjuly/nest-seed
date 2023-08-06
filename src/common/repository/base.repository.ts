@@ -1,5 +1,5 @@
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { LogicException } from '../exceptions'
+import { Assert } from '../assert'
 import { PaginationOptions } from '../pagination'
 import { AggregateRoot } from './aggregate-root'
 
@@ -7,9 +7,7 @@ export abstract class BaseRepository<T extends AggregateRoot> {
     constructor(protected typeorm: Repository<T>) {}
 
     createCandidate(entityData: DeepPartial<T>): T {
-        if (entityData.id) {
-            throw new LogicException('EntityData already has an id')
-        }
+        Assert.undefined(entityData.id, `EntityData already has an id${entityData.id}`)
 
         const createdEntity = this.typeorm.create(entityData)
 
@@ -24,9 +22,7 @@ export abstract class BaseRepository<T extends AggregateRoot> {
     }
 
     async update(entity: T): Promise<T> {
-        if (!entity.id) {
-            throw new LogicException("Entity doesn't have id")
-        }
+        Assert.defined(entity.id, "Entity doesn't have id")
 
         return this.typeorm.save(entity)
     }

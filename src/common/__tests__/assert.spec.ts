@@ -41,4 +41,14 @@ describe('Assert', () => {
             expect(() => Assert.defined(value, 'Value is not defined')).toThrow(LogicException)
         })
     })
+
+    describe('truthy', () => {
+        it('should not throw an error when value is defined', () => {
+            expect(() => Assert.truthy(true, 'Value is not defined')).not.toThrow()
+        })
+
+        it('should throw a LogicException when value is not defined', () => {
+            expect(() => Assert.truthy(false, 'Value is not defined')).toThrow(LogicException)
+        })
+    })
 })

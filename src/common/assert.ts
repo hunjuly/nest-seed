@@ -19,4 +19,16 @@ export class Assert {
             throw new LogicException(message)
         }
     }
+
+    static undefined(value: any, message: string) {
+        if (value) {
+            throw new LogicException(message)
+        }
+    }
+
+    static truthy(value: any, message: string) {
+        if (!value) {
+            throw new LogicException(message)
+        }
+    }
 }

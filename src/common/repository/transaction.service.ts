@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, QueryRunner } from 'typeorm'
-import { LogicException, TransactionException } from '../exceptions'
+import { Assert } from '../assert'
+import { TransactionException } from '../exceptions'
 import { AggregateRoot } from './aggregate-root'
 
 @Injectable()
@@ -57,17 +58,13 @@ export class TransactionRepository {
     }
 
     async create<T extends AggregateRoot>(entity: T): Promise<T> {
-        if (entity.id) {
-            throw new LogicException('EntityData already has an id')
-        }
+        Assert.undefined(entity.id, `EntityData already has an id${entity.id}`)
 
         return this.save(entity)
     }
 
     async update<T extends AggregateRoot>(entity: T): Promise<T> {
-        if (!entity.id) {
-            throw new LogicException("Entity doesn't have id")
-        }
+        Assert.defined(entity.id, "Entity doesn't have id")
 
         return this.save(entity)
     }
@@ -78,9 +75,7 @@ export class TransactionRepository {
             throw new TransactionException('Transaction is not active')
         }
 
-        if (!(entity instanceof AggregateRoot)) {
-            throw new LogicException('Invalid entity type')
-        }
+        Assert.truthy(entity instanceof AggregateRoot, 'Invalid entity type')
 
         return this.queryRunner.manager.save(entity)
     }

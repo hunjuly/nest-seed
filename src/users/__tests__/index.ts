@@ -1,1 +1,1 @@
-export * from './users.mocks'
+export * from './user.mocks'

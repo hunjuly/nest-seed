@@ -96,7 +96,13 @@ $ npm run start:prod
 
 [해당 문서](./docs/guides/design.guide.md)
 
+###
+
 UsersModule과 AuthModule로 분리되어 있었다. 그러나 만약 User의 종류가 둘이 된다면 Auth의 종류도 그에 맞게 생겨야 한다. 그리고 AuthModule로 분리해서 생기는 장점이 크지 않다.
+
+###
+
+LogicException은 가능한 Assert.\*으로 처리하고 테스트를 만들지 않는다.
 
 ## 테스트 작성 지침
 

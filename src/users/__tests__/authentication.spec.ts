@@ -1,12 +1,12 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
+import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { GlobalModule } from 'src/global'
 import { createUserDto } from 'src/users/__tests__'
 import { User } from '../entities'
 import { UsersModule } from '../users.module'
-import { sleep } from 'src/common'
 
 jest.mock('../services/auth-config.service', () => {
     return {

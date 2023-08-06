@@ -66,7 +66,7 @@ export function convertTimeToSeconds(timeString: string): number {
             case 'd':
                 multiplier = 86400
                 break
-            // 이건 mock이나 spy로 테스트하기 어려워서 무시합니다.
+            // 이건 mock이나 spy로 테스트하기 어려워서 무시한다
             /* istanbul ignore next */
             default:
                 throw new LogicException("Invalid time unit. It should be one of 's', 'm', 'h', 'd'")

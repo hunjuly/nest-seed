@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'src/app.module'
 import { createHttpTestModule } from 'src/common/test'
 
-describe('AppController (e2e)', () => {
+describe('AppModule', () => {
     let module: TestingModule
     let request: any
 

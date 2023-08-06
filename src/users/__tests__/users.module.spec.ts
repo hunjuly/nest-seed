@@ -5,7 +5,7 @@ import { GlobalModule } from 'src/global'
 import { User } from '../entities'
 import { JwtAuthGuard, LocalAuthGuard } from '../guards'
 import { UsersModule } from '../users.module'
-import { createUserDto, createUserDtos, createdUser, createdUsers } from './users.mocks'
+import { createUserDto, createUserDtos, createdUser, createdUsers } from './user.mocks'
 
 describe('UsersModule', () => {
     let module: TestingModule
@@ -41,7 +41,7 @@ describe('UsersModule', () => {
             expect(res.body).toMatchObject(createdUser)
         })
 
-        it('필수 항목이 누락되었을 때 400(Bad request)을 반환한다', async () => {
+        it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
             const res = await request.post({
                 url: '/users',
                 body: {}
@@ -71,7 +71,7 @@ describe('UsersModule', () => {
             expect(res.body.items).toMatchObject(createdUsers)
         })
 
-        it('email 검색으로 user를 반환한다', async () => {
+        it('email로 user를 검색한다', async () => {
             const res = await request.get({
                 url: '/users',
                 query: {
@@ -101,7 +101,7 @@ describe('UsersModule', () => {
             expect(user.id).toBeDefined()
         })
 
-        it('이미 존재하는 email로 user 생성을 하면 CONFLICT(409) 반환한다', async () => {
+        it('이미 존재하는 email로 user 생성을 하면 CONFLICT(409)', async () => {
             const res = await request.post({
                 url: '/users',
                 body: createUserDto
@@ -121,7 +121,7 @@ describe('UsersModule', () => {
                 expect(res.body.password).toBeUndefined()
             })
 
-            it('user를 찾지 못한 경우 NOT_FOUND(404) 반환한다', async () => {
+            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
                     url: `/users/${nullUUID}`
                 })
@@ -143,7 +143,7 @@ describe('UsersModule', () => {
                 expect(res.body).toEqual({ ...user, ...updateInfo })
             })
 
-            it('잘못된 업데이트 항목은 BAD_REQUEST(400) 반환한다.', async () => {
+            it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await request.patch({
                     url: `/users/${user.id}`,
                     body: {
@@ -154,7 +154,7 @@ describe('UsersModule', () => {
                 expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('user를 찾지 못한 경우 NOT_FOUND(404) 반환한다', async () => {
+            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
                     url: `/users/${nullUUID}`,
                     body: {
@@ -175,7 +175,7 @@ describe('UsersModule', () => {
                 expect(res.statusCode).toEqual(HttpStatus.OK)
             })
 
-            it('user를 찾지 못한 경우 NOT_FOUND(404) 반환한다', async () => {
+            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
                     url: `/users/${nullUUID}`
                 })
