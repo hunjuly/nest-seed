@@ -1,4 +1,4 @@
-import { Coordinate } from '../../types'
+import { Coordinate } from '../../interfaces'
 import {
     addQuotesToNumbers,
     convertTimeToSeconds,

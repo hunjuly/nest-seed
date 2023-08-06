@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt'
 import { LogicException } from '../exceptions'
-import { Coordinate } from '../types'
+import { Coordinate } from '../interfaces'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, timeoutInMS))

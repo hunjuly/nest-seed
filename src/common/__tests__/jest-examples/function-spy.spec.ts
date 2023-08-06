@@ -1,4 +1,3 @@
-// myModule.test.ts
 import axios from 'axios'
 import * as myModule from './function-spy'
 
