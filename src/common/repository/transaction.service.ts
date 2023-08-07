@@ -7,26 +7,34 @@ export class TransactionService {
     constructor(private dataSource: DataSource) {}
 
     async execute<T>(
-        operation: (repository: TransactionRepository) => Promise<T>,
-        transactionRepository?: TransactionRepository
+        task: (transactionRepository: TransactionRepository) => Promise<T>,
+        providedRepository?: TransactionRepository
+    ): Promise<T> {
+        let result: T
+
+        if (providedRepository) {
+            result = await task(providedRepository)
+        } else {
+            result = await this.startAndExecute(task)
+        }
+
+        return result
+    }
+
+    private async startAndExecute<T>(
+        task: (transactionRepository: TransactionRepository) => Promise<T>
     ): Promise<T> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {
-            let repository: TransactionRepository
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
 
-            if (transactionRepository) {
-                repository = transactionRepository
-            } else {
-                await queryRunner.connect()
-                await queryRunner.startTransaction()
+            const transactionRepository = new TransactionRepository(queryRunner)
 
-                repository = new TransactionRepository(queryRunner)
-            }
+            const result = await task(transactionRepository)
 
-            const result = await operation(repository)
-
-            if (repository.rollbackRequested) {
+            if (transactionRepository.rollbackRequested) {
                 await queryRunner.rollbackTransaction()
             } else {
                 await queryRunner.commitTransaction()

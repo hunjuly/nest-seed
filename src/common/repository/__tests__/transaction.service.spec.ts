@@ -86,4 +86,14 @@ describe('TransactionService', () => {
 
         expect(entity).toBeNull()
     })
+
+    it('provide TransactionRepository', async () => {
+        await transactionService.execute(async (transactionRepository) => {
+            transactionService.execute(async (providedRepository) => {
+                // await providedRepository.create(entityCandidate)
+
+                expect(transactionRepository).toEqual(providedRepository)
+            })
+        })
+    })
 })
