@@ -6,14 +6,23 @@ import { TransactionRepository } from './transaction.repository'
 export class TransactionService {
     constructor(private dataSource: DataSource) {}
 
-    async execute<T>(operation: (repository: TransactionRepository) => Promise<T>): Promise<T> {
+    async execute<T>(
+        operation: (repository: TransactionRepository) => Promise<T>,
+        transactionRepository?: TransactionRepository
+    ): Promise<T> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {
-            await queryRunner.connect()
-            await queryRunner.startTransaction()
+            let repository: TransactionRepository
 
-            const repository = new TransactionRepository(queryRunner)
+            if (transactionRepository) {
+                repository = transactionRepository
+            } else {
+                await queryRunner.connect()
+                await queryRunner.startTransaction()
+
+                repository = new TransactionRepository(queryRunner)
+            }
 
             const result = await operation(repository)
 
