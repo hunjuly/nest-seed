@@ -5,15 +5,14 @@ import {
     coordinateDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
-    hashPassword,
+    Password,
     sleep,
-    updateIntersection,
-    validatePassword
+    updateIntersection
 } from '../etc'
 
 describe('common/utils/etc', () => {
     describe('sleep', () => {
-        it('should wait for the given time', async () => {
+        it('주어진 시간 동안 sleep한다', async () => {
             const start = Date.now()
             const timeout = 1000
 
@@ -28,33 +27,23 @@ describe('common/utils/etc', () => {
     })
 
     describe('generateUUID', () => {
-        it('should generate a UUID with the correct format', () => {
+        it('UUID를 생성한다', () => {
             const uuid = generateUUID()
             const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-
+            console.log(uuid)
             expect(uuid).toMatch(regex)
         })
 
-        it('should generate a different UUID every time', () => {
+        it('생성할 때 마다 UUID는 달라야 한다', () => {
             const uuid1 = generateUUID()
             const uuid2 = generateUUID()
 
             expect(uuid1).not.toEqual(uuid2)
         })
-
-        it('handles browsers without support for performance', () => {
-            ;(global as any).performance = undefined
-
-            const uuid1 = generateUUID()
-
-            delete (global as any).performance
-
-            expect(uuid1).toBeDefined()
-        })
     })
 
     describe('updateIntersection', () => {
-        it('should update the intersection of two objects', () => {
+        it('obj1, obj2의 공통된 항목을 obj1에 업데이트 한다', () => {
             const obj1 = { name: 'Alice', age: 30, address: '123 Main St' }
             const obj2 = { name: 'Bob', age: 25, phone: '555-5555' }
             const result = updateIntersection(obj1, obj2)
@@ -62,7 +51,7 @@ describe('common/utils/etc', () => {
             expect(result).toEqual({ name: 'Bob', age: 25, address: '123 Main St' })
         })
 
-        it('should return the first object if there is no intersection', () => {
+        it('obj1, obj2의 공통된 항목이 없으면 obj1을 반환한다', () => {
             const obj1 = { name: 'Alice', age: 30 }
             const obj2 = { phone: '555-5555', email: 'alice@example.com' }
             const result = updateIntersection(obj1, obj2)
@@ -72,67 +61,70 @@ describe('common/utils/etc', () => {
     })
 
     describe('convertTimeToSeconds', () => {
-        it('should convert 1d to 86400 seconds', () => {
-            const result = convertTimeToSeconds('1d')
-            expect(result).toBe(86400)
-        })
-
-        it('should convert 2h to 7200 seconds', () => {
-            const result = convertTimeToSeconds('2h')
-            expect(result).toBe(7200)
-        })
-
-        it('should convert 30m to 1800 seconds', () => {
+        it('30m === 1800', () => {
             const result = convertTimeToSeconds('30m')
             expect(result).toBe(1800)
         })
 
-        it('should convert 45s to 45 seconds', () => {
+        it('45s === 45', () => {
             const result = convertTimeToSeconds('45s')
             expect(result).toBe(45)
         })
 
-        it('should convert 1d 2h to 93600 seconds', () => {
+        it('1d === 86400', () => {
+            const result = convertTimeToSeconds('1d')
+            expect(result).toBe(86400)
+        })
+
+        it('2h === 7200', () => {
+            const result = convertTimeToSeconds('2h')
+            expect(result).toBe(7200)
+        })
+
+        it('1d 2h === 93600', () => {
             const result = convertTimeToSeconds('1d 2h')
             expect(result).toBe(93600)
         })
 
-        it('should throw an error if the input is invalid', () => {
+        it('1d2h === 93600', () => {
+            const result = convertTimeToSeconds('1d2h')
+            expect(result).toBe(93600)
+        })
+
+        it('형식에 맞지 않으면 Error', () => {
             expect(() => convertTimeToSeconds('invalid')).toThrowError('Invalid time string')
         })
     })
 
-    describe('hash', () => {
-        describe('hashPassword', () => {
-            it('should hash the password', async () => {
-                const password = 'password'
-                const hashedPassword = await hashPassword(password)
+    describe('Password', () => {
+        it('password를 hash한다', async () => {
+            const password = 'password'
+            const hashedPassword = await Password.hash(password)
 
-                expect(hashedPassword).not.toEqual(password)
-            })
+            expect(hashedPassword).not.toEqual(password)
         })
 
-        it('should return true for matching passwords', async () => {
+        it('password가 일치하면 true 반환', async () => {
             const password = 'password'
-            const hashedPassword = await hashPassword(password)
+            const hashedPassword = await Password.hash(password)
 
-            const isValidPassword = await validatePassword(password, hashedPassword)
+            const isValidPassword = await Password.validate(password, hashedPassword)
 
             expect(isValidPassword).toBe(true)
         })
 
-        it('should return false for non-matching passwords', async () => {
+        it('password가 일치하지 않으면 false 반환', async () => {
             const password = 'password'
-            const hashedPassword = await hashPassword(password)
+            const hashedPassword = await Password.hash(password)
 
-            const isValidPassword = await validatePassword('wrongpassword', hashedPassword)
+            const isValidPassword = await Password.validate('wrongpassword', hashedPassword)
 
             expect(isValidPassword).toBe(false)
         })
     })
 
     describe('coordinateDistanceInMeters', () => {
-        it('should correctly calculate the distance between two coordinates', () => {
+        it('두 좌표의 거리를 meter 단위로 계산한다', () => {
             // coordinates for Seoul, South Korea
             const seoul: Coordinate = {
                 latitude: 37.5665,
@@ -162,34 +154,37 @@ describe('common/utils/etc', () => {
     })
 
     describe('addQuotesToNumbers', () => {
-        it('64bit 정수를 올바르게 변환해야 한다', () => {
-            const text =
-                '[{"id":12345678901234567890,"_text_id":"12345678901234567890","scene_sid":"LGrP789","slug":1234, \
-    "scene_owned_file_id":22345678901234567890,"attributions":{"content": [], "creator": ""},"reviewed_at":null}]'
-
-            // 따옴표를 추가하여 처리
+        it('json문자열에서 64bit 정수를 문자열로 변환한다', () => {
+            const text = '[{"bit64":12345678901234567890}]'
             const processedText = addQuotesToNumbers(text)
-
             const data = JSON.parse(processedText)
 
-            expect(data[0].id).toBe('12345678901234567890')
+            expect(data[0].bit64).toBe('12345678901234567890')
+        })
+
+        it('json문자열에서 32bit 정수를 문자열로 변환한다', () => {
+            const text = '[{"bit32":123456}]'
+            const processedText = addQuotesToNumbers(text)
+            const data = JSON.parse(processedText)
+
+            expect(data[0].bit32).toBe('123456')
         })
     })
 
     describe('equalsIgnoreCase', () => {
-        it('should return true for two strings that are equal except for case', () => {
+        it('대소문자가 다른 두 문자열은 true를 반환한다', () => {
             const isEqual = equalsIgnoreCase('hello', 'HELLO')
 
             expect(isEqual).toBeTruthy()
         })
 
-        it('should return false for two strings that are not equal', () => {
+        it('두 문자열이 다르면 false를 반환한다', () => {
             const isEqual = equalsIgnoreCase('hello', 'world')
 
             expect(isEqual).toBeFalsy()
         })
 
-        it('should return false for undefined', () => {
+        it('두 입력값이 undefined면 false를 리턴한다', () => {
             const isEqual = equalsIgnoreCase(undefined, undefined)
 
             expect(isEqual).toBeFalsy()

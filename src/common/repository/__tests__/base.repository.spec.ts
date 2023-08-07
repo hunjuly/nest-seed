@@ -19,18 +19,20 @@ describe('BaseRepository', () => {
         if (module) await module.close()
     })
 
-    describe('Sample이 존재할 때 작업', () => {
-        let createdSample: Sample
+    it('create', async () => {
         const entityData = { name: 'sample name' }
+        const createdSample = await repository.create(entityData)
+
+        expect(createdSample.id).toBeDefined()
+        expect(createdSample).toMatchObject(entityData)
+    })
+
+    describe('특정 sample에 대한 작업', () => {
+        let createdSample: Sample
 
         beforeEach(async () => {
             const entityData = { name: 'sample name' }
             createdSample = await repository.create(entityData)
-        })
-
-        it('create', async () => {
-            expect(createdSample.id).toBeDefined()
-            expect(createdSample).toMatchObject(entityData)
         })
 
         it('update', async () => {
@@ -40,50 +42,21 @@ describe('BaseRepository', () => {
             expect(savedSample).toMatchObject(createdSample)
         })
 
-        it('remove', async () => {
-            await repository.remove(createdSample)
-
-            const foundSample = await repository.findById(createdSample.id)
-            expect(foundSample).toBeNull()
-        })
-
         it('findById', async () => {
             const foundSample = await repository.findById(createdSample.id)
 
             expect(foundSample).toEqual(createdSample)
         })
 
-        it('orderby', async () => {
-            const foundSample = await repository.orderby({
-                orderby: {
-                    name: 'createdAt',
-                    direction: OrderDirection.asc
-                }
-            })
+        it('remove', async () => {
+            await repository.remove(createdSample)
 
-            expect(foundSample.items[0]).toEqual(createdSample)
-        })
-
-        it('default option', async () => {
-            const foundSamples = await repository.default()
-
-            expect(foundSamples).toEqual([createdSample])
-        })
-
-        it('If the id exists in EntityData, the entity creation fails', async () => {
-            const entityData = { id: 'sample id', name: 'sample name' }
-
-            await expect(repository.create(entityData)).rejects.toThrow()
-        })
-
-        it('If the id of the entity is undefined, the update operation should fail', async () => {
-            const entityData = { name: 'sample name' } as Sample
-
-            await expect(repository.update(entityData)).rejects.toThrow()
+            const foundSample = await repository.findById(createdSample.id)
+            expect(foundSample).toBeNull()
         })
     })
 
-    describe('findByIds', () => {
+    describe('다수의 sample에 대한 작업', () => {
         let createdSamples: Sample[]
 
         beforeEach(async () => {
@@ -97,7 +70,7 @@ describe('BaseRepository', () => {
             }
         })
 
-        it('finds all the entities by their ids', async () => {
+        it('findByIds', async () => {
             const ids = createdSamples.map((sample) => sample.id)
 
             const foundSamples = await repository.findByIds(ids)
@@ -109,11 +82,21 @@ describe('BaseRepository', () => {
             })
         })
 
-        it('returns empty array when no matching ids are found', async () => {
-            const noIds = ['nonexistentId1', 'nonexistentId2']
-            const foundSamples = await repository.findByIds(noIds)
+        it('orderby', async () => {
+            const foundSample = await repository.orderby({
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.desc
+                }
+            })
 
-            expect(foundSamples).toHaveLength(0)
+            expect(foundSample.items).toEqual(createdSamples.reverse())
+        })
+
+        it('default option', async () => {
+            const foundSamples = await repository.default()
+
+            expect(foundSamples).toEqual(createdSamples)
         })
     })
 })

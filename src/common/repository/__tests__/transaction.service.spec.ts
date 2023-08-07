@@ -53,7 +53,7 @@ describe('TransactionService', () => {
         expect(entity).toBeNull()
     })
 
-    it('update entity', async () => {
+    it('entity create/update', async () => {
         let entityId = ''
 
         await transactionService.execute(async (transactionRepository) => {
@@ -70,7 +70,7 @@ describe('TransactionService', () => {
         expect(entity?.name).toEqual('Updated Seed')
     })
 
-    it('remove entity', async () => {
+    it('entity remove', async () => {
         let entityId = ''
 
         await transactionService.execute(async (transactionRepository) => {

@@ -1,4 +1,6 @@
 import { compare, hash } from 'bcrypt'
+import { randomUUID } from 'crypto'
+
 import { LogicException } from '../exceptions'
 import { Coordinate } from '../interfaces'
 
@@ -7,25 +9,7 @@ export async function sleep(timeoutInMS: number): Promise<void> {
 }
 
 export function generateUUID() {
-    // Public Domain/MIT
-    let d = new Date().getTime() //Timestamp
-    let d2 = (typeof performance !== 'undefined' && performance.now && performance.now() * 1000) || 0 //Time in microseconds since page-load or 0 if unsupported
-
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        let r = Math.random() * 16 //random number between 0 and 16
-
-        if (d > 0) {
-            //Use timestamp until depleted
-            r = (d + r) % 16 | 0
-            d = Math.floor(d / 16)
-        } else {
-            //Use microseconds since page-load if supported
-            r = (d2 + r) % 16 | 0
-            d2 = Math.floor(d2 / 16)
-        }
-
-        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
-    })
+    return randomUUID()
 }
 
 export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
@@ -78,19 +62,6 @@ export function convertTimeToSeconds(timeString: string): number {
     return times.reduce((prev, curr) => prev + curr, 0)
 }
 
-export function notUsed(_message?: string) {}
-
-export async function hashPassword(password: string): Promise<string> {
-    const saltRounds = 10
-
-    const hashedPassword = await hash(password, saltRounds)
-    return hashedPassword
-}
-
-export async function validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    return compare(plainPassword, hashedPassword)
-}
-
 /**
  * 숫자 값을 따옴표로 감싸는 함수
  * 64bit 정수가 json으로 오면 BigInt가 아니라 number로 처리하기 때문에 정확한 값을 얻을 수 없다.
@@ -130,4 +101,19 @@ export function equalsIgnoreCase(str1: any, str2: any): boolean {
     }
 
     return false
+}
+
+export function notUsed(_message?: string) {}
+
+export class Password {
+    static async hash(password: string): Promise<string> {
+        const saltRounds = 10
+
+        const hashedPassword = await hash(password, saltRounds)
+        return hashedPassword
+    }
+
+    static validate(plainPassword: string, hashedPassword: string): Promise<boolean> {
+        return compare(plainPassword, hashedPassword)
+    }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, hashPassword, updateIntersection } from 'src/common'
+import { Assert, Password, updateIntersection } from 'src/common'
 import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto'
 import { User } from './entities'
 import { UsersRepository } from './users.repository'
@@ -11,7 +11,7 @@ export class UsersService {
     async createUser(createUserDto: CreateUserDto) {
         const { password } = createUserDto
 
-        const hashedPassword = await hashPassword(password)
+        const hashedPassword = await Password.hash(password)
 
         const createUser = {
             ...createUserDto,

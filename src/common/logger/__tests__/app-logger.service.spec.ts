@@ -4,6 +4,7 @@ import { AppLoggerService } from '../app-logger.service'
 describe('AppLoggerService', () => {
     let appLoggerService: AppLoggerService
     let winstonLogger: winston.Logger
+    const message = 'test message'
 
     beforeEach(() => {
         winstonLogger = winston.createLogger({
@@ -19,33 +20,38 @@ describe('AppLoggerService', () => {
         winstonLogger.close()
     })
 
-    it('정보 메시지를 로깅해야 합니다.', () => {
+    it('info', () => {
         const spy = jest.spyOn(winstonLogger, 'info')
-        appLoggerService.log('테스트 정보 메시지')
-        expect(spy).toHaveBeenCalledWith('테스트 정보 메시지', [])
+        appLoggerService.log(message)
+
+        expect(spy).toHaveBeenCalledWith(message, [])
     })
 
-    it('오류 메시지를 로깅해야 합니다.', () => {
+    it('error', () => {
         const spy = jest.spyOn(winstonLogger, 'error')
-        appLoggerService.error('테스트 오류 메시지')
-        expect(spy).toHaveBeenCalledWith('테스트 오류 메시지', [])
+        appLoggerService.error(message)
+
+        expect(spy).toHaveBeenCalledWith(message, [])
     })
 
-    it('경고 메시지를 로깅해야 합니다.', () => {
+    it('warn', () => {
         const spy = jest.spyOn(winstonLogger, 'warn')
-        appLoggerService.warn('테스트 경고 메시지')
-        expect(spy).toHaveBeenCalledWith('테스트 경고 메시지', [])
+        appLoggerService.warn(message)
+
+        expect(spy).toHaveBeenCalledWith(message, [])
     })
 
-    it('디버그 메시지를 로깅해야 합니다.', () => {
+    it('debug', () => {
         const spy = jest.spyOn(winstonLogger, 'debug')
-        appLoggerService.debug('테스트 디버그 메시지')
-        expect(spy).toHaveBeenCalledWith('테스트 디버그 메시지', [])
+        appLoggerService.debug(message)
+
+        expect(spy).toHaveBeenCalledWith(message, [])
     })
 
-    it('상세 메시지를 로깅해야 합니다.', () => {
+    it('verbose', () => {
         const spy = jest.spyOn(winstonLogger, 'verbose')
-        appLoggerService.verbose('테스트 상세 메시지')
-        expect(spy).toHaveBeenCalledWith('테스트 상세 메시지', [])
+        appLoggerService.verbose(message)
+
+        expect(spy).toHaveBeenCalledWith(message, [])
     })
 })

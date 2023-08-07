@@ -15,7 +15,7 @@ export class TypeormLogger implements ILogger {
     }
 
     logQuerySlow(runningTime: number, query: string, parameters?: any[], _queryRunner?: QueryRunner) {
-        Logger.warn('Detected slow database query', 'ORM', { query, parameters, runningTime })
+        Logger.warn('Slow Query', 'ORM', { query, parameters, runningTime })
     }
 
     logSchemaBuild(message: string, _queryRunner?: QueryRunner) {
@@ -26,7 +26,7 @@ export class TypeormLogger implements ILogger {
         Logger.log(message, 'ORM')
     }
 
-    log(level: 'warn' | 'info' | 'log', message: any, _queryRunner?: QueryRunner) {
+    log(level: 'warn' | 'info' | 'warn', message: any, _queryRunner?: QueryRunner) {
         if (level === 'warn') {
             Logger.warn(message, 'ORM')
         } else if (level === 'info' || level === 'log') {

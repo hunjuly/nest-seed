@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as jwt from 'jsonwebtoken'
-import { CacheService, convertTimeToSeconds, notUsed, validatePassword } from 'src/common'
+import { CacheService, Password, convertTimeToSeconds, notUsed } from 'src/common'
 import { User } from 'src/users/entities'
 import { v4 as uuidv4 } from 'uuid'
 import { JwtPayload, TokenPayload } from './interfaces'
@@ -21,7 +21,7 @@ export class AuthService {
         const user = await this.usersRepository.findByEmail(email)
 
         if (user) {
-            const valid = await validatePassword(password, user.password)
+            const valid = await Password.validate(password, user.password)
 
             if (valid) {
                 return user
