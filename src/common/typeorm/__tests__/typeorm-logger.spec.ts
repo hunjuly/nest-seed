@@ -70,10 +70,10 @@ describe('TypeormLogger', () => {
     })
 
     it('log', () => {
-        const message = 'Log message'
+        typeormLogger.log('warn', 'warn message')
+        typeormLogger.log('info', 'info message')
 
-        typeormLogger.log('warn', message)
-
-        expect(Logger.warn).toHaveBeenCalledWith(message, 'ORM')
+        expect(Logger.warn).toHaveBeenCalledWith('warn message', 'ORM')
+        expect(Logger.log).toHaveBeenCalledWith('info message', 'ORM')
     })
 })

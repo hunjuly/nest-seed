@@ -53,7 +53,7 @@ describe('TransactionService', () => {
         expect(entity).toBeNull()
     })
 
-    it('entity create/update', async () => {
+    it('create/update in transaction', async () => {
         let entityId = ''
 
         await transactionService.execute(async (transactionRepository) => {
@@ -70,7 +70,7 @@ describe('TransactionService', () => {
         expect(entity?.name).toEqual('Updated Seed')
     })
 
-    it('entity remove', async () => {
+    it('remove in transaction', async () => {
         let entityId = ''
 
         await transactionService.execute(async (transactionRepository) => {
@@ -85,15 +85,5 @@ describe('TransactionService', () => {
         const entity = await sampleRepository.findById(entityId)
 
         expect(entity).toBeNull()
-    })
-
-    it('provide TransactionRepository', async () => {
-        await transactionService.execute(async (transactionRepository) => {
-            transactionService.execute(async (providedRepository) => {
-                // await providedRepository.create(entityCandidate)
-
-                expect(transactionRepository).toEqual(providedRepository)
-            })
-        })
     })
 })

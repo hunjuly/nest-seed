@@ -6,24 +6,7 @@ import { TransactionRepository } from './transaction.repository'
 export class TransactionService {
     constructor(private dataSource: DataSource) {}
 
-    async execute<T>(
-        task: (transactionRepository: TransactionRepository) => Promise<T>,
-        providedRepository?: TransactionRepository
-    ): Promise<T> {
-        let result: T
-
-        if (providedRepository) {
-            result = await task(providedRepository)
-        } else {
-            result = await this.startAndExecute(task)
-        }
-
-        return result
-    }
-
-    private async startAndExecute<T>(
-        task: (transactionRepository: TransactionRepository) => Promise<T>
-    ): Promise<T> {
+    async execute<T>(task: (transactionRepository: TransactionRepository) => Promise<T>): Promise<T> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {
@@ -34,7 +17,7 @@ export class TransactionService {
 
             const result = await task(transactionRepository)
 
-            if (transactionRepository.rollbackRequested) {
+            if (transactionRepository.isRollbackRequested()) {
                 await queryRunner.rollbackTransaction()
             } else {
                 await queryRunner.commitTransaction()

@@ -32,6 +32,20 @@ describe('Assert', () => {
         })
     })
 
+    describe('undefined', () => {
+        it('값이 없어야 한다', () => {
+            const value = undefined
+
+            expect(() => Assert.undefined(value, 'error message')).not.toThrow()
+        })
+
+        it('값이 유효하면 LogicException', () => {
+            const value = 'test'
+
+            expect(() => Assert.undefined(value, 'error message')).toThrow(LogicException)
+        })
+    })
+
     describe('truthy', () => {
         it('값은 true여야 한다', () => {
             expect(() => Assert.truthy(true, 'error message')).not.toThrow()

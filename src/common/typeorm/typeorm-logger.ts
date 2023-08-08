@@ -26,10 +26,10 @@ export class TypeormLogger implements ILogger {
         Logger.log(message, 'ORM')
     }
 
-    log(level: 'warn' | 'info' | 'warn', message: any, _queryRunner?: QueryRunner) {
+    log(level: 'warn' | 'info', message: any, _queryRunner?: QueryRunner) {
         if (level === 'warn') {
             Logger.warn(message, 'ORM')
-        } else if (level === 'info' || level === 'log') {
+        } else if (level === 'info') {
             Logger.log(message, 'ORM')
         }
     }
