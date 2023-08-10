@@ -1,7 +1,8 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-. ./common.cfg$()
+. ./common.cfg
 
+set -ex
 # 새로운 사용자 생성
 # email (문자열): 사용자의 이메일
 # username (문자열): 사용자의 사용자명

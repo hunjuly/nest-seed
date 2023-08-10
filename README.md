@@ -119,6 +119,18 @@ e2e에 가까운 모듈 테스트를 작성해서 모듈 단위로 테스트를 
 
 테스트 코드는 반드시 완전한 e2e-test나 unit-test로 작성할 필요는 없다. 상황에 따라 어느 정도 균형을 맞춰야 한다.
 
+
+### stress test
+
+스트레스 테스트는 jmeter로 작성했다.
+
+1. ./test/stress/HTTPRequest.jmx에서 주소를 변경한다.
+
+```xml
+<stringProp name="HTTPSampler.domain">vscode-nestjs-seed</stringProp>
+```
+1. ./test/stress/run.sh 실행
+
 ## 주의사항
 
 -   axios는 테스트 용도다. 그래서 dependencies가 아니라 devDependencies에 있다.
