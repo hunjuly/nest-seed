@@ -6,14 +6,13 @@ cd ..
 VERSION=$(jq -r '.version' package.json)
 NAME=$(jq -r '.name' package.json)
 DOCKER_IMAGE="$NAME:$VERSION"
-NETWORK="--network $(basename $(pwd))"
 
 docker rm -f "$NAME" >/dev/null 2>&1
 
 # docker build -t $DOCKER_IMAGE .
 docker build -t nestjs-seed:1.0 https://github.com/hunjuly/nestjs-seed.git#main
 
-docker run --rm -d $NETWORK \
+docker run --rm -d --network $PROJECT_NAME \
     --name "$NAME" \
     --env-file .env.development \
     -e NODE_ENV=production \

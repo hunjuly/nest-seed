@@ -4,7 +4,6 @@ cd "$(dirname "$0")"
 cd ..
 . ./.env.development
 
-NETWORK="--network $(basename $(pwd))"
 POSTGRES_IMAGE="postgres:15-alpine3.18"
 
 start_postgresql() {
@@ -14,7 +13,7 @@ start_postgresql() {
         docker rm -f $TYPEORM_HOST >/dev/null 2>&1
 
         set +e
-        output=$(docker run --rm -d $NETWORK \
+        output=$(docker run --rm -d --network $PROJECT_NAME \
             --name $TYPEORM_HOST \
             -e POSTGRES_PASSWORD="postgres" \
             -p $port:5432 \

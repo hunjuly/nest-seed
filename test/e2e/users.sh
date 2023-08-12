@@ -1,45 +1,47 @@
 #!/bin/bash
+set -e
 cd "$(dirname "$0")"
 . ./common.cfg
 
-set -ex
-# 새로운 사용자 생성
-# email (문자열): 사용자의 이메일
-# username (문자열): 사용자의 사용자명
-# firstName (문자열): 사용자의 이름
-# lastName (문자열): 사용자의 성
-# birthdate (날짜): 사용자의 생일
-# password (문자열): 사용자의 비밀번호
+reset_all
+create_user_and_login
+
+# Access Token 재발급 요청
 res=$(
-    POST /users \
-        -H "Content-Type: application/json" \
+    POST /users/refresh \
+        -H 'Content-Type: application/json' \
         -d '{
-            "email": "testUser@example.com",
-            "username": "testUser",
-            "firstName": "Test",
-            "lastName": "User",
-            "birthdate": "2000-01-01T00:00:00.000Z",
-            "password": "testPassword"
-        }'
+                "refreshToken": "'$REFRESH_TOKEN'"
+            }'
 )
-id=$(echo $res | jq -r '.id')
+
+ACCESS_TOKEN=$(echo $res | jq -r '.accessToken')
+REFRESH_TOKEN=$(echo $res | jq -r '.refreshToken')
+
+# Access Token을 사용해서 개인 정보 요청
+res=$(
+    GET /users/$USER_ID \
+        -H "Authorization: Bearer $ACCESS_TOKEN"
+)
 
 # 모든 사용자 조회
 res=$(GET /users)
 
-# 특정 ID를 가진 사용자 조회
-res=$(GET /users/$id)
-
-# 특정 ID를 가진 사용자 업데이트
+# user 업데이트
 res=$(
-    PATCH /users/$id \
+    PATCH /users/$USER_ID \
         -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
         -d '{
-                "username": "updatedUser",
-                "firstName": "Updated",
-                "lastName": "User",
+                "username": "UserName#2",
+                "firstName": "FirstName#2",
+                "lastName": "LastName#2",
                 "birthdate": "2000-01-01T00:00:00.000Z"
             }'
 )
+
 # 특정 ID를 가진 사용자 삭제
-res=$(DELETE /users/$id)
+res=$(
+    DELETE /users/$USER_ID \
+        -H "Authorization: Bearer $ACCESS_TOKEN"
+)

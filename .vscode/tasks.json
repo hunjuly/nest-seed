@@ -27,6 +27,11 @@
             "label": "5. Disable Logging During Testing",
             "type": "shell",
             "command": "rm -f config/@DEV_LOGGING_DURING_TESTING"
+        },
+        {
+            "label": "6. Generate Migration",
+            "type": "shell",
+            "command": "npm run migration:generate"
         }
     ]
 }
