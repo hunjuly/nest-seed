@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach to start",
+            "name": "Attach to Start",
             "port": 9229,
             "request": "attach",
             "skipFiles": ["<node_internals>/**"],
@@ -13,7 +13,7 @@
             "restart": true
         },
         {
-            "name": "Attach to test",
+            "name": "Attach to Test",
             "port": 9230,
             "request": "attach",
             "skipFiles": ["<node_internals>/**"],

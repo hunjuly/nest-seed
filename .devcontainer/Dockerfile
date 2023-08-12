@@ -18,4 +18,5 @@ RUN echo "alias l='ls --color=auto -lA'" >> ~/.bashrc
 RUN apk add -f docker-cli docker-cli-compose
 # 이거 설치하면 docker from docker가 안 된다.
 # RUN apk add docker-cli-buildx
+
 EXPOSE 3000

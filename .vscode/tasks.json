@@ -4,32 +4,42 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "1. Test All & Code Coverage",
+            "label": "Watch Start",
+            "type": "shell",
+            "command": "npm start"
+        },
+        {
+            "label": "Watch Test",
+            "type": "shell",
+            "command": "npm test"
+        },
+        {
+            "label": "Test All & Code Coverage",
             "type": "shell",
             "command": "npm run test:all"
         },
         {
-            "label": "2. Launch PSQL",
+            "label": "Launch PSQL",
             "type": "shell",
             "command": "bash scripts/launch_psql.sh"
         },
         {
-            "label": "3. Clean up",
+            "label": "Clean up",
             "type": "shell",
             "command": "bash scripts/clean_up.sh"
         },
         {
-            "label": "4. Enable Logging During Testing",
+            "label": "Logging During Testing - Enable",
             "type": "shell",
             "command": "bash scripts/set_logging_during_testing.sh"
         },
         {
-            "label": "5. Disable Logging During Testing",
+            "label": "Logging During Testing - Disable",
             "type": "shell",
             "command": "rm -f config/@DEV_LOGGING_DURING_TESTING"
         },
         {
-            "label": "6. Generate Migration",
+            "label": "Generate Migration",
             "type": "shell",
             "command": "npm run migration:generate"
         }
