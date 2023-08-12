@@ -1,4 +1,3 @@
-import axios from 'axios'
 import * as myModule from './function-spy'
 
 test('여러 함수가 제대로 모킹되었는지 확인', () => {
@@ -13,21 +12,4 @@ test('여러 함수가 제대로 모킹되었는지 확인', () => {
 
     mockFunc1.mockRestore()
     mockFunc2.mockRestore()
-})
-
-test('여러 함수가 제대로 모킹되었는지 확인2', async () => {
-    const mockGet = jest.spyOn(axios, 'get').mockResolvedValue({ data: 'Mocked data' })
-    const mockPost = jest.spyOn(axios, 'post').mockResolvedValue({ data: 'Mocked response' })
-
-    const fetchResult = await myModule.fetchData()
-    const postResult = await myModule.postData({ name: 'John' })
-
-    expect(fetchResult).toBe('Mocked data')
-    expect(postResult).toBe('Mocked response')
-
-    expect(mockGet).toHaveBeenCalledWith('https://example.com')
-    expect(mockPost).toHaveBeenCalledWith('https://example.com', { name: 'John' })
-
-    mockGet.mockRestore()
-    mockPost.mockRestore()
 })

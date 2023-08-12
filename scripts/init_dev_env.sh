@@ -3,8 +3,6 @@ set -e
 cd "$(dirname "$0")"
 cd ..
 
-# git config --global safe.directory $WORKSPACE_ROOT
-
 mkdir -p logs
 
 npm install
