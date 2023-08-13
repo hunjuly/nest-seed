@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class NestjsSeed1691754788909 implements MigrationInterface {
-    name = 'NestjsSeed1691754788909'
+export class NestSeed1691754788909 implements MigrationInterface {
+    name = 'NestSeed1691754788909'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(

@@ -12,10 +12,10 @@ import {
 } from 'src/common'
 import { User } from 'src/users/entities'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
-import { NestjsSeed1691754788909 } from './migrations/1691754788909-nestjs-seed'
+import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 
 const entities = addItemInDevelopment([User], [Seed])
-const migrations = [NestjsSeed1691754788909]
+const migrations = [NestSeed1691754788909]
 
 type SupportedConnectionOptions = PostgresConnectionOptions
 

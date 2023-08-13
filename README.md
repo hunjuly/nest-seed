@@ -1,6 +1,6 @@
-# NESTJS-SEED
+# NEST-SEED
 
-nestjs 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
+nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
 
 ## 용어
 
@@ -31,7 +31,7 @@ nestjs 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 
 -   Host가 linux인 경우, jest를 실행했을 때 `System limit for number of file watchers reached` 에러가 발생하면 Host에서 아래의 스크립트를 실행한다([참고](https://code.visualstudio.com/docs/setup/linux#_visual-studio-code-is-unable-to-watch-for-file-changes-in-this-large-workspace-error-enospc)).
 
     ```sh
-    # Error: ENOSPC: System limit for number of file watchers reached, watch '/workspaces/nestjs-ex/src'
+    # Error: ENOSPC: System limit for number of file watchers reached, watch '/workspaces/nest-seed/src'
 
     echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
     ```
@@ -40,7 +40,7 @@ nestjs 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 
 
 -   `메뉴/Terminal/Run Task...`을 실행하면 개발 중에 필요한 task를 실행할 수 있다.
 -   소스 수정 시 기본적으로 `Watch Start`과 `Watch Test`를 실행해야 한다.
-    -   `Watch Start`: NestJS 애플리케이션을 디버그 모드로 시작하며, 파일 변경을 감지하여 자동으로 재시작한다.
+    -   `Watch Start`: Nest 애플리케이션을 디버그 모드로 시작하며, 파일 변경을 감지하여 자동으로 재시작한다.
     -   `Watch Test`: 테스트 코드를 실행하며, 파일 변경을 감지하여 자동으로 다시 테스트한다.
 -   NODE_ENV=development라면 typeorm의 synchronize를 사용한다. 비활성화 시키려면 `config/@DEV_ALLOW_SCHEMA_RESET` 파일을 삭제한다
 
