@@ -1,8 +1,4 @@
-## Design
-
-### Common Library
-
-`src/common` 라이브러리는 다른 NestJS 프로젝트에서 사용할 수 있는 공통 라이브러리입니다.
+# Nest Design Guide
 
 ### HATEOAS/HAL
 
@@ -266,3 +262,38 @@ e2e에 가까운 모듈 테스트를 작성해서 모듈 단위로 테스트를 
 만약, 한 모듈을 여러 팀이 나눠 개발한다면 각 팀의 경계를 mock으로 만들어서 테스트 해야 한다. 이런 경우에는 단위 테스트에 가깝게 될 수 있다.
 
 테스트 코드는 반드시 완전한 e2e-test나 unit-test로 작성할 필요는 없다. 상황에 따라 어느 정도 균형을 맞춰야 한다.
+
+### Transaction
+
+아래와 같이 Scope.REQUEST 로 설정된 TransactionService를 사용하면 scope bubble up 이 발생하여 성능이 하락하고 테스트가 어려워진다.
+필요한 곳에서 transaction을 시작하고 끝내는 것이 좋다.
+
+```ts
+@Injectable({ scope: Scope.REQUEST })
+export class TransactionService implements OnModuleDestroy {
+    private queryRunner?: QueryRunner
+
+    constructor(private dataSource: DataSource) {}
+
+    async onModuleDestroy() {
+        if (this.queryRunner && !this.queryRunner.isReleased) {
+            await this.rollbackAndRelease()
+        }
+    }
+
+    async startTransaction(): Promise<void> {
+        if (!this.queryRunner) {
+            this.queryRunner = this.dataSource.createQueryRunner()
+            await this.queryRunner.connect()
+        }
+
+        try {
+            await this.queryRunner.startTransaction()
+        } catch (error) {
+            throw new SystemException(`Failed to start a new transaction(${error})`)
+        }
+    }
+
+    ...
+}
+```
