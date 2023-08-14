@@ -1,11 +1,10 @@
 # Implementation Guide
 
-## 3. Controller Layer Design
+코드를 작성할 때 고민하게 되는 물리적인 규칙을 설명한다.
 
-일반적인 Controller의 코드다. getUser()를 보면 두 가지 특징이 있다.
+## 1. Controller Layer
 
--   사용자가 존재하지 않으면 예외를 던진다.
--   Entity를 Dto로 변환한다
+다음은 일반적인 Controller의 코드다.
 
 ```ts
 @Controller('users')
@@ -29,47 +28,88 @@ export class UsersController {
 }
 ```
 
-### 3.1. Controller에서 Entity를 DTO로 변환하는 이유
+getUser()는 두 가지 특징이 있다.
 
-1. REST API나 GRPC에서 요구하는 데이터 형식이 다를 수 있다.
-1. 서비스에서 변환하면 서비스가 컨트롤러에 종속되는 문제가 발생한다.
-1. 서비스에서 변환하면 다른 서비스가 사용할 때 DTO를 받게된다. 그러나 DTO는 컨트롤러에서만 사용해야 한다. 컨트롤러에서 예외를 던지는 이유 컨트롤러는 단순히 데이터 변환과 송수신을 담당한다.
-1. 그러나 Http냐 RPC냐에 따라서 던져야 하는 예외가 달라진다.
-1. 서비스는 다른 서비스를 사용한다. 컨트롤러도 서비스를 사용하는 것이다. 서비스를 사용하는 주체의 동작은 동일해야 한다. 다른 서비스에서도 예상 가능한 예외는 사전에 점검하기 때문에 컨트롤러도 동일한 구조를 가지는 것이 좋다.
+-   사용자가 존재하지 않으면 예외를 던진다.
+-   User entity를 UserDto로 변환한다
 
-### 3.2. 컨트롤러에서 예외를 던지는 이유
+### 1.1. Controller에서 예외를 던지는 이유
 
-컨트롤러는 단순히 데이터 변환과 송수신을 담당한다. 그러나 Http냐 RPC냐에 따라서 던져야 하는 예외가 달라진다. 서비스는 다른 서비스를 사용한다. 컨트롤러도 서비스를 사용하는 것이다.
-서비스를 사용하는 주체의 동작은 동일해야 한다.
-다른 서비스에서도 예상 가능한 예외는 사전에 점검하기 때문에 컨트롤러도 동일한 구조를 가지는 것이 좋다.
+1. REST API나 GRPC 등 통신방식에 따라서 던져야 하는 예외가 다르다.
+1. Controller에 예외가 발생할 수 있는 조건을 점검하면 문서화가 쉽다.
 
+### 1.2. Controller에서 entity를 DTO로 변환하는 이유
 
-## 4. Domain 레이어
+1. REST API나 GRPC 등 통신방식에 따라서 요구하는 데이터 형식이 다를 수 있다.
+1. 서비스에서 변환하면 서비스가 컨트롤러에 종속된다. 이것은 Layered Architecture 개념과 상충된다.
+1. 서비스 간에 반환값이 DTO가 되면 안 된다. DTO는 컨트롤러에서만 사용한다.
 
-### 4.1. 엔티티 Id type
+## 2. Domain Layer
 
-uuid는 고유 식별자를 생성하는 방법 중 하나이며, 자동으로 문자열 형태의 값을 생성합니다. uuid를 사용하는 것이 데이터베이스의 성능과 관련이 있다면, uuid를 사용하는 대신 auto-increment 되는 정수형 ID를 사용하는 것이 더 좋을 수 있습니다. 그러나 성능의 문제가 없다면 uuid를 사용하는 것이 데이터베이스에 더 많은 유연성을 제공할 수 있습니다.
+### 2.1. AggregateRoot와 Entity의 Identifier
 
-### typeorm과 도메인의 엔티티 관계
+DDD(Domain Driven Design)에서 제안하는 AggregateRoot와 Entity 개념을 다음과 같이 구현했다.
 
-Q : typeorm의 코드는 infrastructure 레이어에 포함되는거 아니야? DDD에서는 도메인 레이어와 infrastructure 레이어를 구분하게 되어있는데 entities가 왜 domain 폴더의 하위에 있지?
+```ts
+export abstract class AggregateRoot {
+    @PrimaryGeneratedColumn('uuid')
+    id: string
 
-A: 일반적으로, DDD에서 도메인 레이어는 도메인의 핵심 비즈니스 로직과 개념을 포함하고,
-인프라스트럭처 레이어는 도메인의 구현을 위한 기술적 세부 사항을 다룹니다.\
-TypeORM과 같은 ORM 프레임워크를 사용할 때, entity는 도메인 객체의 구현에 필요한 기술적 세부 사항을 포함합니다. 그러나 entity는 여전히 도메인 모델의 일부이므로 도메인 레이어에서 구현되어야합니다.\
-즉, entities가 domain 폴더의 하위 폴더에 위치하는 것은 일반적인 구조입니다. 이러한 구조를 사용하면 도메인과 구현 사이의 경계를 유지하면서 도메인 모델과 데이터베이스 스키마 간의 매핑을 쉽게 할 수 있습니다.\
-마찬가지로, 서비스는 도메인 객체를 조작하고 도메인 로직을 캡슐화하기 때문에 도메인 레이어에 위치하는 것이 일반적입니다. 이렇게 하면 서비스가 도메인 객체와 도메인 로직을 더 잘 캡슐화 할 수 있으며, 비즈니스 규칙의 변화에 대응하기 쉽습니다.
+    @CreateDateColumn()
+    createdAt: Date
 
-요약하면, 도메인 객체에 TypeORM 코드가 추가된 것이다. TypeORM이 도메인 엔티티에 의존하는 것이지 엔티티가 TypeORM에 의존하는 것이 아니다.
+    @UpdateDateColumn()
+    updatedAt: Date
 
-## 5. Module Design Guide
+    @VersionColumn()
+    version: number
+}
 
-### index.ts는 순환참조를 주의해야 한다
+export abstract class BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number
+}
+```
 
-users/index.ts에 아래처럼 했었다. 그러나 이것은 순환참조 문제를 일으킨다.
-auth/service.ts에서 import _ from 'users'를 해서 User 엔티티를 참조한다.
-User는 import _ from 'auth'를 해서 Auth 엔티티의 무언가를 참조한다.
-이런 식으로 참조에 참조를 하게 된다.
+`AggregateRoot`의 id는 UUID type으로 한다. Entity는 Aggregate에서만 유일하면 되고 영향 범위도 Aggregate에 한정되기 때문에 auto-increment 되는 정수형 ID를 사용한다.
+
+만약 `AggregateRoot`의 ID를 UUID로 하는 것이 Database의 성능에 영향을 준다면 Database를 개선하거나 `AggregateRoot`를 Entity로 취급해야 하는 것은 아닌지 고민해야 한다. `AggregateRoot`의 ID 타입을 변경하면 안 된다.
+
+### 2.2 typeorm과 도메인의 엔티티 관계
+
+다음은 일반적인 Entity를 구현한 코드다.
+
+```ts
+@Entity()
+export class Seed extends AggregateRoot {
+    @Column()
+    name: string
+
+    @Column({ type: 'text' })
+    desc: string
+
+    @Column({ type: 'integer' })
+    integer: number
+
+    @Column('varchar', { array: true })
+    enums: SeedEnum[]
+
+    @Column({ type: 'timestamptz' })
+    date: Date
+}
+```
+
+Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 섞여 있다. 이 혼합은 편의를 위한 것이며, 두 레이어의 코드가 섞여 있지만 Entity 코드는 Infrastructure 코드를 참조하지 않는다.
+
+TypeORM의 @Column 데코레이터는 데이터 매핑을 위한 것이고, 이 코드가 도메인 객체 내에 있어도 도메인 로직에 영향을 미치지 않는다.
+
+결과적으로, 도메인 객체에 TypeORM 코드가 추가된 것은 엔티티와 ORM 사이의 편리한 연결을 위한 것이다. 이것은 TypeORM이 도메인 엔티티에 의존하게 하고, 엔티티가 TypeORM에 의존하지 않게 한다. 이 구조는 DDD의 개념과 상충하지 않으며, 두 영역 간의 깔끔한 분리를 제공한다.
+
+## 3. 그 외
+
+### 3.1. index.ts 작성 시 순환 참조 문제
+
+각 모듈 마다 아래처럼 모듈의 모든 요소를 export하는 index.ts를 만들었다. 이와 같은 방식은 순환참조 문제 가능성을 크게 높인다.
 
 ```ts
 export * from './dto'
@@ -78,56 +118,80 @@ export * from './users.module'
 export * from './users.service'
 ```
 
-그래서 적어도 모듈 단위의 index.ts는 정의하지 않기로 한다.
+아래는 순환참조가 발생하는 코드다. 각각 AuthService와 User만 필요한데 각 모듈의 모든 요소를 import 하면서 문제가 된다.
 
-###
+```ts
+// users/index.ts
+export * from './entities'
+export * from './users.module'
+export * from './users.service'
 
-UsersModule과 AuthModule로 분리되어 있었다. 그러나 만약 User의 종류가 둘이 된다면 Auth의 종류도 그에 맞게 생겨야 한다. 그리고 AuthModule로 분리해서 생기는 장점이 크지 않다.
+// user.entity.ts
+// auth의 모든 요소를 import 하게 된다.
+import { AuthService } from './auth'
 
-## 그 외 Design Guide
+// auth/index.ts
+export * from './auth.module'
+export * from './auth.service'
 
-### 예외/검증
-
-아래와 같이 expect 혹은 assert 구문을 사용했었다.\
-그러나 이렇게 하면 vscode에서 showtime이 undefined가 아니라고 단정할 수 없어서 에러가 발생한다.
-
-```js
-Expect.found(showtime, `Showtime(${showtimeId}) not found`)
+// auth.service.ts
+// users의 모든 요소를 import 하게 된다.
+import { User } from './users'
 ```
 
-아래처럼 프로그래머의 실수로 예상되는 LogicException은 테스트를 작성하지 않는다.
-그 외에도 throw Exception의 테스트는 중요 예외 처리가 아니면 작성하지 않는다. 유지비용이 크다.
+그래서 적어도 모듈 단위의 index.ts는 정의하지 않기로 한다.
+
+### 3.2. Authentication 모듈의 분리
+
+UsersModule과 AuthModule로 분리되어 있었다. 그러나 다음의 이유로 UsersModule에 통합했다.
+
+1. 만약 User의 종류가 둘이 된다면 Auth의 종류도 그에 맞게 생겨야 한다.
+1. AuthModule로 분리해서 생기는 장점이 크지 않고 결합이 강해진다.
+
+### 3.3. Assert, Expect
+
+아래와 같이 expect 구문을 사용했었다. 그러나 이렇게 하면 vscode에서 showtime이 undefined가 아니라고 단정할 수 없어서 에러가 발생한다.
+
+```js
+Expect.found(showtime, `${showtime} not found`)
+```
+
+### 3.4. Exception의 테스트 작성
+
+Exception을 발생시키는 것은 일반적인 방법으로 재현하기 어렵다. 그래서 Exception을 테스트 하려면 코드가 복잡해진다.
+그에 반해 Exception을 처리하는 코드는 단순한 편이어서 테스트를 작성하는 이익이 크지 않다.
+
+따라서 Exception에 대한 테스트는 작성하지 않는 것을 원칙으로 한다.
+
+예외적으로 치명적인 Exception 발생 시 시스템을 shutdown 하는 것과 같이 단순 error reporting 이상의 기능이 있다면 테스트를 작성해야 한다.
+
+### 3.5. Code Coverage 무시
+
+아래처럼 Assert를 사용하면 code coverage를 무시하는 태그를 작성하지 않아도 된다.
 
 ```js
 /* istanbul ignore if */
-if (availableTicketCount === undefined) {
-    throw new LogicException(`Available ticket count for showtime ${showtime.id} not found`)
+if (seed === undefined) {
+    throw new LogicException(`Seed(${seedId}) not found`)
 }
+
+// 간단하게 작성한다
+Assert.defined(seed, `Seed(${seedId}) not found`)
 ```
 
-###
+### 3.6. Test 작성
 
-LogicException은 가능한 Assert.\*으로 처리하고 테스트를 만들지 않는다.
-
-서비스 간 트랜잭션 핸들을 공유하지 않는다. 전통적인 트랜잭션 구조는 포기한다. 각 서비스가 MSA의 일부라는 가정 하에 개발한다.
-
-## Test Design Guide
-
-e2e에 대한 일반론은 아래와 같다.
-
-End-to-end 테스트는 전체 시스템이 아닌 특정한 기능이나 모듈의 동작을 테스트하는 단위 테스트와는 다르게, 시스템의 다양한 부분을 통합해서 테스트를 수행하게 됩니다. 따라서, End-to-end 테스트는 서비스를 빌드하고 배포하기 전에 수행하는 것이 좋습니다. 보통, End-to-end 테스트는 최종 사용자가 시스템을 사용하는 시나리오를 테스트하며, 이를 수행하기 위해 실제 서비스와 동일한 환경을 구성하여 수행합니다. 이러한 이유로 End-to-end 테스트는 보통 운영환경과 유사한 별도의 테스트 서버나 스테이징 서버에서 수행합니다. 또한, End-to-end 테스트는 시스템 전체를 대상으로 수행하기 때문에 수행 시간이 오래 걸리는 경우가 많습니다. 이러한 이유로 End-to-end 테스트는 빌드 파이프라인에서 자동화하여 수행하는 것이 좋습니다.
-
-그러나, 유닛 테스트를 클래스 마다 작성하는 것은 비용이 크다.
-
-e2e에 가까운 모듈 테스트를 작성해서 모듈 단위로 테스트를 작성하는 게 효율적이다.
-만약, 한 모듈을 여러 팀이 나눠 개발한다면 각 팀의 경계를 mock으로 만들어서 테스트 해야 한다. 이런 경우에는 단위 테스트에 가깝게 될 수 있다.
+유닛 테스트를 클래스 마다 작성하는 것은 비용이 크다. e2e에 가까운 모듈 테스트를 작성해서 모듈 단위로 테스트를 작성하는 게 효율적이다.
 
 테스트 코드는 반드시 완전한 e2e-test나 unit-test로 작성할 필요는 없다. 상황에 따라 어느 정도 균형을 맞춰야 한다.
 
-### Transaction
+### 3.7. Transaction
 
-아래와 같이 Scope.REQUEST 로 설정된 TransactionService를 사용하면 scope bubble up 이 발생하여 성능이 하락하고 테스트가 어려워진다.
-필요한 곳에서 transaction을 시작하고 끝내는 것이 좋다.
+서비스 간 트랜잭션 핸들을 공유하지 않는다. 전통적인 트랜잭션 구조는 포기한다. 각 서비스가 MSA의 일부라고 가정한다.
+
+### 3.8. Scope.REQUEST
+
+아래와 같이 Scope.REQUEST로 설정된 TransactionService를 사용하면 scope bubble up 이 발생해서 unit 테스트가 어려워진다.
 
 ```ts
 @Injectable({ scope: Scope.REQUEST })

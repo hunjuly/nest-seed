@@ -1,9 +1,12 @@
-### Error: Invalid guard passed to @UseGuards() decorator
+# Troubleshooting
 
-컨트롤러에서 @UseGuards()를 하면 아래처럼 에러 발생한다.
+다양한 오류 상황과 해결 방법을 정리했다.
 
-순환참조와 관련된 문제인데 import \* from 'src/auth' 이렇게 index.ts를 해서 발생했다.
-index.ts는 모듈의 모든 코드를 export 하기 때문에 순환참조 문제가 발생하기 쉽다.
+## Error: Invalid guard passed to @UseGuards() decorator
+
+컨트롤러에서 @UseGuards()를 사용하면서 발생했다.
+
+모듈에 index.ts를 작성하고 모든 요소를 export 해서 순환참조 오류가 생겼다.
 
 ```
 /workspaces/nest-seed/node_modules/@nestjs/common/utils/validate-each.util.js:21
