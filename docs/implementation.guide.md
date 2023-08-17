@@ -2,7 +2,7 @@
 
 코드를 작성할 때 고민하게 되는 물리적인 규칙을 설명한다.
 
-## 1. Controller Layer
+## 1. Controller 레이어
 
 다음은 일반적인 Controller의 코드다.
 
@@ -44,7 +44,7 @@ getUser()는 두 가지 특징이 있다.
 1. 서비스에서 변환하면 서비스가 컨트롤러에 종속된다. 이것은 Layered Architecture 개념과 상충된다.
 1. 서비스 간에 반환값이 DTO가 되면 안 된다. DTO는 컨트롤러에서만 사용한다.
 
-## 2. Domain Layer
+## 2. Domain 레이어
 
 ### 2.1. AggregateRoot와 Entity의 Identifier
 
@@ -75,7 +75,7 @@ export abstract class BaseEntity {
 
 만약 `AggregateRoot`의 ID를 UUID로 하는 것이 Database의 성능에 영향을 준다면 Database를 개선하거나 `AggregateRoot`를 Entity로 취급해야 하는 것은 아닌지 고민해야 한다. `AggregateRoot`의 ID 타입을 변경하면 안 된다.
 
-### 2.2 typeorm과 도메인의 엔티티 관계
+### 2.2 TypeORM과 도메인의 Entity 관계
 
 다음은 일반적인 Entity를 구현한 코드다.
 
@@ -99,9 +99,9 @@ export class Seed extends AggregateRoot {
 }
 ```
 
-Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 섞여 있다. 이 혼합은 편의를 위한 것이며, 두 레이어의 코드가 섞여 있지만 Entity 코드는 Infrastructure 코드를 참조하지 않는다.
+Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 섞여 있다. 두 레이어의 코드가 섞여 있지만 Entity 코드는 Infrastructure 코드를 참조하지 않는다.
 
-TypeORM의 @Column 데코레이터는 데이터 매핑을 위한 것이고, 이 코드가 도메인 객체 내에 있어도 도메인 로직에 영향을 미치지 않는다.
+마찬가지로 TypeORM의 @Column 데코레이터는 데이터 매핑을 위한 것이고, 이 코드가 도메인 객체 내에 있어도 도메인 로직에 영향을 미치지 않는다.
 
 결과적으로, 도메인 객체에 TypeORM 코드가 추가된 것은 엔티티와 ORM 사이의 편리한 연결을 위한 것이다. 이것은 TypeORM이 도메인 엔티티에 의존하게 하고, 엔티티가 TypeORM에 의존하지 않게 한다. 이 구조는 DDD의 개념과 상충하지 않으며, 두 영역 간의 깔끔한 분리를 제공한다.
 
