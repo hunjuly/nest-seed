@@ -1,62 +1,61 @@
 # Design Guide
 
-설계를 할 때 고민하게 되는 개념적인 규칙을 설명한다.
+이 문서는 Back-End 소프트웨어를 설계할 때 고려해야 할 구조적 및 기능적 원칙을 정리한 것이다.
 
 `Layered Modules`는 이 프로젝트의 핵심 개념이다. 이 프로젝트의 REST API 디자인은 `Layered Modules` 개념을 반영한 것이다.
 
 ## 1. Layered Modules
 
-'영화 예매 시스템'에서 `screening`, `tickets`, `showtimes` Module은 `movies`, `theaters`, `users` Module을 참조한다.
+'영화 예매 시스템'에서 `screening`, `tickets`, `showtimes` 모듈은 `movies`, `theaters`, `users` 모듈을 참조한다.
 
 ```
-+----------------------------------+
-| Composite Module                 |
-| (screening, tickets, showtimes)  |
-+----------------------------------+
-                |
-                v
-+-------------------------------+
-| Foundation Module             |
-| (movies, theaters, users)     |
-+-------------------------------+
+┌─────────────────────────────────────┐
+│        Composite Module             │
+│ (screening, tickets, showtimes)     │
+└─────────────────────────────────────┘
+                │
+                ▼
+   ┌───────────────────────────────┐
+   |     Foundation Module         |
+   | (movies, theaters, users)     |
+   └───────────────────────────────┘
 ```
 
-예를 들어, 상영일정을 관리하는 `showtimes` Module은 `movies`, `theaters` Module을 알아야 한다. 이렇게 기본 정보를 제공하는 `Foundation Module`과 그 Module을 사용하는 `Composite Module`이 있는데 이 관계를 `Layered Modules`라고 정의한다.
+예를 들어, 상영일정을 관리하는 `showtimes` 모듈은 `movies`, `theaters` 모듈을 알아야 한다. 이렇게 기본 정보를 제공하는 `Foundation Module`과 그 모듈을 사용하는 `Composite Module`이 있는데 이 구조를 `Layered Modules`라고 정의한다.
 
 -   `Foundation Module`
     -   이 모듈은 자체적으로 독립적이며, 다른 모듈에 의존하지 않는다. 이들은 가장 기본적인 기능을 제공한다.
-    -   `Foundation Module`은 다른 `Foundation Module`을 참조하지 않는다.
+    -   `Foundation Module`은 다른 `Foundation Module`을 참조하지 않는다. 다른 `Foundation Module`을 참조해야 한다면 두 `Foundation Module`을 하나로 합치거나 새로운 `Composite Module`을 만들어야 한다.
 -   `Composite Module`
     -   이 모듈은 하나 이상의 `Foundation Module`를 기반으로 작동하며, 이들의 기능을 결합하거나 확장하여 더 복잡한 기능을 제공한다.
     -   `Composite Module`는 `Foundation Module`와 다른 `Composite Module`를 참조할 수 있다.
 
 ### 1.1 Composite Modules의 방향성
 
-`Composite Module`은 방향성을 가진다. 즉, 상호 참조를 허용하지 않는다. 상호 참조 대신 Module을 하나로 합치던가 새로운 `Composite Module`을 만든다.
+`Composite Module`은 방향성을 가진다. 즉, 상호 참조를 허용하지 않는다. 상호 참조 대신 모듈을 하나로 합치거나 새로운 `Composite Module`을 만든다.
 
 ```sh
-# Module은 위에서 아래로 흐른다
-   +----------------------+
-   |      Screening       |
-   +----------------------+
-         |           |
-         |           |
-         v           v
- +-----------+   +-----------+
+# 모듈은 위에서 아래로 흐른다
+   ┌────────────────────┐
+   |      Screening     |
+   └────────────────────┘
+         │           │
+         ▼           ▼
+ ┌───────────┐   ┌───────────┐
  | Tickets   |   | Showtimes |
- +-----------+   +-----------+
-        |           |
-        v           v
-+-----------------------------+
+ └───────────┘   └───────────┘
+        │           │
+        ▼           ▼
+┌─────────────────────────────┐
 |  movies, theaters, users    |
-+-----------------------------+
+└─────────────────────────────┘
 ```
 
 ## 2. REST API
 
 ### 2.1. URL 구성 순서
 
-다음은 REST API로 요청하는 리소스가 앞에 오고 필터가 뒤따라 오는 설계다.
+다음은 요청하는 리소스가 앞에 오고 필터가 뒤따라 오는 REST API 설계이다.
 
 ```sh
 # 상영중인 영화 목록
@@ -66,11 +65,22 @@
 /theaters/screening
 ```
 
-이렇게 하면 movies나 theaters 서비스가 다른 서비스를 참조하면서 기능이 점점 커진다.
+이렇게 하면 movies나 theaters 서비스가 다른 서비스를 참조하면서 복잡도가 증가한다.
 
-타협안으로 MoviesController에서 ScreeningService를 호출하는 방법도 있다. 그러나 이것은 의존성이 높아져서 결국 유지보수가 어려워 진다.
+```sh
+# 주간 베스트 영화 목록
+/movies/weekly-best
 
-다음은 필터가 앞에 오고 요청하는 리소스가 뒤에 오는 설계다.
+# 영화 abc123의 리뷰들
+/movies/abc123/reviews
+...
+```
+
+위와 같이 movies와 관련된 기능을 추가하면 movies 모듈은 weekly 모듈과 reviews 모듈을 추가로 참조해야 한다.
+
+대안으로 MoviesController에서 ScreeningService를 호출하는 방법도 있다. 그러나 이것은 의존성이 높아져서 결국 유지보수가 어려워 진다.
+
+다음은 필터가 앞에 오고 요청하는 리소스가 뒤에 오는 설계이다.
 
 ```sh
 # 상영중인 영화 목록
@@ -78,15 +88,22 @@
 
 # 상영중인 극장 목록
 /screening/theaters
+
+# 주간 베스트 영화 목록
+/weekly-best/movies
+
+# 영화 abc123의 리뷰들
+/reviews/movies/abc123
+...
 ```
 
-이렇게 하면 screening 서비스에 관련 기능이 모두 모여서 개발이 수월하다. 다른 기능이 추가되더라도 movies나 theaters 서비스는 변경하지 않아도 된다.
+이렇게 하면 screening 서비스와 관련된 기능이 모두 모여서 개발이 수월하다. 다른 기능이 추가되더라도 movies나 theaters 서비스는 변경하지 않아도 된다.
 
 그리고 이것은 `Layered Modules` 구조와 일치하기 때문에 상위 설계를 더 잘 반영하고 있다.
 
-### 2.2. Shallow VS Nested
+### 2.2. Shallow Routing VS Nested Routing
 
-REST API의 Routing 디자인은 크게 `Shallow Routing`과 `Nested Routing`이 있다.
+REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`이 있다.
 
 `Shallow Routing`은 각 리소스를 독립적으로 관리할 수 있으므로 확장성이 좋다. 그러나 리소스 간의 관계를 명확하게 표현하지 않기 때문에 복잡한 계층 구조의 데이터를 표현하는데 어려움이 있다.
 
@@ -101,12 +118,11 @@ REST API의 Routing 디자인은 크게 `Shallow Routing`과 `Nested Routing`이
 ```
 
 `Foundation Module`은 다른 모듈을 참조하지 않기 때문에 `Shallow Routing`으로 디자인 한다. `Composite Module`은 `Nested Routing`이 적당한 경우도 있을 것이다.
-
-그러나 이렇게 기계적으로 나누지 말고 리소스 구조가 중첩되는 형태인지를 우선해서 판단해야 한다.
+중요한 라우팅 지침은 절대적인 것이 아니다. 개념적인 관점에서 리소스의 구조가 중첩되는 것인지를 우선해서 판단해야 한다.
 
 ### 2.3. GET과 POST 선택
 
-10,000명의 user정보 검색 요청은 너무 길어서 GET method로 전달할 수 없다.
+10,000명의 user정보 검색 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
 
 ```sh
 GET /users?user-id=userid1, userid2, userid3 ...
@@ -115,10 +131,10 @@ GET /users?user-id=userid1, userid2, userid3 ...
 이렇게 `GET`이나 `DELETE` 메소드인데 쿼리가 너무 길다면 아래처럼 POST로 요청한다.
 
 ```sh
-# 검색을 한다
+# 찾는다
 GET /movies?...
-# 검색을 실행한다
-POST /movies/search
+# 찾기를 실행한다
+POST /movies/find
 
 # 삭제를 한다
 DELETE /movies?...
@@ -144,7 +160,7 @@ GET과 POST를 선택할 때는 다음의 사항을 고려해야 한다.
 HATEOAS(Hypermedia as the engine of application state)의 완전한 자체 설명을 구현하는 것은 어렵고 복잡하다.
 단순 link 정도의 수준으로 제공해야 하며 복잡한 API는 문서로 설명해야 한다.
 
-문서를 완전히 대체하려는 노력 보다는 오류 정보를 더 자세히 출력하는 코드를 작성하는 것이 효율적이다.
+문서를 완전히 대체하려는 노력보다는 오류 정보를 더 자세히 출력하는 코드를 작성하는 것이 효율적이다.
 
 ```json
 // 일반적인 HATEOAS의 예

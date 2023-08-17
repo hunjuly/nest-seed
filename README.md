@@ -4,8 +4,8 @@ nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 te
 
 ## 용어
 
--   Host - docker를 실행하는 OS다. 보통 사용자의 PC/laptop이며 macOS 혹은 linux다.
--   Container - docker에서 실행 중인 OS다. 여기서는 alpine-linux다.
+-   Host: Docker를 실행하는 운영체제로, 보통 사용자의 PC/laptop의 macOS 혹은 Linux가 이 역할을 합니다. Host OS 위에서 여러 개의 컨테이너를 실행할 수 있습니다.
+-   Container: Docker에서 실행 중인 격리된 환경으로, 여기서는 alpine-linux를 기반으로 합니다. 컨테이너는 호스트 OS의 커널과 필수 리소스를 공유하며, 어플리케이션과 그 의존성을 포함하고 독립적으로 작동합니다.
 
 ## Prerequisites
 
