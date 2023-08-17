@@ -107,7 +107,8 @@ $ npm run start:prod
 .
 ├── .devcontainer
 │   ├── devcontainer.json # 개발 환경 설정은 가능한 여기서 한다
-│   └── Dockerfile # development용 Dockerfile. 버전이 lts로 설정되어 있는데 실제 프로젝트에서는 구체적인 버전을 명시해야 한다.
+│   └── Dockerfile # development용 Dockerfile.
+│                  # 버전이 lts로 설정되어 있는데 실제 프로젝트에서는 구체적인 버전을 명시해야 한다.
 ├── .vscode
 │   ├── launch.json # debugger process attach 설정
 │   └── tasks.json  # 개발 중에 필요한 task 정의
