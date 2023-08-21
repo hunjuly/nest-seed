@@ -27,7 +27,7 @@
     -   이 모듈은 자체적으로 독립적이며, 다른 모듈에 의존하지 않는다. 이들은 가장 기본적인 기능을 제공한다.
     -   `Foundation Module`은 다른 `Foundation Module`을 참조하지 않는다. 다른 `Foundation Module`을 참조해야 한다면 두 `Foundation Module`을 하나로 합치거나 새로운 `Composite Module`을 만들어야 한다.
 -   `Composite Module`
-    -   이 모듈은 하나 이상의 `Foundation Module`를 기반으로 작동하며, 이들의 기능을 결합하거나 확장하여 더 복잡한 기능을 제공한다.
+    -   이 모듈은 하나 이상의 다른 모듈을 기반으로 작동하며, 이들의 기능을 결합하거나 확장하여 더 복잡한 기능을 제공한다.
     -   `Composite Module`는 `Foundation Module`와 다른 `Composite Module`를 참조할 수 있다.
 
 ### 1.1 Composite Modules의 방향성
@@ -118,7 +118,7 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 ```
 
 `Foundation Module`은 다른 모듈을 참조하지 않기 때문에 `Shallow Routing`으로 디자인 한다. `Composite Module`은 `Nested Routing`이 적당한 경우도 있을 것이다.
-중요한 라우팅 지침은 절대적인 것이 아니다. 개념적인 관점에서 리소스의 구조가 중첩되는 것인지를 우선해서 판단해야 한다.
+중요한 것은 이 라우팅 지침은 절대적인 것이 아니다. 개념적인 관점에서 리소스의 구조가 중첩되는 것인지를 우선해서 판단해야 한다.
 
 ### 2.3. GET과 POST 선택
 
