@@ -2,54 +2,11 @@
 
 이 문서는 Back-End 소프트웨어를 설계할 때 고려해야 할 구조적 및 기능적 원칙을 정리한 것이다.
 
-`Layered Modules`는 이 프로젝트의 핵심 개념이다. 이 프로젝트의 REST API 디자인은 `Layered Modules` 개념을 반영한 것이다.
 
-## 1. Layered Modules
+## 1. 상호 참조
 
-'영화 예매 시스템'에서 `screening`, `tickets`, `showtimes` 모듈은 `movies`, `theaters`, `users` 모듈을 참조한다.
-
-```
-┌─────────────────────────────────────┐
-│        Composite Module             │
-│ (screening, tickets, showtimes)     │
-└─────────────────────────────────────┘
-                │
-                ▼
-   ┌───────────────────────────────┐
-   |     Foundation Module         |
-   | (movies, theaters, users)     |
-   └───────────────────────────────┘
-```
-
-예를 들어, 상영일정을 관리하는 `showtimes` 모듈은 `movies`, `theaters` 모듈을 알아야 한다. 이렇게 기본 정보를 제공하는 `Foundation Module`과 그 모듈을 사용하는 `Composite Module`이 있는데 이 구조를 `Layered Modules`라고 정의한다.
-
--   `Foundation Module`
-    -   이 모듈은 자체적으로 독립적이며, 다른 모듈에 의존하지 않는다. 이들은 가장 기본적인 기능을 제공한다.
-    -   `Foundation Module`은 다른 `Foundation Module`을 참조하지 않는다. 다른 `Foundation Module`을 참조해야 한다면 두 `Foundation Module`을 하나로 합치거나 새로운 `Composite Module`을 만들어야 한다.
--   `Composite Module`
-    -   이 모듈은 하나 이상의 다른 모듈을 기반으로 작동하며, 이들의 기능을 결합하거나 확장하여 더 복잡한 기능을 제공한다.
-    -   `Composite Module`는 `Foundation Module`와 다른 `Composite Module`를 참조할 수 있다.
-
-### 1.1 Composite Modules의 방향성
-
-`Composite Module`은 방향성을 가진다. 즉, 상호 참조를 허용하지 않는다. 상호 참조 대신 모듈을 하나로 합치거나 새로운 `Composite Module`을 만든다.
-
-```sh
-# 모듈은 위에서 아래로 흐른다
-   ┌────────────────────┐
-   |      Screening     |
-   └────────────────────┘
-         │           │
-         ▼           ▼
- ┌───────────┐   ┌───────────┐
- | Tickets   |   | Showtimes |
- └───────────┘   └───────────┘
-        │           │
-        ▼           ▼
-┌─────────────────────────────┐
-|  movies, theaters, users    |
-└─────────────────────────────┘
-```
+어떤 경우라도 상호참조는 하지 않는다. 상호참조가 필요하면 그 부분만 별도의 서비스로 만들거나 두 서비스를 하나로 합쳐야 한다.
+이 규칙은 서비스, 모듈, 클래스 등 규모에 상관없이 동일하게 적용된다.
 
 ## 2. REST API
 
@@ -97,9 +54,8 @@
 ...
 ```
 
-이렇게 하면 screening 서비스와 관련된 기능이 모두 모여서 개발이 수월하다. 다른 기능이 추가되더라도 movies나 theaters 서비스는 변경하지 않아도 된다.
-
-그리고 이것은 `Layered Modules` 구조와 일치하기 때문에 상위 설계를 더 잘 반영하고 있다.
+이렇게 하면 screening 서비스와 관련된 기능이 모두 모여서 개발이 수월하다. 다른 기능이 추가되더라도 `movies`나 `theaters` 서비스는 변경하지 않아도 된다.
+REST API를 위와 같이 한다면 `screening`,`weekly-best`, `reviews` 서비스 모듈을 만들어야 한다.
 
 ### 2.2. Shallow Routing VS Nested Routing
 
