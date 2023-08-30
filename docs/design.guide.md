@@ -8,6 +8,8 @@
 어떤 경우라도 상호참조는 하지 않는다. 상호참조가 필요하면 그 부분만 별도의 서비스로 만들거나 두 서비스를 하나로 합쳐야 한다.
 이 규칙은 서비스, 모듈, 클래스 등 규모에 상관없이 동일하게 적용된다.
 
+그러나 모듈 간 상호참조는 있을 수 있다. UsersController가 StatisticsService를 호출한다고 가정해 보자. Controller와 Service는 각자의 모듈에서 서로 다른 레이어에 위치한다. 이런 경우 모듈을 상호참조 하는 것은 괜찮다.
+
 ## 2. REST API
 
 ### 2.1. URL 구성 순서
@@ -73,8 +75,19 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 /screening/movies/{movieId}/theaters/{theaterId}
 ```
 
-`Foundation Module`은 다른 모듈을 참조하지 않기 때문에 `Shallow Routing`으로 디자인 한다. `Composite Module`은 `Nested Routing`이 적당한 경우도 있을 것이다.
-중요한 것은 이 라우팅 지침은 절대적인 것이 아니다. 개념적인 관점에서 리소스의 구조가 중첩되는 것인지를 우선해서 판단해야 한다.
+두 방식 중에서 무엇을 선택할 것인지는 개념적인 관점에서 리소스의 구조가 중첩되는 것인지를 우선해서 판단해야 한다. 판단하기 어렵다면 `Shallow Routing`을 사용한다.
+
+만약, 경로가 `/screening/movies`가 아니라 `/screening/theaters`로 시작한다면 어떤 의미일까?
+
+```sh
+/screening/theaters/{theaterId}/movies/{movieId}
+```
+
+이것은 사용자 시나리오에서 극장을 먼저 선택하고 그 극장에서 상영 중인 영화를 선택한다는 뜻이다. 이렇게 `Nested Routing`는 사용자에게 구조적인 힌트를 제공한다.
+
+거듭 얘기하지만 `Shallow Routing`이나 `Nested Routing`이 중요한 것이 아니다.
+분석과 구현의 개념이 일치되도록 하는 것이 중요하다. `Nested Routing`를 선택한다는 것은 분석 단계에서 예매 프로세스가 그렇게 정의된 것을 반영하는 것 뿐이다.
+기술적 우월성 보다 분석을 정확히 반영하는 것이 우선이다.
 
 ### 2.3. GET과 POST 선택
 
