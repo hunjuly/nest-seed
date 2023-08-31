@@ -111,7 +111,7 @@ $ npm run start:prod
 │                  # 버전이 lts로 설정되어 있는데 실제 프로젝트에서는 구체적인 버전을 명시해야 한다.
 ├── .vscode
 │   ├── launch.json # debugger process attach 설정
-│   └── tasks.json  # 개발 중에 필요한 task 정의
+│   └── tasks.json  # 개발 중에 사용하는 task 정의
 ├── docs
 ├── scripts # 개발에 필요한 스크립트
 │   ├── clean_up.sh # git에 commit되지 않는 모든 파일을 삭제한다
@@ -137,3 +137,7 @@ $ npm run start:prod
 ├── Dockerfile  # production용 Dockerfile
 └── package.json    # 프로젝트의 기본 정보
 ```
+
+## 문제들
+
+-   linux on VMWare에서 docker container의 network를 bridge로 실행하는 환경에서 linux 외부 네트워크(인터넷)에 연결하지 못하는 문제가 종종 발생한다. linux를 다시 실행하면 해결이 되는데 원인을 모른다.

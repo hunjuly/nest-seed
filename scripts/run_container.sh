@@ -24,7 +24,7 @@ check_application_start() (
 docker build -t $PROJECT_NAME .
 docker rm -f $PROJECT_NAME
 docker run \
---restart=always -d --network $PROJECT_NAME \
+-d --network $PROJECT_NAME \
 --log-opt max-size=10m --log-opt max-file=3 \
 --env-file .env.development \
 -e NODE_ENV=production \
