@@ -84,6 +84,7 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 ```
 
 이것은 사용자 시나리오에서 극장을 먼저 선택하고 그 극장에서 상영 중인 영화를 선택한다는 뜻이다. 이렇게 `Nested Routing`는 사용자에게 구조적인 힌트를 제공한다.
+만약 이 예매 프로세스를 REST API로 표현하지 않고 `BookingProcess.ts`와 같은 코드로 표현하려고 하면 상태를 가지지 않는 HTTP의 특성 상 많은 어려움이 따를 것이다.
 
 거듭 얘기하지만 `Shallow Routing`이나 `Nested Routing`이 중요한 것이 아니다.
 분석과 구현의 개념이 일치되도록 하는 것이 중요하다. `Nested Routing`를 선택한다는 것은 분석 단계에서 예매 프로세스가 그렇게 정의된 것을 반영하는 것 뿐이다.
