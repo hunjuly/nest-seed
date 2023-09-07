@@ -1,4 +1,4 @@
-import { isProduction, isDevelopment, envFilename, addItemInDevelopment } from '../environment'
+import { isProduction, isDevelopment, envFilename, ADD_DEV } from '../environment'
 
 describe('common/utils/environment', () => {
     it('NODE_ENV=production', () => {
@@ -6,7 +6,7 @@ describe('common/utils/environment', () => {
 
         expect(isProduction()).toEqual(true)
         expect(envFilename()).toEqual('.env.production')
-        expect(addItemInDevelopment(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b'])
+        expect(ADD_DEV(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b'])
     })
 
     it('NODE_ENV=development', () => {
@@ -14,6 +14,6 @@ describe('common/utils/environment', () => {
 
         expect(isDevelopment()).toEqual(true)
         expect(envFilename()).toEqual('.env.development')
-        expect(addItemInDevelopment(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b', 'c', 'd'])
+        expect(ADD_DEV(['a', 'b'], ['c', 'd'])).toEqual(['a', 'b', 'c', 'd'])
     })
 })

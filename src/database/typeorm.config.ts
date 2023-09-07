@@ -1,20 +1,20 @@
 import { Logger } from '@nestjs/common'
 import * as dotenv from 'dotenv'
-import { Seed } from 'src/_seeds'
 import {
+    ADD_DEV,
     ConfigException,
     Path,
     TypeormLogger,
-    addItemInDevelopment,
     envFilename,
     isDevelopment,
     isProduction
 } from 'src/common'
-import { User } from 'src/users/entities'
+import { Seed } from 'src/services/_seeds/entities'
+import { User } from 'src/services/users/entities'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 
-const entities = addItemInDevelopment([User], [Seed])
+const entities = ADD_DEV([User], [Seed])
 const migrations = [NestSeed1691754788909]
 
 type SupportedConnectionOptions = PostgresConnectionOptions

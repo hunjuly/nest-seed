@@ -11,10 +11,8 @@ import {
     Query,
     UseGuards
 } from '@nestjs/common'
-import { CreateUserDto, UpdateUserDto, UsersQueryDto } from 'src/users/dto'
-import { UsersService } from 'src/users/users.service'
-import { JwtAuthGuard, Public } from './authentication/guards'
-import { AuthService } from './authentication/services/auth.service'
+import { CreateUserDto, UpdateUserDto, UsersQueryDto, UsersService } from 'src/services'
+import { AuthService, JwtAuthGuard, Public } from './authentication'
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')

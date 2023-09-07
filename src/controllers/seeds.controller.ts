@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common'
-import { CreateSeedDto, SeedsQueryDto, UpdateSeedDto } from 'src/_seeds/dto'
-import { SeedsService } from 'src/_seeds/seeds.service'
+import { CreateSeedDto, SeedsQueryDto, SeedsService, UpdateSeedDto } from 'src/services'
 
 @Controller('seeds')
 export class SeedsController {

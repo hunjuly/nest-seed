@@ -3,10 +3,9 @@ import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { SafeConfigService } from 'src/common'
 import { GlobalModule } from 'src/global'
-import { AuthConfigService } from './services'
-import { AuthService } from './services/auth.service'
+import { AuthService, AuthConfigService } from './services'
 import { JwtStrategy, LocalStrategy } from './strategies'
-import { UsersModule } from 'src/users/users.module'
+import { UsersModule } from 'src/services'
 
 function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
     return {

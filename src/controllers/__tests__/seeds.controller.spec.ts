@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { Seed } from 'src/_seeds/entities'
+import { SeedDto } from 'src/services'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
 import { createSeedDto, createSeedDtos, createdSeed, createdSeeds } from './seed.mocks'
@@ -97,7 +97,7 @@ describe('SeedsController', () => {
     })
 
     describe('특정 seed에 대한 작업', () => {
-        let seed: Seed
+        let seed: SeedDto
 
         beforeEach(async () => {
             const res = await request.post({

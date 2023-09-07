@@ -1,9 +1,9 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
-import { User } from 'src/users/entities'
-import { ControllersModule } from '../controllers.module'
+import { UserDto } from 'src/services'
 import { JwtAuthGuard, LocalAuthGuard } from '../authentication/guards'
+import { ControllersModule } from '../controllers.module'
 import { createUserDto, createUserDtos, createdUser, createdUsers } from './user.mocks'
 
 describe('UsersController', () => {
@@ -84,7 +84,7 @@ describe('UsersController', () => {
     })
 
     describe('특정 user에 대한 작업', () => {
-        let user: User
+        let user: UserDto
 
         beforeEach(async () => {
             const res = await request.post({

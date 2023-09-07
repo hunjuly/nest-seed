@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import * as jwt from 'jsonwebtoken'
 import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
-import { User } from 'src/users/entities'
+import { UserDto } from 'src/services'
 import { ControllersModule } from '../controllers.module'
 import { createUserDto } from './user.mocks'
 
@@ -21,7 +21,7 @@ jest.mock('../authentication/services/auth-config.service', () => {
 describe('User Authentication', () => {
     let module: TestingModule
     let request: any
-    let user: User
+    let user: UserDto
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
