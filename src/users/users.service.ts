@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, Password, updateIntersection } from 'src/common'
-import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto'
+import { Assert, PaginationResult, Password, updateIntersection } from 'src/common'
+import { CreateUserDto, UpdateUserDto, UserDto, UsersQueryDto } from './dto'
 import { User } from './entities'
 import { UsersRepository } from './users.repository'
 
@@ -20,13 +20,15 @@ export class UsersService {
 
         const user = await this.usersRepository.create(createUser)
 
-        return user
+        return new UserDto(user)
     }
 
-    async findUsers(queryDto: UsersQueryDto) {
+    async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
         const users = await this.usersRepository.find(queryDto)
 
-        return users
+        const items = users.items.map((seed) => new UserDto(seed))
+
+        return { ...users, items }
     }
 
     async emailExists(email: string): Promise<boolean> {
@@ -41,7 +43,13 @@ export class UsersService {
         return exists
     }
 
-    async getUser(userId: string): Promise<User> {
+    async getUser(userId: string) {
+        const user = await this._getUser(userId)
+
+        return new UserDto(user)
+    }
+
+    private async _getUser(userId: string) {
         const user = await this.usersRepository.findById(userId)
 
         Assert.defined(user, `User with ID ${userId} not found`)
@@ -50,19 +58,19 @@ export class UsersService {
     }
 
     async updateUser(userId: string, updateUserDto: UpdateUserDto) {
-        const user = await this.getUser(userId)
+        const user = await this._getUser(userId)
 
-        const updatedUser = updateIntersection(user, updateUserDto)
+        const updateUser = updateIntersection(user, updateUserDto)
 
-        const savedUser = await this.usersRepository.update(updatedUser)
+        const savedUser = await this.usersRepository.update(updateUser)
 
-        Assert.deepEquals(savedUser, updatedUser, 'update 요청과 결과가 다름')
+        Assert.deepEquals(savedUser, updateUser, 'update 요청과 결과가 다름')
 
-        return savedUser
+        return new UserDto(savedUser)
     }
 
     async removeUser(userId: string) {
-        const user = await this.getUser(userId)
+        const user = await this._getUser(userId)
 
         await this.usersRepository.remove(user)
     }

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { SafeConfigService, TransactionService } from 'src/common'
 import { User } from './entities'
-import { UsersController } from './users.controller'
 import { UsersRepository } from './users.repository'
 import { UsersService } from './users.service'
 import { JwtModule } from '@nestjs/jwt'
@@ -38,7 +37,6 @@ function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
         JwtModule.registerAsync(getJwtModuleAsyncOption('refresh')),
         JwtModule.registerAsync(getJwtModuleAsyncOption('access'))
     ],
-    controllers: [UsersController],
     providers: [
         UsersService,
         UsersRepository,
@@ -48,6 +46,6 @@ function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
         JwtStrategy,
         AuthConfigService
     ],
-    exports: [UsersService]
+    exports: [UsersService, AuthService]
 })
 export class UsersModule {}

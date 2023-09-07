@@ -14,17 +14,11 @@ import {
     UseGuards
 } from '@nestjs/common'
 import { Assert } from 'src/common'
-import { AuthService } from './auth.service'
-import { UserDto, UsersQueryDto } from './dto'
-import { CreateUserDto } from './dto/create-user.dto'
-import { UpdateUserDto } from './dto/update-user.dto'
-import { User } from './entities'
-import { JwtAuthGuard, LocalAuthGuard } from './guards'
-import { UsersService } from './users.service'
-
-interface AuthRequest {
-    user: User
-}
+import { AuthService } from 'src/users/auth.service'
+import { CreateUserDto, UpdateUserDto, UsersQueryDto } from 'src/users/dto'
+import { User } from 'src/users/entities'
+import { JwtAuthGuard, LocalAuthGuard } from 'src/users/guards'
+import { UsersService } from 'src/users/users.service'
 
 @Controller('users')
 export class UsersController {
@@ -34,18 +28,12 @@ export class UsersController {
     async createUser(@Body() createUserDto: CreateUserDto) {
         await this.requireEmailNotExists(createUserDto.email)
 
-        const user = await this.usersService.createUser(createUserDto)
-
-        return new UserDto(user)
+        return this.usersService.createUser(createUserDto)
     }
 
     @Get()
     async findUsers(@Query() query: UsersQueryDto) {
-        const users = await this.usersService.findUsers(query)
-
-        const items = users.items.map((seed) => new UserDto(seed))
-
-        return { ...users, items }
+        return this.usersService.findUsers(query)
     }
 
     @Get(':userId')
@@ -53,9 +41,7 @@ export class UsersController {
     async getUser(@Param('userId') userId: string) {
         await this.requireUserExists(userId)
 
-        const user = await this.usersService.getUser(userId)
-
-        return new UserDto(user)
+        return this.usersService.getUser(userId)
     }
 
     @Patch(':userId')
@@ -63,9 +49,7 @@ export class UsersController {
     async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
         await this.requireUserExists(userId)
 
-        const user = await this.usersService.updateUser(userId, updateUserDto)
-
-        return new UserDto(user)
+        return this.usersService.updateUser(userId, updateUserDto)
     }
 
     @Delete(':userId')
@@ -78,7 +62,7 @@ export class UsersController {
 
     @Post('login')
     @UseGuards(LocalAuthGuard)
-    async login(@Req() req: AuthRequest) {
+    async login(@Req() req: { user: User }) {
         // 여기로 오는 것은 passport.authenticate('local')을 통과했다는 것
         Assert.defined(req.user, 'login failed. req.user is null.')
 

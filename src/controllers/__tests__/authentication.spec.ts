@@ -4,11 +4,12 @@ import * as jwt from 'jsonwebtoken'
 import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { GlobalModule } from 'src/global'
-import { createUserDto } from 'src/users/__tests__'
-import { User } from '../entities'
-import { UsersModule } from '../users.module'
+import { User } from 'src/users/entities'
+import { UsersModule } from 'src/users/users.module'
+import { createUserDto } from './user.mocks'
+import { UsersController } from '../users.controller'
 
-jest.mock('../services/auth-config.service', () => {
+jest.mock('src/users/services/auth-config.service', () => {
     return {
         AuthConfigService: jest.fn().mockImplementation(() => ({
             accessSecret: 'mockAccessSecret',
@@ -26,7 +27,8 @@ describe('User Authentication', () => {
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
-            imports: [GlobalModule, UsersModule]
+            imports: [GlobalModule, UsersModule],
+            controllers: [UsersController]
         })
 
         module = sut.module
