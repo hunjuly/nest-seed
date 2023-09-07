@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as jwt from 'jsonwebtoken'
-import { CacheService, Password, convertTimeToSeconds, notUsed } from 'src/common'
-import { User } from 'src/users/entities'
+import { CacheService, convertTimeToSeconds, notUsed } from 'src/common'
+import { UserDto } from 'src/users/dto'
+import { UsersService } from 'src/users/users.service'
 import { v4 as uuidv4 } from 'uuid'
 import { JwtPayload, TokenPayload } from '../interfaces'
 import { AuthConfigService } from './auth-config.service'
-import { UsersService } from 'src/users/users.service'
 
 @Injectable()
 export class AuthService {
@@ -17,22 +17,14 @@ export class AuthService {
         private readonly cache: CacheService
     ) {}
 
-    async validateUser(email: string, password: string): Promise<User | null> {
-        const user = await this.usersService.findByEmail(email)
+    async validateUser(email: string, password: string): Promise<{ id: string; email: string } | null> {
+        const user = await this.usersService.validateUser(email, password)
 
-        if (user) {
-            const valid = await Password.validate(password, user.password)
-
-            if (valid) {
-                return user
-            }
-        }
-
-        return null
+        return user
     }
 
     // login을 한다는 것은 validateUser를 통과했다는 말
-    async login(user: User) {
+    async login(user: UserDto) {
         const { id: userId, email } = user
 
         const tokenPayload = { userId, email }

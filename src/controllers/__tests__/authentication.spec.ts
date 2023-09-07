@@ -49,10 +49,10 @@ describe('User Authentication', () => {
         expect(request).toBeDefined()
     })
 
-    describe('POST /users/login', () => {
+    describe('POST /auth/login', () => {
         it('로그인 성공시 CREATED(201)과 TokenPair 반환', async () => {
             const res = await request.post({
-                url: '/users/login',
+                url: '/auth/login',
                 body: {
                     email: createUserDto.email,
                     password: createUserDto.password
@@ -66,7 +66,7 @@ describe('User Authentication', () => {
 
         it('비밀번호가 틀리면 UNAUTHORIZED(401) 반환한다', async () => {
             const res = await request.post({
-                url: '/users/login',
+                url: '/auth/login',
                 body: {
                     email: createUserDto.email,
                     password: 'wrong password'
@@ -78,7 +78,7 @@ describe('User Authentication', () => {
 
         it('email이 존재하지 않으면 UNAUTHORIZED(401) 반환한다', async () => {
             const res = await request.post({
-                url: '/users/login',
+                url: '/auth/login',
                 body: {
                     email: 'unknown@mail.com',
                     password: createUserDto.password
@@ -95,7 +95,7 @@ describe('User Authentication', () => {
 
         beforeEach(async () => {
             const res = await request.post({
-                url: '/users/login',
+                url: '/auth/login',
                 body: {
                     email: createUserDto.email,
                     password: createUserDto.password
@@ -107,10 +107,10 @@ describe('User Authentication', () => {
             refreshToken = res.body.refreshToken
         })
 
-        describe('POST /users/refresh', () => {
+        describe('POST /auth/refresh', () => {
             it('새로운 TokenPair를 반환한다', async () => {
                 const res = await request.post({
-                    url: '/users/refresh',
+                    url: '/auth/refresh',
                     body: { refreshToken }
                 })
 
@@ -121,7 +121,7 @@ describe('User Authentication', () => {
 
             it('잘못된 refreshToken은 Unauthorized(401) 반환한다', async () => {
                 const res = await request.post({
-                    url: '/users/refresh',
+                    url: '/auth/refresh',
                     body: { refreshToken: 'invalid-token' }
                 })
 
@@ -132,7 +132,7 @@ describe('User Authentication', () => {
                 await sleep(1500)
 
                 const res = await request.post({
-                    url: '/users/refresh',
+                    url: '/auth/refresh',
                     body: { refreshToken }
                 })
 

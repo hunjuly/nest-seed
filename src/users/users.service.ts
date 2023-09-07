@@ -26,14 +26,28 @@ export class UsersService {
     async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
         const users = await this.usersRepository.find(queryDto)
 
-        const items = users.items.map((seed) => new UserDto(seed))
+        const items = users.items.map((user) => new UserDto(user))
 
         return { ...users, items }
     }
 
-    async findByEmail(email: string): Promise<User | null> {
-        return this.usersRepository.findByEmail(email)
+    async validateUser(email: string, password: string): Promise<UserDto | null> {
+        const user = await this.usersRepository.findByEmail(email)
+
+        if (user) {
+            const valid = await Password.validate(password, user.password)
+
+            if (valid) {
+                return new UserDto(user)
+            }
+        }
+
+        return null
     }
+
+    // async findByEmail(email: string): Promise<User | null> {
+    //     return this.usersRepository.findByEmail(email)
+    // }
 
     async emailExists(email: string): Promise<boolean> {
         const exists = await this.usersRepository.emailExists(email)
