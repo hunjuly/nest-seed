@@ -14,6 +14,30 @@
 
 ### 2.1. URL 구성 순서
 
+project -> scene -> room의 관계를 가지는 리소스가 있다고 가정한다.
+
+DELETE /projects를 하려면 project에 속한 scene,room도 삭제해야 한다
+그러나 room이 scene을 참조하고 scene가 project를 참조하는 구조다.
+삭제를 위해서 project가 scene를 참조하면 순환참조가 된다.
+
+그래서 ClearAssetService를 만들고 여기서 project,scene,roome을 삭제하는 기능을 구현한다.
+이 때, Controller가 각 모듈에 속하는 기존 구조는 문제가 된다.
+
+DELETE /projects는 할 수 없고 POST /clear/projects/${projectId}로 해야 한다.
+지금은 clear지만 다른 기능을 추가하려고 할 때 순환참조 문제가 계속될 것이다.
+
+이 프로젝트는 layered architecture를 기반으로 설계했다.
+layered architecture는 상위 레이어가 하위 레이어에 접근할 수 있다.
+그런데 현재 구조에서는 상위 레이어라고 하더라도 하위 레이어에 접근할 수 없어서 문제가 발생하는 것이다.
+
+따라서 Controller를 단일 모듈로 만들어야 한다.
+여기서는 RestApiControllerModule로 했다.
+
+만약 나중에 GRPC를 구현해야 한다고 하면 GrpcControllerModule이 추가될 것이다.
+
+RestApiControllerModule로 Controller를 분리하면 아래 설명에서 다루는 문제가 해결된다.
+그래서 아래 설명은 틀렸다.
+-----------------
 다음은 요청하는 리소스가 앞에 오고 필터가 뒤따라 오는 REST API 설계이다.
 
 ```sh
