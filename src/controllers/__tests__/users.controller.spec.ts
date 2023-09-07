@@ -1,12 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
-import { GlobalModule } from 'src/global'
 import { User } from 'src/users/entities'
-import { JwtAuthGuard, LocalAuthGuard } from 'src/users/guards'
-import { UsersModule } from 'src/users/users.module'
+import { ControllersModule } from '../controllers.module'
+import { JwtAuthGuard, LocalAuthGuard } from '../authentication/guards'
 import { createUserDto, createUserDtos, createdUser, createdUsers } from './user.mocks'
-import { UsersController } from '../users.controller'
 
 describe('UsersController', () => {
     let module: TestingModule
@@ -14,8 +12,7 @@ describe('UsersController', () => {
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
-            imports: [GlobalModule, UsersModule],
-            controllers: [UsersController],
+            imports: [ControllersModule],
             bypassGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 

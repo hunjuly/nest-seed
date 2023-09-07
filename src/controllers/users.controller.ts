@@ -14,10 +14,10 @@ import {
     UseGuards
 } from '@nestjs/common'
 import { Assert } from 'src/common'
-import { AuthService } from 'src/users/auth.service'
+import { AuthService } from './authentication/services/auth.service'
 import { CreateUserDto, UpdateUserDto, UsersQueryDto } from 'src/users/dto'
 import { User } from 'src/users/entities'
-import { JwtAuthGuard, LocalAuthGuard } from 'src/users/guards'
+import { JwtAuthGuard, LocalAuthGuard } from './authentication/guards'
 import { UsersService } from 'src/users/users.service'
 
 @Controller('users')

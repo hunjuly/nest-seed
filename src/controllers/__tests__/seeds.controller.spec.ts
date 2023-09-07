@@ -1,10 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestModule, nullUUID } from 'src/common/test'
-import { GlobalModule } from 'src/global'
 import { Seed } from 'src/_seeds/entities'
-import { SeedsModule } from 'src/_seeds/seeds.module'
-import { SeedsController } from '../seeds.controller'
+import { createHttpTestModule, nullUUID } from 'src/common/test'
+import { ControllersModule } from '../controllers.module'
 import { createSeedDto, createSeedDtos, createdSeed, createdSeeds } from './seed.mocks'
 
 describe('SeedsController', () => {
@@ -13,8 +11,7 @@ describe('SeedsController', () => {
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
-            imports: [GlobalModule, SeedsModule],
-            controllers: [SeedsController]
+            imports: [ControllersModule]
         })
 
         module = sut.module

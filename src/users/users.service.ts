@@ -31,6 +31,10 @@ export class UsersService {
         return { ...users, items }
     }
 
+    async findByEmail(email: string): Promise<User | null> {
+        return this.usersRepository.findByEmail(email)
+    }
+
     async emailExists(email: string): Promise<boolean> {
         const exists = await this.usersRepository.emailExists(email)
 

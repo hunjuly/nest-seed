@@ -4,21 +4,21 @@ import * as jwt from 'jsonwebtoken'
 import { CacheService, Password, convertTimeToSeconds, notUsed } from 'src/common'
 import { User } from 'src/users/entities'
 import { v4 as uuidv4 } from 'uuid'
-import { JwtPayload, TokenPayload } from './interfaces'
-import { AuthConfigService } from './services'
-import { UsersRepository } from './users.repository'
+import { JwtPayload, TokenPayload } from '../interfaces'
+import { AuthConfigService } from './auth-config.service'
+import { UsersService } from 'src/users/users.service'
 
 @Injectable()
 export class AuthService {
     constructor(
-        private usersRepository: UsersRepository,
+        private usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly config: AuthConfigService,
         private readonly cache: CacheService
     ) {}
 
     async validateUser(email: string, password: string): Promise<User | null> {
-        const user = await this.usersRepository.findByEmail(email)
+        const user = await this.usersService.findByEmail(email)
 
         if (user) {
             const valid = await Password.validate(password, user.password)
