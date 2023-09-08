@@ -107,48 +107,14 @@ Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 �
 
 ## 3. 그 외
 
-### 3.1. index.ts 작성 시 순환 참조 문제
-
-각 모듈 마다 아래처럼 모듈의 모든 요소를 export하는 index.ts를 만들었다. 이와 같은 방식은 순환참조 문제 가능성을 크게 높인다.
-
-```ts
-export * from './dto'
-export * from './entities'
-export * from './users.module'
-export * from './users.service'
-```
-
-아래는 순환참조가 발생하는 코드다. 각각 AuthService와 User만 필요한데 각 모듈의 모든 요소를 import 하면서 문제가 된다.
-
-```ts
-// users/index.ts
-export * from './entities'
-export * from './users.module'
-export * from './users.service'
-
-// user.entity.ts
-// auth의 모든 요소를 import 하게 된다.
-import { AuthService } from './auth'
-
-// auth/index.ts
-export * from './auth.module'
-export * from './auth.service'
-
-// auth.service.ts
-// users의 모든 요소를 import 하게 된다.
-import { User } from './users'
-```
-
-그래서 적어도 모듈 단위의 index.ts는 정의하지 않기로 한다.
-
-### 3.2. Authentication 모듈의 분리
+### 3.1. Authentication 모듈의 분리
 
 UsersModule과 AuthModule로 분리되어 있었다. 그러나 다음의 이유로 UsersModule에 통합했다.
 
 1. 만약 User의 종류가 둘이 된다면 Auth의 종류도 그에 맞게 생겨야 한다.
 1. AuthModule로 분리해서 생기는 장점이 크지 않고 결합이 강해진다.
 
-### 3.3. Assert, Expect
+### 3.2. Assert, Expect
 
 아래와 같이 expect 구문을 사용했었다. 그러나 이렇게 하면 vscode에서 showtime이 undefined가 아니라고 단정할 수 없어서 에러가 발생한다.
 
@@ -156,7 +122,7 @@ UsersModule과 AuthModule로 분리되어 있었다. 그러나 다음의 이유�
 Expect.found(showtime, `${showtime} not found`)
 ```
 
-### 3.4. Exception의 테스트 작성
+### 3.3. Exception의 테스트 작성
 
 Exception을 발생시키는 것은 일반적인 방법으로 재현하기 어렵다. 그래서 Exception을 테스트 하려면 코드가 복잡해진다.
 그에 반해 Exception을 처리하는 코드는 단순한 편이어서 테스트를 작성하는 이익이 크지 않다.
@@ -165,7 +131,7 @@ Exception을 발생시키는 것은 일반적인 방법으로 재현하기 어�
 
 예외적으로 치명적인 Exception 발생 시 시스템을 shutdown 하는 것과 같이 단순 error reporting 이상의 기능이 있다면 테스트를 작성해야 한다.
 
-### 3.5. Code Coverage 무시
+### 3.4. Code Coverage 무시
 
 아래처럼 Assert를 사용하면 code coverage를 무시하는 태그를 작성하지 않아도 된다.
 
@@ -179,17 +145,17 @@ if (seed === undefined) {
 Assert.defined(seed, `Seed(${seedId}) not found`)
 ```
 
-### 3.6. Test 작성
+### 3.5. Test 작성
 
 유닛 테스트를 클래스 마다 작성하는 것은 비용이 크다. e2e에 가까운 모듈 테스트를 작성해서 모듈 단위로 테스트를 작성하는 게 효율적이다.
 
 테스트 코드는 반드시 완전한 e2e-test나 unit-test로 작성할 필요는 없다. 상황에 따라 어느 정도 균형을 맞춰야 한다.
 
-### 3.7. Transaction
+### 3.6. Transaction
 
 서비스 간 트랜잭션 핸들을 공유하지 않는다. 전통적인 트랜잭션 구조는 포기한다. 각 서비스가 MSA의 일부라고 가정한다.
 
-### 3.8. Scope.REQUEST
+### 3.7. Scope.REQUEST
 
 아래와 같이 Scope.REQUEST로 설정된 TransactionService를 사용하면 scope bubble up 이 발생해서 unit 테스트가 어려워진다.
 

@@ -1,89 +1,23 @@
 # Design Guide
 
-이 문서는 Back-End 소프트웨어를 설계할 때 고려해야 할 구조적 및 기능적 원칙을 정리한 것이다.
+이 프로젝트를 기반으로 개발을 할 때 고려해야 할 구조적 및 기능적 원칙을 정리한 것이다.
 
+## Controller의 분리
 
-## 1. 상호 참조
+Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈에 위치하는 `Feature Module` 구조를 사용합니다. 그러나 이 구조는 [해결이 어려운 문제](./problems-with-feature-modules.md)가 발생할 수 있습니다. 따라서 이 문제를 해결하기 위해 Controller와 Service를 분리하는 방향으로 개선했습니다.
 
-어떤 경우라도 상호참조는 하지 않는다. 상호참조가 필요하면 그 부분만 별도의 서비스로 만들거나 두 서비스를 하나로 합쳐야 한다.
+Layered Architecture 관점에서도 Controller를 모듈에서 분리하는 것이 자연스럽다.
+Controller와 Service는 Layered Architecture에서 서로 다른 계층에 속하며, Controller는 서비스 계층의 기능을 활용하기 위해 특별한 제약을 두지 않는다.
+
+## 상호 참조
+
+모든 서비스는 단방향 의존 관계를 갖도록 설계해서 상호 참조 문제가 발생하지 않도록 한다.
+상호참조가 필요한 경우 그 부분만 별도의 서비스로 만들거나 두 서비스를 하나로 합쳐야 한다.
 이 규칙은 서비스, 모듈, 클래스 등 규모에 상관없이 동일하게 적용된다.
 
-그러나 모듈 간 상호참조는 있을 수 있다. UsersController가 StatisticsService를 호출한다고 가정해 보자. Controller와 Service는 각자의 모듈에서 서로 다른 레이어에 위치한다. 이런 경우 모듈을 상호참조 하는 것은 괜찮다.
+## REST API
 
-## 2. REST API
-
-### 2.1. URL 구성 순서
-
-project -> scene -> room의 관계를 가지는 리소스가 있다고 가정한다.
-
-DELETE /projects를 하려면 project에 속한 scene,room도 삭제해야 한다
-그러나 room이 scene을 참조하고 scene가 project를 참조하는 구조다.
-삭제를 위해서 project가 scene를 참조하면 순환참조가 된다.
-
-그래서 ClearAssetService를 만들고 여기서 project,scene,roome을 삭제하는 기능을 구현한다.
-이 때, Controller가 각 모듈에 속하는 기존 구조는 문제가 된다.
-
-DELETE /projects는 할 수 없고 POST /clear/projects/${projectId}로 해야 한다.
-지금은 clear지만 다른 기능을 추가하려고 할 때 순환참조 문제가 계속될 것이다.
-
-이 프로젝트는 layered architecture를 기반으로 설계했다.
-layered architecture는 상위 레이어가 하위 레이어에 접근할 수 있다.
-그런데 현재 구조에서는 상위 레이어라고 하더라도 하위 레이어에 접근할 수 없어서 문제가 발생하는 것이다.
-
-따라서 Controller를 단일 모듈로 만들어야 한다.
-여기서는 RestApiControllerModule로 했다.
-
-만약 나중에 GRPC를 구현해야 한다고 하면 GrpcControllerModule이 추가될 것이다.
-
-RestApiControllerModule로 Controller를 분리하면 아래 설명에서 다루는 문제가 해결된다.
-그래서 아래 설명은 틀렸다.
------------------
-다음은 요청하는 리소스가 앞에 오고 필터가 뒤따라 오는 REST API 설계이다.
-
-```sh
-# 상영중인 영화 목록
-/movies/screening
-
-# 상영중인 극장 목록
-/theaters/screening
-```
-
-이렇게 하면 movies나 theaters 서비스가 다른 서비스를 참조하면서 복잡도가 증가한다.
-
-```sh
-# 주간 베스트 영화 목록
-/movies/weekly-best
-
-# 영화 abc123의 리뷰들
-/movies/abc123/reviews
-...
-```
-
-위와 같이 movies와 관련된 기능을 추가하면 movies 모듈은 weekly 모듈과 reviews 모듈을 추가로 참조해야 한다.
-
-대안으로 MoviesController에서 ScreeningService를 호출하는 방법도 있다. 그러나 이것은 의존성이 높아져서 결국 유지보수가 어려워 진다.
-
-다음은 필터가 앞에 오고 요청하는 리소스가 뒤에 오는 설계이다.
-
-```sh
-# 상영중인 영화 목록
-/screening/movies
-
-# 상영중인 극장 목록
-/screening/theaters
-
-# 주간 베스트 영화 목록
-/weekly-best/movies
-
-# 영화 abc123의 리뷰들
-/reviews/movies/abc123
-...
-```
-
-이렇게 하면 screening 서비스와 관련된 기능이 모두 모여서 개발이 수월하다. 다른 기능이 추가되더라도 `movies`나 `theaters` 서비스는 변경하지 않아도 된다.
-REST API를 위와 같이 한다면 `screening`,`weekly-best`, `reviews` 서비스 모듈을 만들어야 한다.
-
-### 2.2. Shallow Routing VS Nested Routing
+### 1. Shallow Routing VS Nested Routing
 
 REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`이 있다.
 
@@ -114,7 +48,7 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 분석과 구현의 개념이 일치되도록 하는 것이 중요하다. `Nested Routing`를 선택한다는 것은 분석 단계에서 예매 프로세스가 그렇게 정의된 것을 반영하는 것 뿐이다.
 기술적 우월성 보다 분석을 정확히 반영하는 것이 우선이다.
 
-### 2.3. GET과 POST 선택
+### 2. GET과 POST 선택
 
 10,000명의 user정보 검색 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
 
@@ -149,7 +83,7 @@ GET과 POST를 선택할 때는 다음의 사항을 고려해야 한다.
     -   데이터가 민감한 경우 (예: 패스워드, 개인 정보 등)
     -   서버의 상태를 변경하는 동작을 수행하는 경우 (예: 리소스 생성, 수정)
 
-### 2.4. Self Descriptive API 제한
+### 3. Self Descriptive API 제한
 
 HATEOAS(Hypermedia as the engine of application state)의 완전한 자체 설명을 구현하는 것은 어렵고 복잡하다.
 단순 link 정도의 수준으로 제공해야 하며 복잡한 API는 문서로 설명해야 한다.
