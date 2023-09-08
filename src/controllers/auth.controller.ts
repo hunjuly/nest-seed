@@ -1,7 +1,8 @@
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
 import { Assert } from 'src/common'
 import { UserDto } from 'src/services'
-import { AuthService, LocalAuthGuard } from './authentication'
+import { AuthService, JwtAuthGuard, LocalAuthGuard } from './authentication'
+import { AccessTokenPayload } from './authentication/interfaces'
 
 @Controller('auth')
 export class AuthController {
@@ -10,20 +11,26 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Req() req: { user: UserDto }) {
-        // 여기로 오는 것은 passport.authenticate('local')을 통과했다는 것
+        // req.user는 LocalStrategy.validate의 반환값
         Assert.defined(req.user, 'login failed. req.user is null.')
 
-        return this.authService.login(req.user)
+        const tokenPair = await this.authService.login(req.user)
+
+        return tokenPair
     }
 
     @Post('refresh')
     async refreshToken(@Body('refreshToken') refreshToken: string) {
-        const payload = await this.authService.refreshTokenPair(refreshToken)
+        const tokenPair = await this.authService.refreshTokenPair(refreshToken)
 
-        if (!payload) {
+        if (!tokenPair) {
             throw new UnauthorizedException('refresh failed.')
         }
 
-        return payload
+        return tokenPair
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('jwt-testing')
+    async jwtTestring(@Req() _req: { user: AccessTokenPayload }) {}
 }

@@ -1,11 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import * as jwt from 'jsonwebtoken'
 import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
-import { UserDto } from 'src/services'
 import { ControllersModule } from '../controllers.module'
 import { createUserDto } from './user.mocks'
+import { JwtService } from '@nestjs/jwt'
 
 jest.mock('../authentication/services/auth-config.service', () => {
     return {
@@ -21,7 +20,7 @@ jest.mock('../authentication/services/auth-config.service', () => {
 describe('User Authentication', () => {
     let module: TestingModule
     let request: any
-    let user: UserDto
+    let jwtService: JwtService
 
     beforeEach(async () => {
         const sut = await createHttpTestModule({
@@ -30,14 +29,13 @@ describe('User Authentication', () => {
 
         module = sut.module
         request = sut.request
+        jwtService = module.get(JwtService)
 
-        const res = await request.post({
+        await request.post({
             url: '/users',
             body: createUserDto,
             status: HttpStatus.CREATED
         })
-
-        user = res.body
     })
 
     afterEach(async () => {
@@ -143,7 +141,7 @@ describe('User Authentication', () => {
         describe('JwtAuthGuard', () => {
             it('accessToken이 필요하다', async () => {
                 const res = await request.get({
-                    url: `/users/${user.id}`,
+                    url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer ${accessToken}`
                     }
@@ -152,9 +150,9 @@ describe('User Authentication', () => {
                 expect(res.statusCode).toEqual(HttpStatus.OK)
             })
 
-            it('잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
+            it('형식이 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
                 const res = await request.get({
-                    url: `/users/${user.id}`,
+                    url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer invalid_access_token`
                     }
@@ -163,13 +161,14 @@ describe('User Authentication', () => {
                 expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
             })
 
-            it('존재하지 않는 accessToken은 Unauthorized(401) 반환한다', async () => {
-                const invalidToken = jwt.sign({ userId: nullUUID }, 'mockAccessSecret', {
-                    expiresIn: '15m'
-                })
+            it('데이터가 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
+                const invalidToken = jwtService.sign(
+                    { userId: nullUUID },
+                    { secret: 'mockAccessSecret', expiresIn: '15m' }
+                )
 
                 const res = await request.get({
-                    url: `/users/${user.id}`,
+                    url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer ${invalidToken}`
                     }

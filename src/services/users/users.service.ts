@@ -31,43 +31,41 @@ export class UsersService {
         return { ...users, items }
     }
 
-    async validateUser(email: string, password: string): Promise<UserDto | null> {
+    async isCorrectPassword(userId: string, password: string) {
+        const user = await this.getUserEntity(userId)
+
+        return Password.validate(password, user.password)
+    }
+
+    async findByEmail(email: string): Promise<UserDto | null> {
         const user = await this.usersRepository.findByEmail(email)
 
         if (user) {
-            const valid = await Password.validate(password, user.password)
-
-            if (valid) {
-                return new UserDto(user)
-            }
+            return new UserDto(user)
         }
 
         return null
     }
 
-    // async findByEmail(email: string): Promise<User | null> {
-    //     return this.usersRepository.findByEmail(email)
-    // }
-
-    async emailExists(email: string): Promise<boolean> {
+    async emailExists(email: string) {
         const exists = await this.usersRepository.emailExists(email)
 
         return exists
     }
 
-    async userExists(userId: string): Promise<boolean> {
+    async userExists(userId: string) {
         const exists = await this.usersRepository.exist(userId)
 
         return exists
     }
 
     async getUser(userId: string) {
-        const user = await this._getUser(userId)
+        const user = await this.getUserEntity(userId)
 
         return new UserDto(user)
     }
 
-    private async _getUser(userId: string) {
+    private async getUserEntity(userId: string) {
         const user = await this.usersRepository.findById(userId)
 
         Assert.defined(user, `User with ID ${userId} not found`)
@@ -76,7 +74,7 @@ export class UsersService {
     }
 
     async updateUser(userId: string, updateUserDto: UpdateUserDto) {
-        const user = await this._getUser(userId)
+        const user = await this.getUserEntity(userId)
 
         const updateUser = updateIntersection(user, updateUserDto)
 
@@ -88,7 +86,7 @@ export class UsersService {
     }
 
     async removeUser(userId: string) {
-        const user = await this._getUser(userId)
+        const user = await this.getUserEntity(userId)
 
         await this.usersRepository.remove(user)
     }

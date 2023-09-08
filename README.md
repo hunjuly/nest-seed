@@ -125,11 +125,16 @@ $ npm run start:prod
 │   └── start_redis.sh  # 테스트 infra인 Redis 생성 및 설정
 ├── src
 │   ├── __tests__   # 시나리오 테스트를 포함해서 여러 service에 걸쳐서 실행되는 테스트다
-│   ├── _seeds  # 새 Service를 생성할 때 template이 되는 코드
 │   ├── common  # 여러 프로젝트에서 공통적으로 사용되는 기능 모음
+│   ├── controllers  # REST API 컨트롤러. 각 모듈에 분산되어 있는 컨트롤러를 별도의 폴더(레이어)로 분리했다.
+│   │   ├── authentication  # Controller에서 실행하는 인증 관련 기능들
+│   │   ├── modules   # Controller에서 사용하는 공통 모듈들
+│   │   └── seeds.controller.ts   # 새 Controller를 생성할 때 template이 되는 코드
 │   ├── database    # Typeorm과 관련된 기능 모음
 │   ├── global  # DB, Logger, Config 등 전체 Service에서 사용하는 모듈들
-│   ├── users   # User 서비스
+│   ├── services  # DB, Logger, Config 등 전체 Service에서 사용하는 모듈들
+│   │   ├── _seeds  # 새 Service를 생성할 때 template이 되는 코드
+│   │   └── users   # User 서비스
 │   └── main.ts # 소스코드 진입점
 ├── test
 │   ├── e2e # e2e 테스트. 복잡한 테스트는 Jest를 사용하고 여기서는 REST API를 한 번씩 호출하는 정도로 한다.

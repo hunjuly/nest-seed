@@ -103,7 +103,8 @@ export function equalsIgnoreCase(str1: any, str2: any): boolean {
     return false
 }
 
-export function notUsed(_message?: string) {}
+export function notUsed(..._args: any[]) {}
+export function comment(..._args: any[]) {}
 
 export class Password {
     static async hash(password: string): Promise<string> {
