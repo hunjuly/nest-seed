@@ -177,3 +177,42 @@ export class TransactionService implements OnModuleDestroy {
     ...
 }
 ```
+
+### 3.7. import 규칙
+
+```
+src
+├── controllers
+│   ├── index.ts
+│   ├── auth.controller.ts
+│   └── users.controller.ts
+└── services
+    ├── auth
+    │   ├── index.ts
+    │   ├── auth.service.ts
+    │   └── strategies
+    └── users
+        ├── index.ts
+        ├── users.repository.ts
+        └── users.service.ts
+
+```
+
+위와 같은 폴더/파일 구조가 있을 때 순환 참조를 피하기 위해서 다음의 규칙을 지켜야 한다.
+
+-   직계 조상 폴더는 절대 경로를 사용하면 안 된다.
+    ```ts
+    /* users.service.ts에서 */
+    // 순환참조 발생
+    import { AuthService } from 'src/services'
+    // 정상
+    import { AuthService } from '../auth'
+    ```
+-   직계 조상이 아니면 절대 경로를 사용해야 한다.
+    ```ts
+    /* users.controller.ts에서 */
+    // 정상
+    import { AuthService } from 'src/services'
+    // 권장하지 않음
+    import { AuthService } from '../services'
+    ```
