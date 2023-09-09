@@ -1,10 +1,27 @@
 # Design Guide
 
-이 프로젝트를 기반으로 개발을 할 때 고려해야 할 구조적 및 기능적 원칙을 정리한 것이다.
+이 프로젝트의 아키텍쳐는 일반적인 Nest 프로젝트와 다소 다른 부분이 있다.
+```
+┌──────────────────────────────────────────────────┐
+│             Controller Module                    │
+└───────────────────┬───────────────────────┬──────┘
+                    │                       │
+                    ▼                       │
+┌──────────────────────────────────┐        │
+│         ServiceC Module          │        │
+└────────────┬───────────────────┬─┘        │
+             │                   │          │
+             ▼                   ▼          ▼
+┌──────────────────────────┬────────────────────────┐
+│    ServiceA Module       │    ServiceB Module     │
+├╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶┼╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶╶┤
+│  Infrastructure (RepoA)  │ Infrastructure (RepoB) │
+└──────────────────────────┴────────────────────────┘
+```
 
 ## Controller의 분리
 
-Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈에 위치하는 `Feature Module` 구조를 사용합니다. 그러나 이 구조는 [해결이 어려운 문제](./problems-with-feature-modules.md)가 발생할 수 있습니다. 따라서 이 문제를 해결하기 위해 Controller와 Service를 분리하는 방향으로 개선했습니다.
+Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈에 위치하는 `Feature Module` 구조를 사용한다. 그러나 이 구조는 [해결이 어려운 문제](./problems-with-feature-modules.md)가 쉽게 발생할 수 있다. 따라서 이 문제를 해결하기 위해 Controller와 Service를 분리하는 구조를 선택했다.
 
 Layered Architecture 관점에서도 Controller를 모듈에서 분리하는 것이 자연스럽다.
 Controller와 Service는 Layered Architecture에서 서로 다른 계층에 속하며, Controller는 서비스 계층의 기능을 활용하기 위해 특별한 제약을 두지 않는다.

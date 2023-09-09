@@ -4,6 +4,8 @@
 
 ## 1. Controller 레이어
 
+Controller는 사용자 입력에 대한 점검과 변환을 담당한다.
+
 다음은 일반적인 Controller의 코드다.
 
 ```ts
@@ -11,6 +13,7 @@
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Get(':userId')
     async getUser(@Param('userId') userId: string) {
         const userExists = await this.usersService.userExists(userId)
@@ -20,29 +23,15 @@ export class UsersController {
             throw new NotFoundException(`User with ID ${userId} not found`)
         }
 
-        const user = await this.usersService.getUser(userId)
-
-        // User entity를 UserDto로 변환해서 반환한다
-        return new UserDto(user)
+        return this.usersService.getUser(userId)
     }
 }
 ```
 
-getUser()는 두 가지 특징이 있다.
+getUser()는 사용자가 존재하지 않으면 예외를 던진다. Controller에서 입력값을 점검하고 예외를 던지는 이유는 다음과 같다.
 
--   사용자가 존재하지 않으면 예외를 던진다.
--   User entity를 UserDto로 변환한다
-
-### 1.1. Controller에서 예외를 던지는 이유
-
-1. REST API나 GRPC 등 통신방식에 따라서 던져야 하는 예외가 다르다.
-1. Controller에 예외가 발생할 수 있는 조건을 점검하면 문서화가 쉽다.
-
-### 1.2. Controller에서 entity를 DTO로 변환하는 이유
-
-1. REST API나 GRPC 등 통신방식에 따라서 요구하는 데이터 형식이 다를 수 있다.
-1. 서비스에서 변환하면 서비스가 컨트롤러에 종속된다. 이것은 Layered Architecture 개념과 상충된다.
-1. 서비스 간에 반환값이 DTO가 되면 안 된다. DTO는 컨트롤러에서만 사용한다.
+1. REST나 GRPC 등 통신방식에 따라서 예외 처리가 다르다. Service에서 예외를 throw 하면 Controller에서 catch 해서 다시 던져야 하는데 불편하다.
+1. Controller에서 발생할 수 있는 예외를 점검하면 문서화가 쉽다.
 
 ## 2. Domain 레이어
 
@@ -107,7 +96,7 @@ Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 �
 
 ## 3. 그 외
 
-### 3.1. Authentication 모듈의 분리
+### 3.1. Authentication 모듈의 통합
 
 UsersModule과 AuthModule로 분리되어 있었다. 그러나 다음의 이유로 UsersModule에 통합했다.
 
