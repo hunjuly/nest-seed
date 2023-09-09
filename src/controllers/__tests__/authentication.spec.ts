@@ -1,12 +1,12 @@
 import { HttpStatus } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
 import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
 import { createUserDto } from './user.mocks'
-import { JwtService } from '@nestjs/jwt'
 
-jest.mock('../authentication/services/auth-config.service', () => {
+jest.mock('src/services/auth/auth-config.service', () => {
     return {
         AuthConfigService: jest.fn().mockImplementation(() => ({
             accessSecret: 'mockAccessSecret',

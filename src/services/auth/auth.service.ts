@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { CacheService, comment, convertTimeToSeconds, notUsed } from 'src/common'
-import { UserDto, UsersService } from 'src/services'
 import { v4 as uuidv4 } from 'uuid'
-import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from '../interfaces'
+import { UserDto, UsersService } from '../users'
 import { AuthConfigService } from './auth-config.service'
+import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from './interfaces'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 

@@ -2,7 +2,7 @@ import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { UserDto } from 'src/services'
-import { JwtAuthGuard, LocalAuthGuard } from '../authentication/guards'
+import { JwtAuthGuard, LocalAuthGuard } from '../authentication'
 import { ControllersModule } from '../controllers.module'
 import { createUserDto, createUserDtos, createdUser, createdUsers } from './user.mocks'
 
