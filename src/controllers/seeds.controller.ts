@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreateSeedDto, SeedsQueryDto, SeedsService, UpdateSeedDto } from 'src/services'
+import { SeedExistsGuard } from './guards/seed-exists.guard'
 
 @Controller('seeds')
 export class SeedsController {
@@ -15,32 +16,21 @@ export class SeedsController {
         return this.seedsService.findSeeds(query)
     }
 
+    @UseGuards(SeedExistsGuard)
     @Get(':seedId')
     async getSeed(@Param('seedId') seedId: string) {
-        await this.requireSeedExists(seedId)
-
         return this.seedsService.getSeed(seedId)
     }
 
+    @UseGuards(SeedExistsGuard)
     @Patch(':seedId')
     async updateSeed(@Param('seedId') seedId: string, @Body() updateSeedDto: UpdateSeedDto) {
-        await this.requireSeedExists(seedId)
-
         return this.seedsService.updateSeed(seedId, updateSeedDto)
     }
 
+    @UseGuards(SeedExistsGuard)
     @Delete(':seedId')
     async removeSeed(@Param('seedId') seedId: string) {
-        await this.requireSeedExists(seedId)
-
         return this.seedsService.removeSeed(seedId)
-    }
-
-    private async requireSeedExists(seedId: string) {
-        const seedExists = await this.seedsService.seedExists(seedId)
-
-        if (!seedExists) {
-            throw new NotFoundException(`Seed with ID ${seedId} not found`)
-        }
     }
 }

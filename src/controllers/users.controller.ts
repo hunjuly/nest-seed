@@ -1,29 +1,17 @@
-import {
-    Body,
-    ConflictException,
-    Controller,
-    Delete,
-    Get,
-    NotFoundException,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreateUserDto, UpdateUserDto, UsersQueryDto, UsersService } from 'src/services'
-import { AuthService, JwtAuthGuard, Public } from './authentication'
+import { JwtAuthGuard, Public } from './authentication'
+import { UniqueEmailGuard, UserExistsGuard } from './guards'
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService, private readonly authService: AuthService) {}
+    constructor(private readonly usersService: UsersService) {}
 
     @Public()
+    @UseGuards(UniqueEmailGuard)
     @Post()
     async createUser(@Body() createUserDto: CreateUserDto) {
-        await this.requireEmailNotExists(createUserDto.email)
-
         return this.usersService.createUser(createUserDto)
     }
 
@@ -32,40 +20,21 @@ export class UsersController {
         return this.usersService.findUsers(query)
     }
 
+    @UseGuards(UserExistsGuard)
     @Get(':userId')
     async getUser(@Param('userId') userId: string) {
-        await this.requireUserExists(userId)
-
         return this.usersService.getUser(userId)
     }
 
+    @UseGuards(UserExistsGuard)
     @Patch(':userId')
     async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
-        await this.requireUserExists(userId)
-
         return this.usersService.updateUser(userId, updateUserDto)
     }
 
+    @UseGuards(UserExistsGuard)
     @Delete(':userId')
     async removeUser(@Param('userId') userId: string) {
-        await this.requireUserExists(userId)
-
         return this.usersService.removeUser(userId)
-    }
-
-    private async requireUserExists(userId: string) {
-        const userExists = await this.usersService.userExists(userId)
-
-        if (!userExists) {
-            throw new NotFoundException(`User with ID ${userId} not found`)
-        }
-    }
-
-    private async requireEmailNotExists(email: string) {
-        const emailExists = await this.usersService.emailExists(email)
-
-        if (emailExists) {
-            throw new ConflictException(`User with email ${email} already exists`)
-        }
     }
 }
