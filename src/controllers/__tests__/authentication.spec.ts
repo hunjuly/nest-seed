@@ -4,7 +4,7 @@ import { TestingModule } from '@nestjs/testing'
 import { sleep } from 'src/common'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
-import { createUserDto } from './user.mocks'
+import { createUserDto } from './mocks'
 
 jest.mock('src/services/auth/auth-config.service', () => {
     return {

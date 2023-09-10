@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { SeedDto } from 'src/services'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
-import { createSeedDto, createSeedDtos, createdSeed, createdSeeds } from './seed.mocks'
+import { createSeedDto, createSeedDtos, createdSeed, createdSeeds } from './mocks'
 
 describe('SeedsController', () => {
     let module: TestingModule

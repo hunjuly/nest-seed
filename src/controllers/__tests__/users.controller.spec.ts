@@ -4,7 +4,7 @@ import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { UserDto } from 'src/services'
 import { JwtAuthGuard, LocalAuthGuard } from '../authentication'
 import { ControllersModule } from '../controllers.module'
-import { createUserDto, createUserDtos, createdUser, createdUsers } from './user.mocks'
+import { createUserDto, createUserDtos, createdUser, createdUsers } from './mocks'
 
 describe('UsersController', () => {
     let module: TestingModule
