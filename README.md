@@ -97,8 +97,9 @@ $ npm run start:prod
 그 외에 README에서 다루지 못한 중요 정보들이다.
 
 -   [Design Guide](./docs/design.guide.md)
+-   [Problems with Feature Modules](./docs/problems-with-feature-modules.md)
 -   [Implementation Guide](./docs/implementation.guide.md)
--   [Naming Rules](./docs/naming-rules.md)
+-   [Data Mapper VS Active Record](./docs/data-mapper-vs-active-record.guide.md)
 -   [Troubleshooting](./docs/troubleshooting.md)
 
 ## Files & Folders
