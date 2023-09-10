@@ -5,15 +5,15 @@ set -e
 reset_all
 create_user_and_login
 
-echo "사용자 조회"
+TITLE "사용자 조회"
 GET /users/$USER_ID \
     -H "Authorization: Bearer $ACCESS_TOKEN"
 
-echo "모든 사용자 조회"
+TITLE "모든 사용자 조회"
 GET /users \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
 
-echo "user 업데이트"
+TITLE "user 업데이트"
 PATCH /users/$USER_ID \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -24,6 +24,6 @@ PATCH /users/$USER_ID \
             "birthdate": "2000-01-01T00:00:00.000Z"
         }'
 
-echo "특정 ID를 가진 사용자 삭제"
+TITLE "특정 ID를 가진 사용자 삭제"
 DELETE /users/$USER_ID \
     -H "Authorization: Bearer $ACCESS_TOKEN"
