@@ -15,4 +15,4 @@ docker rmi -f $DOCKER_IMAGE
 docker system prune -f
 docker volume prune -f
 
-rm -rf dist coverage logs config
+rm -rf dist coverage logs config node_modules
