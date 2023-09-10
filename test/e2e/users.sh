@@ -8,7 +8,7 @@ create_user_and_login
 
 # Access Token 재발급 요청
 res=$(
-    POST /users/refresh \
+    POST /auth/refresh \
         -H 'Content-Type: application/json' \
         -d '{
                 "refreshToken": "'$REFRESH_TOKEN'"

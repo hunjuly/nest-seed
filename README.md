@@ -78,7 +78,7 @@ $ npm run start:prod
 
 -   `stress-test`는 `Jmeter`로 작성했다. `/test/stress/run.sh` 실행
     -   user를 생성/조회하는 간단한 테스트다. 실제 프로젝트에서는 `Jmeter` 스크립트를 다시 작성해야 한다.
--   `e2e-test`는 `bash script`로 작성했다. `/test/e2e/test_all.sh` 실행
+-   `e2e-test`는 `bash script`로 작성했다. `/test/e2e/run.sh` 실행
 -   `unit-test`는 `Jest`로 작성했다.
     -   typeorm의 poolSize는 3이상이어야 한다. 3 미만이면 테스트가 실패한다. 기본값이 10이어도 상황에 따라서 종종 테스트가 실패한다.
     -   typeorm의 응답이 종종 5sec를 초과하는 경우가 있다. 그래서 기본값을 60sec으로 설정했다.
