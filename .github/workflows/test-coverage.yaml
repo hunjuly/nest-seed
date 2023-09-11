@@ -48,6 +48,9 @@ jobs:
             - name: Install Dependencies
               run: npm install
 
+            - name: set allow schema reset
+              run: bash scripts/set_allow_schema_reset
+
             - name: Run Tests and Coverage
               run: npm run test:all
 
