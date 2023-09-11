@@ -60,3 +60,4 @@ init_database() {
 
 start_postgresql
 wait_for_postgresql
+init_database
