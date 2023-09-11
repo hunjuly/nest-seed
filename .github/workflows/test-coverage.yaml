@@ -39,7 +39,7 @@ jobs:
                   node-version: '18'
 
             - name: Install Tools
-              run: apk add -f jq bash bash-doc bash-completion postgresql
+              run: apk add -f jq bash bash-doc bash-completion postgresql bc
 
             - name: Create logs folder
               run: mkdir -p ./logs
