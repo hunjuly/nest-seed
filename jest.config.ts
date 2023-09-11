@@ -14,6 +14,14 @@ const config: Config.InitialOptions = {
         '^.+\\.(t|j)s$': 'ts-jest'
     },
     collectCoverage: false,
+    coverageThreshold: {
+        global: {
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            statements: 100
+        }
+    },
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}',
         '!src/**/index.{ts,tsx}',

@@ -31,6 +31,5 @@ describe('AppModule', () => {
         })
 
         expect(res.status).toEqual(HttpStatus.OK)
-        // fail('error')
     })
 })
