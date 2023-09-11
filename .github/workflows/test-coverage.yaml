@@ -12,7 +12,6 @@ jobs:
     test:
         runs-on: ubuntu-latest
 
-        # Docker Hub image that `container-job` executes in
         container: node:18
 
         services:
@@ -39,7 +38,7 @@ jobs:
                   node-version: '18'
 
             - name: Install jq
-              run: sudo apt-get install -y jq
+              run: apt-get install -y jq
 
             - name: Create logs folder
               run: mkdir -p ./logs
