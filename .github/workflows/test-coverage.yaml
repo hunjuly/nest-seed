@@ -21,6 +21,7 @@ jobs:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
                     POSTGRES_DB: nestdb
+                    POSTGRES_SCHEMA: nest_schema
 
             nest-redis:
                 image: redis
