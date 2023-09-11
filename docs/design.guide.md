@@ -26,6 +26,8 @@ Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈�
 Layered Architecture 관점에서도 Controller를 모듈에서 분리하는 것이 자연스럽다.
 Controller와 Service는 Layered Architecture에서 서로 다른 계층에 속하며, Controller는 서비스 계층의 기능을 활용하기 위해 특별한 제약을 두지 않는다.
 
+하나의 컨트롤러가 커진다면 여러 개의 컨트롤러 모듈로 분리할 수 있다.
+
 ## 상호 참조
 
 모든 서비스는 단방향 의존 관계를 갖도록 설계해서 상호 참조 문제가 발생하지 않도록 한다.

@@ -45,3 +45,21 @@ ProjectsController에서 ClearAssetService를 호출하면 Scene와 Room을 참�
 ```
 
 이 디자인은 부자연스러워서 이해하기 어렵다.
+
+## Path의 분산
+
+컨트롤러를 레이어로 분리하지 않고 서비스와 같이 모듈에 안전하게 넣을 수 있는 또 다른 방법은 경로를 분산하는 것이다. `DELETE /projects`를 `ProjectsModule`에서 처리하지 않고 `ClearAssetsModules`에서 처리하는 것이다.
+
+```ts
+@Controller('')
+export class ModuleController {
+    constructor(private readonly seedsService: SeedsService) {}
+
+    @Delete('/projects/:projectId')
+    async removeProject(@Param('projectId') projectId: string) {
+        return this.projectsService.removeSeed(projectId)
+    }
+}
+```
+
+그러나 이것은 하나의 도메인이 여러 모듈에 걸쳐지기 때문에 모듈 간 의존성을 더 키우게 될 것이다.
