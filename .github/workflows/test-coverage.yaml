@@ -12,7 +12,7 @@ jobs:
     test:
         runs-on: ubuntu-latest
 
-        container: node:18
+        container: node:lts-alpine
 
         services:
             nest-seed-db:
@@ -38,7 +38,7 @@ jobs:
                   node-version: '18'
 
             - name: Install jq
-              run: apt-get install -y jq
+              run: apk add -f jq
 
             - name: Create logs folder
               run: mkdir -p ./logs
