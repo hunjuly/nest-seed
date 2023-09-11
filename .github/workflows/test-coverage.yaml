@@ -38,7 +38,7 @@ jobs:
                   node-version: '18'
 
             - name: Install jq
-              run: apk add -f jq
+              run: apk add -f jq bash bash-doc bash-completion
 
             - name: Create logs folder
               run: mkdir -p ./logs
