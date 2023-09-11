@@ -3,7 +3,7 @@ FROM node:lts-alpine
 RUN apk update
 
 # Development Tools
-RUN apk add -f git curl jq tree vim asciinema
+RUN apk add -f git curl jq tree vim asciinema postgresql
 
 # Bash Install
 RUN apk add -f bash bash-doc bash-completion
