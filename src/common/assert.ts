@@ -35,4 +35,10 @@ export class Assert {
             throw new LogicException(message)
         }
     }
+
+    static temp(value: any, message: string) {
+        if (value) {
+            throw new LogicException(message)
+        }
+    }
 }
