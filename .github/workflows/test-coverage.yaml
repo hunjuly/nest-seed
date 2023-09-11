@@ -39,7 +39,7 @@ jobs:
               with:
                   node-version: '18'
 
-           - name: Install jq
+            - name: Install jq
               run: sudo apt-get install -y jq
 
             - name: Create logs folder
