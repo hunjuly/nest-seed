@@ -17,8 +17,8 @@ jobs:
         services:
             nest-seed-db:
                 image: postgres:15-alpine3.18
-                # volumes:
-                #     - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                volumes:
+                    - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db2.sh
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
