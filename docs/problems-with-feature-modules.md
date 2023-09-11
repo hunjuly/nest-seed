@@ -52,7 +52,7 @@ ProjectsController에서 ClearAssetService를 호출하면 Scene와 Room을 참�
 
 ```ts
 @Controller('')
-export class ModuleController {
+export class ClearAssetsController {
     constructor(private readonly seedsService: SeedsService) {}
 
     @Delete('/projects/:projectId')
