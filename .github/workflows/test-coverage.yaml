@@ -1,0 +1,36 @@
+name: Test and Coverage
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v2
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: '14'
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Run Tests and Coverage
+              run: npm run test:all
+
+            - name: Check Coverage and Send Email If Below 100%
+              run: |
+                  COVERAGE=$(cat ./coverage/summary.txt | grep 'All files' | awk '{print $(NF-1)}')
+                  if [ "$COVERAGE" != "100%" ]; then
+                    echo "Coverage is below 100%. Sending an email..."
+                    # 여기에 이메일을 보내는 스크립트를 추가할 수 있습니다.
+                  fi
