@@ -22,7 +22,7 @@ const config: Config.InitialOptions = {
         '!src/database/**/*',
         '!src/**/*.module.ts'
     ],
-    coverageReporters: ['json-summary','lcov','text'],
+    coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],
     coverageDirectory: './coverage',
     testTimeout: 60000 // 60s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.

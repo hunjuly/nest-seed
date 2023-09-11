@@ -31,7 +31,8 @@ start_postgresql() {
 }
 
 run_psql() {
-    docker exec $TYPEORM_HOST psql -U postgres "$@"
+    # docker exec $TYPEORM_HOST psql -U postgres "$@"
+    PGPASSWORD=postgres psql -h $TYPEORM_HOST -U postgres -w "$@"
 }
 
 wait_for_postgresql() {
@@ -60,3 +61,4 @@ init_database() {
 
 start_postgresql
 wait_for_postgresql
+init_database
