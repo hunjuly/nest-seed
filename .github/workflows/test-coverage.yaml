@@ -42,17 +42,8 @@ jobs:
             - name: Install Tools
               run: apk add -f jq bash postgresql
 
-            - name: Create logs folder
-              run: mkdir -p ./logs
-
             - name: set allow schema reset
-              run: bash scripts/set_allow_schema_reset.sh
-
-            - name: Init DB
-              run: bash scripts/init_database.sh
-
-            - name: Install Dependencies
-              run: npm install
+              run: bash scripts/init_dev_env.sh
 
             - name: Run Tests and Coverage
               run: npm run test:all
