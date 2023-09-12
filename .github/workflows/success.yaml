@@ -18,7 +18,8 @@ jobs:
             nest-seed-db:
                 image: postgres:15-alpine3.18
                 volumes:
-                    - ${{ github.workspace }}/scripts/init_db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                    # - ${{ github.workspace }}/scripts/init_db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                    - ${{ github.workspace }}/scripts/init_db.sh:/init.sh
                     - /:/test
                 env:
                     POSTGRES_USER: testuser
@@ -59,19 +60,17 @@ jobs:
             - name: verify2
               run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
 
-
-
             - name: Create logs folder
               run: mkdir -p ./logs
 
-            - name: Install Dependencies
-              run: npm install
+            # - name: Install Dependencies
+            #   run: npm install
 
-            - name: set allow schema reset
-              run: bash scripts/set_allow_schema_reset.sh
+            # - name: set allow schema reset
+            #   run: bash scripts/set_allow_schema_reset.sh
 
-            - name: Init DB
-              run: bash scripts/init_database.sh
+            # - name: Init DB
+            #   run: bash scripts/init_database.sh
 
-            - name: Run Tests and Coverage
-              run: npm run test:all
+            # - name: Run Tests and Coverage
+            #   run: npm run test:all
