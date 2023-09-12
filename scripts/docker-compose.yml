@@ -27,7 +27,6 @@ services:
         container_name: $PROJECT_NAME
         environment:
             - NODE_ENV=production
-        env_file: .env.development
         volumes:
             - ./logs:/app/logs
         logging:
