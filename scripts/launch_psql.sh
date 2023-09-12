@@ -7,9 +7,6 @@ launch_psql() {
     clear
 
     echo "-----------------------------------------------"
-    echo "# 스키마 설정"
-    echo "SET search_path TO $TYPEORM_SCHEMA;"
-    echo ""
     echo "# Expanded display"
     echo "\x;"
     echo ""
@@ -24,6 +21,9 @@ launch_psql() {
     echo ""
     echo "# superuser 권한 부여"
     echo "psql -d $TYPEORM_DATABASE -c \"ALTER USER $TYPEORM_USERNAME WITH SUPERUSER;\""
+    echo ""
+    echo "# 스키마 설정"
+    echo "SET search_path TO $TYPEORM_SCHEMA;"
     echo "-----------------------------------------------"
 
     docker exec -it $TYPEORM_HOST psql -U postgres -d $TYPEORM_DATABASE
