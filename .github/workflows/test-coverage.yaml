@@ -45,9 +45,12 @@ jobs:
               run: apk add -f jq bash bash-doc bash-completion postgresql bc docker-cli docker-cli-compose
 
             - name: verify1
-              run: docker ps -al
+              run: /usr/bin/docker run -d --name testdb --label ef7d85 -e "POSTGRES_USER=testuser" -e "POSTGRES_PASSWORD=password" -e "POSTGRES_DB=nestdb" -e "POSTGRES_SCHEMA=nest_schema" -e GITHUB_ACTIONS=true -e CI=true -v "/home/runner/work/nest-seed/nest-seed/scripts/init-db.sh":"/docker-entrypoint-initdb.d/init-db.sh" postgres:15-alpine3.18 && sleep 3 && docker logs testdb
 
             - name: verify2
+              run: docker ps -al
+
+            - name: verify3
               run: pwd & ls -al & ls -al scripts & echo ${{ github.workspace }} & docker exec nest-seed-db ls -al /docker-entrypoint-initdb.d
 
             - name: Create logs folder
