@@ -32,6 +32,9 @@ jobs:
             NODE_ENV: development
 
         steps:
+            - name: verify0
+              run: docker ps -al
+
             - name: Checkout Code
               uses: actions/checkout@v3
 
