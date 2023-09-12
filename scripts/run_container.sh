@@ -1,5 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
+. ../.env.development
 
 check_application_start() (
   local TIMEOUT=10
@@ -24,18 +25,6 @@ docker-compose --env-file ../.env.development stop service
 docker-compose --env-file ../.env.development rm -f service
 docker-compose --env-file ../.env.development up -d service
 
-# docker build -t $PROJECT_NAME .
-# docker rm -f $PROJECT_NAME
+check_application_start $PROJECT_NAME
 
-# docker run \
-# -d --network $PROJECT_NAME \
-# --log-opt max-size=10m --log-opt max-file=3 \
-# --env-file .env.development \
-# -e NODE_ENV=production \
-# -v ./logs:/app/logs \
-# --name $PROJECT_NAME \
-# $PROJECT_NAME
-
-# check_application_start $PROJECT_NAME
-
-# docker logs $PROJECT_NAME
+docker logs $PROJECT_NAME
