@@ -20,7 +20,7 @@ jobs:
                 volumes:
                     # - ${{ github.workspace }}/scripts/:/docker-entrypoint-initdb.d/
                     - ${{ github.workspace }}/scripts/init-db.sh:/abc/init.sh
-                    - ${{ github.workspace }}:/test
+                    - ${{ github.workspace }}/scripts:/test
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
@@ -55,14 +55,14 @@ jobs:
               run: pwd
 
             - name: verify2
-              run: docker exec $(docker ps -alq) ls /test
+              run: docker exec $(docker ps -alq) ls /test -al
 
 
             - name: verify2
               run: docker exec $(docker ps -alq) ls -al /docker-entrypoint-initdb.d
 
-            - name: verify2
-              run: docker exec $(docker ps -alq) cat /test/scripts/init-db.sh
+            # - name: verify2
+            #   run: docker exec $(docker ps -alq) cat /test/scripts/init-db.sh
 
             - name: verify2
               run: docker exec $(docker ps -alq) cat /abc/init.sh
