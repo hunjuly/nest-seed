@@ -47,7 +47,7 @@ jobs:
               run: docker ps -a
 
             - name: verify3
-              run: docker logs $(docker ps -alq)
+              run: docker logs -n 30 $(docker ps -alq)
 
             - name: Create logs folder
               run: mkdir -p ./logs
