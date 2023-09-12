@@ -58,6 +58,12 @@ jobs:
               run: docker exec $(docker ps -alq) ls /
 
             - name: verify2
+              run: docker exec $(docker ps -alq) cat /init.sh
+
+            - name: verify2
+              run: docker exec $(docker ps -alq) ls -al /docker-entrypoint-initdb.d
+
+            - name: verify2
               run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
 
             - name: Create logs folder
