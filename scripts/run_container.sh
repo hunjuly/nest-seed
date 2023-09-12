@@ -1,6 +1,5 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-cd ..
 
 check_application_start() (
   local TIMEOUT=10

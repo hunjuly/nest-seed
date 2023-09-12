@@ -15,14 +15,15 @@ CURRENT_HOST_PATH="$HOST_PATH$RELATIVE_PATH"
 
 CONTAINER_NAME=$PROJECT_NAME-jmeter
 
-docker build -t jmeter .
+# docker build -t jmeter .
 
 rm -f results.jtl
 
 docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1
-
 docker run --network $PROJECT_NAME --rm --name ${CONTAINER_NAME} \
     -v ${CURRENT_HOST_PATH}:/workspace -w /workspace \
-    jmeter \
+    justb4/jmeter \
     -n -t HTTPRequest.jmx -l ./results.jtl -j ./logfile.log \
     -Jdomain=$PROJECT_NAME -Jport=3000
+
+echo "동작하지 않음 GET /users에 인증이 필요함"
