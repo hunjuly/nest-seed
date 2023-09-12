@@ -19,7 +19,7 @@ jobs:
                 image: postgres:15-alpine3.18
                 volumes:
                     # - ${{ github.workspace }}/scripts/init_db.sh:/docker-entrypoint-initdb.d/init-db.sh
-                    - ${{ github.workspace }}/scripts/init_db.sh:/init.sh
+                    - "${{ github.workspace }}/scripts/init_db.sh":"/init.sh"
                     - /:/test
                 env:
                     POSTGRES_USER: testuser
@@ -57,14 +57,15 @@ jobs:
             - name: verify2
               run: docker exec $(docker ps -alq) ls /
 
-            - name: verify2
-              run: docker exec $(docker ps -alq) cat /init.sh
 
             - name: verify2
               run: docker exec $(docker ps -alq) ls -al /docker-entrypoint-initdb.d
 
             - name: verify2
-              run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
+              run: docker exec $(docker ps -alq) cat /test/${{ github.workspace }}/scripts/init_db.sh
+
+            - name: verify2
+              run: docker exec $(docker ps -alq) cat /init.sh
 
             - name: Create logs folder
               run: mkdir -p ./logs
