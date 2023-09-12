@@ -43,7 +43,7 @@ jobs:
               run: apk add -f jq bash postgresql
 
             - name: set allow schema reset
-              run: bash scripts/init_dev_env.sh
+              run: bash scripts/init_workflow_env.sh
 
             - name: Run Tests and Coverage
               run: npm run test:all
