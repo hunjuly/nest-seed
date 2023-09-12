@@ -1,20 +1,17 @@
 #!/bin/bash
-set -e
+set -ex
 cd "$(dirname "$0")"
-cd ..
-. ./.env.development
 
-VERSION=$(jq -r '.version' package.json)
-NAME=$(jq -r '.name' package.json)
+VERSION=$(jq -r '.version' ../package.json)
+NAME=$(jq -r '.name' ../package.json)
 DOCKER_IMAGE="$NAME:$VERSION"
 
-docker rm -f $CACHE_HOST
-docker rm -f $TYPEORM_HOST
 docker rmi -f $DOCKER_IMAGE
 
-docker-compose --env-file ./.env.development down -d
+docker-compose --env-file ../.env.development down
 
 docker system prune -f
 docker volume prune -f
 
+cd ..
 rm -rf dist coverage logs config node_modules

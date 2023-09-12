@@ -3,13 +3,10 @@ services:
     nest-seed-db:
         image: postgres:15-alpine3.18
         container_name: ${TYPEORM_HOST}
-        volumes:
-            - ${HOST_PATH}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
         environment:
             POSTGRES_USER: ${TYPEORM_USERNAME}
             POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
             POSTGRES_DB: ${TYPEORM_DATABASE}
-            POSTGRES_SCHEMA: ${TYPEORM_SCHEMA}
         ports:
             - '${TYPEORM_PORT}:5432'
         networks:
@@ -22,8 +19,8 @@ services:
             - ${CACHE_PORT}:6379
         networks:
             - default
+
 networks:
     default:
         external: true
         name: ${PROJECT_NAME}
-# docker-compose --env-file ./.env.development up -d

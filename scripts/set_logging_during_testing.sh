@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")"
-cd ..
 
+cd ..
 mkdir -p config
 touch config/@DEV_LOGGING_DURING_TESTING

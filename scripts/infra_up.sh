@@ -1,10 +1,8 @@
 #!/bin/bash
-set -e
+set -ex
 cd "$(dirname "$0")"
-cd ..
 
-docker-compose --env-file ./.env.development up -d
+docker-compose --env-file ../.env.development down
+docker-compose --env-file ../.env.development up -d
 
-# bash scripts/start_redis.sh
-# bash scripts/start_postgresql.sh
-# bash scripts/init_database.sh
+bash init_database.sh

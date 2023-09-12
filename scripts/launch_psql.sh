@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")"
-cd ..
-. ./.env.development
+. ../.env.development
 
 launch_psql() {
     clear
