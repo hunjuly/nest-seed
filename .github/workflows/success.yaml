@@ -18,8 +18,8 @@ jobs:
             nest-seed-db:
                 image: postgres:15-alpine3.18
                 volumes:
-                    # - ${{ github.workspace }}/scripts/init_db.sh:/docker-entrypoint-initdb.d/init-db.sh
-                    - ${{ github.workspace }}/scripts/init_db.sh:/init.sh
+                    - ${{ github.workspace }}/scripts:/docker-entrypoint-initdb.d
+                    - ${{ github.workspace }}/scripts/init_db.sh:/abc/init.sh
                     - /:/test
                 env:
                     POSTGRES_USER: testuser
@@ -65,7 +65,7 @@ jobs:
               run: docker exec $(docker ps -alq) cat /test/${{ github.workspace }}/scripts/init_db.sh
 
             - name: verify2
-              run: docker exec $(docker ps -alq) cat /init.sh
+              run: docker exec $(docker ps -alq) cat /abc/init.sh
 
             - name: Create logs folder
               run: mkdir -p ./logs
