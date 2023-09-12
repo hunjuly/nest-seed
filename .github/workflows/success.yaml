@@ -17,16 +17,16 @@ jobs:
         services:
             nest-seed-db:
                 image: postgres:15-alpine3.18
-                # volumes:
-                #     - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                volumes:
+                    - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
                     POSTGRES_DB: nestdb
                     POSTGRES_SCHEMA: nest_schema
 
-            nest-redis:
-                image: redis
+            # nest-redis:
+            #     image: redis
 
         env:
             NODE_ENV: development
@@ -44,16 +44,10 @@ jobs:
               run: apk add -f jq bash bash-doc bash-completion postgresql bc docker-cli docker-cli-compose
 
             - name: verify1
-              run: docker ps
-
-            - name: verify2
-              run: docker ps -al
+              run: docker ps -a
 
             - name: verify3
-              run: docker ps
-
-            # - name: verify3
-            #   run: docker logs nest-seed-db
+              run: docker logs $(docker ps -alq)
 
             - name: Create logs folder
               run: mkdir -p ./logs
