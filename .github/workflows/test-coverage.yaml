@@ -44,7 +44,10 @@ jobs:
             - name: Install Tools
               run: apk add -f jq bash bash-doc bash-completion postgresql bc docker-cli docker-cli-compose
 
-            - name: verify
+            - name: verify1
+              run: docker ps -al
+
+            - name: verify2
               run: pwd & ls -al & ls -al scripts & echo ${{ github.workspace }} & docker exec nest-seed-db ls -al /docker-entrypoint-initdb.d
 
             - name: Create logs folder
