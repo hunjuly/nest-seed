@@ -1,0 +1,57 @@
+name: Test and Coverage
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        container: node:lts-alpine
+
+        services:
+            nest-seed-db:
+                image: postgres:15-alpine3.18
+                env:
+                    POSTGRES_USER: testuser
+                    POSTGRES_PASSWORD: password
+                    POSTGRES_DB: nestdb
+                    POSTGRES_SCHEMA: nest_schema
+
+            nest-redis:
+                image: redis
+
+        env:
+            NODE_ENV: development
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+
+            - name: Install Tools
+              run: apk add -f jq bash bash-doc bash-completion postgresql bc
+
+            - name: Create logs folder
+              run: mkdir -p ./logs
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: set allow schema reset
+              run: bash scripts/set_allow_schema_reset.sh
+
+            - name: Init DB
+              run: bash scripts/init_database.sh
+
+            - name: Run Tests and Coverage
+              run: npm run test:all
