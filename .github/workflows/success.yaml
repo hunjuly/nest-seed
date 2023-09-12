@@ -18,7 +18,8 @@ jobs:
             nest-seed-db:
                 image: postgres:15-alpine3.18
                 volumes:
-                    - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                    # - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                    - /:/test
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
@@ -45,6 +46,9 @@ jobs:
 
             - name: verify1
               run: docker ps -a
+
+            - name: verify2
+              run: docker exec $(docker ps -alq) ls /test
 
             - name: verify3
               run: docker logs -n 30 $(docker ps -alq)
