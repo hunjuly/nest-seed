@@ -50,6 +50,9 @@ jobs:
             - name: verify2
               run: docker exec $(docker ps -alq) ls /test
 
+            - name: verify2
+              run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
+
             - name: verify3
               run: docker logs -n 30 $(docker ps -alq)
 
