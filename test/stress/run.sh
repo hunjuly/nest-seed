@@ -20,7 +20,9 @@ docker build -t jmeter .
 rm -f results.jtl
 
 docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1
+
 docker run --network $PROJECT_NAME --rm --name ${CONTAINER_NAME} \
-    -v ${CURRENT_HOST_PATH}:/workspace -w /workspace jmeter -n \
-    -t HTTPRequest.jmx -l ./results.jtl -j ./logfile.log \
+    -v ${CURRENT_HOST_PATH}:/workspace -w /workspace \
+    jmeter \
+    -n -t HTTPRequest.jmx -l ./results.jtl -j ./logfile.log \
     -Jdomain=$PROJECT_NAME -Jport=3000

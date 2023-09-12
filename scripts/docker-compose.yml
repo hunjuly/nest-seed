@@ -1,6 +1,6 @@
 version: '3'
 services:
-    nest-seed-db:
+    db:
         image: postgres:15-alpine3.18
         container_name: ${TYPEORM_HOST}
         environment:
@@ -14,11 +14,26 @@ services:
         networks:
             - default
 
-    nest-redis:
+    redis:
         image: redis:7.0-alpine
         container_name: ${CACHE_HOST}
         ports:
             - ${CACHE_PORT}:6379
+        networks:
+            - default
+
+    service:
+        image: $PROJECT_NAME
+        container_name: $PROJECT_NAME
+        environment:
+            - NODE_ENV=production
+        env_file: .env.development
+        volumes:
+            - ./logs:/app/logs
+        logging:
+            options:
+                max-size: '10m'
+                max-file: '3'
         networks:
             - default
 
