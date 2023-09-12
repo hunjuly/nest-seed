@@ -55,7 +55,7 @@ jobs:
               run: pwd
 
             - name: verify2
-              run: docker exec $(docker ps -alq) ls /test
+              run: docker exec $(docker ps -alq) ls /
 
             - name: verify2
               run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
