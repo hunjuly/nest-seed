@@ -5,7 +5,8 @@ cd "$(dirname "$0")"
 . ../.env.development
 
 run_psql() {
-    docker exec $TYPEORM_HOST psql -U postgres "$@"
+    export PGPASSWORD=postgres_password
+    psql -h $TYPEORM_HOST -U postgres -w "$@"
 }
 
 wait_for_postgresql() {
