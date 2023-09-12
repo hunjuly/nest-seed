@@ -19,7 +19,7 @@ jobs:
                 image: postgres:15-alpine3.18
                 volumes:
                     # - ${{ github.workspace }}/scripts/init_db.sh:/docker-entrypoint-initdb.d/init-db.sh
-                    - "${{ github.workspace }}/scripts/init_db.sh":"/init.sh"
+                    - ${{ github.workspace }}/scripts/init_db.sh:/init.sh
                     - /:/test
                 env:
                     POSTGRES_USER: testuser
