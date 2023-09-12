@@ -18,7 +18,7 @@ jobs:
             nest-seed-db:
                 image: postgres:15-alpine3.18
                 volumes:
-                    - ${{ github.workspace }}/scripts/:/docker-entrypoint-initdb.d/
+                    # - ${{ github.workspace }}/scripts/:/docker-entrypoint-initdb.d/
                     - ${{ github.workspace }}/scripts/init-db.sh:/abc/init.sh
                     - ${{ github.workspace }}:/test
                 env:
