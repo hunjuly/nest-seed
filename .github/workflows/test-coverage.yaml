@@ -42,7 +42,7 @@ jobs:
             - name: Install Tools
               run: apk add -f jq bash postgresql
 
-            - name: set allow schema reset
+            - name: Initialize Workflow Environment
               run: bash scripts/init_workflow_env.sh
 
             - name: Run Tests and Coverage
