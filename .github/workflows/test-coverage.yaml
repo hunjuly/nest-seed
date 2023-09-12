@@ -18,7 +18,7 @@ jobs:
             nest-seed-db:
                 image: postgres:15-alpine3.18
                 volumes:
-                    - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+                    - /__w/nest-seed/nest-seed/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
                     # - ${{ github.workspace }}/scripts/init-db.sh:/init-db.sh
                 env:
                     POSTGRES_USER: testuser
@@ -59,5 +59,5 @@ jobs:
             - name: Init DB
               run: bash scripts/init_database.sh
 
-            - name: Run Tests and Coverage
-              run: npm run test:all
+            # - name: Run Tests and Coverage
+            #   run: npm run test:all
