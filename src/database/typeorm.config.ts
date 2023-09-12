@@ -80,6 +80,7 @@ const typeormDevOptions = () => {
             synchronize: true
         }
     } else if (isDevelopment()) {
+        // dropSchema 때문에 반드시 설정해야 한다.
         throw new ConfigException(
             'The @DEV_ALLOW_SCHEMA_RESET option should be set to true in a development environment.'
         )
