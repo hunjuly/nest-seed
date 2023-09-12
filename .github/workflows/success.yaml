@@ -47,17 +47,19 @@ jobs:
             - name: verify1
               run: docker ps -a
 
+            - name: verify3
+              run: docker logs -n 30 $(docker ps -alq)
+
+            - name: verify2
+              run: pwd
+
             - name: verify2
               run: docker exec $(docker ps -alq) ls /test
 
             - name: verify2
               run: docker exec $(docker ps -alq) ls /test/${{ github.workspace }}
 
-            - name: verify2
-              run: pwd
 
-            - name: verify3
-              run: docker logs -n 30 $(docker ps -alq)
 
             - name: Create logs folder
               run: mkdir -p ./logs
