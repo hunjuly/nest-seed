@@ -20,7 +20,7 @@ jobs:
                 volumes:
                     # - ${{ github.workspace }}/scripts/:/docker-entrypoint-initdb.d/
                     - ${{ github.workspace }}/scripts/init-db.sh:/abc/init.sh
-                    - ${{ github.workspace }}/scripts:/test
+                    - ${{ github.workspace }}:/test
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
