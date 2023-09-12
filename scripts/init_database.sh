@@ -4,9 +4,13 @@ cd "$(dirname "$0")"
 
 . ../.env.development
 
+run_psql() {
+    docker exec $TYPEORM_HOST psql -U postgres "$@"
+}
+
 wait_for_postgresql() {
     count=0
-    until run_psql 'SELECT 1' >/dev/null 2>&1; do
+    until run_psql -c 'SELECT 1' >/dev/null 2>&1; do
         sleep 1
 
         count=$((count + 1))
@@ -18,15 +22,11 @@ wait_for_postgresql() {
     echo "PostgreSQL has started."
 }
 
-run_psql() {
-    export PGPASSWORD=${TYPEORM_PASSWORD}
-
-    psql -h $TYPEORM_HOST -U $TYPEORM_USERNAME -w -d $TYPEORM_DATABASE -c "$@"
-}
-
 wait_for_postgresql
 
-# run_psql "ALTER DATABASE $TYPEORM_DATABASE OWNER TO $TYPEORM_USERNAME;"
-# run_psql "GRANT ALL PRIVILEGES ON DATABASE $TYPEORM_DATABASE TO $TYPEORM_USERNAME;"
-run_psql "CREATE SCHEMA $TYPEORM_SCHEMA AUTHORIZATION $TYPEORM_USERNAME;"
-run_psql "GRANT ALL ON SCHEMA $TYPEORM_SCHEMA TO $TYPEORM_USERNAME WITH GRANT OPTION;"
+run_psql -c "CREATE DATABASE $TYPEORM_DATABASE;"
+run_psql -d $TYPEORM_DATABASE -c "CREATE USER $TYPEORM_USERNAME WITH PASSWORD '$TYPEORM_PASSWORD';"
+run_psql -d $TYPEORM_DATABASE -c "ALTER DATABASE $TYPEORM_DATABASE OWNER TO $TYPEORM_USERNAME;"
+run_psql -d $TYPEORM_DATABASE -c "GRANT ALL PRIVILEGES ON DATABASE $TYPEORM_DATABASE TO $TYPEORM_USERNAME;"
+run_psql -d $TYPEORM_DATABASE -c "CREATE SCHEMA $TYPEORM_SCHEMA AUTHORIZATION $TYPEORM_USERNAME;"
+run_psql -d $TYPEORM_DATABASE -c "GRANT ALL ON SCHEMA $TYPEORM_SCHEMA TO $TYPEORM_USERNAME WITH GRANT OPTION;"

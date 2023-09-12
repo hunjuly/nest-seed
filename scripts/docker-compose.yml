@@ -4,9 +4,11 @@ services:
         image: postgres:15-alpine3.18
         container_name: ${TYPEORM_HOST}
         environment:
-            POSTGRES_USER: ${TYPEORM_USERNAME}
-            POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
-            POSTGRES_DB: ${TYPEORM_DATABASE}
+            POSTGRES_PASSWORD: postgres_password
+            # 아래 설정은 github workflow에서는 할 수 없다.
+            # POSTGRES_USER: ${TYPEORM_USERNAME}
+            # POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
+            # POSTGRES_DB: ${TYPEORM_DATABASE}
         ports:
             - '${TYPEORM_PORT}:5432'
         networks:
