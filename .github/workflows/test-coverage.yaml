@@ -41,11 +41,11 @@ jobs:
               with:
                   node-version: '18'
 
+            - name: Install Tools
+              run: apk add -f jq bash bash-doc bash-completion postgresql bc docker-cli docker-cli-compose
+
             - name: verify
               run: pwd & ls -al & ls -al scripts & echo ${{ github.workspace }} & docker exec nest-seed-db ls -al /docker-entrypoint-initdb.d
-
-            - name: Install Tools
-              run: apk add -f jq bash bash-doc bash-completion postgresql bc
 
             - name: Create logs folder
               run: mkdir -p ./logs
