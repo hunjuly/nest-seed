@@ -19,8 +19,8 @@ jobs:
                 image: postgres:15-alpine3.18
                 volumes:
                     - ${{ github.workspace }}/scripts/:/docker-entrypoint-initdb.d/
-                    - ${{ github.workspace }}/scripts/init_db.sh:/abc/init.sh
-                    - /:/test
+                    - ${{ github.workspace }}/scripts/init-db.sh:/abc/init.sh
+                    - ${{ github.workspace }}:/test
                 env:
                     POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: password
@@ -55,7 +55,7 @@ jobs:
               run: pwd
 
             - name: verify2
-              run: docker exec $(docker ps -alq) ls /
+              run: docker exec $(docker ps -alq) ls /test
 
 
             - name: verify2
