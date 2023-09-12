@@ -62,7 +62,7 @@ jobs:
               run: docker exec $(docker ps -alq) ls -al /docker-entrypoint-initdb.d
 
             - name: verify2
-              run: docker exec $(docker ps -alq) cat /test/${{ github.workspace }}/scripts/init-db.sh
+              run: docker exec $(docker ps -alq) cat /test/scripts/init-db.sh
 
             - name: verify2
               run: docker exec $(docker ps -alq) cat /abc/init.sh
