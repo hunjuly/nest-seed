@@ -8,9 +8,3 @@ docker-compose --env-file ./.env.development up -d
 # bash scripts/start_redis.sh
 # bash scripts/start_postgresql.sh
 # bash scripts/init_database.sh
-
-mkdir -p logs
-
-npm install
-npm run build
-npm run migration:run

@@ -17,7 +17,6 @@ services:
 
     nest-redis:
         image: redis:7.0-alpine
-        env_file: .env.development
         container_name: ${CACHE_HOST}
         ports:
             - ${CACHE_PORT}:6379

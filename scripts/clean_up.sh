@@ -12,6 +12,8 @@ docker rm -f $CACHE_HOST
 docker rm -f $TYPEORM_HOST
 docker rmi -f $DOCKER_IMAGE
 
+docker-compose --env-file ./.env.development down -d
+
 docker system prune -f
 docker volume prune -f
 
