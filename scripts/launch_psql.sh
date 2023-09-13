@@ -26,7 +26,7 @@ launch_psql() {
     echo "SET search_path TO $TYPEORM_SCHEMA;"
     echo "-----------------------------------------------"
 
-    docker exec -it $TYPEORM_HOST psql -U ${TYPEORM_USERNAME} -d $TYPEORM_DATABASE
+    docker exec -it $TYPEORM_HOST psql -U postgres -d $TYPEORM_DATABASE
 }
 
 launch_psql

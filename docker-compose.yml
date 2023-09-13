@@ -6,9 +6,11 @@ services:
         profiles: ["infra"]
         container_name: ${TYPEORM_HOST}
         environment:
-            POSTGRES_DB: ${TYPEORM_DATABASE}
-            POSTGRES_USER: ${TYPEORM_USERNAME}
-            POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
+            POSTGRES_PASSWORD: postgres_password
+            # 아래 설정은 github workflow 스크립트(test-coverage.yaml)에서는 동작하지 않는다.
+            # POSTGRES_USER: ${TYPEORM_USERNAME}
+            # POSTGRES_PASSWORD: ${TYPEORM_PASSWORD}
+            # POSTGRES_DB: ${TYPEORM_DATABASE}
         ports:
             - '${TYPEORM_PORT}:5432'
         networks:

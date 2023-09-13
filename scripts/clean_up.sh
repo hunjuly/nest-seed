@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source "$(dirname "$0")"/common.cfg
+. "$(dirname "$0")"/common.cfg
 
 VERSION=$(jq -r '.version' $WORKSPACE_ROOT/package.json)
 NAME=$(jq -r '.name' $WORKSPACE_ROOT/package.json)
