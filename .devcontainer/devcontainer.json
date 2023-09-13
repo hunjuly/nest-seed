@@ -10,7 +10,7 @@
     ],
     "containerEnv": {
         "WORKSPACE_ROOT": "${containerWorkspaceFolder}",
-        "PROJECT_NAME":"${containerWorkspaceFolderBasename}",
+        "PROJECT_NAME": "${containerWorkspaceFolderBasename}",
         "HOST_PATH": "${localWorkspaceFolder}",
         "NODE_ENV": "development"
     },

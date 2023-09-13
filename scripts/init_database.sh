@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
-cd "$(dirname "$0")"
-
-. ../.env.development
+. "$(dirname "$0")"/common.cfg
+. $ENV_FILE
 
 run_psql() {
     export PGPASSWORD=postgres_password

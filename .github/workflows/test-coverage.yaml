@@ -1,3 +1,4 @@
+# https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
 name: Test and Coverage
 
 on:
@@ -15,7 +16,7 @@ jobs:
         container: node:lts-alpine
 
         services:
-            nest-seed-db:
+            nest-db:
                 image: postgres:15-alpine3.18
                 # 아래처럼 volumes은 설정할 수 없다. workflow는 git clone을 하기전에 서비스를 먼저 실행한다.
                 # 그래서 /scripts가 존재하지 않는 상태에서 맵핑하게 된다.
@@ -29,6 +30,8 @@ jobs:
 
         env:
             NODE_ENV: development
+            WORKSPACE_ROOT": '${containerWorkspaceFolder}'
+            PROJECT_NAME": '${containerWorkspaceFolderBasename}'
 
         steps:
             - name: Checkout Code
@@ -38,6 +41,9 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
+
+            - name: Initialize Workflow Environment
+              run: env && exit1
 
             - name: Install Tools
               run: apk add -f jq bash postgresql

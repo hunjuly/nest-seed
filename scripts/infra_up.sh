@@ -1,10 +1,8 @@
 #!/bin/bash
-set -ex
-cd "$(dirname "$0")"
+set -e
+. "$(dirname "$0")"/common.cfg
 
-docker-compose --env-file ../.env.development stop db redis
-docker-compose --env-file ../.env.development rm -f db redis
+docker_compose --profile infra down
+docker_compose --profile infra up -d
 
-docker-compose --env-file ../.env.development up -d db redis
-
-bash init_database.sh
+bash $SCRIPTS_PATH/init_database.sh
