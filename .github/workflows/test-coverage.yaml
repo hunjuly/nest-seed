@@ -23,8 +23,6 @@ jobs:
                 # volumes:
                 # - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
                 env:
-                    POSTGRES_DB: database
-                    POSTGRES_USER: testuser
                     POSTGRES_PASSWORD: postgres_password
             nest-redis:
                 image: redis
