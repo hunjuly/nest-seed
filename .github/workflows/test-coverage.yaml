@@ -30,8 +30,7 @@ jobs:
 
         env:
             NODE_ENV: development
-            WORKSPACE_ROOT": ${GITHUB_WORKSPACE}
-            PROJECT_NAME": ${{ github.workspace }}
+            WORKSPACE_ROOT: ${{ github.workspace }}
 
         steps:
             - name: Checkout Code
