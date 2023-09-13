@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
-cd "$(dirname "$0")"
-. ../.env.development
+. "$(dirname "$0")"/common.cfg
+. $ENV_FILE
 
 launch_psql() {
     clear
@@ -26,7 +26,7 @@ launch_psql() {
     echo "SET search_path TO $TYPEORM_SCHEMA;"
     echo "-----------------------------------------------"
 
-    docker exec -it $TYPEORM_HOST psql -U postgres -d $TYPEORM_DATABASE
+    docker exec -it $TYPEORM_HOST psql -U ${TYPEORM_USERNAME} -d $TYPEORM_DATABASE
 }
 
 launch_psql
