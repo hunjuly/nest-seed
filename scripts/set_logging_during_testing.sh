@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
-cd "$(dirname "$0")"
+. "$(dirname "$0")"/common.cfg
 
-cd ..
-mkdir -p config
-touch config/@DEV_LOGGING_DURING_TESTING
+mkdir -p $WORKSPACE_ROOT/config
+touch $WORKSPACE_ROOT/config/@DEV_LOGGING_DURING_TESTING

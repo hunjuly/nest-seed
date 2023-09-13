@@ -1,6 +1,7 @@
 #!/bin/bash
-cd "$(dirname "$0")"
-. ../.env.development
+set -e
+. "$(dirname "$0")"/common.cfg
+. $ENV_FILE
 
 check_application_start() (
   local TIMEOUT=10
@@ -21,9 +22,9 @@ check_application_start() (
   return 0
 )
 
-docker-compose --env-file ../.env.development stop service
-docker-compose --env-file ../.env.development rm -f service
-docker-compose --env-file ../.env.development up -d service
+docker_compose stop service
+docker_compose rm -f service
+docker_compose up -d service
 
 check_application_start $PROJECT_NAME
 
