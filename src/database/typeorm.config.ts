@@ -1,14 +1,5 @@
 import { Logger } from '@nestjs/common'
-import * as dotenv from 'dotenv'
-import {
-    ADD_DEV,
-    ConfigException,
-    Path,
-    TypeormLogger,
-    envFilename,
-    isDevelopment,
-    isProduction
-} from 'src/common'
+import { ADD_DEV, ConfigException, Path, TypeormLogger, isDevelopment, isProduction } from 'src/common'
 import { Seed } from 'src/services/_seeds/entities'
 import { User } from 'src/services/users/entities'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
@@ -19,19 +10,7 @@ const migrations = [NestSeed1691754788909]
 
 type SupportedConnectionOptions = PostgresConnectionOptions
 
-export const migrationOptions = (): SupportedConnectionOptions => {
-    if (process.env.TYPEORM_DATABASE) {
-        throw new ConfigException('migration을 실행할 때는 TYPEORM_DATABASE가 설정될 수 없다')
-    }
-
-    dotenv.config({
-        path: envFilename()
-    })
-
-    return typeormOptions()
-}
-
-const typeormOptions = (): SupportedConnectionOptions => {
+export const typeormOptions = (): SupportedConnectionOptions => {
     const database = process.env.TYPEORM_DATABASE
     const host = process.env.TYPEORM_HOST
     const port = parseInt(process.env.TYPEORM_PORT ?? 'NaN')

@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm'
-import { migrationOptions } from './typeorm.config'
+import { typeormOptions } from './typeorm.config'
 
-const config = migrationOptions()
+const config = typeormOptions()
 
 export const AppDataSource = new DataSource(config)

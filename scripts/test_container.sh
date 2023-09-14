@@ -22,9 +22,12 @@ check_application_start() (
   return 0
 )
 
+# TODO 이미지 다시 만드는 것을 확인해야 한다.
 docker_compose stop service
 docker_compose rm -f service
 docker_compose up -d service
+
+docker exec $PROJECT_NAME npm run migration:run
 
 check_application_start $PROJECT_NAME
 
