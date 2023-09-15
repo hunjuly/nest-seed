@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 clear
 echo "🚀 Starting infra..."
 echo "$(bash ../../scripts/infra_up.sh)"
-echo "$(bash ../../scripts/run_container.sh)"
+echo "$(bash ../../scripts/run_service_container.sh)"
 echo "Infra is running"
 
 # 현재 작업 중인 디렉터리 (pwd)에서 $WORKSPACE_ROOT을 제거

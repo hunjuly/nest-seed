@@ -11,5 +11,5 @@ export TYPEORM_DATABASE=$TYPEORM_DATABASE
 export TYPEORM_SCHEMA=$TYPEORM_SCHEMA
 export TYPEORM_POOL_SIZE=$TYPEORM_POOL_SIZE
 
-npm run build
+npm run build --prefix $WORKSPACE_ROOT
 npm run migration:run --prefix $WORKSPACE_ROOT

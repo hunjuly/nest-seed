@@ -1,4 +1,4 @@
-# https://docs.docker.com/compose/
+# https://docs.docker.com/compose/compose-file/05-services/
 version: '3'
 services:
     db:
@@ -26,6 +26,7 @@ services:
             - default
 
     service:
+        image: $PROJECT_NAME
         build: .
         profiles: ["service"]
         container_name: $PROJECT_NAME
