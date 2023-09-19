@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-. ./common.cfg
+. "$(dirname "$0")"/common.cfg
 
 reset_all
 create_user_and_login
