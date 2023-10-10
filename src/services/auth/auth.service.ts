@@ -97,7 +97,7 @@ export class AuthService {
     private async storeRefreshToken(userId: string, refreshToken: string) {
         const expireTime = convertTimeToSeconds(this.config.refreshTokenExpiration)
 
-        await this.cache.set(`${REFRESH_TOKEN_PREFIX}${userId}`, refreshToken, expireTime)
+        await this.cache.set(`${REFRESH_TOKEN_PREFIX}${userId}`, refreshToken, expireTime * 1000)
     }
 
     private async getStoredRefreshToken(userId: string): Promise<string | undefined> {

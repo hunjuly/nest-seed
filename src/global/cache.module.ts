@@ -1,7 +1,7 @@
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager'
 import { Global, Module } from '@nestjs/common'
 import { redisStore } from 'cache-manager-ioredis-yet'
-import { CacheService, ConfigException, SafeConfigService } from 'src/common'
+import { CacheService, SafeConfigService } from 'src/common'
 
 @Global()
 @Module({
@@ -9,23 +9,15 @@ import { CacheService, ConfigException, SafeConfigService } from 'src/common'
         NestCacheModule.registerAsync({
             isGlobal: true,
             useFactory: async (config: SafeConfigService) => {
-                const type = config.getString('CACHE_TYPE')
+                const host = config.getString('REDIS_HOST')
+                const port = config.getNumber('REDIS_PORT')
 
-                if (type === 'redis') {
-                    const host = config.getString('CACHE_HOST')
-                    const port = config.getNumber('CACHE_PORT')
-
-                    return {
-                        store: redisStore,
-                        host,
-                        port
-                        // ttl: 기본값은 5
-                    }
-                } else if (type === 'memory') {
-                    return {}
+                return {
+                    store: redisStore,
+                    host,
+                    port
+                    // ttl: 기본값은 5
                 }
-
-                throw new ConfigException(`${type} unknown CACHE_TYPE`)
             },
             inject: [SafeConfigService]
         })

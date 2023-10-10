@@ -19,9 +19,18 @@ services:
     redis:
         image: redis:7.0-alpine
         profiles: ["infra"]
-        container_name: ${CACHE_HOST}
+        container_name: ${REDIS_HOST}
         ports:
-            - ${CACHE_PORT}:6379
+            - ${REDIS_PORT}:6379
+        networks:
+            - default
+
+    mongo:
+        image: mongo:7
+        profiles: ["infra"]
+        container_name: ${MONGO_HOST}
+        ports:
+            - ${MONGO_PORT}:27017
         networks:
             - default
 

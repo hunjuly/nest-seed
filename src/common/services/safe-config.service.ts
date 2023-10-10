@@ -9,7 +9,7 @@ export class SafeConfigService {
     getString(key: string) {
         const value = this.config.get<string>(key)
 
-        if (!value) throw new ConfigException(`${key} undefined`)
+        if (!value) throw new ConfigException(`${key} has not been configured.`)
 
         return value
     }
@@ -17,7 +17,7 @@ export class SafeConfigService {
     getNumber(key: string) {
         const value = this.config.get<string>(key)
 
-        if (!value) throw new ConfigException(`${key} undefined`)
+        if (!value) throw new ConfigException(`${key} has not been configured.`)
 
         const number = parseInt(value)
 
@@ -29,7 +29,7 @@ export class SafeConfigService {
     getBoolean(key: string) {
         const value = this.config.get<string>(key)
 
-        if (!value) throw new ConfigException(`${key} undefined`)
+        if (!value) throw new ConfigException(`${key} has not been configured.`)
 
         if (value.toLowerCase() === 'true') return true
         if (value.toLowerCase() === 'false') return false

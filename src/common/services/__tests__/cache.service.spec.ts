@@ -50,19 +50,11 @@ describe('CacheService', () => {
         expect(fetchedValue).toBeUndefined()
     })
 
-    it('만료 시간이 1000ms 보다 작으면 ConfigException', async () => {
+    it('만료 시간이 0 미만이면 ConfigException', async () => {
         const key = 'key'
         const value = 'value'
-        const expireSeconds = 0.5 // 500ms
+        const wrongTTL = -1
 
-        await expect(cacheService.set(key, value, expireSeconds)).rejects.toThrow(ConfigException)
-    })
-
-    it('만료 시간이 0 이하이면 ConfigException', async () => {
-        const key = 'key'
-        const value = 'value'
-        const expireSeconds = -1
-
-        await expect(cacheService.set(key, value, expireSeconds)).rejects.toThrow(ConfigException)
+        await expect(cacheService.set(key, value, wrongTTL)).rejects.toThrow(ConfigException)
     })
 })
