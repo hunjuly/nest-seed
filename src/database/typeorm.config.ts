@@ -11,15 +11,15 @@ const migrations = [NestSeed1691754788909]
 type SupportedConnectionOptions = PostgresConnectionOptions
 
 export const typeormOptions = (): SupportedConnectionOptions => {
-    const database = process.env.TYPEORM_DATABASE
-    const host = process.env.TYPEORM_HOST
-    const port = parseInt(process.env.TYPEORM_PORT ?? 'NaN')
-    const username = process.env.TYPEORM_USERNAME
-    const password = process.env.TYPEORM_PASSWORD
-    const schema = process.env.TYPEORM_SCHEMA
+    const database = process.env.POSTGRES_DATABASE
+    const host = process.env.POSTGRES_HOST
+    const port = parseInt(process.env.POSTGRES_PORT ?? 'NaN')
+    const username = process.env.POSTGRES_USERNAME
+    const password = process.env.POSTGRES_PASSWORD
+    const schema = process.env.POSTGRES_SCHEMA
 
     if (Number.isNaN(port)) {
-        throw new ConfigException('TYPEORM_PORT is not a number')
+        throw new ConfigException('POSTGRES_PORT is not a number')
     }
     return {
         type: 'postgres',
@@ -35,10 +35,10 @@ export const typeormOptions = (): SupportedConnectionOptions => {
 }
 
 const getPoolSize = () => {
-    const poolSize = parseInt(process.env.TYPEORM_POOL_SIZE ?? 'NaN')
+    const poolSize = parseInt(process.env.POSTGRES_POOL_SIZE ?? 'NaN')
 
     if (Number.isNaN(poolSize)) {
-        throw new ConfigException('TYPEORM_POOL_SIZE is not a number')
+        throw new ConfigException('POSTGRES_POOL_SIZE is not a number')
     }
 
     return poolSize

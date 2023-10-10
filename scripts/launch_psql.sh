@@ -20,13 +20,13 @@ launch_psql() {
     echo "select * from seed;"
     echo ""
     echo "# superuser 권한 부여"
-    echo "psql -d $TYPEORM_DATABASE -c \"ALTER USER $TYPEORM_USERNAME WITH SUPERUSER;\""
+    echo "psql -d $POSTGRES_DATABASE -c \"ALTER USER $POSTGRES_USERNAME WITH SUPERUSER;\""
     echo ""
     echo "# 스키마 설정"
-    echo "SET search_path TO $TYPEORM_SCHEMA;"
+    echo "SET search_path TO $POSTGRES_SCHEMA;"
     echo "-----------------------------------------------"
 
-    docker exec -it $TYPEORM_HOST psql -U postgres -d $TYPEORM_DATABASE
+    docker exec -it $POSTGRES_HOST psql -U postgres -d $POSTGRES_DATABASE
 }
 
 launch_psql
