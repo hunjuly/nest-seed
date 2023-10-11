@@ -23,6 +23,9 @@
         "--name",
         "${containerWorkspaceFolderBasename}-vscode"
     ],
+    "forwardPorts": [
+        "mongo-express:8081"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [

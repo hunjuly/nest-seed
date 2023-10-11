@@ -1,12 +1,12 @@
 # https://docs.docker.com/compose/compose-file/05-services/
 version: '3'
 services:
-    db:
+    postgres:
         image: postgres:15-alpine3.18
-        profiles: ["infra"]
+        profiles: ['infra']
         container_name: ${POSTGRES_HOST}
         environment:
-            POSTGRES_PASSWORD: postgres_password
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             # 아래 설정은 github workflow 스크립트(test-coverage.yaml)에서는 동작하지 않는다.
             # POSTGRES_USER: ${POSTGRES_USERNAME}
             # POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,7 +18,7 @@ services:
 
     redis:
         image: redis:7.0-alpine
-        profiles: ["infra"]
+        profiles: ['infra']
         container_name: ${REDIS_HOST}
         ports:
             - ${REDIS_PORT}:6379
@@ -27,17 +27,37 @@ services:
 
     mongo:
         image: mongo:7
-        profiles: ["infra"]
+        profiles: ['infra']
         container_name: ${MONGO_HOST}
         ports:
             - ${MONGO_PORT}:27017
         networks:
             - default
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+    mongo-express:
+        image: mongo-express:1-20-alpine3.18
+        profiles: ['infra']
+        container_name: ${MONGO_EXPRESS_HOST}
+        ports:
+            - 8081:8081
+        networks:
+            - default
+        environment:
+            ME_CONFIG_BASICAUTH_USERNAME: user
+            ME_CONFIG_BASICAUTH_PASSWORD: password
+            ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+            ME_CONFIG_MONGODB_SERVER: mongo
+            ME_CONFIG_MONGODB_PORT: 27017
 
     service:
         image: $PROJECT_NAME
         build: .
-        profiles: ["service"]
+        profiles: ['service']
         container_name: $PROJECT_NAME
         environment:
             - NODE_ENV=production

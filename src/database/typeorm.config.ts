@@ -21,6 +21,7 @@ export const typeormOptions = (): SupportedConnectionOptions => {
     if (Number.isNaN(port)) {
         throw new ConfigException('POSTGRES_PORT is not a number')
     }
+
     return {
         type: 'postgres',
         schema,
