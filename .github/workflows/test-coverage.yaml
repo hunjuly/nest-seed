@@ -29,7 +29,7 @@ jobs:
 
             mongo:
                 image: mongo:7
-                environment:
+                env:
                     MONGO_INITDB_ROOT_USERNAME: mongouser
                     MONGO_INITDB_ROOT_PASSWORD: mongo_password
 
