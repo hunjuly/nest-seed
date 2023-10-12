@@ -7,3 +7,6 @@ bash $SCRIPTS_PATH/set_allow_schema_reset.sh
 
 mkdir -p $WORKSPACE_ROOT/logs
 npm ci --prefix $WORKSPACE_ROOT
+
+docker logs mongo
+docker logs postgres

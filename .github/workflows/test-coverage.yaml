@@ -25,7 +25,13 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: postgres_password
             redis:
-                image: redis
+                image: redis:7.0-alpine
+
+            mongo:
+                image: mongo:7
+                environment:
+                    MONGO_INITDB_ROOT_USERNAME: mongouser
+                    MONGO_INITDB_ROOT_PASSWORD: mongo_password
 
         env:
             NODE_ENV: development
