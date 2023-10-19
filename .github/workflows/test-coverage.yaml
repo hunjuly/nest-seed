@@ -10,7 +10,7 @@ on:
             - main
 
 jobs:
-    test:
+    test-coverage:
         runs-on: ubuntu-latest
 
         container: node:lts-alpine
