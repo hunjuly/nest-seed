@@ -34,6 +34,6 @@ describe('AppModule', () => {
     })
 
     it('branch testing', () => {
-        // fail('test4')
+        fail('test4')
     })
 })
