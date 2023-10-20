@@ -32,8 +32,4 @@ describe('AppModule', () => {
 
         expect(res.status).toEqual(HttpStatus.OK)
     })
-
-    it('branch testing', () => {
-        fail('test4')
-    })
 })
