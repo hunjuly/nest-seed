@@ -1,7 +1,7 @@
 import { AggregateRoot } from 'src/common'
 import { Column, Entity } from 'typeorm'
 
-export enum SeedEnum {
+export enum PsqlEnum {
     EnumA = 'EnumA',
     EnumB = 'EnumB',
     EnumC = 'EnumC',
@@ -10,7 +10,7 @@ export enum SeedEnum {
 }
 
 @Entity()
-export class Seed extends AggregateRoot {
+export class Psql extends AggregateRoot {
     @Column()
     name: string
 
@@ -21,7 +21,7 @@ export class Seed extends AggregateRoot {
     integer: number
 
     @Column('varchar', { array: true })
-    enums: SeedEnum[]
+    enums: PsqlEnum[]
 
     @Column({ type: 'timestamptz' })
     date: Date

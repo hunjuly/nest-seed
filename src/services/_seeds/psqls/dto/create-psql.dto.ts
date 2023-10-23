@@ -1,8 +1,8 @@
 import { Type } from 'class-transformer'
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator'
-import { SeedEnum } from '../entities'
+import { PsqlEnum } from '../entities'
 
-export class CreateSeedDto {
+export class CreatePsqlDto {
     @IsString()
     @IsNotEmpty()
     name: string
@@ -16,8 +16,8 @@ export class CreateSeedDto {
     date: Date
 
     @IsArray()
-    @IsEnum(SeedEnum, { each: true })
-    enums: SeedEnum[]
+    @IsEnum(PsqlEnum, { each: true })
+    enums: PsqlEnum[]
 
     @IsInt()
     integer: number

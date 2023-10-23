@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { BaseRepository, PaginationResult } from 'src/common'
 import { Repository } from 'typeorm'
-import { SeedsQueryDto } from './dto'
-import { Seed } from './entities'
+import { PsqlsQueryDto } from './dto'
+import { Psql } from './entities'
 
 @Injectable()
-export class SeedsRepository extends BaseRepository<Seed> {
-    constructor(@InjectRepository(Seed) typeorm: Repository<Seed>) {
+export class PsqlsRepository extends BaseRepository<Psql> {
+    constructor(@InjectRepository(Psql) typeorm: Repository<Psql>) {
         super(typeorm)
     }
 
-    async find(queryDto: SeedsQueryDto): Promise<PaginationResult<Seed>> {
+    async find(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {
         const { take, skip } = queryDto
 
         const qb = this.createQueryBuilder(queryDto)

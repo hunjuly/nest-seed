@@ -1,11 +1,11 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { SeedDto } from 'src/services'
+import { PsqlDto } from 'src/services'
 import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
-import { createSeedDto, createSeedDtos, createdSeed, createdSeeds } from './mocks'
+import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
 
-describe('SeedsController', () => {
+describe('PsqlsController', () => {
     let module: TestingModule
     let request: any
 
@@ -27,20 +27,20 @@ describe('SeedsController', () => {
         expect(request).toBeDefined()
     })
 
-    describe('POST /seeds', () => {
-        it('새로운 seed를 생성한다', async () => {
+    describe('POST /psqls', () => {
+        it('새로운 psql를 생성한다', async () => {
             const res = await request.post({
-                url: '/seeds',
-                body: createSeedDto
+                url: '/psqls',
+                body: createPsqlDto
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toMatchObject(createdSeed)
+            expect(res.body).toMatchObject(createdPsql)
         })
 
         it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
             const res = await request.post({
-                url: '/seeds',
+                url: '/psqls',
                 body: {}
             })
 
@@ -48,43 +48,43 @@ describe('SeedsController', () => {
         })
     })
 
-    describe('GET /seeds', () => {
+    describe('GET /psqls', () => {
         beforeEach(async () => {
-            for (const createDto of createSeedDtos) {
+            for (const createDto of createPsqlDtos) {
                 await request.post({
-                    url: '/seeds',
+                    url: '/psqls',
                     body: createDto,
                     status: HttpStatus.CREATED
                 })
             }
         })
 
-        it('모든 seed를 반환한다', async () => {
+        it('모든 psql를 반환한다', async () => {
             const res = await request.get({
-                url: '/seeds'
+                url: '/psqls'
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject(createdSeeds)
+            expect(res.body.items).toMatchObject(createdPsqls)
         })
 
-        it('name으로 seed를 검색한다', async () => {
+        it('name으로 psql를 검색한다', async () => {
             const res = await request.get({
-                url: '/seeds',
+                url: '/psqls',
                 query: {
-                    name: createSeedDtos[0].name
+                    name: createPsqlDtos[0].name
                 }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject([createdSeeds[0]])
+            expect(res.body.items).toMatchObject([createdPsqls[0]])
         })
 
         it('pagination', async () => {
             const res = await request.get({
-                url: '/seeds',
+                url: '/psqls',
                 query: {
-                    name: 'Seed',
+                    name: 'Psql',
                     skip: 0,
                     take: 10,
                     orderby: 'name:desc'
@@ -92,62 +92,62 @@ describe('SeedsController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject(createdSeeds.reverse())
+            expect(res.body.items).toMatchObject(createdPsqls.reverse())
         })
     })
 
-    describe('특정 seed에 대한 작업', () => {
-        let seed: SeedDto
+    describe('특정 psql에 대한 작업', () => {
+        let psql: PsqlDto
 
         beforeEach(async () => {
             const res = await request.post({
-                url: '/seeds',
-                body: createSeedDto,
+                url: '/psqls',
+                body: createPsqlDto,
                 status: HttpStatus.CREATED
             })
 
-            seed = res.body
+            psql = res.body
         })
 
         it('should be defined', () => {
-            expect(seed.id).toBeDefined()
+            expect(psql.id).toBeDefined()
         })
 
-        describe('GET /seeds/:id', () => {
-            it('seed를 반환한다', async () => {
+        describe('GET /psqls/:id', () => {
+            it('psql를 반환한다', async () => {
                 const res = await request.get({
-                    url: `/seeds/${seed.id}`
+                    url: `/psqls/${psql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toMatchObject(seed)
+                expect(res.body).toMatchObject(psql)
             })
 
-            it('seed를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/seeds/${nullUUID}`
+                    url: `/psqls/${nullUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
             })
         })
 
-        describe('PATCH /seeds/:id', () => {
-            it('seed를 업데이트한다', async () => {
+        describe('PATCH /psqls/:id', () => {
+            it('psql를 업데이트한다', async () => {
                 const res = await request.patch({
-                    url: `/seeds/${seed.id}`,
+                    url: `/psqls/${psql.id}`,
                     body: {
-                        name: 'Updated Seed'
+                        name: 'Updated Psql'
                     }
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({ ...seed, name: 'Updated Seed' })
+                expect(res.body).toEqual({ ...psql, name: 'Updated Psql' })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await request.patch({
-                    url: `/seeds/${seed.id}`,
+                    url: `/psqls/${psql.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -156,11 +156,11 @@ describe('SeedsController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('seed를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/seeds/${nullUUID}`,
+                    url: `/psqls/${nullUUID}`,
                     body: {
-                        name: 'Updated Seed'
+                        name: 'Updated Psql'
                     }
                 })
 
@@ -168,18 +168,18 @@ describe('SeedsController', () => {
             })
         })
 
-        describe('DELETE /seeds/:id', () => {
-            it('seed를 삭제한다', async () => {
+        describe('DELETE /psqls/:id', () => {
+            it('psql를 삭제한다', async () => {
                 const res = await request.delete({
-                    url: `/seeds/${seed.id}`
+                    url: `/psqls/${psql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('seed를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/seeds/${nullUUID}`
+                    url: `/psqls/${nullUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
