@@ -5,11 +5,11 @@ on:
     # create pull request하면 실행된다
     pull_request:
         branches:
-            - '*'
+            - main
     # merge pull request하면 실행된다
     push:
         branches:
-            - main
+            - '*'
 
 jobs:
     test-coverage:
