@@ -1,6 +1,6 @@
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { Assert } from '../assert'
-import { PaginationOptions } from '../pagination'
+import { Assert } from '../../assert'
+import { PaginationOptions } from '../../pagination'
 import { AggregateRoot } from './aggregate-root'
 
 export abstract class BaseRepository<T extends AggregateRoot> {

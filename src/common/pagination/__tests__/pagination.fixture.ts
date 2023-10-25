@@ -2,8 +2,7 @@ import { Body, Controller, Get, Injectable, Module, Post, Query } from '@nestjs/
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
 import { IsOptional, IsString } from 'class-validator'
 import { Column, Entity, Repository } from 'typeorm'
-import { AggregateRoot, BaseRepository, TransactionService } from '../../repository'
-import { createMemoryTypeormModule } from '../../typeorm'
+import { AggregateRoot, BaseRepository, TransactionService, createMemoryTypeormModule } from '../../typeorm'
 import { PaginationOptions, PaginationResult } from '../pagination'
 
 @Entity()

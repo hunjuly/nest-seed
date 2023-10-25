@@ -9,18 +9,16 @@ import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 const entities = ADD_DEV([User], [Psql, Mongo])
 const migrations = [NestSeed1691754788909]
 
-type SupportedConnectionOptions = PostgresConnectionOptions
-
-export const typeormOptions = (): SupportedConnectionOptions => {
-    const database = process.env.POSTGRES_DATABASE
-    const host = process.env.POSTGRES_HOST
-    const port = parseInt(process.env.POSTGRES_PORT ?? 'NaN')
-    const username = process.env.POSTGRES_USERNAME
-    const password = process.env.POSTGRES_PASSWORD
-    const schema = process.env.POSTGRES_SCHEMA
+export const typeormOptions = (): PostgresConnectionOptions => {
+    const database = process.env.POSTGRES_DB_DATABASE
+    const host = process.env.POSTGRES_DB_HOST
+    const port = parseInt(process.env.POSTGRES_DB_PORT ?? 'NaN')
+    const username = process.env.POSTGRES_DB_USERNAME
+    const password = process.env.POSTGRES_DB_PASSWORD
+    const schema = process.env.POSTGRES_DB_SCHEMA
 
     if (Number.isNaN(port)) {
-        throw new ConfigException('POSTGRES_PORT is not a number')
+        throw new ConfigException('POSTGRES_DB_PORT is not a number')
     }
 
     return {
@@ -36,41 +34,42 @@ export const typeormOptions = (): SupportedConnectionOptions => {
     }
 }
 
-const getPoolSize = () => {
-    const poolSize = parseInt(process.env.POSTGRES_POOL_SIZE ?? 'NaN')
-
-    if (Number.isNaN(poolSize)) {
-        throw new ConfigException('POSTGRES_POOL_SIZE is not a number')
-    }
-
-    return poolSize
-}
-
 const typeormDevOptions = () => {
     const allowSchemaReset = Path.isExistsSync('config/@DEV_ALLOW_SCHEMA_RESET')
 
-    if (allowSchemaReset) {
-        if (isProduction()) {
-            throw new ConfigException(
-                'The @DEV_ALLOW_SCHEMA_RESET option should not be set to true in a production environment.'
-            )
-        }
+    if (isProduction() && allowSchemaReset) {
+        throw new ConfigException(
+            'The @DEV_ALLOW_SCHEMA_RESET option should not be set to true in a production environment.'
+        )
+    }
 
-        return {
-            dropSchema: true,
-            synchronize: true
-        }
-    } else if (isDevelopment()) {
-        // dropSchema 때문에 반드시 설정해야 한다.
+    if (isDevelopment() && !allowSchemaReset) {
         throw new ConfigException(
             'The @DEV_ALLOW_SCHEMA_RESET option should be set to true in a development environment.'
         )
     }
 
+    if (allowSchemaReset) {
+        return {
+            dropSchema: true,
+            synchronize: true
+        }
+    }
+
     return {}
 }
 
-export const databaseModuleConfig = (): SupportedConnectionOptions => {
+const getPoolSize = () => {
+    const poolSize = parseInt(process.env.POSTGRES_DB_POOL_SIZE ?? 'NaN')
+
+    if (Number.isNaN(poolSize)) {
+        throw new ConfigException('POSTGRES_DB_POOL_SIZE is not a number')
+    }
+
+    return poolSize
+}
+
+export const databaseModuleConfig = (): PostgresConnectionOptions => {
     const logger = new TypeormLogger()
     const poolSize = getPoolSize()
 
@@ -93,5 +92,5 @@ export const databaseModuleConfig = (): SupportedConnectionOptions => {
         throw new ConfigException(`Unsupported database type: ${options.type}`)
     }
 
-    return options as SupportedConnectionOptions
+    return options as PostgresConnectionOptions
 }

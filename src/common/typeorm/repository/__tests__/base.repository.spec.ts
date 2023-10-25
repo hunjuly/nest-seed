@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
-import { OrderDirection } from 'src/common/pagination'
-import { createTestModule } from 'src/common/test'
+import { OrderDirection } from '../../../pagination'
+import { createTestModule } from '../../..//test'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
 describe('BaseRepository', () => {

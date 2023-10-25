@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { createTestModule } from '../../test'
+import { createTestModule } from '../../../test'
 import { TransactionService } from '../transaction.service'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 

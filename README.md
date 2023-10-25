@@ -74,7 +74,7 @@ nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 te
 
 1. 생성
     1. `Run Task.../Generate Migration`을 실행하면 migration 파일이 생성된다.
-    1. 생성된 `src/database/migrations/\*.ts` 파일을 `src/database/typeorm.config.ts`의 `migrations[]`에 추가
+    1. 생성된 `src/database/typeorm/migrations/\*.ts` 파일을 `src/database/typeorm/typeorm.config.ts`의 `migrations[]`에 추가
 1. 적용
     1. `npm run migration:run`을 실행한다.
     1. `npm run migration:show`로 적용된 것을 확인한다.

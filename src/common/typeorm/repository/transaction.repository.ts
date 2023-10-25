@@ -1,6 +1,6 @@
 import { QueryRunner } from 'typeorm'
-import { Assert } from '../assert'
-import { TransactionException } from '../exceptions'
+import { Assert } from '../../assert'
+import { TransactionException } from '../../exceptions'
 import { AggregateRoot } from './aggregate-root'
 
 export class TransactionRepository {

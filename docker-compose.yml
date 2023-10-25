@@ -4,13 +4,13 @@ services:
     postgres:
         image: postgres:15-alpine3.18
         profiles: ['infra']
-        container_name: ${POSTGRES_HOST}
+        container_name: ${POSTGRES_DB_HOST}
         environment:
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
             # 아래 설정은 github workflow 스크립트(test-coverage.yaml)에서는 동작하지 않는다.
-            # POSTGRES_USER: ${POSTGRES_USERNAME}
-            # POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-            # POSTGRES_DB: ${POSTGRES_DATABASE}
+            # POSTGRES_DB_USER: ${POSTGRES_DB_USERNAME}
+            # POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
+            # POSTGRES_DB_DB: ${POSTGRES_DB_DATABASE}
         networks:
             - default
 
@@ -24,17 +24,17 @@ services:
     mongo:
         image: mongo:7
         profiles: ['infra']
-        container_name: ${MONGO_HOST}
+        container_name: ${MONGO_DB_HOST}
         networks:
             - default
         environment:
-            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
 
     mongo-express:
         image: mongo-express:1-20-alpine3.18
         profiles: ['infra']
-        container_name: ${MONGO_EXPRESS_HOST}
+        container_name: ${MONGO_DB_EXPRESS_HOST}
         ports:
             - 8081:8081
         networks:
@@ -43,10 +43,10 @@ services:
             ME_CONFIG_BASICAUTH_USERNAME: user
             ME_CONFIG_BASICAUTH_PASSWORD: password
             ME_CONFIG_MONGODB_ENABLE_ADMIN: true
-            ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
-            ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
-            ME_CONFIG_MONGODB_SERVER: ${MONGO_HOST}
-            ME_CONFIG_MONGODB_PORT: ${MONGO_PORT}
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_DB_USERNAME}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_PASSWORD}
+            ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST}
+            ME_CONFIG_MONGODB_PORT: ${MONGO_DB_PORT}
 
     service:
         image: $PROJECT_NAME
