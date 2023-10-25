@@ -5,7 +5,7 @@ on:
     # create pull request하면 실행된다
     pull_request:
         branches:
-            - *
+            - '*'
     # merge pull request하면 실행된다
     push:
         branches:
