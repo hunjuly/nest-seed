@@ -8,7 +8,7 @@ on:
             - main
     # merge pull request하면 실행된다
     push:
-        branches:
+        branches-ignore:
             - '*'
 
 jobs:
