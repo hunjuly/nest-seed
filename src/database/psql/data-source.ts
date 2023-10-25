@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm'
-import { typeormOptions } from './typeorm.config'
+import { getPostgresConnectionOptions } from './typeorm.config'
 
-const config = typeormOptions()
+const config = getPostgresConnectionOptions()
 
 export const AppDataSource = new DataSource(config)

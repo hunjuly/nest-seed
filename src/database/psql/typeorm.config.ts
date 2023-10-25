@@ -9,7 +9,7 @@ import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 const entities = ADD_DEV([User], [Psql, Mongo])
 const migrations = [NestSeed1691754788909]
 
-export const typeormOptions = (): PostgresConnectionOptions => {
+export const getPostgresConnectionOptions = (): PostgresConnectionOptions => {
     const database = process.env.POSTGRES_DB_DATABASE
     const host = process.env.POSTGRES_DB_HOST
     const port = parseInt(process.env.POSTGRES_DB_PORT ?? 'NaN')
@@ -69,13 +69,13 @@ const getPoolSize = () => {
     return poolSize
 }
 
-export const databaseModuleConfig = (): PostgresConnectionOptions => {
+export const psqlModuleConfig = (): PostgresConnectionOptions => {
     const logger = new TypeormLogger()
     const poolSize = getPoolSize()
 
     // typeormDevOptions가 기존 설정을 덮어쓸 수 있도록 마지막에 와야 한다.
     let options = {
-        ...typeormOptions(),
+        ...getPostgresConnectionOptions(),
         logger,
         poolSize,
         ...typeormDevOptions()
