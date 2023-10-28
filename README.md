@@ -2,6 +2,8 @@
 
 nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
 
+**주의** 현재 mongo db 관련 대대적인 작업 중.
+
 ## Glossary
 
 -   Host: Docker를 실행하는 운영체제로, 보통 사용자의 PC/laptop의 macOS 혹은 Linux가 이 역할을 합니다. Host OS 위에서 여러 개의 컨테이너를 실행할 수 있습니다.
