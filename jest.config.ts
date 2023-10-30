@@ -27,7 +27,7 @@ const config: Config.InitialOptions = {
         '!src/**/index.{ts,tsx}',
         '!src/main.ts',
         '!src/common/test/**/*',
-        '!src/database/**/*',
+        '!src/databases/**/*',
         '!src/**/*.module.ts'
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],
