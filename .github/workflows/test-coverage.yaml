@@ -8,10 +8,10 @@ on:
             - main
     # merge pull request하면 실행된다
     push:
-        branches:
-            - main
-        # branches-ignore:
-            # - '*'
+        # branches:
+        #     - main
+        branches-ignore:
+            - '*'
 
 jobs:
     test-coverage:
