@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestModule, nullUUID } from 'src/common/test'
+import { defaultUUID } from 'src/common'
+import { createHttpTestingModule } from 'src/common/test'
 import { UserDto } from 'src/services'
 import { JwtAuthGuard, LocalAuthGuard } from '../authentication'
 import { ControllersModule } from '../controllers.module'
@@ -11,7 +12,7 @@ describe('UsersController', () => {
     let request: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [ControllersModule],
             bypassGuards: [LocalAuthGuard, JwtAuthGuard]
         })
@@ -122,7 +123,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/users/${nullUUID}`
+                    url: `/users/${defaultUUID}`
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)
@@ -155,7 +156,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/users/${nullUUID}`,
+                    url: `/users/${defaultUUID}`,
                     body: {
                         email: 'user@mail.com'
                     }
@@ -176,7 +177,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/users/${nullUUID}`
+                    url: `/users/${defaultUUID}`
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)

@@ -1,12 +1,11 @@
 import { Logger } from '@nestjs/common'
 import { ADD_DEV, ConfigException, Path, TypeormLogger, isDevelopment, isProduction } from 'src/common'
-import { Mongo } from 'src/services/_seeds/mongos/entities'
 import { Psql } from 'src/services/_seeds/psqls/entities'
 import { User } from 'src/services/users/entities'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 
-const entities = ADD_DEV([User], [Psql, Mongo])
+const entities = ADD_DEV([User], [Psql])
 const migrations = [NestSeed1691754788909]
 
 export const getPostgresConnectionOptions = (): PostgresConnectionOptions => {

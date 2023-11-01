@@ -1,7 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
+import { defaultUUID } from 'src/common'
+import { createHttpTestingModule } from 'src/common/test'
 import { PsqlDto } from 'src/services'
-import { createHttpTestModule, nullUUID } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
 import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
 
@@ -10,7 +11,7 @@ describe('PsqlsController', () => {
     let request: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [ControllersModule]
         })
 
@@ -125,7 +126,7 @@ describe('PsqlsController', () => {
 
             it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/psqls/${nullUUID}`
+                    url: `/psqls/${defaultUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -158,7 +159,7 @@ describe('PsqlsController', () => {
 
             it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/psqls/${nullUUID}`,
+                    url: `/psqls/${defaultUUID}`,
                     body: {
                         name: 'Updated Psql'
                     }
@@ -179,7 +180,7 @@ describe('PsqlsController', () => {
 
             it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/psqls/${nullUUID}`
+                    url: `/psqls/${defaultUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)

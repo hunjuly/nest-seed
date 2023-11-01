@@ -1,14 +1,14 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'src/app.module'
-import { createHttpTestModule } from 'src/common/test'
+import { createHttpTestingModule } from 'src/common/test'
 
 describe('AppModule', () => {
     let module: TestingModule
     let request: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [AppModule]
         })
 

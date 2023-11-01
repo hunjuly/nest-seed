@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { createTestModule } from '../../../test'
+import { createTestingModule } from '../../../test'
 import { TransactionService } from '../transaction.service'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
@@ -10,7 +10,7 @@ describe('TransactionService', () => {
     let entityCandidate: Sample
 
     beforeEach(async () => {
-        module = await createTestModule({
+        module = await createTestingModule({
             imports: [SamplesModule]
         })
 

@@ -1,8 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
-import { sleep } from 'src/common'
-import { createHttpTestModule, nullUUID } from 'src/common/test'
+import { defaultUUID, sleep } from 'src/common'
+import { createHttpTestingModule } from 'src/common/test'
 import { ControllersModule } from '../controllers.module'
 import { createUserDto } from './mocks'
 
@@ -23,7 +23,7 @@ describe('User Authentication', () => {
     let jwtService: JwtService
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [ControllersModule]
         })
 
@@ -163,7 +163,7 @@ describe('User Authentication', () => {
 
             it('데이터가 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
                 const invalidToken = jwtService.sign(
-                    { userId: nullUUID },
+                    { userId: defaultUUID },
                     { secret: 'mockAccessSecret', expiresIn: '15m' }
                 )
 

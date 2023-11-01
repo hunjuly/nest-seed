@@ -1,4 +1,4 @@
-import { AggregateRoot } from 'src/common'
+import { AggregateRoot, defaultUUID } from 'src/common'
 import { Column, Entity } from 'typeorm'
 
 export enum PsqlEnum {
@@ -25,4 +25,16 @@ export class Psql extends AggregateRoot {
 
     @Column({ type: 'timestamptz' })
     date: Date
+}
+
+export const defaultPsql = {
+    name: 'name',
+    desc: 'desc',
+    integer: 0,
+    enums: [],
+    date: new Date(0),
+    id: defaultUUID,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    version: 0
 }

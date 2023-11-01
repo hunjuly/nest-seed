@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config'
 import { TestingModule } from '@nestjs/testing'
 import { ConfigException } from 'src/common'
-import { createTestModule } from 'src/common/test'
+import { createTestingModule } from 'src/common/test'
 import { SafeConfigService } from '../safe-config.service'
 
 describe('SafeConfigService', () => {
@@ -10,7 +10,7 @@ describe('SafeConfigService', () => {
     let configService: ConfigService
 
     beforeEach(async () => {
-        module = await createTestModule({
+        module = await createTestingModule({
             providers: [
                 SafeConfigService,
                 {

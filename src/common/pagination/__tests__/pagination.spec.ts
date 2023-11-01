@@ -1,7 +1,7 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestModule } from '../../test'
+import { createHttpTestingModule } from '../../test'
 import { DEFAULT_TAKE_SIZE } from '../pagination'
 import { SamplesModule } from './pagination.fixture'
 
@@ -12,7 +12,7 @@ describe('Pagination', () => {
     const items_length = 10
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [SamplesModule],
             providers: [
                 {

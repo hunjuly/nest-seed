@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestModule } from 'src/common/test'
+import { createHttpTestingModule } from 'src/common/test'
 import { TestModule } from './filter.fixture'
 
 describe('BaseRepository', () => {
@@ -8,7 +8,7 @@ describe('BaseRepository', () => {
     let request: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestModule({
+        const sut = await createHttpTestingModule({
             imports: [TestModule]
         })
 

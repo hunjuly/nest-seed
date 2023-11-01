@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
 import { OrderDirection } from '../../../pagination'
-import { createTestModule } from '../../..//test'
+import { createTestingModule } from '../../..//test'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
 describe('BaseRepository', () => {
@@ -8,7 +8,7 @@ describe('BaseRepository', () => {
     let module: TestingModule
 
     beforeEach(async () => {
-        module = await createTestModule({
+        module = await createTestingModule({
             imports: [SamplesModule]
         })
 

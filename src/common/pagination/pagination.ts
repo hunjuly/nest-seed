@@ -15,7 +15,7 @@ export class OrderOption {
     direction: OrderDirection
 }
 
-export const DEFAULT_TAKE_SIZE = 100
+export const DEFAULT_TAKE_SIZE = 20
 export const MAX_TAKE_SIZE = 100
 
 export class PaginationOptions {
@@ -60,4 +60,11 @@ export class PaginationResult<E> {
     total: number
 
     items: E[]
+}
+
+export const defaultPaginationResult: PaginationResult<any> = {
+    skip: undefined,
+    take: undefined,
+    total: 0,
+    items: []
 }
