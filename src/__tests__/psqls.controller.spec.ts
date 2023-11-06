@@ -1,18 +1,18 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
+import { AppModule } from 'src/app.module'
 import { defaultUUID } from 'src/common'
 import { createHttpTestingModule } from 'src/common/test'
-import { MongoDto } from 'src/services'
-import { ControllersModule } from '../../controllers.module'
-import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
+import { PsqlDto } from 'src/services'
+import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
 
-describe('MongosController', () => {
+describe('PsqlsController', () => {
     let module: TestingModule
     let request: any
 
     beforeEach(async () => {
         const sut = await createHttpTestingModule({
-            imports: [ControllersModule]
+            imports: [AppModule]
         })
 
         module = sut.module
@@ -28,20 +28,20 @@ describe('MongosController', () => {
         expect(request).toBeDefined()
     })
 
-    describe('POST /mongos', () => {
-        it('새로운 mongo를 생성한다', async () => {
+    describe('POST /psqls', () => {
+        it('새로운 psql를 생성한다', async () => {
             const res = await request.post({
-                url: '/mongos',
-                body: createMongoDto
+                url: '/psqls',
+                body: createPsqlDto
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual(createdMongo)
+            expect(res.body).toEqual(createdPsql)
         })
 
         it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
             const res = await request.post({
-                url: '/mongos',
+                url: '/psqls',
                 body: {}
             })
 
@@ -49,43 +49,43 @@ describe('MongosController', () => {
         })
     })
 
-    describe('GET /mongos', () => {
+    describe('GET /psqls', () => {
         beforeEach(async () => {
-            for (const createDto of createMongoDtos) {
+            for (const createDto of createPsqlDtos) {
                 await request.post({
-                    url: '/mongos',
+                    url: '/psqls',
                     body: createDto,
                     status: HttpStatus.CREATED
                 })
             }
         })
 
-        it('모든 mongo를 반환한다', async () => {
+        it('모든 psql를 반환한다', async () => {
             const res = await request.get({
-                url: '/mongos'
+                url: '/psqls'
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdMongos)
+            expect(res.body.items).toEqual(createdPsqls)
         })
 
-        it('name으로 mongo를 검색한다', async () => {
+        it('name으로 psql를 검색한다', async () => {
             const res = await request.get({
-                url: '/mongos',
+                url: '/psqls',
                 query: {
-                    name: createMongoDtos[0].name
+                    name: createPsqlDtos[0].name
                 }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual([createdMongos[0]])
+            expect(res.body.items).toEqual([createdPsqls[0]])
         })
 
         it('pagination', async () => {
             const res = await request.get({
-                url: '/mongos',
+                url: '/psqls',
                 query: {
-                    name: 'Mongo',
+                    name: 'Psql',
                     skip: 0,
                     take: 10,
                     orderby: 'name:desc'
@@ -93,62 +93,62 @@ describe('MongosController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdMongos.reverse())
+            expect(res.body.items).toEqual(createdPsqls.reverse())
         })
     })
 
-    describe('특정 mongo에 대한 작업', () => {
-        let mongo: MongoDto
+    describe('특정 psql에 대한 작업', () => {
+        let psql: PsqlDto
 
         beforeEach(async () => {
             const res = await request.post({
-                url: '/mongos',
-                body: createMongoDto,
+                url: '/psqls',
+                body: createPsqlDto,
                 status: HttpStatus.CREATED
             })
 
-            mongo = res.body
+            psql = res.body
         })
 
         it('should be defined', () => {
-            expect(mongo.id).toBeDefined()
+            expect(psql.id).toBeDefined()
         })
 
-        describe('GET /mongos/:id', () => {
-            it('mongo를 반환한다', async () => {
+        describe('GET /psqls/:id', () => {
+            it('psql를 반환한다', async () => {
                 const res = await request.get({
-                    url: `/mongos/${mongo.id}`
+                    url: `/psqls/${psql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(mongo)
+                expect(res.body).toEqual(psql)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/mongos/${defaultUUID}`
+                    url: `/psqls/${defaultUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
             })
         })
 
-        describe('PATCH /mongos/:id', () => {
-            it('mongo를 업데이트한다', async () => {
+        describe('PATCH /psqls/:id', () => {
+            it('psql를 업데이트한다', async () => {
                 const res = await request.patch({
-                    url: `/mongos/${mongo.id}`,
+                    url: `/psqls/${psql.id}`,
                     body: {
-                        name: 'Updated Mongo'
+                        name: 'Updated Psql'
                     }
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({ ...mongo, name: 'Updated Mongo' })
+                expect(res.body).toEqual({ ...psql, name: 'Updated Psql' })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await request.patch({
-                    url: `/mongos/${mongo.id}`,
+                    url: `/psqls/${psql.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -157,11 +157,11 @@ describe('MongosController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/mongos/${defaultUUID}`,
+                    url: `/psqls/${defaultUUID}`,
                     body: {
-                        name: 'Updated Mongo'
+                        name: 'Updated Psql'
                     }
                 })
 
@@ -169,18 +169,18 @@ describe('MongosController', () => {
             })
         })
 
-        describe('DELETE /mongos/:id', () => {
-            it('mongo를 삭제한다', async () => {
+        describe('DELETE /psqls/:id', () => {
+            it('psql를 삭제한다', async () => {
                 const res = await request.delete({
-                    url: `/mongos/${mongo.id}`
+                    url: `/psqls/${psql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/mongos/${defaultUUID}`
+                    url: `/psqls/${defaultUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)

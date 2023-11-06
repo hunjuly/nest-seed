@@ -4,7 +4,10 @@ import { PsqlsModule } from './_seeds'
 import { AuthModule } from './auth'
 import { UsersModule } from './users'
 
+const modules = ADD_DEV([AuthModule, UsersModule], [PsqlsModule])
+
 @Module({
-    imports: ADD_DEV([AuthModule, UsersModule], [PsqlsModule])
+    imports: modules,
+    exports: modules
 })
 export class ServicesModule {}

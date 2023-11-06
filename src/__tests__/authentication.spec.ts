@@ -1,9 +1,9 @@
 import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
+import { AppModule } from 'src/app.module'
 import { defaultUUID, sleep } from 'src/common'
 import { createHttpTestingModule } from 'src/common/test'
-import { ControllersModule } from '../../controllers.module'
 import { createUserDto } from './mocks'
 
 jest.mock('src/services/auth/auth-config.service', () => {
@@ -24,7 +24,7 @@ describe('User Authentication', () => {
 
     beforeEach(async () => {
         const sut = await createHttpTestingModule({
-            imports: [ControllersModule]
+            imports: [AppModule]
         })
 
         module = sut.module
