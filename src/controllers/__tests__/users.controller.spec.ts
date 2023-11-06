@@ -38,7 +38,7 @@ describe('UsersController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toMatchObject(createdUser)
+            expect(res.body).toEqual(createdUser)
         })
 
         it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
@@ -68,7 +68,7 @@ describe('UsersController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject(createdUsers)
+            expect(res.body.items).toEqual(createdUsers)
         })
 
         it('email로 user를 검색한다', async () => {
@@ -80,7 +80,7 @@ describe('UsersController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject([createdUsers[0]])
+            expect(res.body.items).toEqual([createdUsers[0]])
         })
     })
 
@@ -117,7 +117,7 @@ describe('UsersController', () => {
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toMatchObject(user)
+                expect(res.body).toEqual(user)
                 expect(res.body.password).toBeUndefined()
             })
 

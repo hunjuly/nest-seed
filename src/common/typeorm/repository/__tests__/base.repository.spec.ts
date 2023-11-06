@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
 import { OrderDirection } from '../../../pagination'
-import { createTestingModule } from '../../..//test'
+import { createTestingModule, aggregateRootMock } from '../../../test'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
 describe('BaseRepository', () => {
@@ -24,7 +24,7 @@ describe('BaseRepository', () => {
         const createdSample = await repository.create(entityData)
 
         expect(createdSample.id).toBeDefined()
-        expect(createdSample).toMatchObject(entityData)
+        expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
     })
 
     describe('특정 sample에 대한 작업', () => {
@@ -39,7 +39,7 @@ describe('BaseRepository', () => {
             createdSample.name = 'updated name'
             const savedSample = await repository.update(createdSample)
 
-            expect(savedSample).toMatchObject(createdSample)
+            expect(savedSample).toEqual(createdSample)
         })
 
         it('findById', async () => {

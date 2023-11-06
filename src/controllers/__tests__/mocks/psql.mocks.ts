@@ -16,4 +16,7 @@ export const createPsqlDtos = [
     { ...createPsqlDto, name: 'Psql-3' }
 ]
 
-export const createdPsqls = createPsqlDtos.map((dto) => objToJson(dto))
+export const createdPsqls = createPsqlDtos.map((dto) => ({
+    ...objToJson(dto),
+    id: expect.anything()
+}))

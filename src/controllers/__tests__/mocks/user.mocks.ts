@@ -9,8 +9,8 @@ export const createUserDto = {
     password: 'password'
 }
 
-const { password: _, ...rest } = objToJson(createUserDto)
-export const createdUser = { ...rest, id: expect.anything() }
+const { password: _, ...rest } = createUserDto
+export const createdUser = { ...objToJson(rest), id: expect.anything() }
 
 export const createUserDtos = [
     { ...createUserDto, email: 'user1@mail.com' },
@@ -18,4 +18,7 @@ export const createUserDtos = [
     { ...createUserDto, email: 'user3@mail.com' }
 ]
 
-export const createdUsers = createUserDtos.map(({ password: _, ...dto }) => objToJson(dto))
+export const createdUsers = createUserDtos.map(({ password: _, ...rest }) => ({
+    ...objToJson(rest),
+    id: expect.anything()
+}))

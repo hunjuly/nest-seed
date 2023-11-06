@@ -36,7 +36,7 @@ describe('PsqlsController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toMatchObject(createdPsql)
+            expect(res.body).toEqual(createdPsql)
         })
 
         it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
@@ -66,7 +66,7 @@ describe('PsqlsController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject(createdPsqls)
+            expect(res.body.items).toEqual(createdPsqls)
         })
 
         it('name으로 psql를 검색한다', async () => {
@@ -78,7 +78,7 @@ describe('PsqlsController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject([createdPsqls[0]])
+            expect(res.body.items).toEqual([createdPsqls[0]])
         })
 
         it('pagination', async () => {
@@ -93,7 +93,7 @@ describe('PsqlsController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toMatchObject(createdPsqls.reverse())
+            expect(res.body.items).toEqual(createdPsqls.reverse())
         })
     })
 
@@ -121,7 +121,7 @@ describe('PsqlsController', () => {
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toMatchObject(psql)
+                expect(res.body).toEqual(psql)
             })
 
             it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
