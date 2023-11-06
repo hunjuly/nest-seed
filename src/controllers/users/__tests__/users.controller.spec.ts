@@ -3,8 +3,8 @@ import { TestingModule } from '@nestjs/testing'
 import { defaultUUID } from 'src/common'
 import { createHttpTestingModule } from 'src/common/test'
 import { UserDto } from 'src/services'
-import { JwtAuthGuard, LocalAuthGuard } from '../authentication'
-import { ControllersModule } from '../controllers.module'
+import { JwtAuthGuard, LocalAuthGuard } from '../../auth'
+import { ControllersModule } from '../../controllers.module'
 import { createUserDto, createUserDtos, createdUser, createdUsers } from './mocks'
 
 describe('UsersController', () => {

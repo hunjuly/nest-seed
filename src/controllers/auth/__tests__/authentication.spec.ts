@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
 import { defaultUUID, sleep } from 'src/common'
 import { createHttpTestingModule } from 'src/common/test'
-import { ControllersModule } from '../controllers.module'
+import { ControllersModule } from '../../controllers.module'
 import { createUserDto } from './mocks'
 
 jest.mock('src/services/auth/auth-config.service', () => {

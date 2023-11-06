@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common'
 import { ADD_DEV } from 'src/common'
 import { GlobalModule } from 'src/global'
 import { AuthModule, PsqlsModule, UsersModule } from 'src/services'
-import { AuthController } from './auth.controller'
-import { FiltersModule } from './modules/filters.module'
-import { ValidationModule } from './modules/validation.module'
-import { PsqlsController } from './psqls.controller'
-import { UsersController } from './users.controller'
+import { AuthController } from './auth'
+import { FiltersModule } from './filters.module'
+import { ValidationModule } from './validation.module'
+import { PsqlsController } from './psqls'
+import { UsersController } from './users'
 
 @Module({
     imports: ADD_DEV([GlobalModule, ValidationModule, FiltersModule, AuthModule, UsersModule], [PsqlsModule]),
