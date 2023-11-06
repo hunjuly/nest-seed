@@ -1,12 +1,12 @@
 import { Module, ValidationPipe } from '@nestjs/common'
 import { APP_FILTER, APP_PIPE } from '@nestjs/core'
-import { ErrorFilter, HttpExceptionFilter } from 'src/common'
+import { HttpErrorFilter, HttpExceptionFilter } from 'src/common'
 
 @Module({
     providers: [
         {
             provide: APP_FILTER,
-            useClass: ErrorFilter
+            useClass: HttpErrorFilter
         },
         {
             provide: APP_FILTER,

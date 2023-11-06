@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nest
 import { Request, Response } from 'express'
 
 @Catch(Error)
-export class ErrorFilter implements ExceptionFilter {
+export class HttpErrorFilter implements ExceptionFilter {
     async catch(error: Error, host: ArgumentsHost) {
         // 나중에 Rpc 기능이 추가되면 아래 코드를 수정해야 한다.
         const ctx = host.switchToHttp()
