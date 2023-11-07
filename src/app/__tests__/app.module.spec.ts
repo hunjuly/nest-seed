@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { createHttpTestingModule } from 'common'
+import { createHttpTestingModule } from 'common/test'
 
 describe('AppModule', () => {
     let module: TestingModule

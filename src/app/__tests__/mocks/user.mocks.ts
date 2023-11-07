@@ -1,4 +1,4 @@
-import { objToJson } from 'common'
+import { objToJson } from 'common/test'
 
 export const createUserDto = {
     email: 'user@mail.com',

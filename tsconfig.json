@@ -12,10 +12,21 @@
         "baseUrl": ".",
         // 동일한 폴더라도 매핑하지 않으면 eslint나 jest에서 인식하지 못할 수 있다
         "paths": {
-            "app/*": ["src/app/*"],
-            "common": ["src/common"],
-            "config": ["src/config"],
-            "seed/*": ["src/seed/*"]
+            "app/*": [
+                "src/app/*"
+            ],
+            "common/*": [
+                "src/common/*"
+            ],
+            "common": [
+                "src/common"
+            ],
+            "config": [
+                "src/config"
+            ],
+            "seed/*": [
+                "src/seed/*"
+            ]
         },
         "incremental": true,
         "skipLibCheck": true,
@@ -25,5 +36,7 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

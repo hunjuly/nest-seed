@@ -1,16 +1,14 @@
 import { Logger } from '@nestjs/common'
-import { ConfigException, Path, TypeormLogger, Env } from 'common'
+import { User } from 'app/services/users/entities'
+import { ConfigException, Env, Path, TypeormLogger } from 'common'
 import { psqlOptions } from 'config'
-import { EntitySchema, MixedList } from 'typeorm'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
 
+const entities = [User]
 const migrations = [NestSeed1691754788909]
 
-export const getPostgresConnectionOptions = (
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    entities: MixedList<Function | string | EntitySchema>
-): PostgresConnectionOptions =>
+export const getPostgresConnectionOptions = (): PostgresConnectionOptions =>
     ({
         ...psqlOptions,
         migrations,
@@ -42,15 +40,12 @@ const typeormDevOptions = () => {
     return {}
 }
 
-export const psqlModuleConfig = (
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    typeormEntities: MixedList<Function | string | EntitySchema>
-): PostgresConnectionOptions => {
+export const psqlModuleConfig = (): PostgresConnectionOptions => {
     const logger = new TypeormLogger()
 
     // typeormDevOptions가 기존 설정을 덮어쓸 수 있도록 마지막에 와야 한다.
     let options = {
-        ...getPostgresConnectionOptions(typeormEntities),
+        ...getPostgresConnectionOptions(),
         logger,
         ...typeormDevOptions()
     }

@@ -1,4 +1,4 @@
-import { objToJson } from 'common'
+import { objToJson } from 'common/test'
 
 export const createPsqlDto = {
     name: 'psql name',

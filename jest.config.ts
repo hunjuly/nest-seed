@@ -7,10 +7,11 @@ const config: Config.InitialOptions = {
     roots: ['<rootDir>/src/'],
     testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
     moduleNameMapper: {
+        '^app/(.*)$': '<rootDir>/src/app/$1',
+        '^common/(.*)$': '<rootDir>/src/common/$1',
         '^common': '<rootDir>/src/common',
         '^config': '<rootDir>/src/config',
-        '^seed/(.*)$': '<rootDir>/src/seed/$1',
-        '^app/(.*)$': '<rootDir>/src/app/$1'
+        '^seed/(.*)$': '<rootDir>/src/seed/$1'
     },
     testEnvironment: 'node',
     transform: {
@@ -32,7 +33,7 @@ const config: Config.InitialOptions = {
         '!src/app/main.ts',
         '!src/app/databases/**/*',
         '!src/common/test/**/*',
-        '!src/config/**/*',
+        '!src/config/**/*'
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],

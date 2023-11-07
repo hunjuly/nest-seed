@@ -1,9 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestingModule, defaultUUID } from 'common'
+import { defaultUUID } from 'common'
 import { AppModule } from 'seed/app.module'
 import { MongoDto } from 'seed/services'
 import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
+import { createHttpTestingModule } from 'common/test'
 
 describe('MongosController', () => {
     let module: TestingModule

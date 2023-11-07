@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { createHttpTestingModule } from 'common'
+import { createHttpTestingModule } from 'common/test'
 import { TestModule } from './filter.fixture'
 
 describe('BaseRepository', () => {

@@ -2,8 +2,9 @@ import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { createHttpTestingModule, defaultUUID, sleep } from 'common'
+import { defaultUUID, sleep } from 'common'
 import { createUserDto } from './mocks'
+import { createHttpTestingModule } from 'common/test'
 
 jest.mock('config', () => {
     const actualConfig = jest.requireActual('config')

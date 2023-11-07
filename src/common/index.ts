@@ -6,6 +6,7 @@ export * from './interfaces'
 export * from './logger'
 export * from './pagination'
 export * from './services'
-export * from './test'
 export * from './typeorm'
 export * from './utils'
+// 테스트 라이브러리가 포함되면 typeorm migration:show 할 때 에러난다.
+// export * from './test'
