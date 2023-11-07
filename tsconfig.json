@@ -19,10 +19,10 @@
                 "src/common/*"
             ],
             "common": [
-                "src/common"
+                "src/common/index"
             ],
             "config": [
-                "src/config"
+                "src/config/index"
             ],
             "seed/*": [
                 "src/seed/*"
