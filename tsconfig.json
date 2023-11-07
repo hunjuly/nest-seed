@@ -10,7 +10,6 @@
         "sourceMap": true,
         "outDir": "./dist",
         "baseUrl": ".",
-        // 동일한 폴더라도 매핑하지 않으면 eslint나 jest에서 인식하지 못할 수 있다
         "paths": {
             "app/*": [
                 "src/app/*"
@@ -19,10 +18,10 @@
                 "src/common/*"
             ],
             "common": [
-                "src/common/index"
+                "src/common"
             ],
             "config": [
-                "src/config/index"
+                "src/config"
             ],
             "seed/*": [
                 "src/seed/*"

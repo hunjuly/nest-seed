@@ -2,16 +2,15 @@ import { NestFactory } from '@nestjs/core'
 import * as express from 'express'
 import { AppLoggerService, Env } from 'common'
 import { AppModule } from './app.module'
+import { httpOptions } from 'config'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
 
-    if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
-        const limit = process.env.HTTP_REQUEST_PAYLOAD_LIMIT
+    const limit = httpOptions.requestPayloadLimit
 
-        app.use(express.json({ limit }))
-        app.use(express.urlencoded({ limit, extended: true }))
-    }
+    app.use(express.json({ limit }))
+    app.use(express.urlencoded({ limit, extended: true }))
 
     const logger = app.get(AppLoggerService)
     app.useLogger(logger)

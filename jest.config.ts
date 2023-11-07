@@ -9,8 +9,8 @@ const config: Config.InitialOptions = {
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/src/app/$1',
         '^common/(.*)$': '<rootDir>/src/common/$1',
-        '^common$': '<rootDir>/src/common/index',
-        '^config$': '<rootDir>/src/config/index',
+        '^common$': '<rootDir>/src/common',
+        '^config$': '<rootDir>/src/config',
         '^seed/(.*)$': '<rootDir>/src/seed/$1'
     },
     testEnvironment: 'node',
