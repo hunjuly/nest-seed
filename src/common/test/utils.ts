@@ -1,11 +1,3 @@
-export const nullUUID = '00000000000000000000000000000000'
-
-export function createUUID(value: number) {
-    const uuid = String(value).padStart(32, '0')
-    const formattedUUID = uuid.slice(-32)
-    return formattedUUID
-}
-
 export function objToJson(obj: any) {
     const plain = JSON.stringify(obj)
     const json = JSON.parse(plain)
@@ -21,4 +13,11 @@ export function createSpy(object: any, method: string, args: any[] | undefined |
 
         return response
     })
+}
+
+export const aggregateRootMock = {
+    createdAt: expect.anything(),
+    id: expect.anything(),
+    updatedAt: expect.anything(),
+    version: expect.anything()
 }

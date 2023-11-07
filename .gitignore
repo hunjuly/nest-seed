@@ -1,12 +1,12 @@
 .DS_Store
 desktop.ini
 
-dist/
-logs/
-coverage/
-node_modules/
-config/
+/dist/
+/logs/
+/coverage/
+/node_modules/
+/config/
 
-.env
-.env.*
-!.env.development
+/.env
+/.env.*
+/!.env.development
