@@ -14,14 +14,14 @@
             "app/*": [
                 "src/app/*"
             ],
+            "common": [
+                "src/common/index"
+            ],
             "common/*": [
                 "src/common/*"
             ],
-            "common": [
-                "src/common"
-            ],
             "config": [
-                "src/config"
+                "src/config/index"
             ],
             "seed/*": [
                 "src/seed/*"

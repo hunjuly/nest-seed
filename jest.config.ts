@@ -8,9 +8,9 @@ const config: Config.InitialOptions = {
     testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/src/app/$1',
+        '^common$': '<rootDir>/src/common/index',
         '^common/(.*)$': '<rootDir>/src/common/$1',
-        '^common$': '<rootDir>/src/common',
-        '^config$': '<rootDir>/src/config',
+        '^config$': '<rootDir>/src/config/index',
         '^seed/(.*)$': '<rootDir>/src/seed/$1'
     },
     testEnvironment: 'node',
