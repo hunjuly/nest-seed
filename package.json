@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "nest start --debug --watch",
-        "start:prod": "node dist/main",
+        "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9230 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged --runInBand",
         "test:all": "jest --runInBand --coverage && npm run migration:test",
         "build": "nest build",
