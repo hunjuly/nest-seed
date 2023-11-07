@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Assert, BaseRepository, PaginationResult } from 'common'
-import { Repository } from 'typeorm'
+import { Assert, PaginationResult, defaultUUID } from 'common'
 import { CreateMongoDto, MongosQueryDto } from './dto'
 import { Mongo, defaultMongo } from './entities'
 
 @Injectable()
-export class MongosRepository extends BaseRepository<Mongo> {
-    constructor(@InjectRepository(Mongo) typeorm: Repository<Mongo>) {
-        super(typeorm)
-    }
+export class MongosRepository {
+    constructor() {}
 
     async create(createMongoDto: CreateMongoDto): Promise<Mongo> {
         return defaultMongo
@@ -27,12 +23,8 @@ export class MongosRepository extends BaseRepository<Mongo> {
         return defaultMongo
     }
 
-    async findByIds(ids: string[]): Promise<Mongo[]> {
-        return [defaultMongo]
-    }
-
     async exist(id: string): Promise<boolean> {
-        return true
+        return id !== '00000000000000000000000000000001'
     }
 
     async find(queryDto: MongosQueryDto): Promise<PaginationResult<Mongo>> {

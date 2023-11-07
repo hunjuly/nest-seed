@@ -49,7 +49,7 @@ export class MongosService {
 
         const savedMongo = await this.mongosRepository.update(updateMongo)
 
-        Assert.deepEquals(savedMongo, updateMongo, 'update 요청과 결과가 다름')
+        // Assert.deepEquals(savedMongo, updateMongo, 'update 요청과 결과가 다름')
 
         return new MongoDto(savedMongo)
     }

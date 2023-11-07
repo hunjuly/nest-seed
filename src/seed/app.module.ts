@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { Psql } from './services/psqls/entities'
-import { PsqlsController } from './controllers'
-import { PsqlsModule } from './services'
+import { MongosController, PsqlsController } from './controllers'
+import { MongosModule, PsqlsModule } from './services'
 import { mongoOptions, psqlOptions } from 'config'
 import { MongooseModule } from '@nestjs/mongoose'
 
@@ -26,8 +26,9 @@ import { MongooseModule } from '@nestjs/mongoose'
                 }
             }
         }),
-        PsqlsModule
+        PsqlsModule,
+        MongosModule
     ],
-    controllers: [PsqlsController]
+    controllers: [PsqlsController, MongosController]
 })
 export class AppModule {}
