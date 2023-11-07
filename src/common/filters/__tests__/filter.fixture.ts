@@ -1,6 +1,6 @@
 import { BadRequestException, Controller, Get, Module } from '@nestjs/common'
 import { APP_FILTER } from '@nestjs/core'
-import { HttpErrorFilter } from '../error.filter'
+import { HttpErrorFilter } from '../http-error.filter'
 import { HttpExceptionFilter } from '../http-exception.filter'
 
 @Controller('')
