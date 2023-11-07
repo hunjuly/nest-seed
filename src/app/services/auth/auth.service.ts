@@ -4,7 +4,7 @@ import { CacheService, comment, convertTimeToSeconds, notUsed } from 'common'
 import { v4 as uuidv4 } from 'uuid'
 import { UserDto, UsersService } from '../users'
 import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from './interfaces'
-import { getAuthOptions as config } from 'config'
+import { authOptions } from 'config'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
@@ -50,7 +50,7 @@ export class AuthService {
 
     private async getRefreshTokenPayload(token: string): Promise<RefreshTokenPayload | undefined> {
         try {
-            const secret = config.refreshSecret
+            const secret = authOptions.refreshSecret
 
             const { exp, iat, jti, ...payload } = await this.jwtService.verifyAsync(token, { secret })
             notUsed(exp, iat, jti)
@@ -68,14 +68,14 @@ export class AuthService {
 
         const accessToken = await this.createToken(
             commonPayload,
-            config.accessSecret,
-            config.accessTokenExpiration
+            authOptions.accessSecret,
+            authOptions.accessTokenExpiration
         )
 
         const refreshToken = await this.createToken(
             commonPayload,
-            config.refreshSecret,
-            config.refreshTokenExpiration
+            authOptions.refreshSecret,
+            authOptions.refreshTokenExpiration
         )
 
         await this.storeRefreshToken(userId, refreshToken)
@@ -94,7 +94,7 @@ export class AuthService {
     }
 
     private async storeRefreshToken(userId: string, refreshToken: string) {
-        const expireTime = convertTimeToSeconds(config.refreshTokenExpiration)
+        const expireTime = convertTimeToSeconds(authOptions.refreshTokenExpiration)
 
         await this.cache.set(`${REFRESH_TOKEN_PREFIX}${userId}`, refreshToken, expireTime * 1000)
     }

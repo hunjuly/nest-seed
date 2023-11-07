@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 import { ConfigException, Path, TypeormLogger, isDevelopment, isProduction } from 'common'
-import { getPsqlOptions } from 'config'
+import { psqlOptions } from 'config'
 import { EntitySchema, MixedList } from 'typeorm'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
@@ -12,7 +12,7 @@ export const getPostgresConnectionOptions = (
     entities: MixedList<Function | string | EntitySchema>
 ): PostgresConnectionOptions =>
     ({
-        ...getPsqlOptions,
+        ...psqlOptions,
         migrations,
         entities
     } as PostgresConnectionOptions)

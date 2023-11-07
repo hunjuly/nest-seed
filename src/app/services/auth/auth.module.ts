@@ -5,32 +5,25 @@ import { GlobalModule } from 'app/global'
 import { UsersModule } from '../users'
 import { AuthService } from './auth.service'
 import { JwtStrategy, LocalStrategy } from './strategies'
-import { getAuthOptions as config } from 'config'
-
-function getJwtModuleAsyncOption(tokenType: 'access' | 'refresh') {
-    return {
-        useFactory: async () => {
-            const secret = tokenType === 'access' ? config.accessSecret : config.refreshSecret
-            const expiresIn =
-                tokenType === 'access' ? config.accessTokenExpiration : config.refreshTokenExpiration
-
-            return {
-                secret,
-                signOptions: {
-                    expiresIn
-                }
-            }
-        }
-    }
-}
+import { authOptions } from 'config'
 
 @Module({
     imports: [
         GlobalModule,
         PassportModule,
         UsersModule,
-        JwtModule.registerAsync(getJwtModuleAsyncOption('refresh')),
-        JwtModule.registerAsync(getJwtModuleAsyncOption('access'))
+        JwtModule.register({
+            secret: authOptions.accessSecret,
+            signOptions: {
+                expiresIn: authOptions.accessTokenExpiration
+            }
+        }),
+        JwtModule.register({
+            secret: authOptions.refreshSecret,
+            signOptions: {
+                expiresIn: authOptions.refreshTokenExpiration
+            }
+        })
     ],
     providers: [AuthService, LocalStrategy, JwtStrategy],
     exports: [AuthService]

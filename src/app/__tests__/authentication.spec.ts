@@ -10,7 +10,7 @@ jest.mock('config', () => {
 
     return {
         ...actualConfig,
-        getAuthOptions: {
+        authOptions: {
             accessSecret: 'mockAccessSecret',
             accessTokenExpiration: '1s',
             refreshSecret: 'mockRefreshSecret',

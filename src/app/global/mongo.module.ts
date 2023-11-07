@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { getMongoOptions as config } from 'config'
+import { mongoOptions } from 'config'
 
 @Module({
     imports: [
         MongooseModule.forRootAsync({
             useFactory: () => {
+                const { user, pass, host, port } = mongoOptions
+
                 return {
-                    uri: `mongodb://${config.user}:${config.pass}@${config.host}:${config.port}/`
+                    uri: `mongodb://${user}:${pass}@${host}:${port}/`
                 }
             }
         })
