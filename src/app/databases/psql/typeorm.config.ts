@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common'
-import { ConfigException, Path, TypeormLogger, isDevelopment, isProduction } from 'common'
+import { ConfigException, Path, TypeormLogger, Env } from 'common'
 import { psqlOptions } from 'config'
 import { EntitySchema, MixedList } from 'typeorm'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
@@ -20,13 +20,13 @@ export const getPostgresConnectionOptions = (
 const typeormDevOptions = () => {
     const allowSchemaReset = Path.isExistsSync('config/@DEV_ALLOW_SCHEMA_RESET')
 
-    if (isProduction() && allowSchemaReset) {
+    if (Env.isProduction() && allowSchemaReset) {
         throw new ConfigException(
             'The @DEV_ALLOW_SCHEMA_RESET option should not be set to true in a production environment.'
         )
     }
 
-    if (isDevelopment() && !allowSchemaReset) {
+    if (Env.isDevelopment() && !allowSchemaReset) {
         throw new ConfigException(
             'The @DEV_ALLOW_SCHEMA_RESET option should be set to true in a development environment.'
         )

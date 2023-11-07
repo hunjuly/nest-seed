@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import * as express from 'express'
-import { AppLoggerService, isDevelopment, isProduction } from 'common'
+import { AppLoggerService, Env } from 'common'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -23,7 +23,7 @@ async function bootstrap() {
     console.log(`Application is running on: ${await app.getUrl()}`)
 }
 
-if (isDevelopment() || isProduction()) {
+if (Env.isDevelopment() || Env.isProduction()) {
     bootstrap()
 } else {
     console.error('NODE_ENV is not set. Exiting...')
