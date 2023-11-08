@@ -7,6 +7,8 @@
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9230 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged --runInBand",
         "test:all": "jest --runInBand --coverage && npm run migration:test",
+        "test:app": "jest --runInBand src/app",
+        "test:common": "jest --runInBand src/common",
         "build": "nest build",
         "lint": "eslint src/**/*.ts --fix",
         "format": "prettier --write src/**/*.ts",

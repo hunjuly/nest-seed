@@ -14,9 +14,9 @@
             "command": "npm test"
         },
         {
-            "label": "Test All & Code Coverage",
+            "label": "Test",
             "type": "shell",
-            "command": "npm run test:all"
+            "command": "npm run test:${input:tests}"
         },
         {
             "label": "Launch PSQL",
@@ -29,19 +29,37 @@
             "command": "bash scripts/clean_up.sh"
         },
         {
-            "label": "Logging During Testing - Enable",
+            "label": "Logging During Testing",
             "type": "shell",
-            "command": "bash scripts/set_logging_during_testing.sh"
-        },
-        {
-            "label": "Logging During Testing - Disable",
-            "type": "shell",
-            "command": "rm -f config/@DEV_LOGGING_DURING_TESTING"
+            "command": "bash scripts/set_logging_during_testing.sh ${input:enable_disable}"
         },
         {
             "label": "Generate Migration",
             "type": "shell",
             "command": "npm run migration:generate"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "enable_disable",
+            "description": "",
+            "default": "disable",
+            "type": "pickString",
+            "options": [
+                "enable",
+                "disable"
+            ]
+        },
+        {
+            "id": "tests",
+            "description": "",
+            "default": "app",
+            "type": "pickString",
+            "options": [
+                "app",
+                "all",
+                "common"
+            ]
         }
     ]
 }
