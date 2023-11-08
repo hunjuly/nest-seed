@@ -15,4 +15,4 @@ import { mongoOptions } from 'config'
         })
     ]
 })
-export class MongoModule {}
+export class MongoDbModule {}

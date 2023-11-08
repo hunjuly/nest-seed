@@ -1,34 +1,10 @@
 import { Module } from '@nestjs/common'
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
-import { Psql } from './services/psqls/entities'
-import { MongosController, PsqlsController } from './controllers'
+import { PsqlsController } from './controllers'
 import { MongosModule, PsqlsModule } from './services'
-import { mongoOptions, psqlOptions } from 'config'
-import { MongooseModule } from '@nestjs/mongoose'
+import { MongoDbModule, PsqlDbModule } from './modules'
 
 @Module({
-    imports: [
-        TypeOrmModule.forRootAsync({
-            useFactory: () =>
-                ({
-                    ...psqlOptions,
-                    dropSchema: true,
-                    synchronize: true,
-                    entities: [Psql]
-                } as TypeOrmModuleOptions)
-        }),
-        MongooseModule.forRootAsync({
-            useFactory: () => {
-                const { user, pass, host, port } = mongoOptions
-
-                return {
-                    uri: `mongodb://${user}:${pass}@${host}:${port}/`
-                }
-            }
-        }),
-        PsqlsModule,
-        MongosModule
-    ],
-    controllers: [PsqlsController, MongosController]
+    imports: [MongoDbModule, MongosModule, PsqlDbModule, PsqlsModule],
+    controllers: [PsqlsController]
 })
 export class AppModule {}
