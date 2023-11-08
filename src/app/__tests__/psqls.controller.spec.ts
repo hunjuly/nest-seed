@@ -1,10 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { AppModule } from 'seed/app.module'
+import { AppModule } from 'app/app.module'
+import { PsqlDto } from 'app/services'
 import { defaultUUID } from 'common'
-import { PsqlDto } from 'seed/services'
-import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
 import { createHttpTestingModule } from 'common/test'
+import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
 
 describe('PsqlsController', () => {
     let module: TestingModule
