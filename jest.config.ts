@@ -8,10 +8,10 @@ const config: Config.InitialOptions = {
     testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/src/app/$1',
+        '^common$': '<rootDir>/src/common/index',
         '^common/(.*)$': '<rootDir>/src/common/$1',
-        '^common$': '<rootDir>/src/common',
-        '^config$': '<rootDir>/src/config',
-        '^seed/(.*)$': '<rootDir>/src/seed/$1'
+        '^config$': '<rootDir>/src/config/index',
+        '^databases$': '<rootDir>/src/databases/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -27,13 +27,12 @@ const config: Config.InitialOptions = {
         }
     },
     collectCoverageFrom: [
-        'src/**/*.{ts,tsx}',
-        '!src/**/index.{ts,tsx}',
-        '!src/**/*.module.ts',
+        'src/app/**/*.{ts,tsx}',
         '!src/app/main.ts',
-        '!src/app/databases/**/*',
+        'src/common/**/*.{ts,tsx}',
         '!src/common/test/**/*',
-        '!src/config/**/*'
+        '!src/**/index.{ts,tsx}',
+        '!src/**/*.module.ts'
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],

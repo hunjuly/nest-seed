@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { PsqlsService } from 'seed/services'
+import { PsqlsService } from 'app/services'
 
 @Injectable()
 export class PsqlExistsGuard implements CanActivate {

@@ -1,19 +1,8 @@
-import { Logger } from '@nestjs/common'
-import { User } from 'app/services/users/entities'
+import { Logger, Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { psqlConnectionOptions } from 'databases'
 import { ConfigException, Env, Path, TypeormLogger } from 'common'
-import { psqlOptions } from 'config'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
-import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
-
-const entities = [User]
-const migrations = [NestSeed1691754788909]
-
-export const getPostgresConnectionOptions = (): PostgresConnectionOptions =>
-    ({
-        ...psqlOptions,
-        migrations,
-        entities
-    } as PostgresConnectionOptions)
 
 const typeormDevOptions = () => {
     const allowSchemaReset = Path.isExistsSync('config/@DEV_ALLOW_SCHEMA_RESET')
@@ -40,26 +29,31 @@ const typeormDevOptions = () => {
     return {}
 }
 
-export const psqlModuleConfig = (): PostgresConnectionOptions => {
+const psqlModuleConfig = (): PostgresConnectionOptions => {
     const logger = new TypeormLogger()
 
     // typeormDevOptions가 기존 설정을 덮어쓸 수 있도록 마지막에 와야 한다.
     let options = {
-        ...getPostgresConnectionOptions(),
-        logger,
-        ...typeormDevOptions()
+        ...psqlConnectionOptions,
+        ...typeormDevOptions(),
+        logger
     }
 
-    if (options.type === 'postgres') {
-        // 설정은 했는데 동작하는 것을 못봤다.
-        options = {
-            ...options,
-            poolErrorHandler: (err: any) => Logger.error('poolErrorHandler', err),
-            logNotifications: true
-        }
-    } else {
+    if (options.type !== 'postgres') {
         throw new ConfigException(`Unsupported database type: ${options.type}`)
+    }
+
+    // 설정은 했는데 동작하는 것을 못봤다.
+    options = {
+        ...options,
+        poolErrorHandler: (err: any) => Logger.error('poolErrorHandler', err),
+        logNotifications: true
     }
 
     return options as PostgresConnectionOptions
 }
+
+@Module({
+    imports: [TypeOrmModule.forRootAsync({ useFactory: psqlModuleConfig })]
+})
+export class PsqlDbModule {}

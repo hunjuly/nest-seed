@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { CacheService, comment, convertTimeToSeconds, notUsed } from 'common'
-import { v4 as uuidv4 } from 'uuid'
+import { CacheService, comment, convertTimeToSeconds, generateUUID, notUsed } from 'common'
+import { authOptions } from 'config'
 import { UserDto, UsersService } from '../users'
 import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from './interfaces'
-import { authOptions } from 'config'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
@@ -88,7 +87,10 @@ export class AuthService {
         secret: string,
         expiresIn: string
     ) {
-        const token = await this.jwtService.signAsync({ ...payload, jti: uuidv4() }, { secret, expiresIn })
+        const token = await this.jwtService.signAsync(
+            { ...payload, jti: generateUUID() },
+            { secret, expiresIn }
+        )
 
         return token
     }

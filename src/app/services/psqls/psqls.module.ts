@@ -3,10 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { Psql } from './entities'
 import { PsqlsRepository } from './psqls.repository'
 import { PsqlsService } from './psqls.service'
-import { GlobalModule } from 'app/global'
 
 @Module({
-    imports: [GlobalModule, TypeOrmModule.forFeature([Psql])],
+    imports: [TypeOrmModule.forFeature([Psql])],
     providers: [PsqlsService, PsqlsRepository],
     exports: [PsqlsService]
 })

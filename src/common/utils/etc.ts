@@ -1,6 +1,5 @@
 import { compare, hash } from 'bcrypt'
 import { randomUUID } from 'crypto'
-
 import { LogicException } from '../exceptions'
 import { Coordinate } from '../interfaces'
 

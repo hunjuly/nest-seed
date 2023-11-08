@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common'
+import { AuthController, PsqlsController, UsersController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { AuthModule, PsqlsModule, UsersModule } from 'app/services'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { AuthController, UsersController } from './controllers'
-import { GlobalModule } from './global'
-import { AuthModule, UsersModule } from './services'
 
 @Module({
-    imports: [GlobalModule, AuthModule, UsersModule],
-    controllers: [AppController, UsersController, AuthController],
+    imports: [GlobalModule, AuthModule, UsersModule, PsqlsModule],
+    controllers: [AppController, UsersController, AuthController, PsqlsController],
     providers: [AppService]
 })
 export class AppModule {}
