@@ -33,3 +33,13 @@ export function getBoolean(key: string): boolean {
     console.log(`${key}  not boolean`)
     exit(1)
 }
+
+export class Env {
+    public static isProduction() {
+        return process.env.NODE_ENV === 'production'
+    }
+
+    public static isDevelopment() {
+        return process.env.NODE_ENV === 'development'
+    }
+}
