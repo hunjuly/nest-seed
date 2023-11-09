@@ -1,7 +1,8 @@
 import { Logger, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { ConfigException, Path, TypeormLogger } from 'common'
+import { Env } from 'config'
 import { psqlConnectionOptions } from 'databases'
-import { ConfigException, Env, Path, TypeormLogger } from 'common'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 
 const typeormDevOptions = () => {
