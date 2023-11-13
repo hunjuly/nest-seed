@@ -6,7 +6,7 @@ import { AggregateRoot } from './aggregate-root'
 export abstract class BaseRepository<T extends AggregateRoot> {
     constructor(protected typeorm: Repository<T>) {}
 
-    // TransactionRepository에는 createCandidate가 없다
+    // TransactionRepository에서도 사용해야 한다
     createCandidate(entityData: DeepPartial<T>): T {
         Assert.undefined(entityData.id, `EntityData already has an id${entityData.id}`)
 
