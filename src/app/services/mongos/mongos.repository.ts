@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { PaginationResult, defaultPaginationResult } from 'common'
+import { AggregateRoot, PaginationResult, defaultPaginationResult } from 'common'
 import { MongosQueryDto } from './dto'
-import { Mongo, defaultMongo } from './entities'
+import { InjectModel } from '@nestjs/mongoose'
+import { Mongo, defaultMongo } from './schemas'
+import { Model } from 'mongoose'
 
-@Injectable()
-export class MongosRepository<T> {
-    constructor() {}
+// https://github.com/nestjs/nest/blob/master/sample/06-mongoose/src/cats/cats.service.ts
+
+abstract class BaseRepository<T> {
+    constructor(protected typeorm: Model<T>) {}
 
     async create(entityData: Partial<T>): Promise<T> {
         return defaultMongo as T
@@ -23,6 +26,13 @@ export class MongosRepository<T> {
 
     async findByIds(ids: string[]): Promise<T[]> {
         return []
+    }
+}
+
+@Injectable()
+export class MongosRepository extends BaseRepository<Mongo> {
+    constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
+        super(model)
     }
 
     async exist(id: string): Promise<boolean> {

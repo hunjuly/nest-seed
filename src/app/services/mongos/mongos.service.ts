@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { Assert, PaginationResult, updateIntersection } from 'common'
 import { CreateMongoDto, MongoDto, MongosQueryDto, UpdateMongoDto } from './dto'
-import { Mongo } from './entities'
 import { MongosRepository } from './mongos.repository'
+import { Mongo } from './schemas'
 
 @Injectable()
 export class MongosService {
-    constructor(private mongosRepository: MongosRepository<Mongo>) {}
+    constructor(private mongosRepository: MongosRepository) {}
 
     async createMongo(createMongoDto: CreateMongoDto) {
         const savedMongo = await this.mongosRepository.create(createMongoDto)

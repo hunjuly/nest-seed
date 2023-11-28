@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer'
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator'
-import { MongoEnum } from '../entities'
+import { MongoEnum } from '../schemas'
 
 export class CreateMongoDto {
     @IsString()

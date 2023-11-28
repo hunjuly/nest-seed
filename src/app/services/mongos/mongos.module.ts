@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { Mongo } from './entities'
+import { Mongo, MongoSchema } from './schemas'
 import { MongosRepository } from './mongos.repository'
 import { MongosService } from './mongos.service'
+import { MongooseModule } from '@nestjs/mongoose'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Mongo])],
+    imports: [MongooseModule.forFeature([{ name: Mongo.name, schema: MongoSchema }])],
     providers: [MongosService, MongosRepository],
     exports: [MongosService]
 })

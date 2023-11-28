@@ -1,4 +1,4 @@
-import { Mongo, MongoEnum } from '../entities'
+import { Mongo, MongoEnum } from '../schemas'
 
 export class MongoDto {
     id: string
