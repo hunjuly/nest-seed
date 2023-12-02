@@ -1,11 +1,18 @@
 import { TestingModule } from '@nestjs/testing'
-import { OrderDirection } from '../../../pagination'
-import { createTestingModule, aggregateRootMock } from '../../../test'
+import { OrderDirection } from 'common/pagination'
+import { createTestingModule } from 'common/test'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
+const aggregateRootMock = {
+    createdAt: expect.anything(),
+    id: expect.anything(),
+    updatedAt: expect.anything(),
+    version: expect.anything()
+}
+
 describe('BaseRepository', () => {
-    let repository: SampleRepository
     let module: TestingModule
+    let repository: SampleRepository
 
     beforeEach(async () => {
         module = await createTestingModule({
@@ -19,7 +26,7 @@ describe('BaseRepository', () => {
         if (module) await module.close()
     })
 
-    it('create', async () => {
+    it('샘플 엔터티를 생성하고 id가 정의되어 있어야 함', async () => {
         const entityData = { name: 'sample name' }
         const createdSample = await repository.create(entityData)
 
@@ -27,76 +34,85 @@ describe('BaseRepository', () => {
         expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
     })
 
-    describe('특정 sample에 대한 작업', () => {
-        let createdSample: Sample
+    it('지정된 id를 사용하여 샘플 엔터티를 생성하고 id가 일치해야 함', async () => {
+        const entityData = { id: 'test-id', name: 'sample name' }
+        const createdSample = await repository.create(entityData)
+
+        expect(createdSample.id).toEqual('test-id')
+        expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
+    })
+
+    describe('특정 엔티티에 대한 작업', () => {
+        let sample: Sample
 
         beforeEach(async () => {
-            const entityData = { name: 'sample name' }
-            createdSample = await repository.create(entityData)
+            sample = await repository.create({ name: 'sample name' })
         })
 
         it('update', async () => {
-            createdSample.name = 'updated name'
-            const savedSample = await repository.update(createdSample)
+            sample.name = 'new name'
+            const updatedSample = await repository.update(sample)
 
-            expect(savedSample).toEqual(createdSample)
+            expect(updatedSample).toEqual(sample)
+            expect(updatedSample.name).toEqual('new name')
         })
 
         it('findById', async () => {
-            const foundSample = await repository.findById(createdSample.id)
+            const foundSample = await repository.findById(sample.id)
 
-            expect(foundSample).toEqual(createdSample)
+            expect(foundSample).toEqual(sample)
         })
 
         it('remove', async () => {
-            await repository.remove(createdSample)
+            await repository.remove(sample)
 
-            const foundSample = await repository.findById(createdSample.id)
+            const foundSample = await repository.findById(sample.id)
+
             expect(foundSample).toBeNull()
         })
     })
 
-    describe('다수의 sample에 대한 작업', () => {
-        let createdSamples: Sample[]
+    describe('다수의 엔티티에 대한 작업', () => {
+        let samples: Sample[]
 
         beforeEach(async () => {
-            createdSamples = []
+            samples = []
 
-            for (let i = 0; i < 3; i++) {
-                const entityData = { name: `sample name ${i}` }
+            for (let i = 0; i < 101; i++) {
+                // 그냥 1,2,3,4로 하면 orderby 할 때 1,10,2,3 순서로 된다.
+                const paddedNumber = i.toString().padStart(3, '0')
+                const entityData = { name: `Sample#${paddedNumber}` }
                 const createdSample = await repository.create(entityData)
 
-                createdSamples.push(createdSample)
+                samples.push(createdSample)
             }
         })
 
         it('findByIds', async () => {
-            const ids = createdSamples.map((sample) => sample.id)
+            const ids = samples.map((sample) => sample.id)
 
             const foundSamples = await repository.findByIds(ids)
+            foundSamples.sort((a, b) => a.name.localeCompare(b.name))
 
-            expect(foundSamples).toHaveLength(createdSamples.length)
+            expect(foundSamples).toEqual(samples)
+        })
 
-            createdSamples.forEach((createdSample) => {
-                expect(foundSamples).toContainEqual(createdSample)
-            })
+        it('findAll', async () => {
+            const foundSamples = await repository.findAll()
+            foundSamples.sort((a, b) => a.name.localeCompare(b.name))
+
+            expect(foundSamples).toEqual(samples)
         })
 
         it('orderby', async () => {
-            const foundSample = await repository.orderby({
+            const found = await repository.orderby({
                 orderby: {
                     name: 'name',
                     direction: OrderDirection.desc
                 }
             })
 
-            expect(foundSample.items).toEqual(createdSamples.reverse())
-        })
-
-        it('default option', async () => {
-            const foundSamples = await repository.default()
-
-            expect(foundSamples).toEqual(createdSamples)
+            expect(found.items).toEqual(samples.reverse())
         })
     })
 })

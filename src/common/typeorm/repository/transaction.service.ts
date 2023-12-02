@@ -6,7 +6,9 @@ import { TransactionRepository } from './transaction.repository'
 export class TransactionService {
     constructor(private dataSource: DataSource) {}
 
-    async execute<T>(task: (transactionRepository: TransactionRepository) => Promise<T>): Promise<T> {
+    async execute<Entity>(
+        task: (transactionRepository: TransactionRepository) => Promise<Entity>
+    ): Promise<Entity> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {

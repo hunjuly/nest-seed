@@ -8,10 +8,9 @@ import { PaginationOptions, PaginationResult } from '../../../pagination'
 import { createMemoryTypeormModule } from '../../'
 
 /**
- * 아래 코드를 base.repository.spec.ts에 정의하면 code lens가 동작하지 않는다.
- * 그러면 .spec.ts에서 Run|Debug가 안 뜬다.
+ * @Entity()와 같은 데코레이터를 *.spec.ts에 정의하면,
+ * code lens가 동작하지 않아서 .spec.ts에서 Run|Debug가 안 보인다.
  */
-
 @Entity()
 export class Sample extends AggregateRoot {
     @Column()
@@ -24,7 +23,7 @@ export class SampleRepository extends BaseRepository<Sample> {
         super(typeorm)
     }
 
-    async default(): Promise<Sample[]> {
+    async findAll(): Promise<Sample[]> {
         const qb = this.createQueryBuilder()
 
         const [items] = await qb.getManyAndCount()

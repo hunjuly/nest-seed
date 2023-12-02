@@ -3,54 +3,44 @@ import { Assert } from '../../assert'
 import { PaginationOptions } from '../../pagination'
 import { AggregateRoot } from './aggregate-root'
 
-export abstract class BaseRepository<T extends AggregateRoot> {
-    constructor(protected typeorm: Repository<T>) {}
+export abstract class BaseRepository<Entity extends AggregateRoot> {
+    constructor(protected typeorm: Repository<Entity>) {}
 
-    // TransactionRepository에서도 사용해야 한다
-    createCandidate(entityData: DeepPartial<T>): T {
-        Assert.undefined(entityData.id, `EntityData already has an id${entityData.id}`)
-
-        const createdEntity = this.typeorm.create(entityData)
-
-        return createdEntity
-    }
-
-    async create(entityData: DeepPartial<T>): Promise<T> {
-        const createdEntity = this.createCandidate(entityData)
-        const savedEntity = this.typeorm.save(createdEntity)
+    async create(entityData: DeepPartial<Entity>): Promise<Entity> {
+        const savedEntity = this.typeorm.save(entityData)
 
         return savedEntity
     }
 
-    async update(entity: T): Promise<T> {
+    async update(entity: Entity): Promise<Entity> {
         Assert.defined(entity.id, "Entity doesn't have id")
 
         return this.typeorm.save(entity)
     }
 
-    async remove(entity: T): Promise<void> {
+    async remove(entity: Entity): Promise<void> {
         await this.typeorm.remove(entity)
     }
 
-    async findById(id: string): Promise<T | null> {
+    async findById(id: string): Promise<Entity | null> {
         return this.typeorm.findOne({
-            where: { id } as FindOptionsWhere<T>
+            where: { id } as FindOptionsWhere<Entity>
         })
     }
 
-    async findByIds(ids: string[]): Promise<T[]> {
+    async findByIds(ids: string[]): Promise<Entity[]> {
         return this.typeorm.findBy({
             id: In(ids)
-        } as FindOptionsWhere<T>)
+        } as FindOptionsWhere<Entity>)
     }
 
     async exist(id: string): Promise<boolean> {
         return this.typeorm.exist({
-            where: { id } as FindOptionsWhere<T>
+            where: { id } as FindOptionsWhere<Entity>
         })
     }
 
-    createQueryBuilder(opts: PaginationOptions = {}) {
+    protected createQueryBuilder(opts: PaginationOptions = {}) {
         const { take, skip, orderby } = opts
 
         const qb = this.typeorm.createQueryBuilder('entity')

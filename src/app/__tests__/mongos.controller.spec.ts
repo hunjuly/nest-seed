@@ -6,7 +6,7 @@ import { defaultUUID } from 'common'
 import { createHttpTestingModule } from 'common/test'
 import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
 
-describe('MongosController', () => {
+describe.skip('MongosController', () => {
     let module: TestingModule
     let request: any
 

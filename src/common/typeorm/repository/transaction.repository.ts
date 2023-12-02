@@ -1,4 +1,5 @@
-import { QueryRunner } from 'typeorm'
+import { ClassConstructor } from 'class-transformer'
+import { DeepPartial, QueryRunner } from 'typeorm'
 import { Assert } from '../../assert'
 import { TransactionException } from '../../exceptions'
 import { AggregateRoot } from './aggregate-root'
@@ -17,32 +18,31 @@ export class TransactionRepository {
     isRollbackRequested() {
         return this.rollbackRequested
     }
-
-    async create<T extends AggregateRoot>(entity: T): Promise<T> {
+    async create<Entity extends AggregateRoot>(
+        resourceType: ClassConstructor<Entity>,
+        entityData: DeepPartial<Entity>
+    ): Promise<Entity> {
         Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
-        Assert.undefined(entity.id, `EntityData already has an id${entity.id}`)
 
-        return this.save(entity)
-    }
-
-    async update<T extends AggregateRoot>(entity: T): Promise<T> {
-        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
-        Assert.defined(entity.id, "Entity doesn't have id")
-
-        return this.save(entity)
-    }
-
-    private async save<T extends AggregateRoot>(entity: T): Promise<T> {
-        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
         this.ensureTransactionIsActive()
 
-        Assert.truthy(entity instanceof AggregateRoot, 'Invalid entity type')
+        const entity = this.queryRunner.manager.create(resourceType, entityData)
 
         return this.queryRunner.manager.save(entity)
     }
 
-    async remove<T extends AggregateRoot>(entity: T): Promise<void> {
+    async update<Entity extends AggregateRoot>(entity: Entity): Promise<Entity> {
         Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
+        Assert.defined(entity.id, "Entity doesn't have id")
+
+        this.ensureTransactionIsActive()
+
+        return this.queryRunner.manager.save(entity)
+    }
+
+    async remove<Entity extends AggregateRoot>(entity: Entity): Promise<void> {
+        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
+
         this.ensureTransactionIsActive()
 
         await this.queryRunner.manager.remove(entity)

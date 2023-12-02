@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { AggregateRoot, PaginationResult, defaultPaginationResult } from 'common'
-import { MongosQueryDto } from './dto'
 import { InjectModel } from '@nestjs/mongoose'
-import { Mongo, defaultMongo } from './schemas'
+import { PaginationResult } from 'common'
 import { Model } from 'mongoose'
+import { MongosQueryDto } from './dto'
+import { Mongo, defaultMongo } from './schemas'
 
 // https://github.com/nestjs/nest/blob/master/sample/06-mongoose/src/cats/cats.service.ts
 
@@ -40,6 +40,13 @@ export class MongosRepository extends BaseRepository<Mongo> {
     }
 
     async find(queryDto: MongosQueryDto): Promise<PaginationResult<Mongo>> {
+        const defaultPaginationResult: PaginationResult<any> = {
+            skip: undefined,
+            take: undefined,
+            total: 0,
+            items: []
+        }
+
         return defaultPaginationResult
     }
 }
