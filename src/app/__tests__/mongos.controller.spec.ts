@@ -1,9 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { MongoDto } from 'app/services'
-import { defaultUUID } from 'common'
-import { createHttpTestingModule } from 'common'
+import { MongoDto } from 'app/services/mongos'
+import { createHttpTestingModule, defaultUUID } from 'common'
 import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
 
 describe.skip('MongosController', () => {

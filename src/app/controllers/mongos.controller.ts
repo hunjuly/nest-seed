@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { CreateMongoDto, MongosQueryDto, MongosService, UpdateMongoDto } from 'app/services'
+import { CreateMongoDto, MongosQueryDto, MongosService, UpdateMongoDto } from 'app/services/mongos'
 import { MongoExistsGuard } from './guards'
 
 @Controller('mongos')

@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { MongosService } from 'app/services'
+import { MongosService } from 'app/services/mongos'
 
 @Injectable()
 export class MongoExistsGuard implements CanActivate {

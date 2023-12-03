@@ -2,9 +2,8 @@ import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { defaultUUID, sleep } from 'common'
+import { createHttpTestingModule, defaultUUID, sleep } from 'common'
 import { createUserDto } from './mocks'
-import { createHttpTestingModule } from 'common'
 
 jest.mock('config', () => {
     const actualConfig = jest.requireActual('config')
@@ -20,7 +19,7 @@ jest.mock('config', () => {
     }
 })
 
-describe('User Authentication', () => {
+describe('Authentication', () => {
     let module: TestingModule
     let request: any
     let jwtService: JwtService

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { AccessTokenPayload, AuthService } from 'app/services/auth'
+import { UserDto } from 'app/services/users'
 import { Assert } from 'common'
-import { AccessTokenPayload, AuthService, UserDto } from 'app/services'
 import { JwtAuthGuard, LocalAuthGuard } from './guards'
 
 @Controller('auth')
