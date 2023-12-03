@@ -5,9 +5,9 @@
  */
 
 import * as chalk from 'chalk'
+import { Path } from 'common'
 import * as winston from 'winston'
 import * as DailyRotateFile from 'winston-daily-rotate-file'
-import { Path } from '../utils'
 
 const winstonFormat = winston.format
 

@@ -1,8 +1,7 @@
 import { ClassConstructor } from 'class-transformer'
+import { Assert, TransactionException } from 'common'
 import { DeepPartial, QueryRunner } from 'typeorm'
-import { Assert } from 'common/assert'
-import { TransactionException } from 'common/exceptions'
-import { AggregateRoot } from './typeorm.aggregate-root'
+import { AggregateRoot } from '.'
 
 export class TransactionRepository {
     private rollbackRequested: boolean

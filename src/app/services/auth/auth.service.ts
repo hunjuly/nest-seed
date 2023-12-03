@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { CacheService, comment, convertTimeToSeconds, generateUUID, notUsed } from 'common'
+import { CacheService, comment, generateUUID, notUsed } from 'common'
 import { authOptions } from 'config'
 import { UserDto, UsersService } from '../users'
 import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from './interfaces'
@@ -96,9 +96,11 @@ export class AuthService {
     }
 
     private async storeRefreshToken(userId: string, refreshToken: string) {
-        const expireTime = convertTimeToSeconds(authOptions.refreshTokenExpiration)
-
-        await this.cache.set(`${REFRESH_TOKEN_PREFIX}${userId}`, refreshToken, expireTime * 1000)
+        await this.cache.set(
+            `${REFRESH_TOKEN_PREFIX}${userId}`,
+            refreshToken,
+            authOptions.refreshTokenExpiration
+        )
     }
 
     private async getStoredRefreshToken(userId: string): Promise<string | undefined> {

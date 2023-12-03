@@ -1,14 +1,18 @@
 import { Logger } from '@nestjs/common'
-import { TypeormLogger } from '../typeorm.logger'
+import { TypeormLogger } from 'common'
 
-jest.mock('@nestjs/common', () => ({
-    Logger: {
-        log: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        verbose: jest.fn()
+jest.mock('@nestjs/common', () => {
+    class Logger {
+        static log = jest.fn()
+        static error = jest.fn()
+        static warn = jest.fn()
+        static verbose = jest.fn()
     }
-}))
+
+    const originalModule = jest.requireActual('@nestjs/common')
+
+    return { ...originalModule, Logger }
+})
 
 describe('TypeormLogger', () => {
     let typeormLogger: TypeormLogger

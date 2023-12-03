@@ -1,7 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { convertTimeToSeconds } from 'common/utils'
+import { convertTimeToSeconds } from 'common'
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {

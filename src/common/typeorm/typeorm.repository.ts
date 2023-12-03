@@ -1,7 +1,6 @@
-import { Assert } from 'common/assert'
-import { PaginationOptions } from 'common/pagination'
+import { Assert, PaginationOptions } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { AggregateRoot } from './typeorm.aggregate-root'
+import { AggregateRoot } from '.'
 
 export abstract class BaseRepository<Entity extends AggregateRoot> {
     constructor(protected typeorm: Repository<Entity>) {}

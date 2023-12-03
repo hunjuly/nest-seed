@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt'
+import { Coordinate } from 'common'
 import { randomUUID } from 'crypto'
-import { Coordinate } from '../interfaces'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, timeoutInMS))

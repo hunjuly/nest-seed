@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource } from 'typeorm'
-import { TransactionRepository } from './typeorm.transaction.repository'
+import { TransactionRepository } from '.'
 
 @Injectable()
 export class TransactionService {

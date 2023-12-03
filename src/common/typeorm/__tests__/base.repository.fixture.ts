@@ -1,7 +1,13 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { AggregateRoot, BaseRepository, TransactionService, createMemoryTypeormModule } from 'common'
-import { PaginationOptions, PaginationResult } from 'common/pagination'
+import {
+    AggregateRoot,
+    BaseRepository,
+    PaginationOptions,
+    PaginationResult,
+    TransactionService,
+    createMemoryTypeormModule
+} from 'common'
 import { Column, Entity, Repository } from 'typeorm'
 
 /**

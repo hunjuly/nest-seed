@@ -1,4 +1,4 @@
-import { enumsTransformer } from '../typeorm.utils'
+import { enumsTransformer } from 'common'
 
 enum Color {
     Red = 'RED',

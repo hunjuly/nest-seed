@@ -1,5 +1,6 @@
-import { Coordinate } from 'common/interfaces'
 import {
+    Coordinate,
+    Password,
     addQuotesToNumbers,
     comment,
     convertTimeToSeconds,
@@ -7,10 +8,9 @@ import {
     equalsIgnoreCase,
     generateUUID,
     notUsed,
-    Password,
     sleep,
     updateIntersection
-} from '../etc'
+} from 'common'
 
 describe('common/utils/etc', () => {
     describe('sleep', () => {

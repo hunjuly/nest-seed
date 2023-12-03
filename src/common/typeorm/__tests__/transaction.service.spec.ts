@@ -1,6 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { TransactionService } from 'common'
-import { createTestingModule } from 'common/test'
+import { TransactionService, createTestingModule } from 'common'
 import { Sample, SampleRepository, SamplesModule } from './transaction.service.fixture'
 
 describe('TransactionService', () => {

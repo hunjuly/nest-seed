@@ -1,9 +1,14 @@
 import { Body, Controller, Get, Injectable, Module, Post, Query } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
 import { IsOptional, IsString } from 'class-validator'
+import {
+    AggregateRoot,
+    BaseRepository,
+    PaginationOptions,
+    PaginationResult,
+    createMemoryTypeormModule
+} from 'common'
 import { Column, Entity, Repository } from 'typeorm'
-import { AggregateRoot, BaseRepository, createMemoryTypeormModule } from '../../typeorm'
-import { PaginationOptions, PaginationResult } from '../pagination'
 
 @Entity()
 export class Sample extends AggregateRoot {

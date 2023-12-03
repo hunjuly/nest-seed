@@ -1,6 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { OrderDirection } from 'common'
-import { createTestingModule } from 'common/test'
+import { createTestingModule, OrderDirection } from 'common'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
 const aggregateRootMock = {

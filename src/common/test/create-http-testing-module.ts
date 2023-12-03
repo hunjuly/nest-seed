@@ -1,8 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
+import { AppLoggerService, Path } from 'common'
 import * as express from 'express'
 import * as supertest from 'supertest'
-import { AppLoggerService } from '../logger'
-import { Path } from '../utils'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 
 interface TestRequestContext {
