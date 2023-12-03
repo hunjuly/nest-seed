@@ -1,11 +1,8 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { TransactionService } from '../transaction.service'
+import { AggregateRoot, BaseRepository, TransactionService, createMemoryTypeormModule } from 'common'
+import { PaginationOptions, PaginationResult } from 'common/pagination'
 import { Column, Entity, Repository } from 'typeorm'
-import { AggregateRoot } from '../aggregate-root'
-import { BaseRepository } from '../base.repository'
-import { PaginationOptions, PaginationResult } from '../../../pagination'
-import { createMemoryTypeormModule } from '../../'
 
 /**
  * @Entity()와 같은 데코레이터를 *.spec.ts에 정의하면,

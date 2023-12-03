@@ -4,7 +4,7 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { defaultUUID, sleep } from 'common'
 import { createUserDto } from './mocks'
-import { createHttpTestingModule } from 'common/test'
+import { createHttpTestingModule } from 'common'
 
 jest.mock('config', () => {
     const actualConfig = jest.requireActual('config')

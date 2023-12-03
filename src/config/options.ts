@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv'
-import { getString, getNumber } from './utils'
-import { Env } from './utils'
+import { Env, getNumber, getString } from './utils'
 
 if (Env.isDevelopment()) {
     dotenv.config({ path: '.env.development' })

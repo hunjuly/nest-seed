@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services'
 import { defaultUUID } from 'common'
-import { createHttpTestingModule } from 'common/test'
+import { createHttpTestingModule } from 'common'
 import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
 
 describe.skip('MongosController', () => {

@@ -1,10 +1,12 @@
-import { Coordinate } from '../../interfaces'
+import { Coordinate } from 'common/interfaces'
 import {
     addQuotesToNumbers,
+    comment,
     convertTimeToSeconds,
     coordinateDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
+    notUsed,
     Password,
     sleep,
     updateIntersection
@@ -63,32 +65,42 @@ describe('common/utils/etc', () => {
     describe('convertTimeToSeconds', () => {
         it('30m === 1800', () => {
             const result = convertTimeToSeconds('30m')
-            expect(result).toBe(1800)
+            expect(result).toEqual(1800)
         })
 
         it('45s === 45', () => {
             const result = convertTimeToSeconds('45s')
-            expect(result).toBe(45)
+            expect(result).toEqual(45)
         })
 
         it('1d === 86400', () => {
             const result = convertTimeToSeconds('1d')
-            expect(result).toBe(86400)
+            expect(result).toEqual(86400)
         })
 
         it('2h === 7200', () => {
             const result = convertTimeToSeconds('2h')
-            expect(result).toBe(7200)
+            expect(result).toEqual(7200)
         })
 
         it('1d 2h === 93600', () => {
             const result = convertTimeToSeconds('1d 2h')
-            expect(result).toBe(93600)
+            expect(result).toEqual(93600)
         })
 
         it('1d2h === 93600', () => {
             const result = convertTimeToSeconds('1d2h')
-            expect(result).toBe(93600)
+            expect(result).toEqual(93600)
+        })
+
+        it('-30s === -30', () => {
+            const result = convertTimeToSeconds('-30s')
+            expect(result).toEqual(-30)
+        })
+
+        it('0.5s === 0.5', () => {
+            const result = convertTimeToSeconds('0.5s')
+            expect(result).toEqual(0.5)
         })
 
         it('형식에 맞지 않으면 Error', () => {
@@ -110,7 +122,7 @@ describe('common/utils/etc', () => {
 
             const isValidPassword = await Password.validate(password, hashedPassword)
 
-            expect(isValidPassword).toBe(true)
+            expect(isValidPassword).toEqual(true)
         })
 
         it('password가 일치하지 않으면 false 반환', async () => {
@@ -119,7 +131,7 @@ describe('common/utils/etc', () => {
 
             const isValidPassword = await Password.validate('wrongpassword', hashedPassword)
 
-            expect(isValidPassword).toBe(false)
+            expect(isValidPassword).toEqual(false)
         })
     })
 
@@ -159,7 +171,7 @@ describe('common/utils/etc', () => {
             const processedText = addQuotesToNumbers(text)
             const data = JSON.parse(processedText)
 
-            expect(data[0].bit64).toBe('12345678901234567890')
+            expect(data[0].bit64).toEqual('12345678901234567890')
         })
 
         it('json문자열에서 32bit 정수를 문자열로 변환한다', () => {
@@ -167,7 +179,7 @@ describe('common/utils/etc', () => {
             const processedText = addQuotesToNumbers(text)
             const data = JSON.parse(processedText)
 
-            expect(data[0].bit32).toBe('123456')
+            expect(data[0].bit32).toEqual('123456')
         })
     })
 
@@ -189,5 +201,10 @@ describe('common/utils/etc', () => {
 
             expect(isEqual).toBeFalsy()
         })
+    })
+
+    describe('for coverage', () => {
+        notUsed()
+        comment()
     })
 })

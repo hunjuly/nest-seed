@@ -1,6 +1,5 @@
 import { compare, hash } from 'bcrypt'
 import { randomUUID } from 'crypto'
-import { LogicException } from '../exceptions'
 import { Coordinate } from '../interfaces'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
@@ -28,15 +27,15 @@ export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
 }
 
 export function convertTimeToSeconds(timeString: string): number {
-    const matches = timeString.match(/(\d+)\s*(s|m|h|d)?/g)
+    const matches = timeString.match(/(-?\d*\.?\d+)\s*(s|m|h|d)?/g)
 
     if (!matches) {
         throw new Error('Invalid time string')
     }
 
     const times = matches.map((match) => {
-        const [_, value, unit] = match.match(/(\d+)\s*(s|m|h|d)?/) as any
-        let multiplier = 1
+        const [_, value, unit] = match.match(/(-?\d*\.?\d+)\s*(s|m|h|d)?/) as any
+        let multiplier = 0
 
         switch (unit) {
             case 's':
@@ -54,10 +53,10 @@ export function convertTimeToSeconds(timeString: string): number {
             // 이건 mock이나 spy로 테스트하기 어려워서 무시한다
             /* istanbul ignore next */
             default:
-                throw new LogicException("Invalid time unit. It should be one of 's', 'm', 'h', 'd'")
+                throw new Error("Invalid time unit. It should be one of 's', 'm', 'h', 'd'")
         }
 
-        return parseInt(value) * multiplier
+        return parseFloat(value) * multiplier
     })
 
     return times.reduce((prev, curr) => prev + curr, 0)

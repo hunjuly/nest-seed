@@ -11,7 +11,7 @@ const config: Config.InitialOptions = {
         '^common$': '<rootDir>/src/common/index',
         '^common/(.*)$': '<rootDir>/src/common/$1',
         '^config$': '<rootDir>/src/config/index',
-        '^databases$': '<rootDir>/src/databases/index'
+        '^databases/(.*)$': '<rootDir>/src/databases/$1'
     },
     testEnvironment: 'node',
     transform: {

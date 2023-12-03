@@ -1,10 +1,7 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
+import { AggregateRoot, BaseRepository, TransactionService, createMemoryTypeormModule } from 'common'
 import { Column, Entity, Repository } from 'typeorm'
-import { createMemoryTypeormModule } from '../../'
-import { AggregateRoot } from '../aggregate-root'
-import { BaseRepository } from '../base.repository'
-import { TransactionService } from '../transaction.service'
 
 @Entity()
 export class Sample extends AggregateRoot {

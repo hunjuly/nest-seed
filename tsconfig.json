@@ -23,8 +23,8 @@
             "config": [
                 "src/config/index"
             ],
-            "databases": [
-                "src/databases/index"
+            "databases/*": [
+                "src/databases/*"
             ]
         },
         "incremental": true,

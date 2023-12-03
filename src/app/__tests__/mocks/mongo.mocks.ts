@@ -1,4 +1,4 @@
-import { objToJson } from 'common/test'
+import { objToJson } from 'common'
 
 export const createMongoDto = {
     name: 'mongo name',

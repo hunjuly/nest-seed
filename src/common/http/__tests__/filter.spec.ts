@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { createHttpTestingModule } from 'common/test'
 import { TestModule } from './filter.fixture'
 
-describe('BaseRepository', () => {
+describe('common/filters', () => {
     let module: TestingModule
     let request: any
 
@@ -37,5 +37,13 @@ describe('BaseRepository', () => {
         })
 
         expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
+    })
+
+    it('HttpSuccessInterceptor', async () => {
+        const res = await request.get({
+            url: '/http-success'
+        })
+
+        expect(res.status).toEqual(HttpStatus.OK)
     })
 })

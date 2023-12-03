@@ -1,15 +1,15 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Cache } from 'cache-manager'
-import { ConfigException } from '../../exceptions'
 import { CacheService } from '../cache.service'
 
 describe('CacheService', () => {
+    let module: TestingModule
     let cacheService: CacheService
     let cacheManager: Cache
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
+        module = await Test.createTestingModule({
             providers: [
                 CacheService,
                 {
@@ -17,7 +17,12 @@ describe('CacheService', () => {
                     useValue: {
                         set: jest.fn(),
                         get: jest.fn(),
-                        del: jest.fn()
+                        del: jest.fn(),
+                        store: {
+                            client: {
+                                disconnect: jest.fn()
+                            }
+                        }
                     }
                 }
             ]
@@ -25,6 +30,10 @@ describe('CacheService', () => {
 
         cacheService = module.get<CacheService>(CacheService)
         cacheManager = module.get<Cache>(CACHE_MANAGER)
+    })
+
+    afterEach(async () => {
+        if (module) await module.close()
     })
 
     it('캐시에 값을 설정한다', async () => {
@@ -50,11 +59,37 @@ describe('CacheService', () => {
         expect(fetchedValue).toBeUndefined()
     })
 
-    it('만료 시간이 0 미만이면 ConfigException', async () => {
+    it('만료시간을 설정한다', async () => {
         const key = 'key'
         const value = 'value'
-        const wrongTTL = -1
+        const ttl = '1s'
+        jest.spyOn(cacheManager, 'set').mockResolvedValueOnce(undefined)
+        jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(value)
 
-        await expect(cacheService.set(key, value, wrongTTL)).rejects.toThrow(ConfigException)
+        await cacheService.set(key, value, ttl)
+        const fetchedValue = await cacheService.get(key)
+
+        expect(fetchedValue).toEqual(value)
+    })
+
+    it('milliseconds는 소수점으로 표현한다', async () => {
+        const key = 'key'
+        const value = 'value'
+        const ttl = '0.5s'
+        jest.spyOn(cacheManager, 'set').mockResolvedValueOnce(undefined)
+        jest.spyOn(cacheManager, 'get').mockResolvedValueOnce(value)
+
+        await cacheService.set(key, value, ttl)
+        const fetchedValue = await cacheService.get(key)
+
+        expect(fetchedValue).toEqual(value)
+    })
+
+    it('만료 시간이 음수면 exception', async () => {
+        const key = 'key'
+        const value = 'value'
+        const wrongTTL = '-1s'
+
+        await expect(cacheService.set(key, value, wrongTTL)).rejects.toThrow(Error)
     })
 })

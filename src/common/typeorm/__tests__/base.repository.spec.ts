@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing'
-import { OrderDirection } from 'common/pagination'
+import { OrderDirection } from 'common'
 import { createTestingModule } from 'common/test'
 import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
 
@@ -61,6 +61,12 @@ describe('BaseRepository', () => {
             const foundSample = await repository.findById(sample.id)
 
             expect(foundSample).toEqual(sample)
+        })
+
+        it('exist', async () => {
+            const exist = await repository.exist(sample.id)
+
+            expect(exist).toBeTruthy()
         })
 
         it('remove', async () => {
