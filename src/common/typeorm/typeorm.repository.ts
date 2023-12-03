@@ -1,8 +1,8 @@
 import { Assert, PaginationOptions } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { AggregateRoot } from '.'
+import { TypeormAggregateRoot } from '.'
 
-export abstract class BaseRepository<Entity extends AggregateRoot> {
+export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
     constructor(protected typeorm: Repository<Entity>) {}
 
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {

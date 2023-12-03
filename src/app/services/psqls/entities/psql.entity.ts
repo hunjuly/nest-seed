@@ -1,4 +1,4 @@
-import { AggregateRoot } from 'common'
+import { TypeormAggregateRoot } from 'common'
 import { Column, Entity } from 'typeorm'
 
 export enum PsqlEnum {
@@ -10,7 +10,7 @@ export enum PsqlEnum {
 }
 
 @Entity()
-export class Psql extends AggregateRoot {
+export class Psql extends TypeormAggregateRoot {
     @Column()
     name: string
 

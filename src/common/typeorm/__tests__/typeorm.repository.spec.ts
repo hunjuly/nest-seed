@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
 import { createTestingModule, OrderDirection } from 'common'
-import { Sample, SampleRepository, SamplesModule } from './base.repository.fixture'
+import { Sample, SampleRepository, SamplesModule } from './typeorm.repository.fixture'
 
 const aggregateRootMock = {
     createdAt: expect.anything(),
@@ -9,7 +9,7 @@ const aggregateRootMock = {
     version: expect.anything()
 }
 
-describe('BaseRepository', () => {
+describe('TypeormRepository', () => {
     let module: TestingModule
     let repository: SampleRepository
 

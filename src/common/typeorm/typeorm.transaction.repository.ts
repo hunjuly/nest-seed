@@ -1,9 +1,9 @@
 import { ClassConstructor } from 'class-transformer'
 import { Assert, TransactionException } from 'common'
 import { DeepPartial, QueryRunner } from 'typeorm'
-import { AggregateRoot } from '.'
+import { TypeormAggregateRoot } from '.'
 
-export class TransactionRepository {
+export class TypeormTransactionRepository {
     private rollbackRequested: boolean
 
     constructor(private queryRunner: QueryRunner) {
@@ -17,7 +17,7 @@ export class TransactionRepository {
     isRollbackRequested() {
         return this.rollbackRequested
     }
-    async create<Entity extends AggregateRoot>(
+    async create<Entity extends TypeormAggregateRoot>(
         resourceType: ClassConstructor<Entity>,
         entityData: DeepPartial<Entity>
     ): Promise<Entity> {
@@ -30,7 +30,7 @@ export class TransactionRepository {
         return this.queryRunner.manager.save(entity)
     }
 
-    async update<Entity extends AggregateRoot>(entity: Entity): Promise<Entity> {
+    async update<Entity extends TypeormAggregateRoot>(entity: Entity): Promise<Entity> {
         Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
         Assert.defined(entity.id, "Entity doesn't have id")
 
@@ -39,7 +39,7 @@ export class TransactionRepository {
         return this.queryRunner.manager.save(entity)
     }
 
-    async remove<Entity extends AggregateRoot>(entity: Entity): Promise<void> {
+    async remove<Entity extends TypeormAggregateRoot>(entity: Entity): Promise<void> {
         Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
 
         this.ensureTransactionIsActive()

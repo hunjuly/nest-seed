@@ -9,8 +9,6 @@ import { Path } from 'common'
 import * as winston from 'winston'
 import * as DailyRotateFile from 'winston-daily-rotate-file'
 
-const winstonFormat = winston.format
-
 export interface LoggerConfiguration {
     logDirectory: string
     daysToKeepLogs: string
@@ -44,9 +42,9 @@ export async function initializeLogger(config: LoggerConfiguration) {
         zippedArchive: false,
         maxSize: '10m',
         createSymlink: true,
-        format: winstonFormat.combine(
-            winstonFormat.timestamp({ format: 'HH:mm:ss.SSS' }),
-            winstonFormat.prettyPrint()
+        format: winston.format.combine(
+            winston.format.timestamp({ format: 'HH:mm:ss.SSS' }),
+            winston.format.prettyPrint()
         )
     }
 
@@ -74,7 +72,7 @@ export async function initializeLogger(config: LoggerConfiguration) {
     })
 
     const logger = winston.createLogger({
-        format: winstonFormat.json(),
+        format: winston.format.json(),
         transports: [allLogsTransport, errorLogsTransport, consoleTransport],
         exceptionHandlers: [errorLogsTransport]
     })
@@ -82,9 +80,9 @@ export async function initializeLogger(config: LoggerConfiguration) {
     return logger
 }
 
-const consoleLogFormat = winstonFormat.combine(
-    winstonFormat.timestamp({ format: 'HH:mm:ss' }),
-    winstonFormat.printf((info) => {
+const consoleLogFormat = winston.format.combine(
+    winston.format.timestamp({ format: 'HH:mm:ss' }),
+    winston.format.printf((info) => {
         const { message, level, timestamp, ...etc } = info
 
         const formattedMessage = chalk.white(message)

@@ -1,5 +1,5 @@
+import { Coordinate } from 'common'
 import {
-    Coordinate,
     Password,
     addQuotesToNumbers,
     comment,
@@ -10,7 +10,7 @@ import {
     notUsed,
     sleep,
     updateIntersection
-} from 'common'
+} from '..'
 
 describe('common/utils/etc', () => {
     describe('sleep', () => {

@@ -1,4 +1,4 @@
-import { enumsTransformer } from 'common'
+import { enumsTransformer } from '..'
 
 enum Color {
     Red = 'RED',
