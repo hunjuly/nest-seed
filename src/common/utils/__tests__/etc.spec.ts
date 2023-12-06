@@ -145,6 +145,11 @@ describe('common/utils/etc', () => {
             expect(result).toEqual('500ms')
         })
 
+        it('0ms === 0', () => {
+            const result = convertMillisToString(0)
+            expect(result).toEqual('0ms')
+        })
+
         it('-30*1000 === -30s', () => {
             const result = convertMillisToString(-30 * 1000)
             expect(result).toEqual('-30s')

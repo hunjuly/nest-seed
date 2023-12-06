@@ -72,7 +72,7 @@ export function convertMillisToString(ms: number): string {
     const seconds = Math.floor(ms / 1000)
     const milliseconds = ms % 1000
 
-    let result = '0ms'
+    let result = ''
     if (days > 0) result += `${days}d`
     if (hours > 0) result += `${hours}h`
     if (minutes > 0) result += `${minutes}m`
