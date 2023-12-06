@@ -1,7 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { convertTimeToSeconds } from 'common'
+import { convertStringToMillis } from 'common'
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
@@ -13,19 +13,14 @@ export class CacheService implements OnModuleDestroy {
         client?.disconnect()
     }
 
-    async set(key: string, value: string, expireTime?: string): Promise<void> {
-        // 만료 시간이 0이면 만료 시간이 없는 것이다
-        let expireSeconds = 0
+    async set(key: string, value: string, expireTime = '0s'): Promise<void> {
+        const expireMillisecs = convertStringToMillis(expireTime)
 
-        if (expireTime) {
-            expireSeconds = convertTimeToSeconds(expireTime)
-        }
-
-        if (expireSeconds < 0) {
+        if (expireMillisecs < 0) {
             throw new Error('ttlMiliseconds should not be negative')
         }
 
-        await this.cacheManager.set(key, value, expireSeconds * 1000)
+        await this.cacheManager.set(key, value, expireMillisecs)
     }
 
     async get(key: string): Promise<string | undefined> {

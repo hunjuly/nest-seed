@@ -1,9 +1,10 @@
-import { Coordinate } from 'common'
+import { Coordinate, InvalidArgumentException } from 'common'
 import {
     Password,
     addQuotesToNumbers,
     comment,
-    convertTimeToSeconds,
+    convertMillisToString,
+    convertStringToMillis,
     coordinateDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
@@ -62,49 +63,91 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('convertTimeToSeconds', () => {
-        it('30m === 1800', () => {
-            const result = convertTimeToSeconds('30m')
-            expect(result).toEqual(1800)
+    describe('convertStringToMillis', () => {
+        it('30m === 30*60*1000', () => {
+            const result = convertStringToMillis('30m')
+            expect(result).toEqual(30 * 60 * 1000)
         })
 
-        it('45s === 45', () => {
-            const result = convertTimeToSeconds('45s')
-            expect(result).toEqual(45)
+        it('45s === 45*1000', () => {
+            const result = convertStringToMillis('45s')
+            expect(result).toEqual(45 * 1000)
         })
 
-        it('1d === 86400', () => {
-            const result = convertTimeToSeconds('1d')
-            expect(result).toEqual(86400)
+        it('1d === 24*60*60*1000', () => {
+            const result = convertStringToMillis('1d')
+            expect(result).toEqual(24 * 60 * 60 * 1000)
         })
 
-        it('2h === 7200', () => {
-            const result = convertTimeToSeconds('2h')
-            expect(result).toEqual(7200)
+        it('2h === 2*60*60*1000', () => {
+            const result = convertStringToMillis('2h')
+            expect(result).toEqual(2 * 60 * 60 * 1000)
         })
 
-        it('1d 2h === 93600', () => {
-            const result = convertTimeToSeconds('1d 2h')
-            expect(result).toEqual(93600)
+        it('1d 2h === (24+2)*60*60*1000', () => {
+            const result = convertStringToMillis('1d 2h')
+            expect(result).toEqual((24 + 2) * 60 * 60 * 1000)
         })
 
-        it('1d2h === 93600', () => {
-            const result = convertTimeToSeconds('1d2h')
-            expect(result).toEqual(93600)
+        it('1d2h === (24+2)*60*60*1000', () => {
+            const result = convertStringToMillis('1d2h')
+            expect(result).toEqual((24 + 2) * 60 * 60 * 1000)
         })
 
-        it('-30s === -30', () => {
-            const result = convertTimeToSeconds('-30s')
-            expect(result).toEqual(-30)
+        it('-30s === -30*1000', () => {
+            const result = convertStringToMillis('-30s')
+            expect(result).toEqual(-30 * 1000)
         })
 
-        it('0.5s === 0.5', () => {
-            const result = convertTimeToSeconds('0.5s')
-            expect(result).toEqual(0.5)
+        it('0.5s === 0.5*1000', () => {
+            const result = convertStringToMillis('0.5s')
+            expect(result).toEqual(0.5 * 1000)
+        })
+
+        it('500ms === 500', () => {
+            const result = convertStringToMillis('500ms')
+            expect(result).toEqual(500)
         })
 
         it('형식에 맞지 않으면 Error', () => {
-            expect(() => convertTimeToSeconds('invalid')).toThrowError('Invalid time string')
+            expect(() => convertStringToMillis('2z')).toThrow(InvalidArgumentException)
+        })
+    })
+
+    describe('convertMillisToString', () => {
+        it('30*60*1000 === 30m', () => {
+            const result = convertMillisToString(30 * 60 * 1000)
+            expect(result).toEqual('30m')
+        })
+
+        it('45*1000 === 45s', () => {
+            const result = convertMillisToString(45 * 1000)
+            expect(result).toEqual('45s')
+        })
+
+        it('24*60*60*1000 === 1d', () => {
+            const result = convertMillisToString(24 * 60 * 60 * 1000)
+            expect(result).toEqual('1d')
+        })
+
+        it('2*60*60*1000 === 2h', () => {
+            const result = convertMillisToString(2 * 60 * 60 * 1000)
+            expect(result).toEqual('2h')
+        })
+
+        it('(24+2)*60*60*1000 === 1d2h', () => {
+            const result = convertMillisToString((24 + 2) * 60 * 60 * 1000)
+            expect(result).toEqual('1d2h')
+        })
+
+        it('500ms === 500', () => {
+            const result = convertMillisToString(500)
+            expect(result).toEqual('500ms')
+        })
+
+        it('-30*1000 === -30s', () => {
+            const result = convertMillisToString(-30 * 1000)
+            expect(result).toEqual('-30s')
         })
     })
 
