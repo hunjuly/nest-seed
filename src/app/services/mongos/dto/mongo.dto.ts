@@ -1,7 +1,7 @@
 import { Mongo, MongoEnum } from '../schemas'
 
 export class MongoDto {
-    id: string
+    _id: string
     name: string
     desc: string
     date: Date
@@ -9,8 +9,8 @@ export class MongoDto {
     integer: number
 
     constructor(mongo: Mongo) {
-        const { id, name, desc, date, enums, integer } = mongo
+        const { _id, name, desc, date, enums, integer } = mongo
 
-        Object.assign(this, { id, name, desc, date, enums, integer })
+        Object.assign(this, { _id, name, desc, date, enums, integer })
     }
 }

@@ -44,5 +44,6 @@ export const mongoOptions = {
     host: getString('MONGO_DB_HOST'),
     port: getNumber('MONGO_DB_PORT'),
     user: getString('MONGO_DB_USERNAME'),
-    pass: getString('MONGO_DB_PASSWORD')
+    pass: getString('MONGO_DB_PASSWORD'),
+    database: getString('MONGO_DB_DATABASE')
 }

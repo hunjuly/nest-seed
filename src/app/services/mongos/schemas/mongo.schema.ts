@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { HydratedDocument } from 'mongoose'
-
-export type MongoDocument = HydratedDocument<Mongo>
+import { generateUUID } from 'common'
 
 export enum MongoEnum {
     EnumA = 'EnumA',
@@ -13,8 +11,10 @@ export enum MongoEnum {
 
 @Schema()
 export class Mongo {
-    @Prop({ required: true, unique: true })
-    id: string
+    // @Prop({ required: true, unique: true, _id: true })
+    // id: string
+    @Prop({ type: String, default: () => generateUUID() })
+    _id: string // UUID를 사용하는 _id 필드
 
     @Prop()
     createdAt: Date
@@ -34,7 +34,7 @@ export class Mongo {
     @Prop()
     integer: number
 
-    @Prop({ type: String, enum: ['EnumA', 'EnumB', 'EnumC', 'EnumD', 'EnumE'] })
+    @Prop({ type: [String], enum: MongoEnum, default: [MongoEnum.EnumA] })
     enums: MongoEnum[]
 
     @Prop()

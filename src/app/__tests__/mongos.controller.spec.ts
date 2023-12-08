@@ -4,10 +4,19 @@ import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
 import { createHttpTestingModule, defaultUUID } from 'common'
 import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
+import mongoose from 'mongoose'
+import { mongoOptions } from 'config'
 
-describe.skip('MongosController', () => {
+describe('MongosController', () => {
     let module: TestingModule
     let request: any
+
+    beforeAll(async () => {
+        const { user, pass, host, port, database: dbName } = mongoOptions
+        const uri = `mongodb://${user}:${pass}@${host}:${port}/`
+
+        await mongoose.connect(uri, { dbName })
+    })
 
     beforeEach(async () => {
         const sut = await createHttpTestingModule({
@@ -16,10 +25,16 @@ describe.skip('MongosController', () => {
 
         module = sut.module
         request = sut.request
+
+        await mongoose.connection.dropDatabase()
     })
 
     afterEach(async () => {
         if (module) await module.close()
+    })
+
+    afterAll(async () => {
+        await mongoose.connection.close()
     })
 
     it('should be defined', () => {

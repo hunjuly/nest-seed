@@ -1,17 +1,11 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { mongoOptions } from 'config'
+import { mongoDatasource } from 'databases/mongo'
 
 @Module({
     imports: [
         MongooseModule.forRootAsync({
-            useFactory: () => {
-                const { user, pass, host, port } = mongoOptions
-
-                return {
-                    uri: `mongodb://${user}:${pass}@${host}:${port}/`
-                }
-            }
+            useFactory: () => mongoDatasource
         })
     ]
 })

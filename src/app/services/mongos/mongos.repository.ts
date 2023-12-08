@@ -1,31 +1,34 @@
+// // https://github.com/nestjs/nest/blob/master/sample/06-mongoose/src/cats/cats.service.ts
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { PaginationResult } from 'common'
+import { PaginationResult, generateUUID } from 'common'
 import { Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, defaultMongo } from './schemas'
 
-// https://github.com/nestjs/nest/blob/master/sample/06-mongoose/src/cats/cats.service.ts
+abstract class BaseRepository<T extends { _id: string }> {
+    constructor(protected model: Model<T>) {}
 
-abstract class BaseRepository<T> {
-    constructor(protected typeorm: Model<T>) {}
-
-    async create(entityData: Partial<T>): Promise<T> {
-        return defaultMongo as T
+    async create(documentData: Partial<T>): Promise<T> {
+        const document = await this.model.create({ ...documentData, id: generateUUID() })
+        return document
     }
 
     async update(entity: T): Promise<T> {
-        return defaultMongo as T
+        const updatedEntity = await this.model.findByIdAndUpdate(entity._id, entity, { new: true }).exec()
+        return updatedEntity as T
     }
 
-    async remove(entity: T): Promise<void> {}
+    async remove(entity: T): Promise<void> {
+        await this.model.findByIdAndRemove(entity._id).exec()
+    }
 
-    async findById(id: string): Promise<T | null> {
-        return null
+    async findById(_id: string): Promise<T | null> {
+        return this.model.findOne({ _id }).exec()
     }
 
     async findByIds(ids: string[]): Promise<T[]> {
-        return []
+        return this.model.find({ _id: { $in: ids } }).exec()
     }
 }
 
@@ -36,17 +39,25 @@ export class MongosRepository extends BaseRepository<Mongo> {
     }
 
     async exist(id: string): Promise<boolean> {
-        return false
+        const entity = await this.model.findOne({ id }).exec()
+        return entity != null
     }
 
     async find(queryDto: MongosQueryDto): Promise<PaginationResult<Mongo>> {
-        const defaultPaginationResult: PaginationResult<any> = {
-            skip: undefined,
-            take: undefined,
-            total: 0,
-            items: []
-        }
+        const { skip, take, ...query } = queryDto
 
-        return defaultPaginationResult
+        let helpers = this.model.find(query)
+        if (skip) helpers = helpers.skip(skip)
+        if (take) helpers = helpers.limit(take)
+        const items = await helpers.exec()
+
+        const total = await this.model.countDocuments(query).exec()
+
+        return {
+            skip,
+            take,
+            total,
+            items
+        }
     }
 }
