@@ -3,6 +3,7 @@ import { Assert, PaginationResult, updateIntersection } from 'common'
 import { CreateMongoDto, MongoDto, MongosQueryDto, UpdateMongoDto } from './dto'
 import { MongosRepository } from './mongos.repository'
 import { Mongo } from './schemas'
+import { HydratedDocument } from 'mongoose'
 
 @Injectable()
 export class MongosService {
@@ -39,7 +40,7 @@ export class MongosService {
 
         Assert.defined(mongo, `Mongo(${mongoId}) not found`)
 
-        return mongo as Mongo
+        return mongo as HydratedDocument<Mongo>
     }
 
     async updateMongo(mongoId: string, updateMongoDto: UpdateMongoDto) {

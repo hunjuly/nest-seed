@@ -1,16 +1,16 @@
-import { Mongo, MongoEnum } from '../schemas'
+import { MongoDocument, MongoEnum } from '../schemas'
 
 export class MongoDto {
-    _id: string
+    id: string
     name: string
     desc: string
     date: Date
     enums: MongoEnum[]
     integer: number
 
-    constructor(mongo: Mongo) {
+    constructor(mongo: MongoDocument) {
         const { _id, name, desc, date, enums, integer } = mongo
 
-        Object.assign(this, { _id, name, desc, date, enums, integer })
+        Object.assign(this, { id: _id.toString(), name, desc, date, enums, integer })
     }
 }

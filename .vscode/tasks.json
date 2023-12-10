@@ -34,11 +34,6 @@
             "command": "bash scripts/clean_up.sh"
         },
         {
-            "label": "Logging During Testing",
-            "type": "shell",
-            "command": "bash scripts/set_logging_during_testing.sh ${input:enable_disable}"
-        },
-        {
             "label": "Generate Migration",
             "type": "shell",
             "command": "npm run migration:generate"
@@ -53,17 +48,6 @@
             "options": [
                 "enable",
                 "disable"
-            ]
-        },
-        {
-            "id": "tests",
-            "description": "",
-            "default": "app",
-            "type": "pickString",
-            "options": [
-                "app",
-                "all",
-                "common"
             ]
         }
     ]
