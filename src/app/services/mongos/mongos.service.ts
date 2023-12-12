@@ -44,20 +44,12 @@ export class MongosService {
     }
 
     async updateMongo(mongoId: string, updateMongoDto: UpdateMongoDto) {
-        const mongo = await this._getMongo(mongoId)
-
-        const updateMongo = updateIntersection(mongo, updateMongoDto)
-
-        const savedMongo = await this.mongosRepository.update(updateMongo)
-
-        Assert.deepEquals(savedMongo, updateMongo, 'update 요청과 결과가 다름')
+        const savedMongo = await this.mongosRepository.update(mongoId, updateMongoDto)
 
         return new MongoDto(savedMongo)
     }
 
     async removeMongo(mongoId: string) {
-        const mongo = await this._getMongo(mongoId)
-
-        await this.mongosRepository.remove(mongo)
+        await this.mongosRepository.remove(mongoId)
     }
 }

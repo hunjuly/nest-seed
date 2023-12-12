@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult, updateIntersection } from 'common'
+import { Assert, PaginationResult } from 'common'
 import { CreatePsqlDto, PsqlDto, PsqlsQueryDto, UpdatePsqlDto } from './dto'
 import { Psql } from './entities'
 import { PsqlsRepository } from './psqls.repository'
@@ -43,20 +43,12 @@ export class PsqlsService {
     }
 
     async updatePsql(psqlId: string, updatePsqlDto: UpdatePsqlDto) {
-        const psql = await this._getPsql(psqlId)
-
-        const updatePsql = updateIntersection(psql, updatePsqlDto)
-
-        const savedPsql = await this.psqlsRepository.update(updatePsql)
-
-        Assert.deepEquals(savedPsql, updatePsql, 'update 요청과 결과가 다름')
+        const savedPsql = await this.psqlsRepository.update(psqlId, updatePsqlDto)
 
         return new PsqlDto(savedPsql)
     }
 
     async removePsql(psqlId: string) {
-        const psql = await this._getPsql(psqlId)
-
-        await this.psqlsRepository.remove(psql)
+        await this.psqlsRepository.remove(psqlId)
     }
 }

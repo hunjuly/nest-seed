@@ -49,10 +49,8 @@ describe('TypeormRepository', () => {
         })
 
         it('update', async () => {
-            sample.name = 'new name'
-            const updatedSample = await repository.update(sample)
+            const updatedSample = await repository.update(sample.id, { name: 'new name' })
 
-            expect(updatedSample).toEqual(sample)
             expect(updatedSample.name).toEqual('new name')
         })
 
@@ -69,7 +67,7 @@ describe('TypeormRepository', () => {
         })
 
         it('remove', async () => {
-            await repository.remove(sample)
+            await repository.remove(sample.id)
 
             const foundSample = await repository.findById(sample.id)
 

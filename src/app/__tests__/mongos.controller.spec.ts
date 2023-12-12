@@ -125,7 +125,7 @@ describe('MongosController', () => {
 
             it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/mongos/${'123456789012345678901234'}`
+                    url: '/mongos/123456789012345678901234'
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -158,7 +158,7 @@ describe('MongosController', () => {
 
             it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/mongos/${defaultUUID}`,
+                    url: '/mongos/123456789012345678901234',
                     body: {
                         name: 'Updated Mongo'
                     }
@@ -179,7 +179,7 @@ describe('MongosController', () => {
 
             it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/mongos/${defaultUUID}`
+                    url: '/mongos/123456789012345678901234'
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)

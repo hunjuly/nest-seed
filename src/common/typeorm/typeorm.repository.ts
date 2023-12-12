@@ -1,6 +1,7 @@
-import { Assert, PaginationOptions } from 'common'
+import { Assert, LogicException, PaginationOptions, updateIntersection } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
 import { TypeormAggregateRoot } from '.'
+import { EntityNotFoundException } from './typeorm.exceptions'
 
 export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
     constructor(protected typeorm: Repository<Entity>) {}
@@ -11,14 +12,33 @@ export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
         return savedEntity
     }
 
-    async update(entity: Entity): Promise<Entity> {
-        Assert.defined(entity.id, "Entity doesn't have id")
+    async update(id: string, partial: Partial<Entity>): Promise<Entity> {
+        const entity = await this.typeorm.findOne({
+            where: { id } as FindOptionsWhere<Entity>
+        })
 
-        return this.typeorm.save(entity)
+        if (entity) {
+            const updatePsql = updateIntersection(entity, partial)
+
+            const saved = await this.typeorm.save(updatePsql)
+
+            Assert.deepEquals(saved, updatePsql, 'update 요청과 결과가 다름')
+
+            return saved
+        }
+
+        throw new EntityNotFoundException(`Failed to remove entity with id: ${id}. Entity not found.`)
     }
 
-    async remove(entity: Entity): Promise<void> {
-        await this.typeorm.remove(entity)
+    async remove(id: string): Promise<void> {
+        const result = await this.typeorm.delete(id)
+
+        if (result.affected === 0) {
+            throw new EntityNotFoundException(`Failed to remove entity with id: ${id}. Entity not found.`)
+        }
+
+        Assert.defined(result.affected, "DeleteResult doesn't have affected")
+        Assert.truthy(result.affected === 1, 'Affected must be 1')
     }
 
     async findById(id: string): Promise<Entity | null> {

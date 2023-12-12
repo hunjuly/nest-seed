@@ -86,8 +86,8 @@ export class UsersService {
     }
 
     async removeUser(userId: string) {
-        const user = await this.getUserEntity(userId)
+        // const user = await this.getUserEntity(userId)
 
-        await this.usersRepository.remove(user)
+        await this.usersRepository.remove(userId)
     }
 }

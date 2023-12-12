@@ -9,22 +9,27 @@ abstract class BaseRepository<T> {
     constructor(protected model: Model<T>) {}
 
     async create(documentData: Partial<T>): Promise<HydratedDocument<T>> {
-        //const document = await this.model.create({ ...documentData, id: generateUUID() })
-        // const id = new mongoose.Types.ObjectId()
-
         const document = await this.model.create({ ...documentData })
         return document
     }
 
-    async update(entity: HydratedDocument<T>): Promise<HydratedDocument<T>> {
-        await entity.updateOne()
-        return entity
-        // const updatedEntity = await this.model.findByIdAndUpdate(entity._id, entity, { new: true }).exec()
-        // return updatedEntity as T
-    }
+    async update(id: string, query: Record<string, any>): Promise<HydratedDocument<T>> {
+        const updatedEntity = await this.model.findByIdAndUpdate(id, query, { new: true }).exec()
 
-    async remove(entity: HydratedDocument<T>): Promise<void> {
-        await this.model.findByIdAndDelete(entity._id).exec()
+        return this.findById(id) as unknown as HydratedDocument<T>
+    }
+    // async update(id: string, query: Record<string, any>): Promise<HydratedDocument<T>> {
+    //     try {
+    //         const updatedEntity = await this.model.findByIdAndUpdate(id, query, { new: true }).exec();
+    //         return updatedEntity;
+    //     } catch (error) {
+    //         // 여기에 에러 처리 로직 추가
+    //         throw error;
+    //     }
+    // }
+
+    async remove(id: string): Promise<void> {
+        await this.model.findByIdAndDelete(id).exec()
     }
 
     async findById(id: string): Promise<HydratedDocument<T> | null> {
