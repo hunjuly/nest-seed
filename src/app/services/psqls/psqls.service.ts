@@ -29,17 +29,9 @@ export class PsqlsService {
     }
 
     async getPsql(psqlId: string) {
-        const psql = await this._getPsql(psqlId)
+        const psql = await this.getPsqlEntity(psqlId)
 
         return new PsqlDto(psql)
-    }
-
-    private async _getPsql(psqlId: string) {
-        const psql = await this.psqlsRepository.findById(psqlId)
-
-        Assert.defined(psql, `Psql(${psqlId}) not found`)
-
-        return psql as Psql
     }
 
     async updatePsql(psqlId: string, updatePsqlDto: UpdatePsqlDto) {
@@ -50,5 +42,13 @@ export class PsqlsService {
 
     async removePsql(psqlId: string) {
         await this.psqlsRepository.remove(psqlId)
+    }
+
+    private async getPsqlEntity(psqlId: string) {
+        const psql = await this.psqlsRepository.findById(psqlId)
+
+        Assert.defined(psql, `Psql with ID ${psqlId} not found`)
+
+        return psql as Psql
     }
 }

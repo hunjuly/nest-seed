@@ -1,7 +1,6 @@
 export * from './typeorm.logger'
 export * from './typeorm.utils'
 export * from './typeorm.aggregate-root'
-export * from './typeorm.entity'
 export * from './typeorm.repository'
 export * from './typeorm.transaction.repository'
 export * from './typeorm.transaction.service'

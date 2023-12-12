@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { TypeormRepository, PaginationResult } from 'common'
+import { Typeorm, PaginationResult } from 'common'
 import { Repository } from 'typeorm'
 import { PsqlsQueryDto } from './dto'
 import { Psql } from './entities'
 
 @Injectable()
-export class PsqlsRepository extends TypeormRepository<Psql> {
+export class PsqlsRepository extends Typeorm.Repository<Psql> {
     constructor(@InjectRepository(Psql) typeorm: Repository<Psql>) {
         super(typeorm)
     }

@@ -1,6 +1,6 @@
 import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from 'typeorm'
 
-export abstract class TypeormAggregateRoot {
+export abstract class AggregateRoot {
     @PrimaryGeneratedColumn('uuid')
     id: string
 

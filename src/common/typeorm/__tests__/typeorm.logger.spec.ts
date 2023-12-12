@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common'
-import { TypeormLogger } from '..'
+import { Typeorm } from 'common'
 
 jest.mock('@nestjs/common', () => {
     class Logger {
@@ -15,10 +15,10 @@ jest.mock('@nestjs/common', () => {
 })
 
 describe('TypeormLogger', () => {
-    let typeormLogger: TypeormLogger
+    let typeormLogger: Typeorm.Logger
 
     beforeEach(() => {
-        typeormLogger = new TypeormLogger()
+        typeormLogger = new Typeorm.Logger()
     })
 
     it('logQuery', () => {

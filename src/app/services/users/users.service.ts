@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult, Password, updateIntersection } from 'common'
+import { Assert, PaginationResult, Password } from 'common'
 import { CreateUserDto, UpdateUserDto, UserDto, UsersQueryDto } from './dto'
 import { User } from './entities'
 import { UsersRepository } from './users.repository'
@@ -65,29 +65,21 @@ export class UsersService {
         return new UserDto(user)
     }
 
+    async updateUser(userId: string, updateUserDto: UpdateUserDto) {
+        const savedUser = await this.usersRepository.update(userId, updateUserDto)
+
+        return new UserDto(savedUser)
+    }
+
+    async removeUser(userId: string) {
+        await this.usersRepository.remove(userId)
+    }
+
     private async getUserEntity(userId: string) {
         const user = await this.usersRepository.findById(userId)
 
         Assert.defined(user, `User with ID ${userId} not found`)
 
         return user as User
-    }
-
-    async updateUser(userId: string, updateUserDto: UpdateUserDto) {
-        const user = await this.getUserEntity(userId)
-
-        const updateUser = updateIntersection(user, updateUserDto)
-
-        const savedUser = await this.usersRepository.update(updateUser)
-
-        Assert.deepEquals(savedUser, updateUser, 'update 요청과 결과가 다름')
-
-        return new UserDto(savedUser)
-    }
-
-    async removeUser(userId: string) {
-        // const user = await this.getUserEntity(userId)
-
-        await this.usersRepository.remove(userId)
     }
 }

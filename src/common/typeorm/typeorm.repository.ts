@@ -1,10 +1,10 @@
-import { Assert, LogicException, PaginationOptions, updateIntersection } from 'common'
-import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { TypeormAggregateRoot } from '.'
+import { Assert, PaginationOptions, updateIntersection } from 'common'
+import { DeepPartial, FindOptionsWhere, In, Repository as TypeormRepository } from 'typeorm'
+import { AggregateRoot } from '.'
 import { EntityNotFoundException } from './typeorm.exceptions'
 
-export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
-    constructor(protected typeorm: Repository<Entity>) {}
+export abstract class Repository<Entity extends AggregateRoot> {
+    constructor(protected typeorm: TypeormRepository<Entity>) {}
 
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {
         const savedEntity = this.typeorm.save(entityData)
@@ -14,7 +14,7 @@ export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
 
     async update(id: string, partial: Partial<Entity>): Promise<Entity> {
         const entity = await this.typeorm.findOne({
-            where: { id } as FindOptionsWhere<Entity>
+            where: { id } as unknown as FindOptionsWhere<Entity>
         })
 
         if (entity) {
@@ -43,19 +43,19 @@ export abstract class TypeormRepository<Entity extends TypeormAggregateRoot> {
 
     async findById(id: string): Promise<Entity | null> {
         return this.typeorm.findOne({
-            where: { id } as FindOptionsWhere<Entity>
+            where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }
 
     async findByIds(ids: string[]): Promise<Entity[]> {
         return this.typeorm.findBy({
             id: In(ids)
-        } as FindOptionsWhere<Entity>)
+        } as unknown as FindOptionsWhere<Entity>)
     }
 
     async exist(id: string): Promise<boolean> {
         return this.typeorm.exist({
-            where: { id } as FindOptionsWhere<Entity>
+            where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }
 

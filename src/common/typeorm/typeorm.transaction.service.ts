@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource } from 'typeorm'
-import { TypeormTransactionRepository } from '.'
+import { TransactionRepository } from '.'
 
 @Injectable()
 export class TransactionService {
     constructor(private dataSource: DataSource) {}
 
     async execute<Entity>(
-        task: (transactionRepository: TypeormTransactionRepository) => Promise<Entity>
+        task: (transactionRepository: TransactionRepository) => Promise<Entity>
     ): Promise<Entity> {
         const queryRunner = this.dataSource.createQueryRunner()
 
@@ -15,7 +15,7 @@ export class TransactionService {
             await queryRunner.connect()
             await queryRunner.startTransaction()
 
-            const transactionRepository = new TypeormTransactionRepository(queryRunner)
+            const transactionRepository = new TransactionRepository(queryRunner)
 
             const result = await task(transactionRepository)
 

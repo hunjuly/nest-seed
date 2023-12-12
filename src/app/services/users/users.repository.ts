@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { TypeormRepository, PaginationResult } from 'common'
+import { Typeorm, PaginationResult } from 'common'
 import { FindOptionsWhere, Repository } from 'typeorm'
 import { UsersQueryDto } from './dto'
 import { User } from './entities'
 
 @Injectable()
-export class UsersRepository extends TypeormRepository<User> {
+export class UsersRepository extends Typeorm.Repository<User> {
     constructor(@InjectRepository(User) typeorm: Repository<User>) {
         super(typeorm)
     }
