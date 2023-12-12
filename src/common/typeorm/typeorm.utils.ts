@@ -1,7 +1,7 @@
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ValueTransformer } from 'typeorm'
 
-export function createMemoryModule() {
+export function createTypeormMemoryModule() {
     return TypeOrmModule.forRoot({
         type: 'sqlite',
         database: ':memory:',

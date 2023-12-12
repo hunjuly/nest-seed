@@ -1,6 +1,13 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { PaginationOptions, PaginationResult, Typeorm } from 'common'
+import {
+    AggregateRoot,
+    BaseRepository,
+    PaginationOptions,
+    PaginationResult,
+    TransactionService,
+    createTypeormMemoryModule
+} from 'common'
 import { Column, Entity, Repository } from 'typeorm'
 
 /**
@@ -8,13 +15,13 @@ import { Column, Entity, Repository } from 'typeorm'
  * code lens가 동작하지 않아서 .spec.ts에서 Run|Debug가 안 보인다.
  */
 @Entity()
-export class Sample extends Typeorm.AggregateRoot {
+export class Sample extends AggregateRoot {
     @Column()
     name: string
 }
 
 @Injectable()
-export class SampleRepository extends Typeorm.Repository<Sample> {
+export class SampleRepository extends BaseRepository<Sample> {
     constructor(@InjectRepository(Sample) typeorm: Repository<Sample>) {
         super(typeorm)
     }
@@ -39,7 +46,7 @@ export class SampleRepository extends Typeorm.Repository<Sample> {
 }
 
 @Module({
-    imports: [Typeorm.createMemoryModule(), TypeOrmModule.forFeature([Sample])],
-    providers: [SampleRepository, Typeorm.TransactionService]
+    imports: [createTypeormMemoryModule(), TypeOrmModule.forFeature([Sample])],
+    providers: [SampleRepository, TransactionService]
 })
 export class SamplesModule {}

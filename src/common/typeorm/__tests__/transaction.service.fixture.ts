@@ -1,23 +1,23 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { Typeorm } from 'common'
+import { AggregateRoot, BaseRepository, TransactionService, createTypeormMemoryModule } from 'common'
 import { Column, Entity, Repository } from 'typeorm'
 
 @Entity()
-export class Sample extends Typeorm.AggregateRoot {
+export class Sample extends AggregateRoot {
     @Column()
     name: string
 }
 
 @Injectable()
-export class SampleRepository extends Typeorm.Repository<Sample> {
+export class SampleRepository extends BaseRepository<Sample> {
     constructor(@InjectRepository(Sample) typeorm: Repository<Sample>) {
         super(typeorm)
     }
 }
 
 @Module({
-    imports: [Typeorm.createMemoryModule(), TypeOrmModule.forFeature([Sample])],
-    providers: [SampleRepository, Typeorm.TransactionService]
+    imports: [createTypeormMemoryModule(), TypeOrmModule.forFeature([Sample])],
+    providers: [SampleRepository, TransactionService]
 })
 export class SamplesModule {}

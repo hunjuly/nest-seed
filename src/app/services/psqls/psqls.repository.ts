@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Typeorm, PaginationResult } from 'common'
+import { BaseRepository, PaginationResult } from 'common'
 import { Repository } from 'typeorm'
 import { PsqlsQueryDto } from './dto'
 import { Psql } from './entities'
 
 @Injectable()
-export class PsqlsRepository extends Typeorm.Repository<Psql> {
-    constructor(@InjectRepository(Psql) typeorm: Repository<Psql>) {
-        super(typeorm)
+export class PsqlsRepository extends BaseRepository<Psql> {
+    constructor(@InjectRepository(Psql) repo: Repository<Psql>) {
+        super(repo)
     }
 
     async find(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {

@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
-import { createTestingModule, OrderDirection } from 'common'
-import { Sample, SampleRepository, SamplesModule } from './typeorm.repository.fixture'
+import { EntityNotFoundTypeormException, OrderDirection, createTestingModule } from 'common'
+import { Sample, SampleRepository, SamplesModule } from './base-repository.fixture'
 
 const aggregateRootMock = {
     createdAt: expect.anything(),
@@ -9,7 +9,7 @@ const aggregateRootMock = {
     version: expect.anything()
 }
 
-describe('TypeormRepository', () => {
+describe('BaseRepository', () => {
     let module: TestingModule
     let repository: SampleRepository
 
@@ -54,6 +54,12 @@ describe('TypeormRepository', () => {
             expect(updatedSample.name).toEqual('new name')
         })
 
+        it('update Id가 존재하지 않으면 예외', async () => {
+            const promise = repository.update('nullId', {})
+
+            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+        })
+
         it('findById', async () => {
             const foundSample = await repository.findById(sample.id)
 
@@ -72,6 +78,12 @@ describe('TypeormRepository', () => {
             const foundSample = await repository.findById(sample.id)
 
             expect(foundSample).toBeNull()
+        })
+
+        it('remove Id가 존재하지 않으면 예외', async () => {
+            const promise = repository.remove('nullId')
+
+            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
         })
     })
 

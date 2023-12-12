@@ -1,7 +1,7 @@
 import { Logger as NestLogger } from '@nestjs/common'
-import { Logger as TypeormLogger, QueryRunner } from 'typeorm'
+import { Logger as ILogger, QueryRunner } from 'typeorm'
 
-export class Logger implements TypeormLogger {
+export class TypeormLogger implements ILogger {
     constructor() {}
 
     logQuery(query: string, parameters?: any[], _queryRunner?: QueryRunner) {

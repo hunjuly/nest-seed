@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Typeorm, PaginationResult } from 'common'
+import { BaseRepository, PaginationResult } from 'common'
 import { FindOptionsWhere, Repository } from 'typeorm'
 import { UsersQueryDto } from './dto'
 import { User } from './entities'
 
 @Injectable()
-export class UsersRepository extends Typeorm.Repository<User> {
+export class UsersRepository extends BaseRepository<User> {
     constructor(@InjectRepository(User) typeorm: Repository<User>) {
         super(typeorm)
     }
@@ -28,11 +28,11 @@ export class UsersRepository extends Typeorm.Repository<User> {
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return this.typeorm.findOneBy({ email })
+        return this.repo.findOneBy({ email })
     }
 
     async emailExists(email: string): Promise<boolean> {
-        return this.typeorm.exist({
+        return this.repo.exist({
             where: { email } as FindOptionsWhere<User>
         })
     }

@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common'
-import { Typeorm } from 'common'
+import { TypeormLogger } from 'common'
 
 jest.mock('@nestjs/common', () => {
     class Logger {
@@ -15,17 +15,17 @@ jest.mock('@nestjs/common', () => {
 })
 
 describe('TypeormLogger', () => {
-    let typeormLogger: Typeorm.Logger
+    let logger: TypeormLogger
 
     beforeEach(() => {
-        typeormLogger = new Typeorm.Logger()
+        logger = new TypeormLogger()
     })
 
     it('logQuery', () => {
         const query = 'SELECT * FROM users'
         const parameters = ['param1', 'param2']
 
-        typeormLogger.logQuery(query, parameters)
+        logger.logQuery(query, parameters)
 
         expect(Logger.verbose).toHaveBeenCalledWith('QUERY', 'ORM', { query, parameters })
     })
@@ -36,10 +36,10 @@ describe('TypeormLogger', () => {
         const parameters = ['param1', 'param2']
         const error = new Error(message)
 
-        typeormLogger.logQueryError(error, query, parameters)
+        logger.logQueryError(error, query, parameters)
         expect(Logger.error).toHaveBeenCalledWith(error.message, 'ORM', { query, parameters })
 
-        typeormLogger.logQueryError(message, query, parameters)
+        logger.logQueryError(message, query, parameters)
         expect(Logger.error).toHaveBeenCalledWith(message, 'ORM', { query, parameters })
     })
 
@@ -48,7 +48,7 @@ describe('TypeormLogger', () => {
         const query = 'SELECT * FROM users'
         const parameters = ['param1', 'param2']
 
-        typeormLogger.logQuerySlow(runningTime, query, parameters)
+        logger.logQuerySlow(runningTime, query, parameters)
 
         expect(Logger.warn).toHaveBeenCalledWith('Slow Query', 'ORM', {
             query,
@@ -60,7 +60,7 @@ describe('TypeormLogger', () => {
     it('logSchemaBuild', () => {
         const message = 'Schema build log message'
 
-        typeormLogger.logSchemaBuild(message)
+        logger.logSchemaBuild(message)
 
         expect(Logger.log).toHaveBeenCalledWith(message, 'ORM')
     })
@@ -68,14 +68,14 @@ describe('TypeormLogger', () => {
     it('logMigration', () => {
         const message = 'Migration log message'
 
-        typeormLogger.logMigration(message)
+        logger.logMigration(message)
 
         expect(Logger.log).toHaveBeenCalledWith(message, 'ORM')
     })
 
     it('log', () => {
-        typeormLogger.log('warn', 'warn message')
-        typeormLogger.log('info', 'info message')
+        logger.log('warn', 'warn message')
+        logger.log('info', 'info message')
 
         expect(Logger.warn).toHaveBeenCalledWith('warn message', 'ORM')
         expect(Logger.log).toHaveBeenCalledWith('info message', 'ORM')

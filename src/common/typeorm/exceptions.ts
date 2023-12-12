@@ -1,13 +1,13 @@
 /* istanbul ignore file */
 
-export class Exception extends Error {
+export class TypeormException extends Error {
     constructor(message?: string) {
         super(message)
         this.name = 'TypeormException'
     }
 }
 
-export class EntityNotFoundException extends Exception {
+export class EntityNotFoundTypeormException extends TypeormException {
     constructor(message?: string) {
         super(message)
         this.name = 'EntityNotFoundException'

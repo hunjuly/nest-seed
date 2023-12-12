@@ -1,40 +1,42 @@
 import { Assert, PaginationOptions, updateIntersection } from 'common'
-import { DeepPartial, FindOptionsWhere, In, Repository as TypeormRepository } from 'typeorm'
+import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
 import { AggregateRoot } from '.'
-import { EntityNotFoundException } from './typeorm.exceptions'
+import { EntityNotFoundTypeormException } from './exceptions'
 
-export abstract class Repository<Entity extends AggregateRoot> {
-    constructor(protected typeorm: TypeormRepository<Entity>) {}
+export abstract class BaseRepository<Entity extends AggregateRoot> {
+    constructor(protected repo: Repository<Entity>) {}
 
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {
-        const savedEntity = this.typeorm.save(entityData)
+        const savedEntity = this.repo.save(entityData)
 
         return savedEntity
     }
 
     async update(id: string, partial: Partial<Entity>): Promise<Entity> {
-        const entity = await this.typeorm.findOne({
+        const entity = await this.repo.findOne({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
 
         if (entity) {
             const updatePsql = updateIntersection(entity, partial)
 
-            const saved = await this.typeorm.save(updatePsql)
+            const saved = await this.repo.save(updatePsql)
 
             Assert.deepEquals(saved, updatePsql, 'update 요청과 결과가 다름')
 
             return saved
         }
 
-        throw new EntityNotFoundException(`Failed to remove entity with id: ${id}. Entity not found.`)
+        throw new EntityNotFoundTypeormException(`Failed to update entity with id: ${id}. Entity not found.`)
     }
 
     async remove(id: string): Promise<void> {
-        const result = await this.typeorm.delete(id)
+        const result = await this.repo.delete(id)
 
         if (result.affected === 0) {
-            throw new EntityNotFoundException(`Failed to remove entity with id: ${id}. Entity not found.`)
+            throw new EntityNotFoundTypeormException(
+                `Failed to remove entity with id: ${id}. Entity not found.`
+            )
         }
 
         Assert.defined(result.affected, "DeleteResult doesn't have affected")
@@ -42,19 +44,19 @@ export abstract class Repository<Entity extends AggregateRoot> {
     }
 
     async findById(id: string): Promise<Entity | null> {
-        return this.typeorm.findOne({
+        return this.repo.findOne({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }
 
     async findByIds(ids: string[]): Promise<Entity[]> {
-        return this.typeorm.findBy({
+        return this.repo.findBy({
             id: In(ids)
         } as unknown as FindOptionsWhere<Entity>)
     }
 
     async exist(id: string): Promise<boolean> {
-        return this.typeorm.exist({
+        return this.repo.exist({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }
@@ -62,7 +64,7 @@ export abstract class Repository<Entity extends AggregateRoot> {
     protected createQueryBuilder(opts: PaginationOptions = {}) {
         const { take, skip, orderby } = opts
 
-        const qb = this.typeorm.createQueryBuilder('entity')
+        const qb = this.repo.createQueryBuilder('entity')
 
         take && qb.take(take)
         skip && qb.skip(skip)
