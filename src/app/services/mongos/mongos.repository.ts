@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { PaginationResult } from 'common'
+import { Assert, PaginationResult } from 'common'
 import { HydratedDocument, Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
@@ -15,9 +15,13 @@ abstract class BaseRepository<T> {
     }
 
     async update(id: string, query: Record<string, any>): Promise<HydratedDocument<T>> {
-        const updatedEntity = await this.model.findByIdAndUpdate(id, query, { new: true }).exec()
+        const updatedEntity = await this.model
+            .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
+            .exec()
 
-        return this.findById(id) as unknown as HydratedDocument<T>
+        Assert.defined(updatedEntity, `id(${id})가 존재하지 않음.`)
+
+        return updatedEntity as unknown as HydratedDocument<T>
     }
 
     async remove(id: string): Promise<void> {

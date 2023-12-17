@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { PsqlDto } from 'app/services/psqls'
 import { createHttpTestingModule, defaultUUID } from 'common'
-import { createPsqlDto, createPsqlDtos, createdPsql, createdPsqls } from './mocks'
+import { createPsqlDto, createPsqlDtos, createdPsql } from './mocks'
 
 describe('PsqlsController', () => {
     let module: TestingModule
@@ -49,13 +49,19 @@ describe('PsqlsController', () => {
     })
 
     describe('GET /psqls', () => {
+        let createdPsqls: PsqlDto[] = []
+
         beforeEach(async () => {
+            createdPsqls = []
+
             for (const createDto of createPsqlDtos) {
-                await request.post({
+                const res = await request.post({
                     url: '/psqls',
                     body: createDto,
                     status: HttpStatus.CREATED
                 })
+
+                createdPsqls.push(res.body)
             }
         })
 
