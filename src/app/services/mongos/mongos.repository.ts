@@ -1,44 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assert, PaginationResult } from 'common'
-import { HydratedDocument, Model } from 'mongoose'
+import { PaginationResult } from 'common'
+import { Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
-
-abstract class BaseRepository<T> {
-    constructor(protected model: Model<T>) {}
-
-    async create(documentData: Partial<T>): Promise<HydratedDocument<T>> {
-        const document = await this.model.create({ ...documentData })
-
-        return document
-    }
-
-    async update(id: string, query: Partial<T>): Promise<HydratedDocument<T>> {
-        const updatedEntity = await this.model
-            .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
-            .exec()
-
-        Assert.defined(updatedEntity, `id(${id})가 존재하지 않음.`)
-
-        return updatedEntity as unknown as HydratedDocument<T>
-    }
-
-    async remove(id: string): Promise<void> {
-        await this.model.findByIdAndDelete(id).exec()
-    }
-
-    async findById(id: string): Promise<HydratedDocument<T> | null> {
-        return this.model.findById(id).exec()
-    }
-
-    async findByIds(ids: string[]): Promise<HydratedDocument<T>[]> {
-        return this.model.find({ _id: { $in: ids } }).exec()
-    }
-}
+import * as mongo from './mongodb'
 
 @Injectable()
-export class MongosRepository extends BaseRepository<Mongo> {
+export class MongosRepository extends mongo.BaseRepository<Mongo> {
     constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
         super(model)
     }
