@@ -1,7 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { ConfigException } from '../exceptions'
+import { convertStringToMillis } from 'common'
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
@@ -9,16 +9,18 @@ export class CacheService implements OnModuleDestroy {
 
     onModuleDestroy() {
         const client = (this.cacheManager.store as any).client
-        client.disconnect()
+
+        client?.disconnect()
     }
 
-    async set(key: string, value: string, ttlMiliseconds = 0): Promise<void> {
-        if (ttlMiliseconds < 0) {
-            throw new ConfigException('ttlMiliseconds should not be negative')
+    async set(key: string, value: string, expireTime = '0s'): Promise<void> {
+        const expireMillisecs = convertStringToMillis(expireTime)
+
+        if (expireMillisecs < 0) {
+            throw new Error('ttlMiliseconds should not be negative')
         }
 
-        // 만료 시간이 0이면 만료 시간이 없는 것이다
-        await this.cacheManager.set(key, value, ttlMiliseconds)
+        await this.cacheManager.set(key, value, expireMillisecs)
     }
 
     async get(key: string): Promise<string | undefined> {

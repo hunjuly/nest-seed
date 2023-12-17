@@ -7,8 +7,8 @@ import { Psql } from './entities'
 
 @Injectable()
 export class PsqlsRepository extends BaseRepository<Psql> {
-    constructor(@InjectRepository(Psql) typeorm: Repository<Psql>) {
-        super(typeorm)
+    constructor(@InjectRepository(Psql) repo: Repository<Psql>) {
+        super(repo)
     }
 
     async find(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {

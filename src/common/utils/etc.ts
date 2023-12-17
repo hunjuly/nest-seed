@@ -1,7 +1,6 @@
 import { compare, hash } from 'bcrypt'
+import { Coordinate, InvalidArgumentException } from 'common'
 import { randomUUID } from 'crypto'
-import { LogicException } from '../exceptions'
-import { Coordinate } from '../interfaces'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, timeoutInMS))
@@ -27,40 +26,60 @@ export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
     return updatedObject
 }
 
-export function convertTimeToSeconds(timeString: string): number {
-    const matches = timeString.match(/(\d+)\s*(s|m|h|d)?/g)
-
-    if (!matches) {
-        throw new Error('Invalid time string')
+export function convertStringToMillis(str: string): number {
+    const timeUnits: { [key: string]: number } = {
+        ms: 1,
+        s: 1000,
+        m: 60 * 1000,
+        h: 60 * 60 * 1000,
+        d: 24 * 60 * 60 * 1000
     }
 
-    const times = matches.map((match) => {
-        const [_, value, unit] = match.match(/(\d+)\s*(s|m|h|d)?/) as any
-        let multiplier = 1
+    // 유효한 시간 형식인지 검사하는 정규 표현식
+    const validFormatRegex = /^(-?\d+(\.\d+)?)(ms|s|m|h|d)(\s*(-?\d+(\.\d+)?)(ms|s|m|h|d))*$/
+    if (!validFormatRegex.test(str)) {
+        throw new InvalidArgumentException(`Invalid time format(${str})`)
+    }
 
-        switch (unit) {
-            case 's':
-                multiplier = 1
-                break
-            case 'm':
-                multiplier = 60
-                break
-            case 'h':
-                multiplier = 3600
-                break
-            case 'd':
-                multiplier = 86400
-                break
-            // 이건 mock이나 spy로 테스트하기 어려워서 무시한다
-            /* istanbul ignore next */
-            default:
-                throw new LogicException("Invalid time unit. It should be one of 's', 'm', 'h', 'd'")
-        }
+    const regex = /(-?\d+(\.\d+)?)(ms|s|m|h|d)/g
+    let totalMillis = 0
 
-        return parseInt(value) * multiplier
-    })
+    let match
+    while ((match = regex.exec(str)) !== null) {
+        const amount = parseFloat(match[1])
+        const unit = match[3]
 
-    return times.reduce((prev, curr) => prev + curr, 0)
+        totalMillis += amount * timeUnits[unit]
+    }
+
+    return totalMillis
+}
+
+export function convertMillisToString(ms: number): string {
+    if (ms === 0) {
+        return '0ms'
+    }
+
+    const negative = ms < 0
+    ms = Math.abs(ms)
+
+    const days = Math.floor(ms / (24 * 60 * 60 * 1000))
+    ms %= 24 * 60 * 60 * 1000
+    const hours = Math.floor(ms / (60 * 60 * 1000))
+    ms %= 60 * 60 * 1000
+    const minutes = Math.floor(ms / (60 * 1000))
+    ms %= 60 * 1000
+    const seconds = Math.floor(ms / 1000)
+    const milliseconds = ms % 1000
+
+    let result = ''
+    if (days > 0) result += `${days}d`
+    if (hours > 0) result += `${hours}h`
+    if (minutes > 0) result += `${minutes}m`
+    if (seconds > 0) result += `${seconds}s`
+    if (milliseconds > 0) result += `${milliseconds}ms`
+
+    return (negative ? '-' : '') + result.trim()
 }
 
 /**

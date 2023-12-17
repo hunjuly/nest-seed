@@ -28,11 +28,11 @@ export class UsersRepository extends BaseRepository<User> {
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return this.typeorm.findOneBy({ email })
+        return this.repo.findOneBy({ email })
     }
 
     async emailExists(email: string): Promise<boolean> {
-        return this.typeorm.exist({
+        return this.repo.exist({
             where: { email } as FindOptionsWhere<User>
         })
     }

@@ -1,13 +1,6 @@
 # NEST-SEED
 
-nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
-
-**주의** 현재 mongo db 관련 대대적인 작업 중.
-
-## Glossary
-
--   Host: Docker를 실행하는 운영체제로, 보통 사용자의 PC/laptop의 macOS 혹은 Linux가 이 역할을 합니다. Host OS 위에서 여러 개의 컨테이너를 실행할 수 있습니다.
--   Container: Docker에서 실행 중인 격리된 환경으로, 여기서는 alpine-linux를 기반으로 합니다. 컨테이너는 호스트 OS의 커널과 필수 리소스를 공유하며, 어플리케이션과 그 의존성을 포함하고 독립적으로 작동합니다.
+nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 boilerplate이다.
 
 ## Requirements
 
@@ -46,7 +39,7 @@ nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 te
     -   `Watch Test`: 테스트 코드를 실행하며, 파일 변경을 감지하여 자동으로 다시 테스트한다.
 -   유닛 테스트를 실행해야 하는 환경에서는 테스트 마다 DB를 초기화 하기 위해서 `NODE_ENV=development`와 typeorm의 `synchronize`를 허용해야 한다.
 
-## Updating .env.development File
+## Updating `.env.development` File
 
 .env.development를 업데이트 하면 다음 파일을 같이 변경해야 한다.
 

@@ -1,17 +1,19 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { mongoOptions } from 'config'
+import { Env } from 'config'
+import { mongoDatasource } from 'databases/mongo'
 
 @Module({
     imports: [
         MongooseModule.forRootAsync({
-            useFactory: () => {
-                const { user, pass, host, port } = mongoOptions
+            useFactory: () => ({
+                ...mongoDatasource,
+                connectionFactory: (connection) => {
+                    if (Env.isDevelopment()) connection.dropDatabase()
 
-                return {
-                    uri: `mongodb://${user}:${pass}@${host}:${port}/`
+                    return connection
                 }
-            }
+            })
         })
     ]
 })

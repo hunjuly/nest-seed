@@ -4,6 +4,16 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "1. Test App",
+            "type": "shell",
+            "command": "npm run test:app"
+        },
+        {
+            "label": "2. Test All",
+            "type": "shell",
+            "command": "npm run test:all"
+        },
+        {
             "label": "Watch Start",
             "type": "shell",
             "command": "npm start"
@@ -14,11 +24,6 @@
             "command": "npm test"
         },
         {
-            "label": "Test",
-            "type": "shell",
-            "command": "npm run test:${input:tests}"
-        },
-        {
             "label": "Launch PSQL",
             "type": "shell",
             "command": "bash scripts/launch_psql.sh"
@@ -27,11 +32,6 @@
             "label": "Clean up",
             "type": "shell",
             "command": "bash scripts/clean_up.sh"
-        },
-        {
-            "label": "Logging During Testing",
-            "type": "shell",
-            "command": "bash scripts/set_logging_during_testing.sh ${input:enable_disable}"
         },
         {
             "label": "Generate Migration",
@@ -48,17 +48,6 @@
             "options": [
                 "enable",
                 "disable"
-            ]
-        },
-        {
-            "id": "tests",
-            "description": "",
-            "default": "app",
-            "type": "pickString",
-            "options": [
-                "app",
-                "all",
-                "common"
             ]
         }
     ]

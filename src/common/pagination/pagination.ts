@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common'
 import { Transform } from 'class-transformer'
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
+import { IsInt, IsOptional, IsString, Min } from 'class-validator'
 
 export enum OrderDirection {
     asc = 'asc',
@@ -15,20 +15,16 @@ export class OrderOption {
     direction: OrderDirection
 }
 
-export const DEFAULT_TAKE_SIZE = 20
-export const MAX_TAKE_SIZE = 100
-
 export class PaginationOptions {
     @IsOptional()
     @IsInt()
     @Min(1)
-    @Max(MAX_TAKE_SIZE)
-    take?: number = DEFAULT_TAKE_SIZE
+    take?: number
 
     @IsOptional()
     @IsInt()
     @Min(0)
-    skip?: number = 0
+    skip?: number
 
     @IsOptional()
     @Transform(({ value }) => {
@@ -60,11 +56,4 @@ export class PaginationResult<E> {
     total: number
 
     items: E[]
-}
-
-export const defaultPaginationResult: PaginationResult<any> = {
-    skip: undefined,
-    take: undefined,
-    total: 0,
-    items: []
 }

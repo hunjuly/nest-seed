@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, ConflictException } from '@nestjs/common'
-import { UsersService } from 'app/services'
+import { UsersService } from 'app/services/users'
 
 @Injectable()
 export class UniqueEmailGuard implements CanActivate {

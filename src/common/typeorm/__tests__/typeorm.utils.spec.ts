@@ -1,4 +1,4 @@
-import { enumsTransformer } from '../'
+import { enumsTransformer } from '..'
 
 enum Color {
     Red = 'RED',

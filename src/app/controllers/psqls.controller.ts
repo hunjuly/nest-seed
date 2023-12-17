@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { CreatePsqlDto, PsqlsQueryDto, PsqlsService, UpdatePsqlDto } from 'app/services'
+import { CreatePsqlDto, PsqlsQueryDto, PsqlsService, UpdatePsqlDto } from 'app/services/psqls'
 import { PsqlExistsGuard } from './guards'
 
 @Controller('psqls')

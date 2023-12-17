@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv'
-import { getString, getNumber } from './utils'
-import { Env } from './utils'
+import { Env, getNumber, getString } from './utils'
 
 if (Env.isDevelopment()) {
     dotenv.config({ path: '.env.development' })
@@ -31,7 +30,6 @@ export const redisOptions = {
 }
 
 export const psqlOptions = {
-    type: 'postgres',
     host: getString('POSTGRES_DB_HOST'),
     port: getNumber('POSTGRES_DB_PORT'),
     username: getString('POSTGRES_DB_USERNAME'),
@@ -45,5 +43,6 @@ export const mongoOptions = {
     host: getString('MONGO_DB_HOST'),
     port: getNumber('MONGO_DB_PORT'),
     user: getString('MONGO_DB_USERNAME'),
-    pass: getString('MONGO_DB_PASSWORD')
+    pass: getString('MONGO_DB_PASSWORD'),
+    database: getString('MONGO_DB_DATABASE')
 }

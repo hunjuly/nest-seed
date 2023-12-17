@@ -2,10 +2,9 @@ import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
-import { UserDto } from 'app/services'
-import { defaultUUID } from 'common'
+import { UserDto } from 'app/services/users'
+import { createHttpTestingModule, defaultUUID } from 'common'
 import { createUserDto, createUserDtos, createdUser, createdUsers } from './mocks'
-import { createHttpTestingModule } from 'common/test'
 
 describe('UsersController', () => {
     let module: TestingModule

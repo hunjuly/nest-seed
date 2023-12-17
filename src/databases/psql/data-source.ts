@@ -10,6 +10,7 @@ const migrations = [NestSeed1691754788909]
 
 export const psqlConnectionOptions = {
     ...psqlOptions,
+    type: 'postgres',
     migrations,
     entities
 } as PostgresConnectionOptions

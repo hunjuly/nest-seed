@@ -14,10 +14,3 @@ export function createSpy(object: any, method: string, args: any[] | undefined |
         return response
     })
 }
-
-export const aggregateRootMock = {
-    createdAt: expect.anything(),
-    id: expect.anything(),
-    updatedAt: expect.anything(),
-    version: expect.anything()
-}

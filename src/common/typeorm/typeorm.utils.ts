@@ -1,7 +1,7 @@
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ValueTransformer } from 'typeorm'
 
-export function createMemoryTypeormModule() {
+export function createTypeormMemoryModule() {
     return TypeOrmModule.forRoot({
         type: 'sqlite',
         database: ':memory:',
@@ -16,19 +16,19 @@ export function createMemoryTypeormModule() {
  * @Column({ type: 'varchar', transformer: enumsTransformer<SeedEnum>() })
  * enums: SeedEnum[]
  */
-export const enumsTransformer = <T>(): ValueTransformer => {
+export const enumsTransformer = <Value>(): ValueTransformer => {
     return {
-        to: (value: T[] | null): string | null => {
+        to: (value: Value[] | null): string | null => {
             if (value == null) {
                 return null
             }
             return value.join(',')
         },
-        from: (value: string | null): T[] | null => {
+        from: (value: string | null): Value[] | null => {
             if (value == null) {
                 return null
             }
-            return value.split(',') as T[]
+            return value.split(',') as Value[]
         }
     }
 }

@@ -1,8 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
+import { AppLoggerService } from 'common'
 import * as express from 'express'
 import * as supertest from 'supertest'
-import { AppLoggerService } from '../logger'
-import { Path } from '../utils'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 
 interface TestRequestContext {
@@ -18,7 +17,7 @@ export async function createHttpTestingModule(metadata: ModuleMetadataEx) {
 
     const app = module.createNestApplication()
 
-    const loggingDuringTesting = Path.isExistsSync('config/@DEV_LOGGING_DURING_TESTING')
+    const loggingDuringTesting = process.env.DEV_LOGGING_DURING_TESTING === 'true'
 
     if (loggingDuringTesting) {
         try {
