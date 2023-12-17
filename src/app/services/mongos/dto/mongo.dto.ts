@@ -7,10 +7,23 @@ export class MongoDto {
     date: Date
     enums: MongoEnum[]
     integer: number
+    createdAt: Date
+    updatedAt: Date
+    version: number
 
     constructor(mongo: MongoDocument) {
-        const { _id, name, desc, date, enums, integer } = mongo
+        const { id, name, desc, date, enums, integer, createdAt, updatedAt, version } = mongo
 
-        Object.assign(this, { id: _id.toString(), name, desc, date, enums, integer })
+        Object.assign(this, {
+            id,
+            name,
+            desc,
+            date,
+            enums,
+            integer,
+            createdAt,
+            updatedAt,
+            version
+        })
     }
 }

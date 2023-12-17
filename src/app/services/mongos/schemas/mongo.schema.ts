@@ -1,5 +1,6 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Prop, Schema } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
+import { BaseModel, createSchema } from './mongodb'
 
 export enum MongoEnum {
     EnumA = 'EnumA',
@@ -9,10 +10,8 @@ export enum MongoEnum {
     EnumE = 'EnumE'
 }
 
-export type MongoDocument = HydratedDocument<Mongo>
-
-@Schema({ timestamps: true })
-export class Mongo {
+@Schema()
+export class Mongo extends BaseModel {
     @Prop()
     name: string
 
@@ -29,4 +28,8 @@ export class Mongo {
     date: Date
 }
 
-export const MongoSchema = SchemaFactory.createForClass(Mongo)
+// Mongo 모델의 Mongoose 스키마 정의
+export const MongoSchema = createSchema(Mongo)
+
+// Mongo 문서 타입 정의
+export type MongoDocument = HydratedDocument<Mongo>

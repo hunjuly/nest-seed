@@ -6,10 +6,10 @@ import { psqlConnectionOptions } from 'databases/psql'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 
 const psqlModuleConfig = (): PostgresConnectionOptions => {
-    const shouldResetDatabase = Env.isDevelopment()
+    const isDevelopment = Env.isDevelopment()
 
-    const dropSchema = shouldResetDatabase
-    const synchronize = shouldResetDatabase
+    const dropSchema = isDevelopment
+    const synchronize = isDevelopment
 
     const logger = new TypeormLogger()
     // 설정은 했는데 동작하는 것을 못봤다.

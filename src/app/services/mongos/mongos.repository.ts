@@ -14,7 +14,7 @@ abstract class BaseRepository<T> {
         return document
     }
 
-    async update(id: string, query: Record<string, any>): Promise<HydratedDocument<T>> {
+    async update(id: string, query: Partial<T>): Promise<HydratedDocument<T>> {
         const updatedEntity = await this.model
             .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
             .exec()
