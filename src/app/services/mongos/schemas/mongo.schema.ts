@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose'
+import { HydratedDocument } from 'mongoose'
 
 export enum MongoEnum {
     EnumA = 'EnumA',
@@ -11,17 +11,8 @@ export enum MongoEnum {
 
 export type MongoDocument = HydratedDocument<Mongo>
 
-@Schema()
+@Schema({ timestamps: true })
 export class Mongo {
-    @Prop()
-    createdAt: Date
-
-    @Prop()
-    updatedAt: Date
-
-    @Prop()
-    version: number
-
     @Prop()
     name: string
 

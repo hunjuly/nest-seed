@@ -7,6 +7,8 @@ export abstract class BaseRepository<Entity extends AggregateRoot> {
     constructor(protected repo: Repository<Entity>) {}
 
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {
+        Assert.undefined(entityData.id, `id${entityData.id}가 정의되어 있으면 안 된다.`)
+
         const savedEntity = this.repo.save(entityData)
 
         return savedEntity

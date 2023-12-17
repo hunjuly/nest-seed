@@ -27,7 +27,7 @@ describe('TypeormLogger', () => {
 
         logger.logQuery(query, parameters)
 
-        expect(Logger.verbose).toHaveBeenCalledWith('QUERY', 'ORM', { query, parameters })
+        expect(Logger.verbose).toHaveBeenCalledWith('QUERY', 'DB', { query, parameters })
     })
 
     it('logQueryError', () => {
@@ -37,10 +37,10 @@ describe('TypeormLogger', () => {
         const error = new Error(message)
 
         logger.logQueryError(error, query, parameters)
-        expect(Logger.error).toHaveBeenCalledWith(error.message, 'ORM', { query, parameters })
+        expect(Logger.error).toHaveBeenCalledWith(error.message, 'DB', { query, parameters })
 
         logger.logQueryError(message, query, parameters)
-        expect(Logger.error).toHaveBeenCalledWith(message, 'ORM', { query, parameters })
+        expect(Logger.error).toHaveBeenCalledWith(message, 'DB', { query, parameters })
     })
 
     it('logQuerySlow', () => {
@@ -50,7 +50,7 @@ describe('TypeormLogger', () => {
 
         logger.logQuerySlow(runningTime, query, parameters)
 
-        expect(Logger.warn).toHaveBeenCalledWith('Slow Query', 'ORM', {
+        expect(Logger.warn).toHaveBeenCalledWith('Slow Query', 'DB', {
             query,
             parameters,
             runningTime
@@ -62,7 +62,7 @@ describe('TypeormLogger', () => {
 
         logger.logSchemaBuild(message)
 
-        expect(Logger.log).toHaveBeenCalledWith(message, 'ORM')
+        expect(Logger.log).toHaveBeenCalledWith(message, 'DB')
     })
 
     it('logMigration', () => {
@@ -70,14 +70,14 @@ describe('TypeormLogger', () => {
 
         logger.logMigration(message)
 
-        expect(Logger.log).toHaveBeenCalledWith(message, 'ORM')
+        expect(Logger.log).toHaveBeenCalledWith(message, 'DB')
     })
 
     it('log', () => {
         logger.log('warn', 'warn message')
         logger.log('info', 'info message')
 
-        expect(Logger.warn).toHaveBeenCalledWith('warn message', 'ORM')
-        expect(Logger.log).toHaveBeenCalledWith('info message', 'ORM')
+        expect(Logger.warn).toHaveBeenCalledWith('warn message', 'DB')
+        expect(Logger.log).toHaveBeenCalledWith('info message', 'DB')
     })
 })

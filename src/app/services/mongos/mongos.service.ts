@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult, updateIntersection } from 'common'
+import { Assert, PaginationResult } from 'common'
+import { HydratedDocument } from 'mongoose'
 import { CreateMongoDto, MongoDto, MongosQueryDto, UpdateMongoDto } from './dto'
 import { MongosRepository } from './mongos.repository'
 import { Mongo } from './schemas'
-import { HydratedDocument } from 'mongoose'
 
 @Injectable()
 export class MongosService {
@@ -19,6 +19,14 @@ export class MongosService {
         const exists = await this.mongosRepository.exist(mongoId)
 
         return exists
+    }
+
+    async findByIds(mongoIds: string[]) {
+        const foundMongos = await this.mongosRepository.findByIds(mongoIds)
+
+        const mongoDtos = foundMongos.map((mongo) => new MongoDto(mongo))
+
+        return mongoDtos
     }
 
     async findMongos(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDto>> {

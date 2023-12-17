@@ -2,8 +2,8 @@ import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
-import { createHttpTestingModule, defaultUUID } from 'common'
-import { createMongoDto, createMongoDtos, createdMongo, createdMongos } from './mocks'
+import { createHttpTestingModule } from 'common'
+import { createMongoDto, createMongoDtos, createdMongo } from './mocks'
 
 describe('MongosController', () => {
     let module: TestingModule
@@ -49,13 +49,19 @@ describe('MongosController', () => {
     })
 
     describe('GET /mongos', () => {
+        let createdMongos: MongoDto[] = []
+
         beforeEach(async () => {
+            createdMongos = []
+
             for (const createDto of createMongoDtos) {
-                await request.post({
+                const res = await request.post({
                     url: '/mongos',
                     body: createDto,
                     status: HttpStatus.CREATED
                 })
+
+                createdMongos.push(res.body)
             }
         })
 
@@ -85,14 +91,53 @@ describe('MongosController', () => {
                 url: '/mongos',
                 query: {
                     name: 'Mongo',
-                    skip: 0,
-                    take: 10,
+                    skip: 1,
+                    take: 2
+                }
+            })
+
+            const expectedMongs = createdMongos.slice(1, 3)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(expectedMongs)
+        })
+
+        it('정렬(asc)', async () => {
+            const res = await request.get({
+                url: '/mongos',
+                query: {
+                    name: 'Mongo',
+                    orderby: 'name:asc'
+                }
+            })
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(createdMongos)
+        })
+
+        it('정렬(desc)', async () => {
+            const res = await request.get({
+                url: '/mongos',
+                query: {
+                    name: 'Mongo',
                     orderby: 'name:desc'
                 }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(createdMongos.reverse())
+        })
+
+        it('id로 mongo를 검색한다', async () => {
+            const res = await request.post({
+                url: '/mongos/findByIds',
+                body: [createdMongos[0].id, createdMongos[1].id]
+            })
+
+            const mongoDtos = res.body
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(mongoDtos).toEqual([createdMongos[0], createdMongos[1]])
         })
     })
 

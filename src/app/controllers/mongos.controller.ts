@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreateMongoDto, MongosQueryDto, MongosService, UpdateMongoDto } from 'app/services/mongos'
 import { MongoExistsGuard } from './guards'
 
@@ -14,6 +14,12 @@ export class MongosController {
     @Get()
     async findMongos(@Query() query: MongosQueryDto) {
         return this.mongosService.findMongos(query)
+    }
+
+    @Post('/findByIds')
+    @HttpCode(200)
+    async findByIds(@Body() mongoIds: string[]) {
+        return this.mongosService.findByIds(mongoIds)
     }
 
     @UseGuards(MongoExistsGuard)

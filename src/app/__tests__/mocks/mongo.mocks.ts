@@ -16,7 +16,7 @@ export const createMongoDtos = [
     { ...createMongoDto, name: 'Mongo-3' }
 ]
 
-export const createdMongos = createMongoDtos.map((dto) => ({
-    ...objToJson(dto),
-    id: expect.anything()
-}))
+// export const createdMongos = createMongoDtos.map((dto) => ({
+//     ...objToJson(dto),
+//     id: expect.anything()
+// }))

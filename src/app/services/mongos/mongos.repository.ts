@@ -10,6 +10,7 @@ abstract class BaseRepository<T> {
 
     async create(documentData: Partial<T>): Promise<HydratedDocument<T>> {
         const document = await this.model.create({ ...documentData })
+
         return document
     }
 
@@ -18,15 +19,6 @@ abstract class BaseRepository<T> {
 
         return this.findById(id) as unknown as HydratedDocument<T>
     }
-    // async update(id: string, query: Record<string, any>): Promise<HydratedDocument<T>> {
-    //     try {
-    //         const updatedEntity = await this.model.findByIdAndUpdate(id, query, { new: true }).exec();
-    //         return updatedEntity;
-    //     } catch (error) {
-    //         // 여기에 에러 처리 로직 추가
-    //         throw error;
-    //     }
-    // }
 
     async remove(id: string): Promise<void> {
         await this.model.findByIdAndDelete(id).exec()
@@ -54,7 +46,7 @@ export class MongosRepository extends BaseRepository<Mongo> {
 
     async find(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
         const { skip, take, orderby, name } = queryDto
-        // 검색 쿼리 생성
+
         const query: Record<string, any> = {}
 
         if (name) {

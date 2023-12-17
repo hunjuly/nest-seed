@@ -33,14 +33,6 @@ describe('BaseRepository', () => {
         expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
     })
 
-    it('지정된 id를 사용하여 샘플 엔터티를 생성하고 id가 일치해야 함', async () => {
-        const entityData = { id: 'test-id', name: 'sample name' }
-        const createdSample = await repository.create(entityData)
-
-        expect(createdSample.id).toEqual('test-id')
-        expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
-    })
-
     describe('특정 엔티티에 대한 작업', () => {
         let sample: Sample
 

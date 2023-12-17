@@ -10,7 +10,7 @@ export class MongoDto {
 
     constructor(mongo: MongoDocument) {
         const { _id, name, desc, date, enums, integer } = mongo
-
+        console.log(_id, _id.toString())
         Object.assign(this, { id: _id.toString(), name, desc, date, enums, integer })
     }
 }
