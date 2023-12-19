@@ -17,7 +17,7 @@ import { HydratedDocument, Model } from 'mongoose'
     timestamps: true,
     versionKey: 'version'
 })
-export class BaseModel {
+export class BaseSchema {
     @Prop()
     createdAt?: Date
 
@@ -28,7 +28,7 @@ export class BaseModel {
     version?: number
 }
 
-const BaseModelSchema = SchemaFactory.createForClass(BaseModel)
+const BaseSchemaClass = SchemaFactory.createForClass(BaseSchema)
 
 /**
  * Mongoose only updates the version key when you use save().
@@ -36,7 +36,7 @@ const BaseModelSchema = SchemaFactory.createForClass(BaseModel)
  * As a workaround, you can use the below middleware.
  */
 /* istanbul ignore next */
-BaseModelSchema.pre('findOneAndUpdate', function () {
+BaseSchemaClass.pre('findOneAndUpdate', function () {
     const update = this.getUpdate() as any
 
     if (update.version != null) {
@@ -57,7 +57,7 @@ BaseModelSchema.pre('findOneAndUpdate', function () {
 
 export function createSchema<T extends Type<any>>(cls: T) {
     const schema = SchemaFactory.createForClass(cls)
-    schema.add(BaseModelSchema)
+    schema.add(BaseSchemaClass)
 
     return schema
 }

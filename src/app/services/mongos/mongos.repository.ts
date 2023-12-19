@@ -4,10 +4,10 @@ import { PaginationResult } from 'common'
 import { Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
-import * as mongo from './mongodb'
+import { Mongoose } from './mongodb'
 
 @Injectable()
-export class MongosRepository extends mongo.BaseRepository<Mongo> {
+export class MongosRepository extends Mongoose.BaseRepository<Mongo> {
     constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
         super(model)
     }
