@@ -2,8 +2,8 @@ import { Body, Controller, Get, Injectable, Module, Post, Query } from '@nestjs/
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
 import { IsOptional, IsString } from 'class-validator'
 import {
-    AggregateRoot,
-    BaseRepository,
+    TypeormEntity,
+    TypeormRepository,
     PaginationOptions,
     PaginationResult,
     createTypeormMemoryModule
@@ -11,7 +11,7 @@ import {
 import { Column, Entity, Repository } from 'typeorm'
 
 @Entity()
-export class Sample extends AggregateRoot {
+export class Sample extends TypeormEntity {
     @Column()
     name: string
 }
@@ -27,7 +27,7 @@ class SamplesQueryDto extends PaginationOptions {
 }
 
 @Injectable()
-class SampleRepository extends BaseRepository<Sample> {
+class SampleRepository extends TypeormRepository<Sample> {
     constructor(@InjectRepository(Sample) typeorm: Repository<Sample>) {
         super(typeorm)
     }

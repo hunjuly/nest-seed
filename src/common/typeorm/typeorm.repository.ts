@@ -1,9 +1,9 @@
 import { Assert, PaginationOptions, updateIntersection } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
-import { AggregateRoot } from '.'
+import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException } from './exceptions'
 
-export abstract class BaseRepository<Entity extends AggregateRoot> {
+export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {

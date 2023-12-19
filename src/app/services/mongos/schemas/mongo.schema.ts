@@ -1,6 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose'
+import { MongooseSchema, createMongooseSchema } from 'common'
 import { HydratedDocument } from 'mongoose'
-import { Mongoose } from '../mongodb'
 
 export enum MongoEnum {
     EnumA = 'EnumA',
@@ -11,7 +11,7 @@ export enum MongoEnum {
 }
 
 @Schema()
-export class Mongo extends Mongoose.BaseSchema {
+export class Mongo extends MongooseSchema {
     @Prop()
     name: string
 
@@ -29,7 +29,7 @@ export class Mongo extends Mongoose.BaseSchema {
 }
 
 // Mongo 모델의 Mongoose 스키마 정의
-export const MongoSchema = Mongoose.createSchema(Mongo)
+export const MongoSchema = createMongooseSchema(Mongo)
 
 // Mongo 문서 타입 정의
 export type MongoDocument = HydratedDocument<Mongo>

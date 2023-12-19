@@ -17,7 +17,7 @@ import { HydratedDocument, Model } from 'mongoose'
     timestamps: true,
     versionKey: 'version'
 })
-export class BaseSchema {
+export class MongooseSchema {
     @Prop()
     createdAt?: Date
 
@@ -28,7 +28,7 @@ export class BaseSchema {
     version?: number
 }
 
-const BaseSchemaClass = SchemaFactory.createForClass(BaseSchema)
+const BaseSchemaClass = SchemaFactory.createForClass(MongooseSchema)
 
 /**
  * Mongoose only updates the version key when you use save().
@@ -55,14 +55,14 @@ BaseSchemaClass.pre('findOneAndUpdate', function () {
     update.$inc.version = 1
 })
 
-export function createSchema<T extends Type<any>>(cls: T) {
+export function createMongooseSchema<T extends Type<any>>(cls: T) {
     const schema = SchemaFactory.createForClass(cls)
     schema.add(BaseSchemaClass)
 
     return schema
 }
 
-export abstract class BaseRepository<T> {
+export abstract class MongooseRepository<T> {
     constructor(protected model: Model<T>) {}
 
     async create(documentData: Partial<T>): Promise<HydratedDocument<T>> {

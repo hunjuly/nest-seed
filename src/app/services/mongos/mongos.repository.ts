@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { PaginationResult } from 'common'
+import { MongooseRepository, PaginationResult } from 'common'
 import { Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
-import { Mongoose } from './mongodb'
 
 @Injectable()
-export class MongosRepository extends Mongoose.BaseRepository<Mongo> {
+export class MongosRepository extends MongooseRepository<Mongo> {
     constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
         super(model)
     }

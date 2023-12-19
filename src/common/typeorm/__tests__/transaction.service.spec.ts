@@ -1,10 +1,10 @@
 import { TestingModule } from '@nestjs/testing'
-import { TransactionService, createTestingModule } from 'common'
+import { TypeormTransactionService, createTestingModule } from 'common'
 import { Sample, SampleRepository, SamplesModule } from './transaction.service.fixture'
 
 describe('TransactionService', () => {
     let module: TestingModule
-    let transactionService: TransactionService
+    let transactionService: TypeormTransactionService
     let sampleRepository: SampleRepository
 
     beforeEach(async () => {
@@ -12,7 +12,7 @@ describe('TransactionService', () => {
             imports: [SamplesModule]
         })
 
-        transactionService = await module.resolve(TransactionService)
+        transactionService = await module.resolve(TypeormTransactionService)
         sampleRepository = module.get(SampleRepository)
     })
 
