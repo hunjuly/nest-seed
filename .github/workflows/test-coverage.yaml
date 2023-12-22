@@ -17,7 +17,7 @@ jobs:
     test-coverage:
         runs-on: ubuntu-latest
 
-        container: node:lts-alpine
+        container: node:lts-bullseye
 
         services:
             postgres:
@@ -51,7 +51,7 @@ jobs:
                   node-version: '18'
 
             - name: Install Tools
-              run: apk add -f jq bash postgresql
+              run: apt-get install -y jq bash postgresql
 
             - name: Initialize Workflow Environment
               run: bash scripts/init_github_workflow.sh
