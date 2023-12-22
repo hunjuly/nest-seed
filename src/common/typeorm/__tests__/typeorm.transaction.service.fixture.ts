@@ -11,8 +11,8 @@ export class Sample extends TypeormEntity {
 
 @Injectable()
 export class SamplesRepository extends TypeormRepository<Sample> {
-    constructor(@InjectRepository(Sample) typeorm: Repository<Sample>) {
-        super(typeorm)
+    constructor(@InjectRepository(Sample) repo: Repository<Sample>) {
+        super(repo)
     }
 }
 

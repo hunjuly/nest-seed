@@ -123,7 +123,7 @@ describe('TypeormRepository', () => {
             expect(foundSamples.items).toEqual(samples)
         })
 
-        it('페이지네이션 옵션', async () => {
+        it('Pagination 설정', async () => {
             const skip = 10
             const take = 5
             const foundSamples = await repository.findAll({ skip, take })

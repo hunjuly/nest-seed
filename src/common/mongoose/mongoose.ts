@@ -1,6 +1,6 @@
 import { Type } from '@nestjs/common'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Assert } from 'common'
+import { Assert, PaginationOptions, PaginationResult } from 'common'
 import { HydratedDocument, Model } from 'mongoose'
 
 @Schema({
@@ -62,35 +62,61 @@ export function createMongooseSchema<T extends Type<any>>(cls: T) {
     return schema
 }
 
-export abstract class MongooseRepository<T> {
-    constructor(protected model: Model<T>) {}
+export abstract class MongooseRepository<Doc> {
+    constructor(protected model: Model<Doc>) {}
 
-    async create(documentData: Partial<T>): Promise<HydratedDocument<T>> {
+    async create(documentData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
         const document = await this.model.create({ ...documentData })
 
         return document
     }
 
-    async update(id: string, query: Partial<T>): Promise<HydratedDocument<T>> {
+    async update(id: string, query: Partial<Doc>): Promise<HydratedDocument<Doc>> {
         const updatedEntity = await this.model
             .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
             .exec()
 
         Assert.defined(updatedEntity, `id(${id})가 존재하지 않음.`)
 
-        return updatedEntity as unknown as HydratedDocument<T>
+        return updatedEntity as unknown as HydratedDocument<Doc>
     }
 
     async remove(id: string): Promise<void> {
         await this.model.findByIdAndDelete(id).exec()
     }
 
-    async findById(id: string): Promise<HydratedDocument<T> | null> {
+    async findById(id: string): Promise<HydratedDocument<Doc> | null> {
         return this.model.findById(id).exec()
     }
 
-    async findByIds(ids: string[]): Promise<HydratedDocument<T>[]> {
+    async findByIds(ids: string[]): Promise<HydratedDocument<Doc>[]> {
         return this.model.find({ _id: { $in: ids } }).exec()
+    }
+
+    async findAll(pageOptions: PaginationOptions = {}): Promise<PaginationResult<Doc>> {
+        const { skip, take, orderby } = pageOptions
+
+        const query: Record<string, any> = {}
+
+        let helpers = this.model.find(query)
+
+        if (orderby) {
+            const query: Record<string, any> = {}
+            query[orderby.name] = orderby.direction === 'asc' ? 1 : -1
+            helpers = helpers.sort(query)
+        }
+        if (skip) helpers = helpers.skip(skip)
+        if (take) helpers = helpers.limit(take)
+        const items = await helpers.exec()
+
+        const total = await this.model.countDocuments(query).exec()
+
+        return {
+            skip,
+            take,
+            total,
+            items
+        }
     }
 
     async exist(id: string): Promise<boolean> {

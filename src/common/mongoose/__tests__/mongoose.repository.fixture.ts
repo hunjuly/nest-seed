@@ -16,24 +16,6 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     constructor(@InjectModel(Sample.name) model: Model<Sample>) {
         super(model)
     }
-
-    // async findAll(): Promise<Sample[]> {
-    //     const qb = this.createQueryBuilder()
-
-    //     const [items] = await qb.getManyAndCount()
-
-    //     return items
-    // }
-
-    // async orderby(pageOptions: PaginationOptions): Promise<PaginationResult<Sample>> {
-    //     const { take, skip } = pageOptions
-
-    //     const qb = this.createQueryBuilder(pageOptions)
-
-    //     const [items, total] = await qb.getManyAndCount()
-
-    //     return { items, total, take, skip }
-    // }
 }
 
 @Module({

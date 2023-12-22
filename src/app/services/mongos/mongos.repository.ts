@@ -4,6 +4,7 @@ import { MongooseRepository, PaginationResult } from 'common'
 import { Model } from 'mongoose'
 import { MongosQueryDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
+import { escapeRegExp } from 'lodash'
 
 @Injectable()
 export class MongosRepository extends MongooseRepository<Mongo> {
@@ -11,13 +12,13 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         super(model)
     }
 
-    async find(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
+    async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
         const { skip, take, orderby, name } = queryDto
 
         const query: Record<string, any> = {}
 
         if (name) {
-            query['name'] = new RegExp(name, 'i')
+            query['name'] = new RegExp(escapeRegExp(name), 'i')
         }
 
         let helpers = this.model.find(query)
