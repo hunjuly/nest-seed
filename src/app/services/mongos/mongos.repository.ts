@@ -11,11 +11,6 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         super(model)
     }
 
-    async exist(id: string): Promise<boolean> {
-        const entity = await this.model.exists({ _id: id }).exec()
-        return entity != null
-    }
-
     async find(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
         const { skip, take, orderby, name } = queryDto
 

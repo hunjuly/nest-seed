@@ -1,4 +1,4 @@
-import { Assert, PaginationOptions, updateIntersection } from 'common'
+import { Assert, PaginationOptions, PaginationResult, updateIntersection } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm'
 import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException } from './exceptions'
@@ -57,13 +57,23 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         } as unknown as FindOptionsWhere<Entity>)
     }
 
+    async findAll(pageOptions: PaginationOptions = {}): Promise<PaginationResult<Entity>> {
+        const { take, skip } = pageOptions
+
+        const qb = this.createQueryBuilder(pageOptions)
+
+        const [items, total] = await qb.getManyAndCount()
+
+        return { items, total, take, skip }
+    }
+
     async exist(id: string): Promise<boolean> {
         return this.repo.exist({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }
 
-    protected createQueryBuilder(opts: PaginationOptions = {}) {
+    protected createQueryBuilder(opts: PaginationOptions) {
         const { take, skip, orderby } = opts
 
         const qb = this.repo.createQueryBuilder('entity')

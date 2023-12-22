@@ -3,7 +3,7 @@ import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
 import { Env } from 'config'
 import { mongoDatasource } from 'databases/mongo'
 
-const psqlModuleConfig = (): MongooseModuleFactoryOptions => {
+const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
     const isDevelopment = Env.isDevelopment()
 
     const autoIndex = isDevelopment
@@ -28,6 +28,6 @@ const psqlModuleConfig = (): MongooseModuleFactoryOptions => {
 }
 
 @Module({
-    imports: [MongooseModule.forRootAsync({ useFactory: psqlModuleConfig })]
+    imports: [MongooseModule.forRootAsync({ useFactory: mongoModuleConfig })]
 })
 export class MongoDbModule {}

@@ -92,4 +92,9 @@ export abstract class MongooseRepository<T> {
     async findByIds(ids: string[]): Promise<HydratedDocument<T>[]> {
         return this.model.find({ _id: { $in: ids } }).exec()
     }
+
+    async exist(id: string): Promise<boolean> {
+        const entity = await this.model.exists({ _id: id }).exec()
+        return entity != null
+    }
 }

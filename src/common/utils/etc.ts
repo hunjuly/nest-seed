@@ -138,3 +138,9 @@ export class Password {
         return compare(plainPassword, hashedPassword)
     }
 }
+
+export function padNumber(num: number, length: number): string {
+    const paddedNumber = num.toString().padStart(length, '0')
+
+    return paddedNumber
+}
