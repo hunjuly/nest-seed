@@ -8,7 +8,7 @@ import {
 } from 'common'
 import { Sample, SamplesRepository, SamplesModule } from './typeorm.repository.fixture'
 
-const sampleMock = {
+const entityBase = {
     id: expect.anything(),
     createdAt: expect.anything(),
     updatedAt: expect.anything(),
@@ -36,8 +36,8 @@ describe('TypeormRepository', () => {
             const createData = { name: 'sample name' }
             const createdSample = await repository.create(createData)
 
-            const expected = { ...sampleMock, ...createData }
-            expect(createdSample).toEqual(expected)
+            const expectedSample = { ...entityBase, ...createData }
+            expect(createdSample).toEqual(expectedSample)
         })
 
         it('존재하지 않는 ID로 업데이트 예외 확인', async () => {
@@ -64,8 +64,8 @@ describe('TypeormRepository', () => {
             const updateData = { name: 'new name' }
             const updatedSample = await repository.update(sample.id, updateData)
 
-            const expected = { ...sampleMock, ...updateData }
-            expect(updatedSample).toEqual(expected)
+            const expectedSample = { ...entityBase, ...updateData }
+            expect(updatedSample).toEqual(expectedSample)
         })
 
         it('특정 엔티티 조회 및 일치 여부 확인', async () => {
