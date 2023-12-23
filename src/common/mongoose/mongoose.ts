@@ -1,6 +1,6 @@
 import { Type } from '@nestjs/common'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Assert, Exception, PaginationOptions, PaginationResult } from 'common'
+import { Exception, PaginationOptions, PaginationResult } from 'common'
 import { HydratedDocument, Model } from 'mongoose'
 
 export class MongooseException extends Exception {}
@@ -70,8 +70,6 @@ export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
 
     async create(documentData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        // Assert.undefined(documentData.id, `id${documentData.id}가 정의되어 있으면 안 된다.`)
-
         const savedDocument = await this.model.create({ ...documentData })
 
         return savedDocument
@@ -112,9 +110,7 @@ export abstract class MongooseRepository<Doc> {
     async findAll(pageOptions: PaginationOptions = {}): Promise<PaginationResult<HydratedDocument<Doc>>> {
         const { skip, take, orderby } = pageOptions
 
-        const query: Record<string, any> = {}
-
-        let helpers = this.model.find(query)
+        let helpers = this.model.find()
 
         if (orderby) {
             const query: Record<string, any> = {}
@@ -125,7 +121,7 @@ export abstract class MongooseRepository<Doc> {
         if (take) helpers = helpers.limit(take)
         const items = await helpers.exec()
 
-        const total = await this.model.countDocuments(query).exec()
+        const total = await this.model.countDocuments().exec()
 
         return {
             skip,

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository, PaginationResult } from 'common'
+import { DocumentNotFoundMongooseException, MongooseRepository, PaginationResult } from 'common'
 import { Model } from 'mongoose'
-import { MongosQueryDto } from './dto'
+import { MongosQueryDto, UpdateMongoDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
 import { escapeRegExp } from 'lodash'
 
@@ -10,6 +10,20 @@ import { escapeRegExp } from 'lodash'
 export class MongosRepository extends MongooseRepository<Mongo> {
     constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
         super(model)
+    }
+
+    async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
+        const updatedDocument = await this.model
+            .findByIdAndUpdate(id, updateMongoDto, { returnDocument: 'after', upsert: false })
+            .exec()
+
+        if (!updatedDocument) {
+            throw new DocumentNotFoundMongooseException(
+                `Failed to update entity with id: ${id}. Entity not found.`
+            )
+        }
+
+        return updatedDocument as MongoDocument
     }
 
     async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
@@ -30,6 +44,7 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         }
         if (skip) helpers = helpers.skip(skip)
         if (take) helpers = helpers.limit(take)
+
         const items = await helpers.exec()
 
         const total = await this.model.countDocuments(query).exec()
