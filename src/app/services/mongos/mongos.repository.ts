@@ -28,14 +28,14 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         const safeData: Partial<UpdateMongoDto> = {}
 
         // if (updateDto.name && typeof updateDto.name === 'string' && updateDto.name.length <= 100) {
-        if (updateDto.name && typeof updateDto.name === 'string') {
-            safeData.name = updateDto.name
-        }
+        // if (updateDto.name && typeof updateDto.name === 'string') {
+        safeData.name = updateDto.name
+        // }
 
         // if (updateDto.desc && typeof updateDto.desc === 'string' && updateDto.desc.length <= 200) {
-        if (updateDto.desc && typeof updateDto.desc === 'string') {
-            safeData.desc = updateDto.desc
-        }
+        // if (updateDto.desc && typeof updateDto.desc === 'string') {
+        safeData.desc = updateDto.desc
+        // }
 
         if (updateDto.date && typeof updateDto.date === 'string') {
             safeData.date = new Date(updateDto.date)
