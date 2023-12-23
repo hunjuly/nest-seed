@@ -2,16 +2,12 @@
 name: Test and Coverage
 
 on:
-    # create pull request하면 실행된다
+    # main 브렌치를 대상으로 하는 pull request가 create/update하면 실행된다
     pull_request:
-        branches:
-            - main
+        branches: ['main']
     # merge pull request하면 실행된다
     push:
-        # branches:
-        #     - main
-        branches-ignore:
-            - '*'
+        branches: ['main']
 
 jobs:
     test-coverage:

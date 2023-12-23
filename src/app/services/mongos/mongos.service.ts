@@ -52,7 +52,7 @@ export class MongosService {
     }
 
     async updateMongo(mongoId: string, updateMongoDto: UpdateMongoDto) {
-        const savedMongo = await this.mongosRepository.update(mongoId, updateMongoDto)
+        const savedMongo = await this.mongosRepository.update2(mongoId, updateMongoDto)
 
         return new MongoDto(savedMongo)
     }
