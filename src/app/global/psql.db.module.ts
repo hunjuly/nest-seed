@@ -1,15 +1,13 @@
 import { Logger, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { TypeormLogger } from 'common'
-import { Env } from 'config'
+import { isDevelopment } from 'config'
 import { psqlConnectionOptions } from 'databases/psql'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 
 const psqlModuleConfig = (): PostgresConnectionOptions => {
-    const shouldResetDatabase = Env.isDevelopment()
-
-    const dropSchema = shouldResetDatabase
-    const synchronize = shouldResetDatabase
+    const dropSchema = isDevelopment()
+    const synchronize = isDevelopment()
 
     const logger = new TypeormLogger()
     // 설정은 했는데 동작하는 것을 못봤다.

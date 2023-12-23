@@ -8,15 +8,16 @@ export const createMongoDto = {
     integer: 100
 }
 
-export const createdMongo = { ...objToJson(createMongoDto), id: expect.anything() }
+export const createdMongo = {
+    ...objToJson(createMongoDto),
+    id: expect.anything(),
+    createdAt: expect.anything(),
+    updatedAt: expect.anything(),
+    version: 0
+}
 
 export const createMongoDtos = [
     { ...createMongoDto, name: 'Mongo-1' },
     { ...createMongoDto, name: 'Mongo-2' },
     { ...createMongoDto, name: 'Mongo-3' }
 ]
-
-// export const createdMongos = createMongoDtos.map((dto) => ({
-//     ...objToJson(dto),
-//     id: expect.anything()
-// }))

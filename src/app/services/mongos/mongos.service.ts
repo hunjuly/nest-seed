@@ -30,7 +30,7 @@ export class MongosService {
     }
 
     async findMongos(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDto>> {
-        const pagedMongos = await this.mongosRepository.find(queryDto)
+        const pagedMongos = await this.mongosRepository.findByName(queryDto)
 
         const items = pagedMongos.items.map((mongo) => new MongoDto(mongo))
 

@@ -1,7 +1,15 @@
 import * as dotenv from 'dotenv'
-import { Env, getNumber, getString } from './utils'
+import { getNumber, getString } from './utils'
 
-if (Env.isDevelopment()) {
+export function isProduction() {
+    return process.env.NODE_ENV === 'production'
+}
+
+export function isDevelopment() {
+    return process.env.NODE_ENV === 'development'
+}
+
+if (isDevelopment()) {
     dotenv.config({ path: '.env.development' })
 }
 

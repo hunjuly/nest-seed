@@ -102,7 +102,7 @@ describe('MongosController', () => {
             expect(res.body.items).toEqual(expectedMongs)
         })
 
-        it('정렬(asc)', async () => {
+        it('오름차순(asc) 정렬', async () => {
             const res = await request.get({
                 url: '/mongos',
                 query: {
@@ -115,7 +115,7 @@ describe('MongosController', () => {
             expect(res.body.items).toEqual(createdMongos)
         })
 
-        it('정렬(desc)', async () => {
+        it('내림차순(desc) 정렬', async () => {
             const res = await request.get({
                 url: '/mongos',
                 query: {
@@ -182,12 +182,17 @@ describe('MongosController', () => {
                 const res = await request.patch({
                     url: `/mongos/${mongo.id}`,
                     body: {
-                        name: 'Updated Mongo'
+                        name: 'Updated Mongo2'
                     }
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({ ...mongo, name: 'Updated Mongo' })
+                expect(res.body).toEqual({
+                    ...mongo,
+                    updatedAt: expect.anything(),
+                    name: 'Updated Mongo2',
+                    version: 1
+                })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
