@@ -13,9 +13,6 @@ export class MongosRepository extends MongooseRepository<Mongo> {
     }
 
     async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
-        updateMongoDto.name = updateMongoDto.name?.trim()
-        updateMongoDto.integer = updateMongoDto.integer
-
         const safeData = {
             name: updateMongoDto.name?.toString(),
             desc: updateMongoDto.desc?.toString(),
