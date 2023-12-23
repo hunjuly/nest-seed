@@ -37,17 +37,17 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         safeData.desc = updateDto.desc
         // }
 
-        if (updateDto.date && typeof updateDto.date === 'string') {
-            safeData.date = new Date(updateDto.date)
-        }
+        // if (updateDto.date && typeof updateDto.date === 'string') {
+        if (updateDto.date) safeData.date = new Date(updateDto.date)
+        // }
 
-        if (Array.isArray(updateDto.enums)) {
-            safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
-        }
+        // if (Array.isArray(updateDto.enums)) {
+        safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
+        // }
 
-        if (typeof updateDto.integer === 'number') {
-            safeData.integer = updateDto.integer
-        }
+        // if (typeof updateDto.integer === 'number') {
+        safeData.integer = updateDto.integer
+        // }
 
         return safeData
     }
