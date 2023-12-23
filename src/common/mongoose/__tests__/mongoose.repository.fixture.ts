@@ -1,7 +1,7 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
 import { MongooseRepository, MongooseSchema, createMongooseSchema } from 'common'
-import { Model } from 'mongoose'
+import { HydratedDocument, Model } from 'mongoose'
 
 @Schema()
 export class Sample extends MongooseSchema {
@@ -10,6 +10,7 @@ export class Sample extends MongooseSchema {
 }
 
 export const SampleSchema = createMongooseSchema(Sample)
+export type SampleDocument = HydratedDocument<Sample>
 
 @Injectable()
 export class SamplesRepository extends MongooseRepository<Sample> {

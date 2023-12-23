@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
-import { createHttpTestingModule, defaultUUID } from 'common'
+import { createHttpTestingModule, nullUUID } from 'common'
 import { createUserDto, createUserDtos, createdUser } from './mocks'
 
 describe('UsersController', () => {
@@ -128,7 +128,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.get({
-                    url: `/users/${defaultUUID}`
+                    url: `/users/${nullUUID}`
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)
@@ -161,7 +161,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.patch({
-                    url: `/users/${defaultUUID}`,
+                    url: `/users/${nullUUID}`,
                     body: {
                         email: 'user@mail.com'
                     }
@@ -182,7 +182,7 @@ describe('UsersController', () => {
 
             it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await request.delete({
-                    url: `/users/${defaultUUID}`
+                    url: `/users/${nullUUID}`
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)

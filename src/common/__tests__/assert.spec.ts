@@ -1,4 +1,4 @@
-import { Assert, LogicException } from '..'
+import { Assert, FatalException, LogicException } from '..'
 
 describe('Assert', () => {
     describe('deepEquals', () => {

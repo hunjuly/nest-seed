@@ -2,7 +2,7 @@ import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { createHttpTestingModule, defaultUUID, sleep } from 'common'
+import { createHttpTestingModule, nullUUID, sleep } from 'common'
 import { createUserDto } from './mocks'
 
 jest.mock('config', () => {
@@ -165,7 +165,7 @@ describe('Authentication', () => {
 
             it('데이터가 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
                 const invalidToken = jwtService.sign(
-                    { userId: defaultUUID },
+                    { userId: nullUUID },
                     { secret: 'mockAccessSecret', expiresIn: '15m' }
                 )
 

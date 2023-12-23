@@ -117,51 +117,51 @@ describe('TypeormRepository', () => {
         })
 
         it('모든 엔티티 조회', async () => {
-            const foundSamples = await repository.findAll()
+            const paginatedResult = await repository.findAll()
 
-            sort(foundSamples.items)
-            expect(foundSamples.items).toEqual(samples)
+            sort(paginatedResult.items)
+            expect(paginatedResult.items).toEqual(samples)
         })
 
         it('Pagination 설정', async () => {
             const skip = 10
             const take = 5
-            const foundSamples = await repository.findAll({ skip, take })
+            const paginatedResult = await repository.findAll({ skip, take })
 
             const expectedSamples = samples.slice(skip, skip + take)
 
-            expect(foundSamples.items).toEqual(expectedSamples)
+            expect(paginatedResult.items).toEqual(expectedSamples)
         })
 
         it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
             const skip = samples.length
             const take = 5
 
-            const foundSamples = await repository.findAll({ skip, take })
+            const paginatedResult = await repository.findAll({ skip, take })
 
-            expect(foundSamples.items).toHaveLength(0)
+            expect(paginatedResult.items).toHaveLength(0)
         })
 
         it('내림차순 정렬', async () => {
-            const found = await repository.findAll({
+            const paginatedResult = await repository.findAll({
                 orderby: {
                     name: 'name',
                     direction: OrderDirection.desc
                 }
             })
 
-            expect(found.items).toEqual(samples.reverse())
+            expect(paginatedResult.items).toEqual(samples.reverse())
         })
 
         it('오름차순 정렬', async () => {
-            const found = await repository.findAll({
+            const paginatedResult = await repository.findAll({
                 orderby: {
                     name: 'name',
                     direction: OrderDirection.asc
                 }
             })
 
-            expect(found.items).toEqual(samples)
+            expect(paginatedResult.items).toEqual(samples)
         })
     })
 })

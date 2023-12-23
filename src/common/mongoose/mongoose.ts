@@ -1,7 +1,11 @@
 import { Type } from '@nestjs/common'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Assert, PaginationOptions, PaginationResult } from 'common'
+import { Assert, Exception, PaginationOptions, PaginationResult } from 'common'
 import { HydratedDocument, Model } from 'mongoose'
+
+export class MongooseException extends Exception {}
+
+export class DocumentNotFoundMongooseException extends MongooseException {}
 
 @Schema({
     minimize: false,
@@ -66,23 +70,35 @@ export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
 
     async create(documentData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const document = await this.model.create({ ...documentData })
+        // Assert.undefined(documentData.id, `id${documentData.id}가 정의되어 있으면 안 된다.`)
 
-        return document
+        const savedDocument = await this.model.create({ ...documentData })
+
+        return savedDocument
     }
 
     async update(id: string, query: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const updatedEntity = await this.model
+        const updatedDocument = await this.model
             .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
             .exec()
 
-        Assert.defined(updatedEntity, `id(${id})가 존재하지 않음.`)
+        if (!updatedDocument) {
+            throw new DocumentNotFoundMongooseException(
+                `Failed to update entity with id: ${id}. Entity not found.`
+            )
+        }
 
-        return updatedEntity as unknown as HydratedDocument<Doc>
+        return updatedDocument as unknown as HydratedDocument<Doc>
     }
 
     async remove(id: string): Promise<void> {
-        await this.model.findByIdAndDelete(id).exec()
+        const removedDocument = await this.model.findByIdAndDelete(id).exec()
+
+        if (!removedDocument) {
+            throw new DocumentNotFoundMongooseException(
+                `Failed to remove entity with id: ${id}. Entity not found.`
+            )
+        }
     }
 
     async findById(id: string): Promise<HydratedDocument<Doc> | null> {
@@ -93,7 +109,7 @@ export abstract class MongooseRepository<Doc> {
         return this.model.find({ _id: { $in: ids } }).exec()
     }
 
-    async findAll(pageOptions: PaginationOptions = {}): Promise<PaginationResult<Doc>> {
+    async findAll(pageOptions: PaginationOptions = {}): Promise<PaginationResult<HydratedDocument<Doc>>> {
         const { skip, take, orderby } = pageOptions
 
         const query: Record<string, any> = {}

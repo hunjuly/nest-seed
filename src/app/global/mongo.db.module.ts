@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
-import { Env } from 'config'
+import { isDevelopment } from 'config'
 import { mongoDatasource } from 'databases/mongo'
 
 const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
-    const isDevelopment = Env.isDevelopment()
-
-    const autoIndex = isDevelopment
-    const autoCreate = isDevelopment
+    const autoIndex = isDevelopment()
+    const autoCreate = isDevelopment()
 
     const connectionFactory = (connection: any) => {
-        if (isDevelopment) connection.dropDatabase()
+        if (isDevelopment()) connection.dropDatabase()
 
         return connection
     }

@@ -1,10 +1,17 @@
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import { createTestingModule } from 'common'
+import {
+    DocumentNotFoundMongooseException,
+    OrderDirection,
+    createTestingModule,
+    nullObjectId,
+    padNumber
+} from 'common'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { SamplesRepository, SamplesModule } from './mongoose.repository.fixture'
+import { Sample, SampleDocument, SamplesModule, SamplesRepository } from './mongoose.repository.fixture'
+import { isEqual } from 'lodash'
 
-const aggregateRootMock = {
+const entityBase = {
     _id: expect.anything(),
     createdAt: expect.anything(),
     updatedAt: expect.anything(),
@@ -35,109 +42,153 @@ describe('MongooseRepository', () => {
         await mongoServer.stop()
     })
 
-    it('test1', async () => {
-        const entityData = { name: 'sample name' }
-        const createdSample = await repository.create(entityData)
+    describe('존재하지 않는 엔티티에 대한 작업', () => {
+        it('새 엔티티 생성 후 데이터 일치 확인', async () => {
+            const createData = { name: 'sample name' }
+            const createdSample = await repository.create(createData)
 
-        expect(createdSample.id).toBeDefined()
-        expect(createdSample.toJSON()).toEqual({ ...aggregateRootMock, ...entityData })
+            const expectedSample = { ...entityBase, ...createData }
+            expect(createdSample.toJSON()).toEqual(expectedSample)
+        })
+
+        it('존재하지 않는 ID로 업데이트 예외 확인', async () => {
+            const promise = repository.update(nullObjectId, {})
+
+            await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
+        })
+
+        it('존재하지 않는 ID로 삭제 예외 확인', async () => {
+            const promise = repository.remove(nullObjectId)
+
+            await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
+        })
     })
 
-    // it('샘플 엔티티를 생성하고 id가 정의되어 있어야 함', async () => {
-    //     const entityData = { name: 'sample name' }
-    //     const createdSample = await repository.create(entityData)
+    describe('특정 엔티티에 대한 작업', () => {
+        let sample: SampleDocument
 
-    //     expect(createdSample.id).toBeDefined()
-    //     expect(createdSample).toEqual({ ...aggregateRootMock, ...entityData })
-    // })
+        beforeEach(async () => {
+            sample = await repository.create({ name: 'sample name' })
+        })
 
-    // describe('특정 엔티티에 대한 작업', () => {
-    //     let sample: Sample
+        it('엔티티 업데이트 후 일치 여부 확인', async () => {
+            const updateData = { name: 'new name' }
+            const updatedSample = await repository.update(sample.id, updateData)
 
-    //     beforeEach(async () => {
-    //         sample = await repository.create({ name: 'sample name' })
-    //     })
+            const expectedSample = { ...entityBase, ...updateData }
+            expect(updatedSample.toJSON()).toEqual(expectedSample)
+        })
 
-    //     it('update', async () => {
-    //         const updatedSample = await repository.update(sample.id, { name: 'new name' })
+        it('특정 엔티티 조회 및 일치 여부 확인', async () => {
+            const foundSample = await repository.findById(sample.id)
 
-    //         expect(updatedSample.name).toEqual('new name')
-    //     })
+            expect(foundSample?.toJSON()).toEqual(sample.toJSON())
+        })
 
-    //     it('update Id가 존재하지 않으면 예외', async () => {
-    //         const promise = repository.update('nullId', {})
+        it('엔티티 존재 여부 확인', async () => {
+            const exist = await repository.exist(sample.id)
 
-    //         await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
-    //     })
+            expect(exist).toBeTruthy()
+        })
 
-    //     it('findById', async () => {
-    //         const foundSample = await repository.findById(sample.id)
+        it('엔티티 삭제 후 존재 여부 확인', async () => {
+            await repository.remove(sample.id)
 
-    //         expect(foundSample).toEqual(sample)
-    //     })
+            const removedSample = await repository.findById(sample.id)
 
-    //     it('exist', async () => {
-    //         const exist = await repository.exist(sample.id)
+            expect(removedSample).toBeNull()
+        })
+    })
 
-    //         expect(exist).toBeTruthy()
-    //     })
+    describe('다수의 엔티티에 대한 작업', () => {
+        let samples: SampleDocument[]
 
-    //     it('remove', async () => {
-    //         await repository.remove(sample.id)
+        beforeEach(async () => {
+            samples = []
 
-    //         const foundSample = await repository.findById(sample.id)
+            for (let i = 0; i < 100; i++) {
+                const createData = { name: `Sample_${padNumber(i, 3)}` }
+                const createdSample = await repository.create(createData)
 
-    //         expect(foundSample).toBeNull()
-    //     })
+                samples.push(createdSample)
+            }
+        })
 
-    //     it('remove Id가 존재하지 않으면 예외', async () => {
-    //         const promise = repository.remove('nullId')
+        const sort = (items: Sample[]) => {
+            items.sort((a, b) => a.name.localeCompare(b.name))
+        }
 
-    //         await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
-    //     })
-    // })
+        const isEqualArray = (a: SampleDocument[], b: SampleDocument[]) => {
+            if (a.length !== b.length) return false
 
-    // describe('다수의 엔티티에 대한 작업', () => {
-    //     let samples: Sample[]
+            for (let index = 0; index < a.length; index++) {
+                if (!isEqual(a[index].toJSON(), b[index].toJSON())) {
+                    return false
+                }
+            }
 
-    //     beforeEach(async () => {
-    //         samples = []
+            return true
+        }
 
-    //         for (let i = 0; i < 101; i++) {
-    //             // 그냥 1,2,3,4로 하면 orderby 할 때 1,10,2,3 순서로 된다.
-    //             const paddedNumber = i.toString().padStart(3, '0')
-    //             const entityData = { name: `Sample#${paddedNumber}` }
-    //             const createdSample = await repository.create(entityData)
+        it('다수의 엔티티 ID로 조회', async () => {
+            const ids = samples.map((sample) => sample.id)
 
-    //             samples.push(createdSample)
-    //         }
-    //     })
+            const foundSamples = await repository.findByIds(ids)
+            sort(foundSamples)
 
-    // it('findByIds', async () => {
-    //     const ids = samples.map((sample) => sample.id)
+            const equals = isEqualArray(foundSamples, samples)
+            expect(equals).toBeTruthy()
+        })
 
-    //     const foundSamples = await repository.findByIds(ids)
-    //     foundSamples.sort((a, b) => a.name.localeCompare(b.name))
+        it('모든 엔티티 조회', async () => {
+            const paginatedResult = await repository.findAll()
 
-    //     expect(foundSamples).toEqual(samples)
-    // })
+            const equals = isEqualArray(paginatedResult.items, samples)
+            expect(equals).toBeTruthy()
+        })
 
-    // it('findAll', async () => {
-    //     const foundSamples = await repository.findAll()
-    //     foundSamples.sort((a, b) => a.name.localeCompare(b.name))
+        it('Pagination 설정', async () => {
+            const skip = 10
+            const take = 5
+            const paginatedResult = await repository.findAll({ skip, take })
 
-    //     expect(foundSamples).toEqual(samples)
-    // })
+            const expectedSamples = samples.slice(skip, skip + take)
 
-    // it('orderby', async () => {
-    //     const found = await repository.orderby({
-    //         orderby: {
-    //             name: 'name',
-    //             direction: OrderDirection.desc
-    //         }
-    //     })
+            const equals = isEqualArray(paginatedResult.items, expectedSamples)
+            expect(equals).toBeTruthy()
+        })
 
-    //     expect(found.items).toEqual(samples.reverse())
-    // })
-    // })
+        it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
+            const skip = samples.length
+            const take = 5
+
+            const paginatedResult = await repository.findAll({ skip, take })
+
+            expect(paginatedResult.items).toHaveLength(0)
+        })
+
+        it('내림차순 정렬', async () => {
+            const paginatedResult = await repository.findAll({
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.desc
+                }
+            })
+
+            const equals = isEqualArray(paginatedResult.items, samples.reverse())
+            expect(equals).toBeTruthy()
+        })
+
+        it('오름차순 정렬', async () => {
+            const paginatedResult = await repository.findAll({
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.asc
+                }
+            })
+
+            const equals = isEqualArray(paginatedResult.items, samples)
+            expect(equals).toBeTruthy()
+        })
+    })
 })

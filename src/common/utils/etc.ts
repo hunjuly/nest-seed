@@ -10,7 +10,8 @@ export function generateUUID() {
     return randomUUID()
 }
 
-export const defaultUUID = '00000000000000000000000000000000'
+export const nullUUID = '00000000000000000000000000000000'
+export const nullObjectId = '000000000000000000000000'
 
 export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
     const updatedObject = Object.keys(obj2).reduce(
