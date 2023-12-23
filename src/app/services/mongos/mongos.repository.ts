@@ -49,7 +49,7 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         safeData.integer = updateDto.integer
         // }
 
-        return updateDto
+        return safeData
     }
 
     async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
