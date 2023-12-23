@@ -14,10 +14,10 @@ export class MongosRepository extends MongooseRepository<Mongo> {
 
     async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
         // 안전한 데이터만 필터링
-        const safeData = this.filterUpdateData(updateMongoDto)
+        // const safeData = this.filterUpdateData(updateMongoDto)
 
         const updatedDocument = await this.model
-            .findByIdAndUpdate(id, safeData, { returnDocument: 'after', upsert: false })
+            .findByIdAndUpdate(id, updateMongoDto, { returnDocument: 'after', upsert: false })
             .exec()
 
         return updatedDocument as MongoDocument
