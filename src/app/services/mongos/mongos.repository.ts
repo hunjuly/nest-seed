@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { MongooseRepository, PaginationResult } from 'common'
-import { escapeRegExp, isArray, isNumber } from 'lodash'
+import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { MongosQueryDto, UpdateMongoDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
@@ -13,19 +13,40 @@ export class MongosRepository extends MongooseRepository<Mongo> {
     }
 
     async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
-        const safeData = {
-            name: updateMongoDto.name?.toString(),
-            desc: updateMongoDto.desc?.toString(),
-            date: typeof updateMongoDto.date === 'string' ? new Date(updateMongoDto.date) : undefined,
-            enums: isArray(updateMongoDto.enums) ? updateMongoDto.enums : undefined,
-            integer: isNumber(updateMongoDto.integer) ? updateMongoDto.integer : undefined
-        }
+        // 안전한 데이터만 필터링
+        const safeData = this.filterUpdateData(updateMongoDto)
 
         const updatedDocument = await this.model
             .findByIdAndUpdate(id, safeData, { returnDocument: 'after', upsert: false })
             .exec()
 
         return updatedDocument as MongoDocument
+    }
+
+    filterUpdateData(updateDto: UpdateMongoDto): Partial<UpdateMongoDto> {
+        const safeData: Partial<UpdateMongoDto> = {}
+
+        if (updateDto.name && typeof updateDto.name === 'string' && updateDto.name.length <= 100) {
+            safeData.name = updateDto.name
+        }
+
+        if (updateDto.desc && typeof updateDto.desc === 'string' && updateDto.desc.length <= 200) {
+            safeData.desc = updateDto.desc
+        }
+
+        if (updateDto.date && typeof updateDto.date === 'string') {
+            safeData.date = new Date(updateDto.date)
+        }
+
+        if (Array.isArray(updateDto.enums)) {
+            safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
+        }
+
+        if (typeof updateDto.integer === 'number') {
+            safeData.integer = updateDto.integer
+        }
+
+        return safeData
     }
 
     async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
