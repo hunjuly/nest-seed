@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { DocumentNotFoundMongooseException, MongooseRepository, PaginationResult } from 'common'
+import { MongooseRepository, PaginationResult } from 'common'
+import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { MongosQueryDto, UpdateMongoDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
-import { escapeRegExp } from 'lodash'
 
 @Injectable()
 export class MongosRepository extends MongooseRepository<Mongo> {
@@ -16,12 +16,6 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         const updatedDocument = await this.model
             .findByIdAndUpdate(id, updateMongoDto, { returnDocument: 'after', upsert: false })
             .exec()
-
-        if (!updatedDocument) {
-            throw new DocumentNotFoundMongooseException(
-                `Failed to update entity with id: ${id}. Entity not found.`
-            )
-        }
 
         return updatedDocument as MongoDocument
     }
