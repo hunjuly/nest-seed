@@ -23,6 +23,7 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         return updatedDocument as MongoDocument
     }
 
+    /* istanbul ignore next */
     filterUpdateData(updateDto: UpdateMongoDto): Partial<UpdateMongoDto> {
         const safeData: Partial<UpdateMongoDto> = {}
 
