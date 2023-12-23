@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { MongooseRepository, PaginationResult } from 'common'
-import { escapeRegExp } from 'lodash'
+import { escapeRegExp, isArray, isNumber } from 'lodash'
 import { Model } from 'mongoose'
 import { MongosQueryDto, UpdateMongoDto } from './dto'
 import { Mongo, MongoDocument } from './schemas'
@@ -16,8 +16,16 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         updateMongoDto.name = updateMongoDto.name?.trim()
         updateMongoDto.integer = updateMongoDto.integer
 
+        const safeData = {
+            name: updateMongoDto.name?.toString(),
+            desc: updateMongoDto.desc?.toString(),
+            date: typeof updateMongoDto.date === 'string' ? new Date(updateMongoDto.date) : undefined,
+            enums: isArray(updateMongoDto.enums) ? updateMongoDto.enums : undefined,
+            integer: isNumber(updateMongoDto.integer) ? updateMongoDto.integer : undefined
+        }
+
         const updatedDocument = await this.model
-            .findByIdAndUpdate(id, updateMongoDto, { returnDocument: 'after', upsert: false })
+            .findByIdAndUpdate(id, safeData, { returnDocument: 'after', upsert: false })
             .exec()
 
         return updatedDocument as MongoDocument
