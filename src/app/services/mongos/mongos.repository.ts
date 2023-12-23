@@ -14,10 +14,10 @@ export class MongosRepository extends MongooseRepository<Mongo> {
 
     async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
         // 안전한 데이터만 필터링
-        // const safeData = this.filterUpdateData(updateMongoDto)
+        const safeData = this.filterUpdateData(updateMongoDto)
 
         const updatedDocument = await this.model
-            .findByIdAndUpdate(id, updateMongoDto, { returnDocument: 'after', upsert: false })
+            .findByIdAndUpdate(id, safeData, { returnDocument: 'after', upsert: false })
             .exec()
 
         return updatedDocument as MongoDocument
@@ -27,27 +27,27 @@ export class MongosRepository extends MongooseRepository<Mongo> {
     filterUpdateData(updateDto: UpdateMongoDto): Partial<UpdateMongoDto> {
         const safeData: Partial<UpdateMongoDto> = {}
 
-        if (updateDto.name && typeof updateDto.name === 'string' && updateDto.name.length <= 100) {
-            // if (updateDto.name && typeof updateDto.name === 'string') {
-            safeData.name = updateDto.name
-        }
+        // if (updateDto.name && typeof updateDto.name === 'string' && updateDto.name.length <= 100) {
+        // if (updateDto.name && typeof updateDto.name === 'string') {
+        safeData.name = updateDto.name
+        // }
 
-        if (updateDto.desc && typeof updateDto.desc === 'string' && updateDto.desc.length <= 200) {
-            // if (updateDto.desc && typeof updateDto.desc === 'string') {
-            safeData.desc = updateDto.desc
-        }
+        // if (updateDto.desc && typeof updateDto.desc === 'string' && updateDto.desc.length <= 200) {
+        // if (updateDto.desc && typeof updateDto.desc === 'string') {
+        safeData.desc = updateDto.desc
+        // }
 
         if (updateDto.date && typeof updateDto.date === 'string') {
             safeData.date = new Date(updateDto.date)
         }
 
-        if (Array.isArray(updateDto.enums)) {
-            safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
-        }
+        // if (Array.isArray(updateDto.enums)) {
+        safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
+        // }
 
-        if (typeof updateDto.integer === 'number') {
-            safeData.integer = updateDto.integer
-        }
+        // if (typeof updateDto.integer === 'number') {
+        safeData.integer = updateDto.integer
+        // }
 
         return safeData
     }
