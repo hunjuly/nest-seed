@@ -17,6 +17,18 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     constructor(@InjectModel(Sample.name) model: Model<Sample>) {
         super(model)
     }
+
+    async update(id: string, updateMongoDto: Partial<Sample>): Promise<SampleDocument> {
+        /**
+         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
+         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
+         * Database query built from user-controlled sources
+         */
+        const updateData: Partial<Sample> = {}
+        updateData.name = updateMongoDto.name
+
+        return super.update(id, updateData)
+    }
 }
 
 @Module({

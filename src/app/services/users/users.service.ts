@@ -24,7 +24,7 @@ export class UsersService {
     }
 
     async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
-        const users = await this.usersRepository.find(queryDto)
+        const users = await this.usersRepository.findByQuery(queryDto)
 
         const items = users.items.map((user) => new UserDto(user))
 

@@ -11,19 +11,18 @@ export class PsqlsRepository extends TypeormRepository<Psql> {
         super(repo)
     }
 
-    async find(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {
-        const { take, skip } = queryDto
+    async findByName(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {
+        const result = await super.find({
+            page: queryDto,
+            middleware: (qb) => {
+                if (queryDto.name) {
+                    qb.where('entity.name LIKE :name', {
+                        name: `%${queryDto.name}%`
+                    })
+                }
+            }
+        })
 
-        const qb = this.createQueryBuilder(queryDto)
-
-        if (queryDto.name) {
-            qb.where('entity.name LIKE :name', {
-                name: `%${queryDto.name}%`
-            })
-        }
-
-        const [items, total] = await qb.getManyAndCount()
-
-        return { items, total, take, skip }
+        return result
     }
 }

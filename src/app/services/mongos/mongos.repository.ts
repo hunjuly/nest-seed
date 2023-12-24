@@ -13,14 +13,19 @@ export class MongosRepository extends MongooseRepository<Mongo> {
     }
 
     async update(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
-        const safeData: Partial<UpdateMongoDto> = {}
-        safeData.name = updateMongoDto.name
-        safeData.desc = updateMongoDto.desc
-        safeData.date = updateMongoDto.date
-        safeData.enums = updateMongoDto.enums
-        safeData.integer = updateMongoDto.integer
+        /**
+         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
+         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
+         * Database query built from user-controlled sources
+         */
+        const updateData: Partial<UpdateMongoDto> = {}
+        updateData.name = updateMongoDto.name
+        updateData.desc = updateMongoDto.desc
+        updateData.date = updateMongoDto.date
+        updateData.enums = updateMongoDto.enums
+        updateData.integer = updateMongoDto.integer
 
-        return super.update(id, safeData)
+        return super.update(id, updateData)
     }
 
     async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {

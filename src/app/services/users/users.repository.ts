@@ -11,20 +11,19 @@ export class UsersRepository extends TypeormRepository<User> {
         super(typeorm)
     }
 
-    async find(queryDto: UsersQueryDto): Promise<PaginationResult<User>> {
-        const { take, skip } = queryDto
+    async findByQuery(queryDto: UsersQueryDto): Promise<PaginationResult<User>> {
+        const result = await super.find({
+            page: queryDto,
+            middleware: (qb) => {
+                if (queryDto.email) {
+                    qb.where('entity.email LIKE :email', {
+                        email: `%${queryDto.email}%`
+                    })
+                }
+            }
+        })
 
-        const qb = this.createQueryBuilder(queryDto)
-
-        if (queryDto.email) {
-            qb.where('entity.email LIKE :email', {
-                email: `%${queryDto.email}%`
-            })
-        }
-
-        const [items, total] = await qb.getManyAndCount()
-
-        return { items, total, take, skip }
+        return result
     }
 
     async findByEmail(email: string): Promise<User | null> {

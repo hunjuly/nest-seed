@@ -2,6 +2,7 @@ import { TestingModule } from '@nestjs/testing'
 import {
     EntityNotFoundTypeormException,
     OrderDirection,
+    ParameterTypeormException,
     createTestingModule,
     createTypeormMemoryModule,
     padNumber
@@ -116,17 +117,16 @@ describe('TypeormRepository', () => {
             expect(foundSamples).toEqual(samples)
         })
 
-        it('모든 엔티티 조회', async () => {
-            const paginatedResult = await repository.findAll()
+        it('1개 이상의 검색 조건을 설정해야 한다', async () => {
+            const promise = repository.find({})
 
-            sort(paginatedResult.items)
-            expect(paginatedResult.items).toEqual(samples)
+            await expect(promise).rejects.toThrow(ParameterTypeormException)
         })
 
         it('Pagination 설정', async () => {
             const skip = 10
             const take = 5
-            const paginatedResult = await repository.findAll({ skip, take })
+            const paginatedResult = await repository.find({ page: { skip, take } })
 
             const expectedSamples = samples.slice(skip, skip + take)
 
@@ -137,16 +137,18 @@ describe('TypeormRepository', () => {
             const skip = samples.length
             const take = 5
 
-            const paginatedResult = await repository.findAll({ skip, take })
+            const paginatedResult = await repository.find({ page: { skip, take } })
 
             expect(paginatedResult.items).toHaveLength(0)
         })
 
         it('내림차순 정렬', async () => {
-            const paginatedResult = await repository.findAll({
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.desc
+            const paginatedResult = await repository.find({
+                page: {
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.desc
+                    }
                 }
             })
 
@@ -154,10 +156,12 @@ describe('TypeormRepository', () => {
         })
 
         it('오름차순 정렬', async () => {
-            const paginatedResult = await repository.findAll({
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.asc
+            const paginatedResult = await repository.find({
+                page: {
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.asc
+                    }
                 }
             })
 
