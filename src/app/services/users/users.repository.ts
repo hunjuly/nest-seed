@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { TypeormRepository, PaginationResult } from 'common'
+import { PaginationResult, TypeormRepository } from 'common'
 import { FindOptionsWhere, Repository } from 'typeorm'
 import { UsersQueryDto } from './dto'
 import { User } from './entities'
@@ -12,14 +12,16 @@ export class UsersRepository extends TypeormRepository<User> {
     }
 
     async findByQuery(queryDto: UsersQueryDto): Promise<PaginationResult<User>> {
-        const result = await super.find({
-            page: queryDto,
+        const { take, skip, orderby, ...filters } = queryDto
+
+        const result = await this.find({
+            take,
+            skip,
+            orderby,
             middleware: (qb) => {
-                if (queryDto.email) {
-                    qb.where('entity.email LIKE :email', {
-                        email: `%${queryDto.email}%`
-                    })
-                }
+                const { email } = filters
+
+                email && qb.where('entity.email LIKE :email', { email: `%${email}%` })
             }
         })
 

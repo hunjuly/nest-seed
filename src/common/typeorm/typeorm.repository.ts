@@ -56,36 +56,40 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         } as unknown as FindOptionsWhere<Entity>)
     }
 
-    async find(option: {
-        page?: PaginationOptions
-        middleware?: (qb: SelectQueryBuilder<Entity>) => void
-    }): Promise<PaginationResult<Entity>> {
-        const { page, middleware } = option
+    async find(
+        option: {
+            middleware?: (qb: SelectQueryBuilder<Entity>) => void
+        } & PaginationOptions
+    ): Promise<PaginationResult<Entity>> {
+        const { take, skip, orderby, middleware } = option
 
-        if (!page && !middleware) {
-            throw new ParameterTypeormException('At least one of the parameters must be provided.')
+        if (!take && !middleware) {
+            throw new ParameterTypeormException(
+                'At least one of the following options is required: [take, middleware].'
+            )
         }
 
         const qb = this.repo.createQueryBuilder('entity')
 
-        if (page) {
-            const { take, skip, orderby } = page
+        take && qb.take(take)
+        skip && qb.skip(skip)
 
-            take && qb.take(take)
-            skip && qb.skip(skip)
+        if (orderby) {
+            const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
 
-            if (orderby) {
-                const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
-
-                qb.orderBy(`entity.${orderby.name}`, order)
-            }
+            qb.orderBy(`entity.${orderby.name}`, order)
         }
 
         middleware?.(qb)
 
         const [items, total] = await qb.getManyAndCount()
 
-        return { items, total, take: qb.expressionMap.take, skip: qb.expressionMap.skip }
+        return {
+            skip: qb.expressionMap.skip,
+            take: qb.expressionMap.take,
+            total,
+            items
+        }
     }
 
     async exist(id: string): Promise<boolean> {

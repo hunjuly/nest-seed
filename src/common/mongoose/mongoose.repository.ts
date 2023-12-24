@@ -43,26 +43,25 @@ export abstract class MongooseRepository<Doc> {
         return this.model.find({ _id: { $in: ids } }).exec()
     }
 
-    async find(option: {
-        page?: PaginationOptions
-        query?: Record<string, any>
-        middleware?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
-    }): Promise<PaginationResult<HydratedDocument<Doc>>> {
-        const { page, query, middleware } = option
+    async find(
+        option: {
+            query?: Record<string, any>
+            middleware?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
+        } & PaginationOptions
+    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+        const { take, skip, orderby, query, middleware } = option
 
-        if (!page && !query && !middleware) {
-            throw new ParameterMongooseException('At least one of the parameters must be provided.')
+        if (!take && !query && !middleware) {
+            throw new ParameterMongooseException(
+                'At least one of the following options is required: [take, query, middleware].'
+            )
         }
 
         const helpers = this.model.find(query ?? {})
 
-        if (page) {
-            const { skip, take, orderby } = page
-
-            skip && helpers.skip(skip)
-            take && helpers.limit(take)
-            orderby && helpers.sort({ [orderby.name]: orderby.direction === 'asc' ? 1 : -1 })
-        }
+        skip && helpers.skip(skip)
+        take && helpers.limit(take)
+        orderby && helpers.sort({ [orderby.name]: orderby.direction === 'asc' ? 1 : -1 })
 
         middleware?.(helpers)
 

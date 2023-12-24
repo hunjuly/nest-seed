@@ -192,7 +192,7 @@ describe('MongooseRepository', () => {
         it('Pagination 설정', async () => {
             const skip = 10
             const take = 5
-            const paginatedResult = await repository.find({ page: { skip, take } })
+            const paginatedResult = await repository.find({ skip, take })
 
             expect(
                 arePaginatedResultsEqual(paginatedResult, {
@@ -208,7 +208,7 @@ describe('MongooseRepository', () => {
             const skip = samples.length
             const take = 5
 
-            const paginatedResult = await repository.find({ page: { skip, take } })
+            const paginatedResult = await repository.find({ skip, take })
 
             expect(
                 arePaginatedResultsEqual(paginatedResult, {
@@ -222,11 +222,10 @@ describe('MongooseRepository', () => {
 
         it('내림차순 정렬', async () => {
             const paginatedResult = await repository.find({
-                page: {
-                    orderby: {
-                        name: 'name',
-                        direction: OrderDirection.desc
-                    }
+                take: samples.length,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.desc
                 }
             })
 
@@ -235,18 +234,17 @@ describe('MongooseRepository', () => {
                     items: samples.reverse(),
                     total: samples.length,
                     skip: undefined,
-                    take: undefined
+                    take: samples.length
                 })
             ).toBeTruthy()
         })
 
         it('오름차순 정렬', async () => {
             const paginatedResult = await repository.find({
-                page: {
-                    orderby: {
-                        name: 'name',
-                        direction: OrderDirection.asc
-                    }
+                take: samples.length,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.asc
                 }
             })
 
@@ -255,7 +253,7 @@ describe('MongooseRepository', () => {
                     items: samples,
                     total: samples.length,
                     skip: undefined,
-                    take: undefined
+                    take: samples.length
                 })
             ).toBeTruthy()
         })

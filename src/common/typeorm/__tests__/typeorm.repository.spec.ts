@@ -110,7 +110,6 @@ describe('TypeormRepository', () => {
 
         it('다수의 엔티티 ID로 조회', async () => {
             const ids = samples.map((sample) => sample.id)
-
             const foundSamples = await repository.findByIds(ids)
 
             sort(foundSamples)
@@ -126,7 +125,7 @@ describe('TypeormRepository', () => {
         it('Pagination 설정', async () => {
             const skip = 10
             const take = 5
-            const paginatedResult = await repository.find({ page: { skip, take } })
+            const paginatedResult = await repository.find({ skip, take })
 
             const expectedSamples = samples.slice(skip, skip + take)
 
@@ -136,19 +135,17 @@ describe('TypeormRepository', () => {
         it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
             const skip = samples.length
             const take = 5
-
-            const paginatedResult = await repository.find({ page: { skip, take } })
+            const paginatedResult = await repository.find({ skip, take })
 
             expect(paginatedResult.items).toHaveLength(0)
         })
 
         it('내림차순 정렬', async () => {
             const paginatedResult = await repository.find({
-                page: {
-                    orderby: {
-                        name: 'name',
-                        direction: OrderDirection.desc
-                    }
+                take: samples.length,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.desc
                 }
             })
 
@@ -157,11 +154,10 @@ describe('TypeormRepository', () => {
 
         it('오름차순 정렬', async () => {
             const paginatedResult = await repository.find({
-                page: {
-                    orderby: {
-                        name: 'name',
-                        direction: OrderDirection.asc
-                    }
+                take: samples.length,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.asc
                 }
             })
 
