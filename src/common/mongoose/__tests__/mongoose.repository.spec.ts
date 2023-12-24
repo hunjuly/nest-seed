@@ -72,14 +72,7 @@ describe('MongooseRepository', () => {
         })
 
         it('문서 업데이트 후 일치 확인', async () => {
-            const updateData = {
-                name: 'new name',
-                address: {
-                    street: '456 Main St',
-                    city: 'Othertown',
-                    country: 'USA'
-                }
-            }
+            const updateData = { name: 'new name' }
             const updatedSample = await repository.update(sample.id, updateData)
 
             expect(isCreatedDocumentCorrect(updatedSample, updateData)).toBeTruthy()
@@ -113,10 +106,8 @@ describe('MongooseRepository', () => {
             samples = []
 
             for (let i = 0; i < 100; i++) {
-                const createdSample = await repository.create({
-                    ...createData,
-                    name: `Sample_${padNumber(i, 3)}`
-                })
+                const createData = { name: `Sample_${padNumber(i, 3)}` }
+                const createdSample = await repository.create(createData)
 
                 samples.push(createdSample)
             }

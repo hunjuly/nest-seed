@@ -7,18 +7,13 @@ import {
     createTypeormMemoryModule,
     padNumber
 } from 'common'
-import { Sample, SamplesRepository, SamplesModule } from './typeorm.repository.fixture'
-
-const entityBase = {
-    id: expect.anything(),
-    createdAt: expect.anything(),
-    updatedAt: expect.anything(),
-    version: expect.anything()
-}
-
-function sortSamples(samples: Sample[]) {
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
-}
+import {
+    Sample,
+    SamplesRepository,
+    SamplesModule,
+    isCreatedEntityCorrect,
+    sortSamples
+} from './typeorm.repository.fixture'
 
 describe('TypeormRepository', () => {
     let module: TestingModule
@@ -41,8 +36,7 @@ describe('TypeormRepository', () => {
             const createData = { name: 'sample name' }
             const createdSample = await repository.create(createData)
 
-            const expectedSample = { ...entityBase, ...createData }
-            expect(createdSample).toEqual(expectedSample)
+            expect(isCreatedEntityCorrect(createdSample, createData)).toBeTruthy()
         })
 
         it('존재하지 않는 ID로 업데이트할 때 예외 확인', async () => {
@@ -69,8 +63,7 @@ describe('TypeormRepository', () => {
             const updateData = { name: 'new name' }
             const updatedSample = await repository.update(sample.id, updateData)
 
-            const expectedSample = { ...entityBase, ...updateData }
-            expect(updatedSample).toEqual(expectedSample)
+            expect(isCreatedEntityCorrect(updatedSample, updateData)).toBeTruthy()
         })
 
         it('특정 엔티티 조회 및 일치 확인', async () => {
