@@ -3,63 +3,22 @@ import { TestingModule } from '@nestjs/testing'
 import {
     DocumentNotFoundMongooseException,
     OrderDirection,
-    PaginationResult,
     ParameterMongooseException,
     createTestingModule,
     nullObjectId,
     padNumber
 } from 'common'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { SampleDocument, SamplesModule, SamplesRepository } from './mongoose.repository.fixture'
-import { isEqual } from 'lodash'
-
-const entityBase = {
-    _id: expect.anything(),
-    createdAt: expect.anything(),
-    updatedAt: expect.anything(),
-    version: expect.anything()
-}
-
-function sortSamples(samples: SampleDocument[]) {
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
-}
-
-function areDocumentsEqual(a: SampleDocument[], b: SampleDocument[]) {
-    if (a.length !== b.length) return false
-
-    for (let i = 0; i < a.length; i++) {
-        if (!isEqual(a[i].toJSON(), b[i].toJSON())) {
-            console.log('a[i].toJSON()', a[i].toJSON(), 'b[i].toJSON()', b[i].toJSON())
-            return false
-        }
-    }
-
-    return true
-}
-
-function arePaginatedResultsEqual(a: PaginationResult<SampleDocument>, b: PaginationResult<SampleDocument>) {
-    if (a.total !== b.total) {
-        console.log('a.total', a.total, 'b.total', b.total)
-        return false
-    }
-
-    if (a.take !== b.take) {
-        console.log('a.take', a.take, 'b.take', b.take)
-        return false
-    }
-
-    if (a.skip !== b.skip) {
-        console.log('a.skip', a.skip, 'b.skip', b.skip)
-        return false
-    }
-
-    if (!areDocumentsEqual(a.items, b.items)) {
-        console.log('a.items', a.items, 'b.items', b.items)
-        return false
-    }
-
-    return true
-}
+import {
+    SampleDocument,
+    SamplesModule,
+    SamplesRepository,
+    areDocumentsEqual,
+    arePaginatedResultsEqual,
+    createData,
+    isCreatedDocumentCorrect,
+    sortSamples
+} from './mongoose.repository.fixture'
 
 describe('MongooseRepository', () => {
     let module: TestingModule
@@ -87,11 +46,9 @@ describe('MongooseRepository', () => {
 
     describe('존재하지 않는 문서에 대한 작업', () => {
         it('새 문서 생성 후 데이터 일치 확인', async () => {
-            const createData = { name: 'sample name' }
             const createdSample = await repository.create(createData)
 
-            const expectedSample = { ...entityBase, ...createData }
-            expect(createdSample.toJSON()).toEqual(expectedSample)
+            expect(isCreatedDocumentCorrect(createdSample, createData)).toBeTruthy()
         })
 
         it('존재하지 않는 ID로 업데이트할 때 예외 확인', async () => {
@@ -111,15 +68,21 @@ describe('MongooseRepository', () => {
         let sample: SampleDocument
 
         beforeEach(async () => {
-            sample = await repository.create({ name: 'sample name' })
+            sample = await repository.create(createData)
         })
 
         it('문서 업데이트 후 일치 확인', async () => {
-            const updateData = { name: 'new name' }
+            const updateData = {
+                name: 'new name',
+                address: {
+                    street: '456 Main St',
+                    city: 'Othertown',
+                    country: 'USA'
+                }
+            }
             const updatedSample = await repository.update(sample.id, updateData)
 
-            const expectedSample = { ...entityBase, ...updateData }
-            expect(updatedSample.toJSON()).toEqual(expectedSample)
+            expect(isCreatedDocumentCorrect(updatedSample, updateData)).toBeTruthy()
         })
 
         it('특정 문서 조회 및 일치 확인', async () => {
@@ -150,8 +113,10 @@ describe('MongooseRepository', () => {
             samples = []
 
             for (let i = 0; i < 100; i++) {
-                const createData = { name: `Sample_${padNumber(i, 3)}` }
-                const createdSample = await repository.create(createData)
+                const createdSample = await repository.create({
+                    ...createData,
+                    name: `Sample_${padNumber(i, 3)}`
+                })
 
                 samples.push(createdSample)
             }
