@@ -116,7 +116,7 @@ describe('MongooseRepository', () => {
             sample = await repository.create({ name: 'sample name' })
         })
 
-        it('문서 업데이트 후 일치 여부 확인', async () => {
+        it('문서 업데이트 후 일치 확인', async () => {
             const updateData = { name: 'new name' }
             const updatedSample = await repository.update(sample.id, updateData)
 
@@ -124,19 +124,19 @@ describe('MongooseRepository', () => {
             expect(updatedSample.toJSON()).toEqual(expectedSample)
         })
 
-        it('특정 문서 조회 및 일치 여부 확인', async () => {
+        it('특정 문서 조회 및 일치 확인', async () => {
             const foundSample = await repository.findById(sample.id)
 
             expect(foundSample?.toJSON()).toEqual(sample.toJSON())
         })
 
-        it('문서 존재 여부 확인', async () => {
+        it('문서 존재 확인', async () => {
             const exist = await repository.exist(sample.id)
 
             expect(exist).toBeTruthy()
         })
 
-        it('문서 삭제 후 존재 여부 확인', async () => {
+        it('문서 삭제 후 존재 확인', async () => {
             await repository.remove(sample.id)
 
             const removedSample = await repository.findById(sample.id)
@@ -166,21 +166,6 @@ describe('MongooseRepository', () => {
             const sortedFoundSamples = sortSamples(foundSamples)
 
             expect(areDocumentsEqual(sortedFoundSamples, samples)).toBeTruthy()
-        })
-
-        it('정규 표현식을 사용하여 특정 패턴과 일치하는 문서들을 조회', async () => {
-            const paginatedResult = await repository.find({
-                query: { name: /Sample_00/i }
-            })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.slice(0, 10),
-                    total: 10,
-                    skip: undefined,
-                    take: undefined
-                })
-            ).toBeTruthy()
         })
 
         it('1개 이상의 검색 조건을 설정해야 한다', async () => {
@@ -258,6 +243,21 @@ describe('MongooseRepository', () => {
             ).toBeTruthy()
         })
 
+        it('정규 표현식을 사용하여 특정 패턴과 일치하는 문서들을 조회', async () => {
+            const paginatedResult = await repository.find({
+                query: { name: /Sample_00/i }
+            })
+
+            expect(
+                arePaginatedResultsEqual(paginatedResult, {
+                    items: samples.slice(0, 10),
+                    total: 10,
+                    skip: undefined,
+                    take: undefined
+                })
+            ).toBeTruthy()
+        })
+
         it('middleware 사용해서 query 설정', async () => {
             const paginatedResult = await repository.find({
                 middleware: (helpers) => {
@@ -298,7 +298,7 @@ describe('MongooseRepository', () => {
         it('middleware 사용해서 orderby 설정', async () => {
             const paginatedResult = await repository.find({
                 middleware: (helpers) => {
-                    helpers.sort({ name: -1 })
+                    helpers.sort({ name: 'desc' })
                 }
             })
 

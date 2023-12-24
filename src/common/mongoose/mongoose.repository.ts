@@ -61,7 +61,10 @@ export abstract class MongooseRepository<Doc> {
 
         skip && helpers.skip(skip)
         take && helpers.limit(take)
-        orderby && helpers.sort({ [orderby.name]: orderby.direction === 'asc' ? 1 : -1 })
+
+        if (orderby) {
+            helpers.sort({ [orderby.name]: orderby.direction })
+        }
 
         middleware?.(helpers)
 
