@@ -38,29 +38,27 @@ function areDocumentsEqual(a: SampleDocument[], b: SampleDocument[]) {
 }
 
 function arePaginatedResultsEqual(a: PaginationResult<SampleDocument>, b: PaginationResult<SampleDocument>) {
-    const { items: aItems, ...aOthers } = a
-    const { items: bItems, ...bOthers } = b
-
-    const isMatch = isEqual(aOthers, bOthers) && areDocumentsEqual(aItems, bItems)
-
-    if (isMatch === false) {
-        console.log(
-            'aOthers',
-            aOthers,
-            'bOthers',
-            bOthers,
-            'aItems.length',
-            aItems.length,
-            'aItems[0]',
-            aItems[0],
-            'bItems.length',
-            bItems.length,
-            'bItems[0]',
-            bItems[0]
-        )
+    if (a.total !== b.total) {
+        console.log('a.total', a.total, 'b.total', b.total)
+        return false
     }
 
-    return isMatch
+    if (a.take !== b.take) {
+        console.log('a.take', a.take, 'b.take', b.take)
+        return false
+    }
+
+    if (a.skip !== b.skip) {
+        console.log('a.skip', a.skip, 'b.skip', b.skip)
+        return false
+    }
+
+    if (!areDocumentsEqual(a.items, b.items)) {
+        console.log('a.items', a.items, 'b.items', b.items)
+        return false
+    }
+
+    return true
 }
 
 describe('MongooseRepository', () => {
