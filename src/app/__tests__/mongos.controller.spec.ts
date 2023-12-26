@@ -237,3 +237,47 @@ describe('MongosController', () => {
         })
     })
 })
+
+// it('특정 국가에 있는 문서 찾기', async () => {
+//     const sample1 = await repository.create({
+//         name: 'sample name 1',
+//         address: {
+//             street: '123 Main St',
+//             city: 'Anytown',
+//             country: 'USA'
+//         }
+//     })
+
+//     const _sample2 = await repository.create({
+//         name: 'sample name 2',
+//         address: {
+//             street: '456 Main St',
+//             city: 'Othertown',
+//             country: 'Korea'
+//         }
+//     })
+
+//     const sample3 = await repository.create({
+//         name: 'sample name 3',
+//         address: {
+//             street: '456 Main St',
+//             city: 'Othertown',
+//             country: 'USA'
+//         }
+//     })
+
+//     const paginatedResult = await repository.find({
+//         middleware: (helpers) => {
+//             helpers.setQuery({ 'address.country': 'USA' })
+//         }
+//     })
+
+//     expect(
+//         arePaginatedResultsEqual(paginatedResult, {
+//             items: [sample1, sample3],
+//             total: 2,
+//             skip: undefined,
+//             take: undefined
+//         })
+//     ).toBeTruthy()
+// })
