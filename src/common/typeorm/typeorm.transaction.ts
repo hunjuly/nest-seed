@@ -1,5 +1,5 @@
 import { ClassConstructor } from 'class-transformer'
-import { Assert, TransactionException } from 'common'
+import { Assert, TransactionTypeormException } from 'common'
 import { DeepPartial, QueryRunner } from 'typeorm'
 import { TypeormEntity } from '.'
 
@@ -50,7 +50,7 @@ export class TypeormTransaction {
     ensureTransactionIsActive() {
         /* istanbul ignore if */
         if (!this.queryRunner.isTransactionActive) {
-            throw new TransactionException('Transaction is not active')
+            throw new TransactionTypeormException('Transaction is not active')
         }
     }
 }

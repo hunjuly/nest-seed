@@ -12,46 +12,24 @@ export class MongosRepository extends MongooseRepository<Mongo> {
         super(model)
     }
 
-    async update2(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
-        // 안전한 데이터만 필터링
-        const safeData = this.filterUpdateData(updateMongoDto)
+    async update(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
+        /**
+         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
+         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
+         * Database query built from user-controlled sources
+         */
+        const updateData: Partial<UpdateMongoDto> = {}
+        updateData.name = updateMongoDto.name
+        updateData.desc = updateMongoDto.desc
+        updateData.date = updateMongoDto.date
+        updateData.enums = updateMongoDto.enums
+        updateData.integer = updateMongoDto.integer
 
-        const updatedDocument = await this.model
-            .findByIdAndUpdate(id, safeData, { returnDocument: 'after', upsert: false })
-            .exec()
-
-        return updatedDocument as MongoDocument
+        return super.update(id, updateData)
     }
 
-    /* istanbul ignore next */
-    filterUpdateData(updateDto: UpdateMongoDto): Partial<UpdateMongoDto> {
-        const safeData: Partial<UpdateMongoDto> = {}
-
-        if (updateDto.name && typeof updateDto.name === 'string' && updateDto.name.length <= 100) {
-            safeData.name = updateDto.name
-        }
-
-        if (updateDto.desc && typeof updateDto.desc === 'string' && updateDto.desc.length <= 200) {
-            safeData.desc = updateDto.desc
-        }
-
-        if (updateDto.date && typeof updateDto.date === 'string') {
-            safeData.date = new Date(updateDto.date)
-        }
-
-        if (Array.isArray(updateDto.enums)) {
-            safeData.enums = updateDto.enums // 여기에서 추가적인 검증을 적용할 수 있습니다.
-        }
-
-        if (typeof updateDto.integer === 'number') {
-            safeData.integer = updateDto.integer
-        }
-
-        return safeData
-    }
-
-    async findByName(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
-        const { skip, take, orderby, name } = queryDto
+    async findByQuery(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
+        const { take, skip, orderby, name } = queryDto
 
         const query: Record<string, any> = {}
 
@@ -59,25 +37,8 @@ export class MongosRepository extends MongooseRepository<Mongo> {
             query['name'] = new RegExp(escapeRegExp(name), 'i')
         }
 
-        let helpers = this.model.find(query)
+        const result = await this.find({ take, skip, orderby, query })
 
-        if (orderby) {
-            const query: Record<string, any> = {}
-            query[orderby.name] = orderby.direction === 'asc' ? 1 : -1
-            helpers = helpers.sort(query)
-        }
-        if (skip) helpers = helpers.skip(skip)
-        if (take) helpers = helpers.limit(take)
-
-        const items = await helpers.exec()
-
-        const total = await this.model.countDocuments(query).exec()
-
-        return {
-            skip,
-            take,
-            total,
-            items
-        }
+        return result
     }
 }

@@ -30,7 +30,7 @@ export class MongosService {
     }
 
     async findMongos(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDto>> {
-        const pagedMongos = await this.mongosRepository.findByName(queryDto)
+        const pagedMongos = await this.mongosRepository.findByQuery(queryDto)
 
         const items = pagedMongos.items.map((mongo) => new MongoDto(mongo))
 
@@ -38,12 +38,12 @@ export class MongosService {
     }
 
     async getMongo(mongoId: string) {
-        const mongo = await this._getMongo(mongoId)
+        const mongo = await this.getMongoDocument(mongoId)
 
         return new MongoDto(mongo)
     }
 
-    private async _getMongo(mongoId: string) {
+    private async getMongoDocument(mongoId: string) {
         const mongo = await this.mongosRepository.findById(mongoId)
 
         Assert.defined(mongo, `Mongo(${mongoId}) not found`)
@@ -52,7 +52,7 @@ export class MongosService {
     }
 
     async updateMongo(mongoId: string, updateMongoDto: UpdateMongoDto) {
-        const savedMongo = await this.mongosRepository.update2(mongoId, updateMongoDto)
+        const savedMongo = await this.mongosRepository.update(mongoId, updateMongoDto)
 
         return new MongoDto(savedMongo)
     }
