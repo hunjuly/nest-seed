@@ -1,81 +1,83 @@
-import { PaginationResult, padNumber } from 'common'
-import { isEqual } from 'lodash'
+import { OrderDirection, padNumber } from 'common'
 import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
 export const createSampleData: Partial<Sample> = {
     name: 'sample name'
 }
 
-export function sortAsc(samples: SampleDocument[]) {
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
-}
-export function sortDesc(samples: SampleDocument[]) {
-    return [...samples].sort((b, a) => a.name.localeCompare(b.name))
-}
+export const generateSampleData = async (repository: SamplesRepository): Promise<SampleDocument[]> => {
+    const createPromises = []
 
-export async function isDocumentValid(
-    document: SampleDocument,
-    createData: Partial<Sample>
-): Promise<boolean> {
-    const entityBase = {
-        _id: expect.anything(),
-        createdAt: expect.anything(),
-        updatedAt: expect.anything(),
-        version: expect.anything()
+    for (let i = 0; i < 100; i++) {
+        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
+        createPromises.push(repository.create(data))
     }
 
-    return isEqual(document.toJSON(), {
-        ...entityBase,
-        ...createData
-    })
+    return Promise.all(createPromises)
 }
 
-function areDocsEqual(a: SampleDocument[], b: SampleDocument[]) {
-    if (a.length !== b.length) return false
+export function sortSamples(samples: SampleDocument[], direction = OrderDirection.asc) {
+    if (direction === OrderDirection.desc) {
+        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+    }
 
-    for (let i = 0; i < a.length; i++) {
-        if (!a[i].equals(b[i])) {
-            console.log(`Difference found at index ${i}:`, 'a:', a[i], 'b:', b[i])
-            return false
+    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function areDocsEqual(received: SampleDocument[], expected: SampleDocument[]) {
+    if (received.length !== expected.length) {
+        return {
+            pass: false,
+            message: () =>
+                `Items length mismatch: received length ${received.length}, expected length ${expected.length}`
         }
     }
 
-    return true
-}
-
-function arePaginationEqual(a: PaginationResult<SampleDocument>, b: PaginationResult<SampleDocument>) {
-    if (a.total !== b.total || a.take !== b.take || a.skip !== b.skip) {
-        console.log('Pagination mismatch:', 'a:', a, 'b:', b)
-        return false
+    for (let i = 0; i < received.length; i++) {
+        if (!received[i].equals(expected[i])) {
+            return {
+                pass: false,
+                message: () =>
+                    `Document at index ${i} does not match: received: ${received[i]}, expected: ${expected[i]}`
+            }
+        }
     }
 
-    return areDocsEqual(a.items, b.items)
+    return {
+        pass: true,
+        message: () => 'Documents match'
+    }
 }
 
 expect.extend({
-    toPaginationEqual(received, expected) {
-        const pass = arePaginationEqual(received, expected)
-        const message = pass ? () => `expected pagination not to match` : () => `expected pagination to match`
+    toValidDocument(received, expected) {
+        const pass = this.equals(received.toJSON(), {
+            _id: expect.anything(),
+            createdAt: expect.anything(),
+            updatedAt: expect.anything(),
+            version: expect.anything(),
+            ...expected
+        })
+
+        const message = pass ? () => `expected document not to match` : () => `expected document to match`
 
         return { pass, message }
     },
     toDocumentsEqual(received, expected) {
-        const pass = areDocsEqual(received, expected)
-        const message = pass ? () => `expected document not to match` : () => `expected document to match`
+        return areDocsEqual(received, expected)
+    },
+    toPaginationEqual(received, expected) {
+        if (
+            received.total !== expected.total ||
+            received.take !== expected.take ||
+            received.skip !== expected.skip
+        ) {
+            return {
+                pass: false,
+                message: () => `Pagination mismatch: received: ${received}, expected: ${expected}`
+            }
+        }
 
-        return { pass, message }
+        return areDocsEqual(received, expected)
     }
 })
-
-export const generateSampleData = async (repository: SamplesRepository): Promise<SampleDocument[]> => {
-    const samples: SampleDocument[] = []
-
-    for (let i = 0; i < 100; i++) {
-        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
-        const createdSample = await repository.create(data)
-
-        samples.push(createdSample)
-    }
-
-    return samples
-}
