@@ -1,269 +1,320 @@
+import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
 import {
     DocumentNotFoundMongooseException,
     OrderDirection,
+    PaginationResult,
     ParameterMongooseException,
     createTestingModule,
-    nullObjectId,
-    padNumber
+    nullObjectId
 } from 'common'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import {
-    SampleDocument,
-    SamplesModule,
-    SamplesRepository,
-    areDocumentsEqual,
-    arePaginatedResultsEqual,
-    createData,
-    isCreatedDocumentCorrect,
-    sortSamples
+    createSampleData,
+    generateSampleData,
+    isDocumentValid,
+    sortAsc,
+    sortDesc
 } from './mongoose.repository.fixture'
+import { SampleDocument, SamplesModule, SamplesRepository } from './mongoose.repository.mock'
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toPaginationEqual(expected: PaginationResult<SampleDocument>): R
+        toDocumentsEqual(expected: SampleDocument[]): R
+    }
+}
 
 describe('MongooseRepository', () => {
     let module: TestingModule
     let repository: SamplesRepository
     let mongoServer: MongoMemoryServer
+    let samples: SampleDocument[]
+    let sample: SampleDocument
+
+    beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create()
+    })
 
     beforeEach(async () => {
-        mongoServer = await MongoMemoryServer.create()
-
         module = await createTestingModule({
             imports: [
-                MongooseModule.forRoot(mongoServer.getUri(), { autoIndex: true, autoCreate: true }),
+                MongooseModule.forRoot(mongoServer.getUri(), {
+                    connectionFactory: (connection: any) => {
+                        connection.dropDatabase()
+                        return connection
+                    }
+                }),
                 SamplesModule
             ]
         })
-
         repository = module.get(SamplesRepository)
+        samples = await generateSampleData(repository)
+        sample = samples[0]
     })
 
     afterEach(async () => {
         if (module) await module.close()
+    })
 
+    afterAll(async () => {
         await mongoServer.stop()
     })
 
-    describe('존재하지 않는 문서에 대한 작업', () => {
-        it('새 문서 생성 후 데이터 일치 확인', async () => {
-            const createdSample = await repository.create(createData)
+    describe('Modifying', () => {
+        describe('create', () => {
+            it('생성된 문서의 데이터 정확성 확인', async () => {
+                const createdSample = await repository.create(createSampleData)
 
-            expect(isCreatedDocumentCorrect(createdSample, createData)).toBeTruthy()
+                expect(isDocumentValid(createdSample, createSampleData)).toBeTruthy()
+            })
         })
 
-        it('존재하지 않는 ID로 업데이트할 때 예외 확인', async () => {
-            const promise = repository.update(nullObjectId, {})
+        describe('update', () => {
+            it('문서 업데이트 정확성 확인', async () => {
+                const sample = samples[0]
+                const updateData = { name: 'new name' }
+                const updatedSample = await repository.update(sample.id, updateData)
 
-            await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
+                expect(isDocumentValid(updatedSample, updateData)).toBeTruthy()
+            })
+
+            it('존재하지 않는 ID로 업데이트할 때 예외 확인', async () => {
+                const promise = repository.update(nullObjectId, {})
+
+                await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
+            })
         })
 
-        it('존재하지 않는 ID로 삭제할 때 예외 확인', async () => {
-            const promise = repository.remove(nullObjectId)
+        describe('remove', () => {
+            it('문서 삭제 여부 확인', async () => {
+                const sample = samples[0]
+                await repository.remove(sample.id)
 
-            await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
-        })
-    })
+                const removedSample = await repository.findById(sample.id)
+                expect(removedSample).toBeNull()
+            })
 
-    describe('특정 문서에 대한 작업', () => {
-        let sample: SampleDocument
+            it('존재하지 않는 ID로 삭제할 때 예외 확인', async () => {
+                const promise = repository.remove(nullObjectId)
 
-        beforeEach(async () => {
-            sample = await repository.create(createData)
-        })
-
-        it('문서 업데이트 후 일치 확인', async () => {
-            const updateData = { name: 'new name' }
-            const updatedSample = await repository.update(sample.id, updateData)
-
-            expect(isCreatedDocumentCorrect(updatedSample, updateData)).toBeTruthy()
-        })
-
-        it('특정 문서 조회 및 일치 확인', async () => {
-            const foundSample = await repository.findById(sample.id)
-
-            expect(foundSample?.toJSON()).toEqual(sample.toJSON())
-        })
-
-        it('문서 존재 확인', async () => {
-            const exist = await repository.exist(sample.id)
-
-            expect(exist).toBeTruthy()
-        })
-
-        it('문서 삭제 후 존재 확인', async () => {
-            await repository.remove(sample.id)
-
-            const removedSample = await repository.findById(sample.id)
-
-            expect(removedSample).toBeNull()
+                await expect(promise).rejects.toThrow(DocumentNotFoundMongooseException)
+            })
         })
     })
 
-    describe('다수의 문서에 대한 작업', () => {
-        let samples: SampleDocument[]
+    describe('Querying', () => {
+        describe('exist', () => {
+            it('문서가 존재하면 true', async () => {
+                const exist = await repository.exist(sample.id)
 
-        beforeEach(async () => {
-            samples = []
+                expect(exist).toBeTruthy()
+            })
 
-            for (let i = 0; i < 100; i++) {
-                const createData = { name: `Sample_${padNumber(i, 3)}` }
-                const createdSample = await repository.create(createData)
+            it('문서가 존재하지 않으면 false', async () => {
+                const exist = await repository.exist(nullObjectId)
 
-                samples.push(createdSample)
-            }
+                expect(exist).toBeFalsy()
+            })
         })
 
-        it('다수의 문서 ID로 조회', async () => {
-            const ids = samples.map((sample) => sample.id)
+        describe('findById', () => {
+            it('ID로 문서 조회', async () => {
+                const foundSample = await repository.findById(sample.id)
 
-            const foundSamples = await repository.findByIds(ids)
-            const sortedFoundSamples = sortSamples(foundSamples)
+                expect(foundSample?.toJSON()).toEqual(samples[0].toJSON())
+            })
 
-            expect(areDocumentsEqual(sortedFoundSamples, samples)).toBeTruthy()
+            it('존재하지 않는 ID로 조회하면 null', async () => {
+                const notFound = await repository.findById(nullObjectId)
+
+                expect(notFound).toBeNull()
+            })
         })
 
-        it('1개 이상의 검색 조건을 설정해야 한다', async () => {
-            const promise = repository.find({})
+        describe('findByIds', () => {
+            it('여러 ID로 문서 일괄 조회', async () => {
+                const ids = samples.map((sample) => sample.id)
+                const foundSamples = await repository.findByIds(ids)
 
-            await expect(promise).rejects.toThrow(ParameterMongooseException)
+                expect(sortAsc(foundSamples)).toDocumentsEqual(samples)
+            })
         })
 
-        it('Pagination 설정', async () => {
-            const skip = 10
-            const take = 5
-            const paginatedResult = await repository.find({ skip, take })
+        describe('find', () => {
+            it('오름차순 정렬(asc)', async () => {
+                const paginatedResult = await repository.find({
+                    take: samples.length,
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.asc
+                    }
+                })
 
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
+                expect(paginatedResult.items).toDocumentsEqual(sortAsc(samples))
+                expect(paginatedResult).toPaginationEqual({
                     items: samples.slice(skip, skip + take),
                     total: samples.length,
                     skip,
                     take
                 })
-            ).toBeTruthy()
-        })
+            })
 
-        it('skip 값이 아이템 총 개수보다 큰 경우 빈 목록 반환', async () => {
-            const skip = samples.length
-            const take = 5
+            it('내림차순 정렬(desc)', async () => {
+                const paginatedResult = await repository.find({
+                    take: samples.length,
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.desc
+                    }
+                })
 
-            const paginatedResult = await repository.find({ skip, take })
+                expect(paginatedResult.items).toDocumentsEqual(sortDesc(samples))
+                expect(paginatedResult).toPaginationEqual({
+                    items: samples.slice(skip, skip + take),
+                    total: samples.length,
+                    skip,
+                    take
+                })
+            })
 
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
+            it('Pagination 적용 조회', async () => {
+                const skip = 10
+                const take = 5
+                const paginatedResult = await repository.find({ skip, take })
+
+                expect(paginatedResult).toPaginationEqual({
+                    items: samples.slice(skip, skip + take),
+                    total: samples.length,
+                    skip,
+                    take
+                })
+            })
+
+            it('정규 표현식 패턴 조회', async () => {
+                const paginatedResult = await repository.find({
+                    query: { name: /Sample_00/i }
+                })
+
+                expect(paginatedResult).toPaginationEqual({
+                    items: samples.slice(0, 10),
+                    total: 10,
+                    skip: undefined,
+                    take: undefined
+                })
+            })
+
+            it('1개 이상의 검색 조건 필요', async () => {
+                const promise = repository.find({})
+
+                await expect(promise).rejects.toThrow(ParameterMongooseException)
+            })
+
+            it('skip 한계 초과 시 조회', async () => {
+                const skip = samples.length
+                const take = 5
+                const paginatedResult = await repository.find({ skip, take })
+
+                expect(paginatedResult).toPaginationEqual({
                     items: [],
                     total: samples.length,
                     skip,
                     take
                 })
-            ).toBeTruthy()
-        })
-
-        it('내림차순 정렬', async () => {
-            const paginatedResult = await repository.find({
-                take: samples.length,
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.desc
-                }
             })
 
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.reverse(),
-                    total: samples.length,
-                    skip: undefined,
-                    take: samples.length
-                })
-            ).toBeTruthy()
-        })
+            describe('middleware 사용', () => {
+                it('middleware 사용해서 query 설정', async () => {
+                    const paginatedResult = await repository.find({
+                        middleware: (helpers) => {
+                            helpers.setQuery({ name: /Sample_00/i })
+                        }
+                    })
 
-        it('오름차순 정렬', async () => {
-            const paginatedResult = await repository.find({
-                take: samples.length,
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.asc
-                }
+                    expect(paginatedResult).toPaginationEqual({
+                        items: samples.slice(0, 10),
+                        total: 10,
+                        skip: undefined,
+                        take: undefined
+                    })
+                })
+
+                it('middleware 사용해서 query 설정', async () => {
+                    const paginatedResult = await repository.find({
+                        middleware: (helpers) => {
+                            helpers.setQuery({ name: /Sample_00/i })
+                        }
+                    })
+
+                    expect(paginatedResult).toPaginationEqual({
+                        items: samples.slice(0, 10),
+                        total: 10,
+                        skip: undefined,
+                        take: undefined
+                    })
+                })
+
+                it('middleware 사용해서 Pagination 설정', async () => {
+                    const skip = 10
+                    const take = 5
+                    const paginatedResult = await repository.find({
+                        middleware: (helpers) => {
+                            helpers.skip(skip)
+                            helpers.limit(take)
+                        }
+                    })
+
+                    expect(paginatedResult).toPaginationEqual({
+                        items: samples.slice(skip, skip + take),
+                        total: samples.length,
+                        skip,
+                        take
+                    })
+                })
+
+                it('middleware 사용해서 orderby 설정', async () => {
+                    const paginatedResult = await repository.find({
+                        middleware: (helpers) => {
+                            helpers.sort({ name: 'desc' })
+                        }
+                    })
+
+                    expect(paginatedResult).toPaginationEqual({
+                        items: sortDesc(samples),
+                        total: samples.length,
+                        skip: undefined,
+                        take: undefined
+                    })
+                })
             })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples,
-                    total: samples.length,
-                    skip: undefined,
-                    take: samples.length
-                })
-            ).toBeTruthy()
-        })
-
-        it('정규 표현식을 사용하여 특정 패턴과 일치하는 문서들을 조회', async () => {
-            const paginatedResult = await repository.find({
-                query: { name: /Sample_00/i }
-            })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.slice(0, 10),
-                    total: 10,
-                    skip: undefined,
-                    take: undefined
-                })
-            ).toBeTruthy()
-        })
-
-        it('middleware 사용해서 query 설정', async () => {
-            const paginatedResult = await repository.find({
-                middleware: (helpers) => {
-                    helpers.setQuery({ name: /Sample_00/i })
-                }
-            })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.slice(0, 10),
-                    total: 10,
-                    skip: undefined,
-                    take: undefined
-                })
-            ).toBeTruthy()
-        })
-
-        it('middleware 사용해서 Pagination 설정', async () => {
-            const skip = 10
-            const take = 5
-            const paginatedResult = await repository.find({
-                middleware: (helpers) => {
-                    helpers.skip(skip)
-                    helpers.limit(take)
-                }
-            })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.slice(skip, skip + take),
-                    total: samples.length,
-                    skip,
-                    take
-                })
-            ).toBeTruthy()
-        })
-
-        it('middleware 사용해서 orderby 설정', async () => {
-            const paginatedResult = await repository.find({
-                middleware: (helpers) => {
-                    helpers.sort({ name: 'desc' })
-                }
-            })
-
-            expect(
-                arePaginatedResultsEqual(paginatedResult, {
-                    items: samples.reverse(),
-                    total: samples.length,
-                    skip: undefined,
-                    take: undefined
-                })
-            ).toBeTruthy()
         })
     })
 })
+
+/**
+ * MongooseRepository
+  findById
+    ✓ 특정 ID의 문서를 정확하게 조회 (816 ms)
+  exist
+    ✓ 특정 문서의 존재 유무를 정확하게 확인 (767 ms)
+  findByIds
+    ✓ 여러 ID에 해당하는 문서들을 정확하게 조회 (812 ms)
+  create
+    ✓ 생성된 문서가 입력 데이터와 일치하는지 확인 (908 ms)
+  update
+    ✓ 업데이트된 문서가 변경된 데이터와 일치하는지 확인 (826 ms)
+    ✓ 존재하지 않는 문서 ID로 업데이트 시 예외 발생 확인 (822 ms)
+  remove
+    ✓ 존재하지 않는 ID로 삭제할 때 예외 확인 (831 ms)
+    ✓ 문서 삭제 후 존재 확인 (816 ms)
+  find
+    ✓ Pagination 설정 (820 ms)
+    ✓ 내림차순 정렬 (817 ms)
+    ✓ 오름차순 정렬 (827 ms)
+    ...
+  middleware 사용
+    ✓ middleware 사용해서 query 설정 (745 ms)
+    ✓ middleware 사용해서 Pagination 설정 (749 ms)
+
+ */

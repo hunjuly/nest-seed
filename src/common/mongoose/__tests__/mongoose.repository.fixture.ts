@@ -1,48 +1,22 @@
+import { PaginationResult, padNumber } from 'common'
 import { isEqual } from 'lodash'
-import { Injectable, Module } from '@nestjs/common'
-import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { MongooseRepository, MongooseSchema, PaginationResult, createMongooseSchema } from 'common'
-import { HydratedDocument, Model } from 'mongoose'
+import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
-@Schema()
-export class Sample extends MongooseSchema {
-    @Prop()
-    name: string
+export const createSampleData: Partial<Sample> = {
+    name: 'sample name'
 }
 
-export const SampleSchema = createMongooseSchema(Sample)
-export type SampleDocument = HydratedDocument<Sample>
-
-@Injectable()
-export class SamplesRepository extends MongooseRepository<Sample> {
-    constructor(@InjectModel(Sample.name) model: Model<Sample>) {
-        super(model)
-    }
-
-    async update(id: string, updateMongoDto: Partial<Sample>): Promise<SampleDocument> {
-        /**
-         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
-         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
-         * Database query built from user-controlled sources
-         */
-        const updateData: Partial<Sample> = {}
-        updateData.name = updateMongoDto.name
-
-        return super.update(id, updateData)
-    }
-}
-
-@Module({
-    imports: [MongooseModule.forFeature([{ name: Sample.name, schema: SampleSchema }])],
-    providers: [SamplesRepository]
-})
-export class SamplesModule {}
-
-export function sortSamples(samples: SampleDocument[]) {
+export function sortAsc(samples: SampleDocument[]) {
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
+export function sortDesc(samples: SampleDocument[]) {
+    return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+}
 
-export async function isCreatedDocumentCorrect(document: SampleDocument, createData: any): Promise<boolean> {
+export async function isDocumentValid(
+    document: SampleDocument,
+    createData: Partial<Sample>
+): Promise<boolean> {
     const entityBase = {
         _id: expect.anything(),
         createdAt: expect.anything(),
@@ -56,12 +30,12 @@ export async function isCreatedDocumentCorrect(document: SampleDocument, createD
     })
 }
 
-export function areDocumentsEqual(a: SampleDocument[], b: SampleDocument[]) {
+function areDocsEqual(a: SampleDocument[], b: SampleDocument[]) {
     if (a.length !== b.length) return false
 
     for (let i = 0; i < a.length; i++) {
-        if (!isEqual(a[i].toJSON(), b[i].toJSON())) {
-            console.log('a[i].toJSON()', a[i].toJSON(), 'b[i].toJSON()', b[i].toJSON())
+        if (!a[i].equals(b[i])) {
+            console.log(`Difference found at index ${i}:`, 'a:', a[i], 'b:', b[i])
             return false
         }
     }
@@ -69,33 +43,39 @@ export function areDocumentsEqual(a: SampleDocument[], b: SampleDocument[]) {
     return true
 }
 
-export function arePaginatedResultsEqual(
-    a: PaginationResult<SampleDocument>,
-    b: PaginationResult<SampleDocument>
-) {
-    if (a.total !== b.total) {
-        console.log('a.total', a.total, 'b.total', b.total)
+function arePaginationEqual(a: PaginationResult<SampleDocument>, b: PaginationResult<SampleDocument>) {
+    if (a.total !== b.total || a.take !== b.take || a.skip !== b.skip) {
+        console.log('Pagination mismatch:', 'a:', a, 'b:', b)
         return false
     }
 
-    if (a.take !== b.take) {
-        console.log('a.take', a.take, 'b.take', b.take)
-        return false
-    }
-
-    if (a.skip !== b.skip) {
-        console.log('a.skip', a.skip, 'b.skip', b.skip)
-        return false
-    }
-
-    if (!areDocumentsEqual(a.items, b.items)) {
-        console.log('a.items', a.items, 'b.items', b.items)
-        return false
-    }
-
-    return true
+    return areDocsEqual(a.items, b.items)
 }
 
-export const createData = {
-    name: 'sample name'
+expect.extend({
+    toPaginationEqual(received, expected) {
+        const pass = arePaginationEqual(received, expected)
+        const message = pass ? () => `expected pagination not to match` : () => `expected pagination to match`
+
+        return { pass, message }
+    },
+    toDocumentsEqual(received, expected) {
+        const pass = areDocsEqual(received, expected)
+        const message = pass ? () => `expected document not to match` : () => `expected document to match`
+
+        return { pass, message }
+    }
+})
+
+export const generateSampleData = async (repository: SamplesRepository): Promise<SampleDocument[]> => {
+    const samples: SampleDocument[] = []
+
+    for (let i = 0; i < 100; i++) {
+        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
+        const createdSample = await repository.create(data)
+
+        samples.push(createdSample)
+    }
+
+    return samples
 }
