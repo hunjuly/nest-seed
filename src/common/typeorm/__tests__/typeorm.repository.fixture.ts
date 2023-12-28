@@ -1,42 +1,43 @@
-import { Injectable, Module } from '@nestjs/common'
-import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
-import { TypeormEntity, TypeormRepository } from 'common'
-import { isEqual } from 'lodash'
-import { Column, Entity, Repository } from 'typeorm'
+import { padNumber } from 'common'
+import { Sample, SamplesRepository } from './typeorm.repository.mock'
 
-@Entity()
-export class Sample extends TypeormEntity {
-    @Column()
-    name: string
+export const createSampleData: Partial<Sample> = {
+    name: 'sample name'
 }
 
-@Injectable()
-export class SamplesRepository extends TypeormRepository<Sample> {
-    constructor(@InjectRepository(Sample) repo: Repository<Sample>) {
-        super(repo)
+export async function generateSampleData(repository: SamplesRepository): Promise<Sample[]> {
+    const createPromises = []
+
+    for (let i = 0; i < 100; i++) {
+        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
+        createPromises.push(repository.create(data))
     }
+
+    const samples = await Promise.all(createPromises)
+
+    return sortSamples(samples)
 }
 
-@Module({
-    imports: [TypeOrmModule.forFeature([Sample])],
-    providers: [SamplesRepository]
-})
-export class SamplesModule {}
+export function sortSamples(samples: Sample[], direction: 'asc' | 'desc' = 'asc') {
+    if (direction === 'desc') {
+        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+    }
 
-export function sortSamples(samples: Sample[]) {
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function isCreatedEntityCorrect(entity: Sample, createData: any): Promise<boolean> {
-    const entityBase = {
-        id: expect.anything(),
-        createdAt: expect.anything(),
-        updatedAt: expect.anything(),
-        version: expect.anything()
-    }
+expect.extend({
+    toValidEntity(received, expected) {
+        const pass = this.equals(received, {
+            id: expect.anything(),
+            createdAt: expect.anything(),
+            updatedAt: expect.anything(),
+            version: expect.anything(),
+            ...expected
+        })
 
-    return isEqual(entity, {
-        ...entityBase,
-        ...createData
-    })
-}
+        const message = pass ? () => `expected entity not to match` : () => `expected entity to match`
+
+        return { pass, message }
+    }
+})

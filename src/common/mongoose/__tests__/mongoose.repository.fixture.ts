@@ -1,11 +1,11 @@
-import { OrderDirection, padNumber } from 'common'
+import { padNumber } from 'common'
 import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
 export const createSampleData: Partial<Sample> = {
     name: 'sample name'
 }
 
-export const generateSampleData = async (repository: SamplesRepository): Promise<SampleDocument[]> => {
+export async function generateSampleData(repository: SamplesRepository): Promise<SampleDocument[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
@@ -13,11 +13,13 @@ export const generateSampleData = async (repository: SamplesRepository): Promise
         createPromises.push(repository.create(data))
     }
 
-    return Promise.all(createPromises)
+    const samples = await Promise.all(createPromises)
+
+    return sortSamples(samples)
 }
 
-export function sortSamples(samples: SampleDocument[], direction = OrderDirection.asc) {
-    if (direction === OrderDirection.desc) {
+export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc' = 'asc') {
+    if (direction === 'desc') {
         return [...samples].sort((b, a) => a.name.localeCompare(b.name))
     }
 
@@ -65,6 +67,13 @@ expect.extend({
     },
     toDocumentsEqual(received, expected) {
         return areDocsEqual(received, expected)
+    },
+    toDocumentEqual(received, expected) {
+        const pass = received.equals(expected)
+
+        const message = pass ? () => `document not to match` : () => `document to match`
+
+        return { pass, message }
     },
     toPaginationEqual(received, expected) {
         if (

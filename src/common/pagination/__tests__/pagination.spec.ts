@@ -2,7 +2,7 @@ import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
 import { TestingModule } from '@nestjs/testing'
 import { createHttpTestingModule } from 'common'
-import { SamplesModule } from './pagination.fixture'
+import { SamplesModule } from './pagination.mock'
 
 describe('Pagination', () => {
     let module: TestingModule
@@ -45,13 +45,12 @@ describe('Pagination', () => {
             query: { skip, take, orderby: 'name:asc' }
         })
 
-        const expected = {
+        expect(res.status).toEqual(HttpStatus.OK)
+        expect(res.body).toEqual({
             orderby: { direction: 'asc', name: 'name' },
             skip,
             take
-        }
-        expect(res.status).toEqual(HttpStatus.OK)
-        expect(res.body).toEqual(expected)
+        })
     })
 
     it('orderby 형식이 틀림', async () => {

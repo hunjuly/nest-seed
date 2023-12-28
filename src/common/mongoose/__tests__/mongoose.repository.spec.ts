@@ -17,14 +17,15 @@ declare module 'expect' {
     interface Matchers<R> {
         toPaginationEqual(expected: PaginationResult<SampleDocument>): R
         toDocumentsEqual(expected: SampleDocument[]): R
+        toDocumentEqual(expected: SampleDocument): R
         toValidDocument(expected: Partial<Sample>): R
     }
 }
 
 describe('MongooseRepository', () => {
+    let mongoServer: MongoMemoryServer
     let module: TestingModule
     let repository: SamplesRepository
-    let mongoServer: MongoMemoryServer
     let samples: SampleDocument[]
     let sample: SampleDocument
 
@@ -113,7 +114,7 @@ describe('MongooseRepository', () => {
         it('ID로 문서 조회', async () => {
             const foundSample = await repository.findById(sample.id)
 
-            expect(foundSample?.toJSON()).toEqual(sample.toJSON())
+            expect(foundSample).toDocumentEqual(sample)
         })
 
         it('존재하지 않는 ID로 조회하면 null', async () => {
@@ -134,12 +135,17 @@ describe('MongooseRepository', () => {
 
     describe('find', () => {
         it('오름차순 정렬(asc)', async () => {
-            const direction = OrderDirection.asc
             const take = samples.length
-            const paginatedResult = await repository.find({ take, orderby: { name: 'name', direction } })
+            const paginatedResult = await repository.find({
+                take,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.asc
+                }
+            })
 
             expect(paginatedResult).toPaginationEqual({
-                items: sortSamples(samples, direction),
+                items: sortSamples(samples, 'asc'),
                 total: samples.length,
                 skip: undefined,
                 take
@@ -147,12 +153,17 @@ describe('MongooseRepository', () => {
         })
 
         it('내림차순 정렬(desc)', async () => {
-            const direction = OrderDirection.desc
             const take = samples.length
-            const paginatedResult = await repository.find({ take, orderby: { name: 'name', direction } })
+            const paginatedResult = await repository.find({
+                take,
+                orderby: {
+                    name: 'name',
+                    direction: OrderDirection.desc
+                }
+            })
 
             expect(paginatedResult).toPaginationEqual({
-                items: sortSamples(samples, direction),
+                items: sortSamples(samples, 'desc'),
                 total: samples.length,
                 skip: undefined,
                 take
@@ -203,10 +214,26 @@ describe('MongooseRepository', () => {
         })
 
         describe('middleware 사용', () => {
+            it('middleware 사용해서 orderby 설정', async () => {
+                const paginatedResult = await repository.find({
+                    middleware: (helpers) => {
+                        helpers.sort({ name: 'desc' })
+                    }
+                })
+
+                expect(paginatedResult).toPaginationEqual({
+                    items: sortSamples(samples, 'desc'),
+                    total: samples.length,
+                    skip: undefined,
+                    take: undefined
+                })
+            })
+
             it('middleware 사용해서 query 설정', async () => {
                 const paginatedResult = await repository.find({
                     middleware: (helpers) => {
                         helpers.setQuery({ name: /Sample_00/i })
+                        helpers.sort({ name: 'asc' })
                     }
                 })
 
@@ -225,6 +252,7 @@ describe('MongooseRepository', () => {
                     middleware: (helpers) => {
                         helpers.skip(skip)
                         helpers.limit(take)
+                        helpers.sort({ name: 'asc' })
                     }
                 })
 
@@ -233,21 +261,6 @@ describe('MongooseRepository', () => {
                     total: samples.length,
                     skip,
                     take
-                })
-            })
-
-            it('middleware 사용해서 orderby 설정', async () => {
-                const paginatedResult = await repository.find({
-                    middleware: (helpers) => {
-                        helpers.sort({ name: 'desc' })
-                    }
-                })
-
-                expect(paginatedResult).toPaginationEqual({
-                    items: sortSamples(samples, OrderDirection.desc),
-                    total: samples.length,
-                    skip: undefined,
-                    take: undefined
                 })
             })
         })

@@ -1,5 +1,4 @@
 import { Controller, Get, Module, Query } from '@nestjs/common'
-import { IsOptional } from 'class-validator'
 import { PaginationOptions, TypeormEntity } from 'common'
 import { Column, Entity } from 'typeorm'
 

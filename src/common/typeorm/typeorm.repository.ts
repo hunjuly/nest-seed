@@ -6,10 +6,12 @@ import { EntityNotFoundTypeormException, ParameterTypeormException } from './exc
 export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
-    async create(entityData: DeepPartial<Entity>): Promise<Entity> {
-        Assert.undefined(entityData.id, `id${entityData.id}가 정의되어 있으면 안 된다.`)
+    async create(createData: DeepPartial<Entity>): Promise<Entity> {
+        Assert.undefined(createData.id, `id${createData.id}가 정의되어 있으면 안 된다.`)
 
-        const savedEntity = await this.repo.save(entityData)
+        // repo.save(createData)를 하면 createData에 id가 자동으로 생성된다.
+        const cloned = { ...createData }
+        const savedEntity = await this.repo.save(cloned)
 
         return savedEntity
     }

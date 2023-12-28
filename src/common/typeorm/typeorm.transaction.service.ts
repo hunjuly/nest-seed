@@ -6,20 +6,18 @@ import { TypeormTransaction } from '.'
 export class TypeormTransactionService {
     constructor(private dataSource: DataSource) {}
 
-    async execute<Entity>(
-        task: (transactionRepository: TypeormTransaction) => Promise<Entity>
-    ): Promise<Entity> {
+    async execute<Entity>(task: (transaction: TypeormTransaction) => Promise<Entity>): Promise<Entity> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {
             await queryRunner.connect()
             await queryRunner.startTransaction()
 
-            const transactionRepository = new TypeormTransaction(queryRunner)
+            const transaction = new TypeormTransaction(queryRunner)
 
-            const result = await task(transactionRepository)
+            const result = await task(transaction)
 
-            if (transactionRepository.isRollbackRequested()) {
+            if (transaction.isRollbackRequested()) {
                 await queryRunner.rollbackTransaction()
             } else {
                 await queryRunner.commitTransaction()
