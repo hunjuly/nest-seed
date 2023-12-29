@@ -1,13 +1,21 @@
+import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
 import { createHttpTestingModule } from 'common'
-import { createMongoDto, createMongoDtos, createdMongo } from './mocks'
+import { createMongoDto, generateMongos } from './mocks'
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toValidMongoDto(expected: any): R
+    }
+}
 
 describe('MongosController', () => {
     let module: TestingModule
     let request: any
+    let server: any
 
     beforeEach(async () => {
         const sut = await createHttpTestingModule({
@@ -16,9 +24,11 @@ describe('MongosController', () => {
 
         module = sut.module
         request = sut.request
+        server = sut.server
     })
 
     afterEach(async () => {
+        if (server) await server.close()
         if (module) await module.close()
     })
 
@@ -35,7 +45,7 @@ describe('MongosController', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual(createdMongo)
+            expect(res.body).toValidMongoDto(createMongoDto)
         })
 
         it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
@@ -52,17 +62,7 @@ describe('MongosController', () => {
         let createdMongos: MongoDto[] = []
 
         beforeEach(async () => {
-            createdMongos = []
-
-            for (const createDto of createMongoDtos) {
-                const res = await request.post({
-                    url: '/mongos',
-                    body: createDto,
-                    status: HttpStatus.CREATED
-                })
-
-                createdMongos.push(res.body)
-            }
+            createdMongos = await generateMongos(request)
         })
 
         it('모든 mongo를 반환한다', async () => {
@@ -78,7 +78,7 @@ describe('MongosController', () => {
             const res = await request.get({
                 url: '/mongos',
                 query: {
-                    name: createMongoDtos[0].name
+                    name: createdMongos[0].name
                 }
             })
 

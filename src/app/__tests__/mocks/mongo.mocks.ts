@@ -1,4 +1,5 @@
-import { objToJson } from 'common'
+import { MongoDto } from 'app/services/mongos'
+import { objToJson, padNumber } from 'common'
 
 export const createMongoDto = {
     name: 'mongo name',
@@ -8,16 +9,46 @@ export const createMongoDto = {
     integer: 100
 }
 
-export const createdMongo = {
-    ...objToJson(createMongoDto),
-    id: expect.anything(),
-    createdAt: expect.anything(),
-    updatedAt: expect.anything(),
-    version: 0
+export function sortMongos(mongos: MongoDto[], direction: 'asc' | 'desc' = 'asc') {
+    if (direction === 'desc') {
+        return [...mongos].sort((b, a) => a.name.localeCompare(b.name))
+    }
+
+    return [...mongos].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export const createMongoDtos = [
-    { ...createMongoDto, name: 'Mongo-1' },
-    { ...createMongoDto, name: 'Mongo-2' },
-    { ...createMongoDto, name: 'Mongo-3' }
-]
+export async function generateMongos(request: any): Promise<MongoDto[]> {
+    const createPromises = []
+
+    for (let i = 0; i < 100; i++) {
+        createPromises.push(
+            request.post({
+                url: '/mongos',
+                body: {
+                    ...createMongoDto,
+                    name: `Mongo_${padNumber(i, 3)}`
+                }
+            })
+        )
+    }
+
+    const responses = await Promise.all(createPromises)
+
+    return sortMongos(responses.map((res) => res.body))
+}
+
+expect.extend({
+    toValidMongoDto(received, expected) {
+        const pass = this.equals(received, {
+            id: expect.anything(),
+            createdAt: expect.anything(),
+            updatedAt: expect.anything(),
+            version: expect.anything(),
+            ...objToJson(expected)
+        })
+
+        const message = pass ? () => `expected MongoDto not to match` : () => `expected MongoDto to match`
+
+        return { pass, message }
+    }
+})
