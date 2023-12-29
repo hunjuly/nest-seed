@@ -5,6 +5,14 @@ export const createSampleData: Partial<Sample> = {
     name: 'sample name'
 }
 
+export function sortSamples(samples: Sample[], direction: 'asc' | 'desc' = 'asc') {
+    if (direction === 'desc') {
+        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+    }
+
+    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
+}
+
 export async function generateSampleData(repository: SamplesRepository): Promise<Sample[]> {
     const createPromises = []
 
@@ -16,14 +24,6 @@ export async function generateSampleData(repository: SamplesRepository): Promise
     const samples = await Promise.all(createPromises)
 
     return sortSamples(samples)
-}
-
-export function sortSamples(samples: Sample[], direction: 'asc' | 'desc' = 'asc') {
-    if (direction === 'desc') {
-        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
-    }
-
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
 expect.extend({

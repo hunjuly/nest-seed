@@ -60,8 +60,10 @@ describe('Authentication', () => {
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body.accessToken).toBeDefined()
-            expect(res.body.refreshToken).toBeDefined()
+            expect(res.body).toEqual({
+                accessToken: expect.anything(),
+                refreshToken: expect.anything()
+            })
         })
 
         it('비밀번호가 틀리면 UNAUTHORIZED(401) 반환한다', async () => {
@@ -164,7 +166,7 @@ describe('Authentication', () => {
             })
 
             it('데이터가 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
-                const invalidToken = jwtService.sign(
+                const wrongUserIdToken = jwtService.sign(
                     { userId: nullUUID },
                     { secret: 'mockAccessSecret', expiresIn: '15m' }
                 )
@@ -172,7 +174,7 @@ describe('Authentication', () => {
                 const res = await request.get({
                     url: `/auth/jwt-testing`,
                     headers: {
-                        Authorization: `Bearer ${invalidToken}`
+                        Authorization: `Bearer ${wrongUserIdToken}`
                     }
                 })
 
