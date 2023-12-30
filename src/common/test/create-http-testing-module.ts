@@ -3,7 +3,7 @@ import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
 
-export async function createHttpTestingModule(metadata: ModuleMetadataEx) {
+export async function createHttpTestEnv(metadata: ModuleMetadataEx) {
     const module = await createTestingModule(metadata)
 
     const app = module.createNestApplication()
@@ -38,5 +38,10 @@ export async function createHttpTestingModule(metadata: ModuleMetadataEx) {
 
     const request = new HttpRequest(server)
 
-    return { server, module, app, request }
+    const close = async () => {
+        if (server) await server.close()
+        if (module) await module.close()
+    }
+
+    return { server, module, app, request, close }
 }

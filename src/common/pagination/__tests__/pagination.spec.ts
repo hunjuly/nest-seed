@@ -1,15 +1,14 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { TestingModule } from '@nestjs/testing'
-import { createHttpTestingModule } from 'common'
+import { createHttpTestEnv } from 'common'
 import { SamplesModule } from './pagination.mock'
 
 describe('Pagination', () => {
-    let module: TestingModule
-    let request: any
+    let sut: any
+    let req: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+        sut = await createHttpTestEnv({
             imports: [SamplesModule],
             providers: [
                 {
@@ -23,24 +22,22 @@ describe('Pagination', () => {
             ]
         })
 
-        module = sut.module
-        request = sut.request
+        req = sut.request
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        if (sut) await sut.close()
     })
 
     it('should be defined', () => {
-        expect(module).toBeDefined()
-        expect(request).toBeDefined()
+        expect(sut).toBeDefined()
     })
 
     it('Pagination 옵션이 적용되어야 한다', async () => {
         const skip = 2
         const take = 3
 
-        const res = await request.get({
+        const res = await req.get({
             url: '/samples',
             query: { skip, take, orderby: 'name:asc' }
         })
@@ -54,7 +51,7 @@ describe('Pagination', () => {
     })
 
     it('orderby 형식이 틀림', async () => {
-        const res = await request.get({
+        const res = await req.get({
             url: '/samples',
             query: { orderby: 'wrong' }
         })
@@ -63,7 +60,7 @@ describe('Pagination', () => {
     })
 
     it('order direction이 틀림', async () => {
-        const res = await request.get({
+        const res = await req.get({
             url: '/samples',
             query: { orderby: 'name:wrong' }
         })

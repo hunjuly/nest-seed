@@ -1,12 +1,21 @@
 import { MongoDto } from 'app/services/mongos'
 import { objToJson, padNumber } from 'common'
 
-export const createMongoDto = {
+export const mongoCreationData = {
     name: 'mongo name',
     desc: 'mongo desc',
     date: new Date('2020-12-12'),
     enums: ['EnumA', 'EnumB', 'EnumC'],
     integer: 100
+}
+
+export async function createMongo(request: any): Promise<MongoDto> {
+    const res = await request.post({
+        url: '/mongos',
+        body: mongoCreationData
+    })
+
+    return res.body
 }
 
 export function sortMongos(mongos: MongoDto[], direction: 'asc' | 'desc' = 'asc') {
@@ -17,7 +26,7 @@ export function sortMongos(mongos: MongoDto[], direction: 'asc' | 'desc' = 'asc'
     return [...mongos].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function generateMongos(request: any): Promise<MongoDto[]> {
+export async function createManySamples(request: any): Promise<MongoDto[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
@@ -25,7 +34,7 @@ export async function generateMongos(request: any): Promise<MongoDto[]> {
             request.post({
                 url: '/mongos',
                 body: {
-                    ...createMongoDto,
+                    ...mongoCreationData,
                     name: `Mongo_${padNumber(i, 3)}`
                 }
             })
@@ -38,7 +47,7 @@ export async function generateMongos(request: any): Promise<MongoDto[]> {
 }
 
 expect.extend({
-    toValidMongoDto(received, expected) {
+    toValidUserDto(received, expected) {
         const pass = this.equals(received, {
             id: expect.anything(),
             createdAt: expect.anything(),
@@ -52,3 +61,9 @@ expect.extend({
         return { pass, message }
     }
 })
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toValidUserDto(expected: any): R
+    }
+}

@@ -1,7 +1,7 @@
-import { padNumber } from 'common'
+import { PaginationResult, padNumber } from 'common'
 import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
-export const createSampleData: Partial<Sample> = {
+export const sampleCreationData: Partial<Sample> = {
     name: 'sample name'
 }
 
@@ -13,11 +13,17 @@ export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc'
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function generateSampleData(repository: SamplesRepository): Promise<SampleDocument[]> {
+export async function createSample(repository: SamplesRepository): Promise<SampleDocument> {
+    const sample = await repository.create(sampleCreationData)
+
+    return sample
+}
+
+export async function createManySamples(repository: SamplesRepository): Promise<SampleDocument[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
-        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
+        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
         createPromises.push(repository.create(data))
     }
 
@@ -90,3 +96,12 @@ expect.extend({
         return areDocsEqual(received, expected)
     }
 })
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toPaginationEqual(expected: PaginationResult<SampleDocument>): R
+        toDocumentsEqual(expected: SampleDocument[]): R
+        toDocumentEqual(expected: SampleDocument): R
+        toValidDocument(expected: Partial<Sample>): R
+    }
+}

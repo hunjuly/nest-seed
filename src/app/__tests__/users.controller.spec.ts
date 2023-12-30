@@ -3,15 +3,15 @@ import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
-import { createHttpTestingModule, nullUUID } from 'common'
-import { createUserDto, createUserDtos, createdUser } from './mocks'
+import { createHttpTestEnv, nullUUID } from 'common'
+import { createUserDto, createUserDtos, createdUser } from './users.controller.fixture'
 
 describe('UsersController', () => {
     let module: TestingModule
     let request: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+        const sut = await createHttpTestEnv({
             imports: [AppModule],
             bypassGuards: [LocalAuthGuard, JwtAuthGuard]
         })

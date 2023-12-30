@@ -8,234 +8,256 @@ import {
     createTypeormMemoryModule,
     nullUUID
 } from 'common'
-import { createSampleData, generateSampleData, sortSamples } from './typeorm.repository.fixture'
+import {
+    sampleCreationData,
+    createManySamples,
+    sortSamples,
+    createSample
+} from './typeorm.repository.fixture'
 import { Sample, SamplesModule, SamplesRepository } from './typeorm.repository.mock'
-
-declare module 'expect' {
-    interface Matchers<R> {
-        toValidEntity(expected: Partial<Sample>): R
-    }
-}
 
 describe('TypeormRepository', () => {
     let module: TestingModule
     let repository: SamplesRepository
-    let samples: Sample[]
-    let sample: Sample
 
-    beforeEach(async () => {
+    const before = async () => {
         module = await createTestingModule({
             imports: [createTypeormMemoryModule(), SamplesModule]
         })
 
         repository = module.get(SamplesRepository)
-        samples = await generateSampleData(repository)
-        sample = samples[0]
-    })
+    }
 
-    afterEach(async () => {
+    const after = async () => {
         if (module) await module.close()
-    })
+    }
 
-    describe('create', () => {
-        it('생성된 엔티티의 데이터 정확성 확인', async () => {
-            const createdSample = await repository.create(createSampleData)
+    describe('TypeormRepository(Creation)', () => {
+        beforeEach(before)
+        afterEach(after)
 
-            expect(createdSample).toValidEntity({ ...createSampleData })
-        })
-    })
+        describe('create', () => {
+            it('엔티티 생성', async () => {
+                const createdSample = await repository.create(sampleCreationData)
 
-    describe('update', () => {
-        it('엔티티 업데이트 정확성 확인', async () => {
-            const updateSampleData = { name: 'new name' }
-            const updatedSample = await repository.update(sample.id, updateSampleData)
-
-            expect(updatedSample).toValidEntity(updateSampleData)
-        })
-
-        it('존재하지 않는 ID로 업데이트할 때 예외 확인', async () => {
-            const promise = repository.update(nullUUID, {})
-
-            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+                expect(createdSample).toValidEntity({ ...sampleCreationData })
+            })
         })
     })
 
-    describe('remove', () => {
-        it('엔티티 삭제 여부 확인', async () => {
-            await repository.remove(sample.id)
+    describe('TypeormRepository(Modifying)', () => {
+        let sample: Sample
 
-            const removedSample = await repository.findById(sample.id)
-            expect(removedSample).toBeNull()
+        beforeEach(async () => {
+            await before()
+            sample = await createSample(repository)
+        })
+        afterEach(after)
+
+        describe('update', () => {
+            it('엔티티 업데이트', async () => {
+                const updateSampleData = { name: 'new name' }
+                const updatedSample = await repository.update(sample.id, updateSampleData)
+
+                expect(updatedSample).toValidEntity(updateSampleData)
+            })
+
+            it('존재하지 않는 ID로 업데이트 시 예외 처리', async () => {
+                const promise = repository.update(nullUUID, {})
+
+                await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+            })
         })
 
-        it('존재하지 않는 ID로 삭제할 때 예외 확인', async () => {
-            const promise = repository.remove(nullUUID)
+        describe('remove', () => {
+            it('엔티티 삭제', async () => {
+                await repository.remove(sample.id)
 
-            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+                const removedSample = await repository.findById(sample.id)
+                expect(removedSample).toBeNull()
+            })
+
+            it('존재하지 않는 ID로 삭제 시 예외 처리', async () => {
+                const promise = repository.remove(nullUUID)
+
+                await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+            })
         })
     })
 
-    describe('exist', () => {
-        it('엔티티가 존재하면 true', async () => {
-            const exist = await repository.exist(sample.id)
+    describe('MongooseRepository(Querying)', () => {
+        let createdSamples: Sample[]
 
-            expect(exist).toBeTruthy()
+        beforeAll(async () => {
+            await before()
+            createdSamples = await createManySamples(repository)
         })
+        afterAll(after)
 
-        it('엔티티가 존재하지 않으면 false', async () => {
-            const exist = await repository.exist(nullUUID)
+        describe('exist', () => {
+            it('엔티티 존재 여부 확인', async () => {
+                const sample = createdSamples[0]
+                const exist = await repository.exist(sample.id)
 
-            expect(exist).toBeFalsy()
-        })
-    })
-
-    describe('findById', () => {
-        it('ID로 엔티티 조회', async () => {
-            const foundSample = await repository.findById(sample.id)
-
-            expect(foundSample).toEqual(sample)
-        })
-
-        it('존재하지 않는 ID로 조회하면 null', async () => {
-            const notFound = await repository.findById(nullUUID)
-
-            expect(notFound).toBeNull()
-        })
-    })
-
-    describe('findByIds', () => {
-        it('여러 ID로 엔티티 일괄 조회', async () => {
-            const ids = samples.map((sample) => sample.id)
-            const foundSamples = await repository.findByIds(ids)
-
-            expect(sortSamples(foundSamples)).toEqual(samples)
-        })
-    })
-
-    describe('find', () => {
-        it('오름차순 정렬(asc)', async () => {
-            const take = samples.length
-            const paginatedResult = await repository.find({
-                take,
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.asc
-                }
+                expect(exist).toBeTruthy()
             })
 
-            expect(paginatedResult).toEqual({
-                items: sortSamples(samples, 'asc'),
-                total: samples.length,
-                skip: undefined,
-                take
+            it('존재하지 않는 엔티티 확인', async () => {
+                const exist = await repository.exist(nullUUID)
+
+                expect(exist).toBeFalsy()
             })
         })
 
-        it('내림차순 정렬(desc)', async () => {
-            const take = samples.length
-            const paginatedResult = await repository.find({
-                take,
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.desc
-                }
+        describe('findById', () => {
+            it('ID로 엔티티 조회', async () => {
+                const sample = createdSamples[0]
+                const foundSample = await repository.findById(sample.id)
+
+                expect(foundSample).toEqual(sample)
             })
 
-            expect(paginatedResult).toEqual({
-                items: sortSamples(samples, 'desc'),
-                total: samples.length,
-                skip: undefined,
-                take
+            it('존재하지 않는 ID로 조회 시 null 반환', async () => {
+                const notFound = await repository.findById(nullUUID)
+
+                expect(notFound).toBeNull()
             })
         })
 
-        it('Pagination 적용 조회', async () => {
-            const skip = 10
-            const take = 5
-            const paginatedResult = await repository.find({
-                skip,
-                take,
-                orderby: {
-                    name: 'name',
-                    direction: OrderDirection.asc
-                }
-            })
+        describe('findByIds', () => {
+            it('여러 ID로 엔티티 조회', async () => {
+                const ids = createdSamples.map((sample) => sample.id)
+                const foundSamples = await repository.findByIds(ids)
 
-            expect(paginatedResult).toEqual({
-                items: samples.slice(skip, skip + take),
-                total: samples.length,
-                skip,
-                take
+                expect(sortSamples(foundSamples)).toEqual(createdSamples)
             })
         })
 
-        it('1개 이상의 검색 조건 필요', async () => {
-            const promise = repository.find({})
-
-            await expect(promise).rejects.toThrow(ParameterTypeormException)
-        })
-
-        it('skip 한계 초과 시 조회', async () => {
-            const skip = samples.length
-            const take = 5
-            const paginatedResult = await repository.find({ skip, take })
-
-            expect(paginatedResult).toEqual({
-                items: [],
-                total: samples.length,
-                skip,
-                take
-            })
-        })
-
-        describe('middleware 사용', () => {
-            it('middleware 사용해서 orderby 설정', async () => {
+        describe('find', () => {
+            it('오름차순 정렬(asc)', async () => {
+                const take = createdSamples.length
                 const paginatedResult = await repository.find({
-                    middleware: (qb) => {
-                        qb.orderBy('entity.name', 'DESC')
+                    take,
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.asc
                     }
                 })
 
                 expect(paginatedResult).toEqual({
-                    items: sortSamples(samples, 'desc'),
-                    total: samples.length,
+                    items: sortSamples(createdSamples, 'asc'),
+                    total: createdSamples.length,
                     skip: undefined,
-                    take: undefined
+                    take
                 })
             })
 
-            it('middleware 사용해서 query 설정', async () => {
+            it('내림차순 정렬(desc)', async () => {
+                const take = createdSamples.length
                 const paginatedResult = await repository.find({
-                    middleware: (qb) => {
-                        qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
-                        qb.orderBy('entity.name', 'ASC')
+                    take,
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.desc
                     }
                 })
 
                 expect(paginatedResult).toEqual({
-                    items: samples.slice(0, 10),
-                    total: 10,
+                    items: sortSamples(createdSamples, 'desc'),
+                    total: createdSamples.length,
                     skip: undefined,
-                    take: undefined
+                    take
                 })
             })
 
-            it('middleware 사용해서 Pagination 설정', async () => {
+            it('pagination 적용 조회', async () => {
                 const skip = 10
                 const take = 5
                 const paginatedResult = await repository.find({
-                    middleware: (qb) => {
-                        qb.skip(skip)
-                        qb.take(take)
-                        qb.orderBy('entity.name', 'ASC')
+                    skip,
+                    take,
+                    orderby: {
+                        name: 'name',
+                        direction: OrderDirection.asc
                     }
                 })
 
                 expect(paginatedResult).toEqual({
-                    items: samples.slice(skip, skip + take),
-                    total: samples.length,
+                    items: createdSamples.slice(skip, skip + take),
+                    total: createdSamples.length,
                     skip,
                     take
+                })
+            })
+
+            it('검색 조건 없을 시 예외 처리', async () => {
+                const promise = repository.find({})
+
+                await expect(promise).rejects.toThrow(ParameterTypeormException)
+            })
+
+            it('skip 한계 초과 시 빈 결과 반환', async () => {
+                const skip = createdSamples.length
+                const take = 5
+                const paginatedResult = await repository.find({ skip, take })
+
+                expect(paginatedResult).toEqual({
+                    items: [],
+                    total: createdSamples.length,
+                    skip,
+                    take
+                })
+            })
+
+            describe('middleware 사용', () => {
+                it('orderby 설정', async () => {
+                    const paginatedResult = await repository.find({
+                        middleware: (qb) => {
+                            qb.orderBy('entity.name', 'DESC')
+                        }
+                    })
+
+                    expect(paginatedResult).toEqual({
+                        items: sortSamples(createdSamples, 'desc'),
+                        total: createdSamples.length,
+                        skip: undefined,
+                        take: undefined
+                    })
+                })
+
+                it('query 설정', async () => {
+                    const paginatedResult = await repository.find({
+                        middleware: (qb) => {
+                            qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
+                            qb.orderBy('entity.name', 'ASC')
+                        }
+                    })
+
+                    expect(paginatedResult).toEqual({
+                        items: createdSamples.slice(0, 10),
+                        total: 10,
+                        skip: undefined,
+                        take: undefined
+                    })
+                })
+
+                it('pagination 설정', async () => {
+                    const skip = 10
+                    const take = 5
+                    const paginatedResult = await repository.find({
+                        middleware: (qb) => {
+                            qb.skip(skip)
+                            qb.take(take)
+                            qb.orderBy('entity.name', 'ASC')
+                        }
+                    })
+
+                    expect(paginatedResult).toEqual({
+                        items: createdSamples.slice(skip, skip + take),
+                        total: createdSamples.length,
+                        skip,
+                        take
+                    })
                 })
             })
         })

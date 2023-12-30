@@ -17,3 +17,9 @@ export const createUserDtos = [
     { ...createUserDto, email: 'user2@mail.com' },
     { ...createUserDto, email: 'user3@mail.com' }
 ]
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toValidUserDto(expected: any): R
+    }
+}

@@ -1,9 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
-import { createHttpTestingModule, nullUUID, sleep } from 'common'
-import { createUserDto } from './mocks'
+import { createHttpTestEnv, nullUUID, sleep } from 'common'
+import { LoginCredentials, prepareUserCredentials as prepareLoginCredentials } from './authentication.fixture'
 
 jest.mock('config', () => {
     const actualConfig = jest.requireActual('config')
@@ -20,42 +19,36 @@ jest.mock('config', () => {
 })
 
 describe('Authentication', () => {
-    let module: TestingModule
-    let request: any
+    let sut: any
+    let req: any
     let jwtService: JwtService
+    let login: LoginCredentials
 
     beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+        sut = await createHttpTestEnv({
             imports: [AppModule]
         })
 
-        module = sut.module
-        request = sut.request
-        jwtService = module.get(JwtService)
-
-        await request.post({
-            url: '/users',
-            body: createUserDto,
-            status: HttpStatus.CREATED
-        })
+        req = sut.request
+        jwtService = sut.module.get(JwtService)
+        login = await prepareLoginCredentials(req)
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        if (sut) await sut.close()
     })
 
     it('should be defined', () => {
-        expect(module).toBeDefined()
-        expect(request).toBeDefined()
+        expect(sut).toBeDefined()
     })
 
     describe('POST /auth/login', () => {
         it('로그인 성공시 CREATED(201)과 TokenPair 반환', async () => {
-            const res = await request.post({
+            const res = await req.post({
                 url: '/auth/login',
                 body: {
-                    email: createUserDto.email,
-                    password: createUserDto.password
+                    email: login.email,
+                    password: login.password
                 }
             })
 
@@ -67,10 +60,10 @@ describe('Authentication', () => {
         })
 
         it('비밀번호가 틀리면 UNAUTHORIZED(401) 반환한다', async () => {
-            const res = await request.post({
+            const res = await req.post({
                 url: '/auth/login',
                 body: {
-                    email: createUserDto.email,
+                    email: login.email,
                     password: 'wrong password'
                 }
             })
@@ -79,11 +72,11 @@ describe('Authentication', () => {
         })
 
         it('email이 존재하지 않으면 UNAUTHORIZED(401) 반환한다', async () => {
-            const res = await request.post({
+            const res = await req.post({
                 url: '/auth/login',
                 body: {
                     email: 'unknown@mail.com',
-                    password: createUserDto.password
+                    password: login.password
                 }
             })
 
@@ -96,11 +89,11 @@ describe('Authentication', () => {
         let refreshToken: any
 
         beforeEach(async () => {
-            const res = await request.post({
+            const res = await req.post({
                 url: '/auth/login',
                 body: {
-                    email: createUserDto.email,
-                    password: createUserDto.password
+                    email: login.email,
+                    password: login.password
                 },
                 status: HttpStatus.CREATED
             })
@@ -111,7 +104,7 @@ describe('Authentication', () => {
 
         describe('POST /auth/refresh', () => {
             it('새로운 TokenPair를 반환한다', async () => {
-                const res = await request.post({
+                const res = await req.post({
                     url: '/auth/refresh',
                     body: { refreshToken }
                 })
@@ -122,7 +115,7 @@ describe('Authentication', () => {
             })
 
             it('잘못된 refreshToken은 Unauthorized(401) 반환한다', async () => {
-                const res = await request.post({
+                const res = await req.post({
                     url: '/auth/refresh',
                     body: { refreshToken: 'invalid-token' }
                 })
@@ -133,7 +126,7 @@ describe('Authentication', () => {
             it('refreshToken이 만료된 후 refresh 하면 UNAUTHORIZED(401)', async () => {
                 await sleep(1500)
 
-                const res = await request.post({
+                const res = await req.post({
                     url: '/auth/refresh',
                     body: { refreshToken }
                 })
@@ -144,7 +137,7 @@ describe('Authentication', () => {
 
         describe('JwtAuthGuard', () => {
             it('accessToken이 필요하다', async () => {
-                const res = await request.get({
+                const res = await req.get({
                     url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer ${accessToken}`
@@ -155,7 +148,7 @@ describe('Authentication', () => {
             })
 
             it('형식이 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
-                const res = await request.get({
+                const res = await req.get({
                     url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer invalid_access_token`
@@ -171,7 +164,7 @@ describe('Authentication', () => {
                     { secret: 'mockAccessSecret', expiresIn: '15m' }
                 )
 
-                const res = await request.get({
+                const res = await req.get({
                     url: `/auth/jwt-testing`,
                     headers: {
                         Authorization: `Bearer ${wrongUserIdToken}`

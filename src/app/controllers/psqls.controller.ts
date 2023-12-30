@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreatePsqlDto, PsqlsQueryDto, PsqlsService, UpdatePsqlDto } from 'app/services/psqls'
 import { PsqlExistsGuard } from './guards'
 
@@ -14,6 +14,12 @@ export class PsqlsController {
     @Get()
     async findPsqls(@Query() query: PsqlsQueryDto) {
         return this.psqlsService.findPsqls(query)
+    }
+
+    @Post('/findByIds')
+    @HttpCode(200)
+    async findByIds(@Body() psqlIds: string[]) {
+        return this.psqlsService.findByIds(psqlIds)
     }
 
     @UseGuards(PsqlExistsGuard)

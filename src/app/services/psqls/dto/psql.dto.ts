@@ -7,10 +7,13 @@ export class PsqlDto {
     date: Date
     enums: PsqlEnum[]
     integer: number
+    createdAt: Date
+    updatedAt: Date
+    version: number
 
     constructor(psql: Psql) {
-        const { id, name, desc, date, enums, integer } = psql
+        const { id, name, desc, date, enums, integer, createdAt, updatedAt, version } = psql
 
-        Object.assign(this, { id, name, desc, date, enums, integer })
+        Object.assign(this, { id, name, desc, date, enums, integer, createdAt, updatedAt, version })
     }
 }

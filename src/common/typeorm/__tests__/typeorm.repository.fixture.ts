@@ -1,7 +1,7 @@
 import { padNumber } from 'common'
 import { Sample, SamplesRepository } from './typeorm.repository.mock'
 
-export const createSampleData: Partial<Sample> = {
+export const sampleCreationData: Partial<Sample> = {
     name: 'sample name'
 }
 
@@ -13,11 +13,17 @@ export function sortSamples(samples: Sample[], direction: 'asc' | 'desc' = 'asc'
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function generateSampleData(repository: SamplesRepository): Promise<Sample[]> {
+export async function createSample(repository: SamplesRepository): Promise<Sample> {
+    const sample = await repository.create(sampleCreationData)
+
+    return sample
+}
+
+export async function createManySamples(repository: SamplesRepository): Promise<Sample[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
-        const data = { ...createSampleData, name: `Sample_${padNumber(i, 3)}` }
+        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
         createPromises.push(repository.create(data))
     }
 
@@ -41,3 +47,9 @@ expect.extend({
         return { pass, message }
     }
 })
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toValidEntity(expected: Partial<Sample>): R
+    }
+}
