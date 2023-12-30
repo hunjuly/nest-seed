@@ -2,16 +2,16 @@ import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
-import { createHttpTestEnv, nullObjectId } from 'common'
+import { HttpTestEnv, createHttpTestEnv, nullObjectId } from 'common'
 import {
     mongoCreationData,
-    createManySamples as createManyMongos,
+    createManyMongos as createManyMongos,
     sortMongos,
     createMongo
 } from './mongos.controller.fixture'
 
 describe('MongosController', () => {
-    let sut: any
+    let sut: HttpTestEnv
     let req: any
 
     const before = async () => {
@@ -31,7 +31,7 @@ describe('MongosController', () => {
         afterEach(after)
 
         describe('POST /mongos', () => {
-            it('mongo를 생성', async () => {
+            it('Mongo 생성', async () => {
                 const res = await req.post({
                     url: '/mongos',
                     body: mongoCreationData
@@ -53,18 +53,18 @@ describe('MongosController', () => {
     })
 
     describe('MongosController(Modifying)', () => {
-        let mongo: MongoDto
+        let createdMongo: MongoDto
 
         beforeEach(async () => {
             await before()
-            mongo = await createMongo(req)
+            createdMongo = await createMongo(req)
         })
         afterEach(after)
 
         describe('PATCH /mongos/:id', () => {
-            it('mongo를 업데이트한다', async () => {
+            it('Mongo 업데이트', async () => {
                 const res = await req.patch({
-                    url: `/mongos/${mongo.id}`,
+                    url: `/mongos/${createdMongo.id}`,
                     body: {
                         name: 'Updated Mongo'
                     }
@@ -72,7 +72,7 @@ describe('MongosController', () => {
 
                 expect(res.status).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    ...mongo,
+                    ...createdMongo,
                     updatedAt: expect.anything(),
                     name: 'Updated Mongo',
                     version: 1
@@ -81,7 +81,7 @@ describe('MongosController', () => {
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await req.patch({
-                    url: `/mongos/${mongo.id}`,
+                    url: `/mongos/${createdMongo.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -90,12 +90,10 @@ describe('MongosController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.patch({
-                    url: '/mongos/' + nullObjectId,
-                    body: {
-                        name: 'Updated Mongo'
-                    }
+                    url: `/mongos/${nullObjectId}`,
+                    body: {}
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -103,17 +101,17 @@ describe('MongosController', () => {
         })
 
         describe('DELETE /mongos/:id', () => {
-            it('mongo를 삭제한다', async () => {
+            it('Mongo 삭제', async () => {
                 const res = await req.delete({
-                    url: `/mongos/${mongo.id}`
+                    url: `/mongos/${createdMongo.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.delete({
-                    url: '/mongos/' + nullObjectId
+                    url: `/mongos/${nullObjectId}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -131,95 +129,112 @@ describe('MongosController', () => {
         afterAll(after)
 
         describe('GET /mongos', () => {
-            it('모든 mongo를 반환한다', async () => {
-                const res = await req.get({
-                    url: '/mongos'
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(sortMongos(res.body.items)).toEqual(createdMongos)
-            })
-
-            it('name으로 mongo를 검색한다', async () => {
+            it('모든 Mongo 조회', async () => {
                 const res = await req.get({
                     url: '/mongos',
                     query: {
-                        name: createdMongos[0].name
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual([createdMongos[0]])
-            })
-
-            it('pagination', async () => {
-                const res = await req.get({
-                    url: '/mongos',
-                    query: {
-                        name: 'Mongo',
-                        skip: 1,
-                        take: 2,
                         orderby: 'name:asc'
                     }
                 })
 
-                const expectedMongs = createdMongos.slice(1, 3)
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdMongos,
+                    total: createdMongos.length
+                })
+            })
+
+            it('name으로 Mongo 조회', async () => {
+                const targetMongo = createdMongos[0]
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        name: targetMongo.name
+                    }
+                })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(expectedMongs)
+                expect(res.body).toEqual({
+                    items: [targetMongo],
+                    total: 1
+                })
+            })
+
+            it('pagination', async () => {
+                const skip = 10
+                const take = 50
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        skip,
+                        take,
+                        orderby: 'name:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdMongos.slice(skip, skip + take),
+                    total: createdMongos.length,
+                    skip,
+                    take
+                })
             })
 
             it('오름차순(asc) 정렬', async () => {
                 const res = await req.get({
                     url: '/mongos',
                     query: {
-                        name: 'Mongo',
                         orderby: 'name:asc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(createdMongos)
+                expect(res.body).toEqual({
+                    items: createdMongos,
+                    total: createdMongos.length
+                })
             })
 
             it('내림차순(desc) 정렬', async () => {
                 const res = await req.get({
                     url: '/mongos',
                     query: {
-                        name: 'Mongo',
                         orderby: 'name:desc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(sortMongos(createdMongos, 'desc'))
+                expect(res.body).toEqual({
+                    items: sortMongos(createdMongos, 'desc'),
+                    total: createdMongos.length
+                })
             })
 
-            it('id로 mongo를 검색한다', async () => {
+            it('여러 ID로 Mongo 조회', async () => {
+                const ids = createdMongos.map((mongo) => mongo.id)
                 const res = await req.post({
                     url: '/mongos/findByIds',
-                    body: [createdMongos[0].id, createdMongos[1].id]
+                    body: ids
                 })
 
-                const mongoDtos = res.body
-
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(mongoDtos).toEqual([createdMongos[0], createdMongos[1]])
+                expect(sortMongos(res.body)).toEqual(createdMongos)
             })
         })
 
         describe('GET /mongos/:id', () => {
-            it('mongo를 반환한다', async () => {
-                const mongo = createdMongos[0]
+            it('ID로 Mongo 조회', async () => {
+                const targetMongo = createdMongos[0]
                 const res = await req.get({
-                    url: `/mongos/${mongo.id}`
+                    url: `/mongos/${targetMongo.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(mongo)
+                expect(res.body).toEqual(targetMongo)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
                 const res = await req.get({
                     url: '/mongos/' + nullObjectId
                 })

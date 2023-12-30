@@ -34,6 +34,7 @@ describe('MongooseRepository', () => {
         module = await createTestingModule({
             imports: [
                 MongooseModule.forRoot(mongoServer.getUri(), {
+                    bufferCommands: false,
                     connectionFactory: (connection: any) => {
                         connection.dropDatabase()
                         return connection
@@ -59,30 +60,29 @@ describe('MongooseRepository', () => {
 
                 expect(createdSample).toValidDocument(sampleCreationData)
             })
+
+            // 실행하면 module.close() 할 때 에러 발생. 그런데 catch()로 잡을 수 없음
+            it.skip('필수 항목이 누락되면 예외 처리', async () => {
+                const promise = repository.create({})
+
+                await expect(promise).rejects.toThrowError()
+            })
         })
     })
 
     describe('MongooseRepository(Modifying)', () => {
-        let sample: SampleDocument
+        let createdSample: SampleDocument
 
         beforeEach(async () => {
             await before()
-            sample = await createSample(repository)
+            createdSample = await createSample(repository)
         })
         afterEach(after)
-
-        describe('create', () => {
-            it('문서 생성', async () => {
-                const createdSample = await repository.create(sampleCreationData)
-
-                expect(createdSample).toValidDocument(sampleCreationData)
-            })
-        })
 
         describe('update', () => {
             it('문서 업데이트', async () => {
                 const sampleUpdateData = { name: 'new name' }
-                const updatedSample = await repository.update(sample.id, sampleUpdateData)
+                const updatedSample = await repository.update(createdSample.id, sampleUpdateData)
 
                 expect(updatedSample).toValidDocument(sampleUpdateData)
             })
@@ -96,9 +96,9 @@ describe('MongooseRepository', () => {
 
         describe('remove', () => {
             it('문서 삭제', async () => {
-                await repository.remove(sample.id)
+                await repository.remove(createdSample.id)
 
-                const removedSample = await repository.findById(sample.id)
+                const removedSample = await repository.findById(createdSample.id)
                 expect(removedSample).toBeNull()
             })
 
@@ -121,8 +121,8 @@ describe('MongooseRepository', () => {
 
         describe('exist', () => {
             it('문서 존재 여부 확인', async () => {
-                const sample = createdSamples[0]
-                const exist = await repository.exist(sample.id)
+                const targetSample = createdSamples[0]
+                const exist = await repository.exist(targetSample.id)
 
                 expect(exist).toBeTruthy()
             })
@@ -136,10 +136,10 @@ describe('MongooseRepository', () => {
 
         describe('findById', () => {
             it('ID로 문서 조회', async () => {
-                const sample = createdSamples[0]
-                const foundSample = await repository.findById(sample.id)
+                const targetSample = createdSamples[0]
+                const foundSample = await repository.findById(targetSample.id)
 
-                expect(foundSample).toDocumentEqual(sample)
+                expect(foundSample).toDocumentEqual(targetSample)
             })
 
             it('존재하지 않는 ID로 조회 시 null 반환', async () => {
@@ -159,7 +159,7 @@ describe('MongooseRepository', () => {
         })
 
         describe('find', () => {
-            it('오름차순 정렬(asc)', async () => {
+            it('오름차순(asc) 정렬', async () => {
                 const take = createdSamples.length
                 const paginatedResult = await repository.find({
                     take,
@@ -169,7 +169,7 @@ describe('MongooseRepository', () => {
                     }
                 })
 
-                expect(paginatedResult).toPaginationEqual({
+                expect(paginatedResult).toPaginatedEqual({
                     items: sortSamples(createdSamples, 'asc'),
                     total: createdSamples.length,
                     skip: undefined,
@@ -177,7 +177,7 @@ describe('MongooseRepository', () => {
                 })
             })
 
-            it('내림차순 정렬(desc)', async () => {
+            it('내림차순(desc) 정렬', async () => {
                 const take = createdSamples.length
                 const paginatedResult = await repository.find({
                     take,
@@ -187,7 +187,7 @@ describe('MongooseRepository', () => {
                     }
                 })
 
-                expect(paginatedResult).toPaginationEqual({
+                expect(paginatedResult).toPaginatedEqual({
                     items: sortSamples(createdSamples, 'desc'),
                     total: createdSamples.length,
                     skip: undefined,
@@ -197,10 +197,10 @@ describe('MongooseRepository', () => {
 
             it('pagination 적용 조회', async () => {
                 const skip = 10
-                const take = 5
+                const take = 50
                 const paginatedResult = await repository.find({ skip, take })
 
-                expect(paginatedResult).toPaginationEqual({
+                expect(paginatedResult).toPaginatedEqual({
                     items: createdSamples.slice(skip, skip + take),
                     total: createdSamples.length,
                     skip,
@@ -211,7 +211,7 @@ describe('MongooseRepository', () => {
             it('정규 표현식 패턴 조회', async () => {
                 const paginatedResult = await repository.find({ query: { name: /Sample_00/i } })
 
-                expect(paginatedResult).toPaginationEqual({
+                expect(paginatedResult).toPaginatedEqual({
                     items: createdSamples.slice(0, 10),
                     total: 10,
                     skip: undefined,
@@ -219,7 +219,7 @@ describe('MongooseRepository', () => {
                 })
             })
 
-            it('검색 조건 없을 시 예외 처리', async () => {
+            it('조회 조건 없을 시 예외 처리', async () => {
                 const promise = repository.find({})
 
                 await expect(promise).rejects.toThrow(ParameterMongooseException)
@@ -230,7 +230,7 @@ describe('MongooseRepository', () => {
                 const take = 5
                 const paginatedResult = await repository.find({ skip, take })
 
-                expect(paginatedResult).toPaginationEqual({
+                expect(paginatedResult).toPaginatedEqual({
                     items: [],
                     total: createdSamples.length,
                     skip,
@@ -246,7 +246,7 @@ describe('MongooseRepository', () => {
                         }
                     })
 
-                    expect(paginatedResult).toPaginationEqual({
+                    expect(paginatedResult).toPaginatedEqual({
                         items: sortSamples(createdSamples, 'desc'),
                         total: createdSamples.length,
                         skip: undefined,
@@ -262,7 +262,7 @@ describe('MongooseRepository', () => {
                         }
                     })
 
-                    expect(paginatedResult).toPaginationEqual({
+                    expect(paginatedResult).toPaginatedEqual({
                         items: createdSamples.slice(0, 10),
                         total: 10,
                         skip: undefined,
@@ -281,7 +281,7 @@ describe('MongooseRepository', () => {
                         }
                     })
 
-                    expect(paginatedResult).toPaginationEqual({
+                    expect(paginatedResult).toPaginatedEqual({
                         items: createdSamples.slice(skip, skip + take),
                         total: createdSamples.length,
                         skip,

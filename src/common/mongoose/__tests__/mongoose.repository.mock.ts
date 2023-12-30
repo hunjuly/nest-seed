@@ -5,7 +5,7 @@ import { HydratedDocument, Model } from 'mongoose'
 
 @Schema()
 export class Sample extends MongooseSchema {
-    @Prop()
+    @Prop({ required: true })
     name: string
 }
 

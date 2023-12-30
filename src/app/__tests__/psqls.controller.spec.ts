@@ -2,16 +2,16 @@ import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { PsqlDto } from 'app/services/psqls'
-import { createHttpTestEnv, nullUUID } from 'common'
+import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
 import {
-    createManySamples as createManyPsqls,
+    createManyPsqls as createManyPsqls,
     createPsql,
     psqlCreationData,
     sortPsqls
 } from './psqls.controller.fixture'
 
 describe('PsqlsController', () => {
-    let sut: any
+    let sut: HttpTestEnv
     let req: any
 
     const before = async () => {
@@ -31,7 +31,7 @@ describe('PsqlsController', () => {
         afterEach(after)
 
         describe('POST /psqls', () => {
-            it('psql를 생성', async () => {
+            it('Psql 생성', async () => {
                 const res = await req.post({
                     url: '/psqls',
                     body: psqlCreationData
@@ -53,18 +53,18 @@ describe('PsqlsController', () => {
     })
 
     describe('PsqlsController(Modifying)', () => {
-        let psql: PsqlDto
+        let createdPsql: PsqlDto
 
         beforeEach(async () => {
             await before()
-            psql = await createPsql(req)
+            createdPsql = await createPsql(req)
         })
         afterEach(after)
 
         describe('PATCH /psqls/:id', () => {
-            it('psql를 업데이트한다', async () => {
+            it('Psql 업데이트', async () => {
                 const res = await req.patch({
-                    url: `/psqls/${psql.id}`,
+                    url: `/psqls/${createdPsql.id}`,
                     body: {
                         name: 'Updated Psql'
                     }
@@ -72,7 +72,7 @@ describe('PsqlsController', () => {
 
                 expect(res.status).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    ...psql,
+                    ...createdPsql,
                     updatedAt: expect.anything(),
                     name: 'Updated Psql',
                     version: 2
@@ -81,7 +81,7 @@ describe('PsqlsController', () => {
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await req.patch({
-                    url: `/psqls/${psql.id}`,
+                    url: `/psqls/${createdPsql.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -90,12 +90,10 @@ describe('PsqlsController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.patch({
-                    url: '/psqls/' + nullUUID,
-                    body: {
-                        name: 'Updated Psql'
-                    }
+                    url: `/psqls/${nullUUID}`,
+                    body: {}
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -103,17 +101,17 @@ describe('PsqlsController', () => {
         })
 
         describe('DELETE /psqls/:id', () => {
-            it('psql를 삭제한다', async () => {
+            it('Psql 삭제한다', async () => {
                 const res = await req.delete({
-                    url: `/psqls/${psql.id}`
+                    url: `/psqls/${createdPsql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Psql를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.delete({
-                    url: '/psqls/' + nullUUID
+                    url: `/psqls/${nullUUID}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -131,42 +129,57 @@ describe('PsqlsController', () => {
         afterAll(after)
 
         describe('GET /psqls', () => {
-            it('모든 psql를 반환한다', async () => {
-                const res = await req.get({
-                    url: '/psqls'
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(sortPsqls(res.body.items)).toEqual(createdPsqls)
-            })
-
-            it('name으로 psql를 검색한다', async () => {
+            it('모든 Psql 조회', async () => {
                 const res = await req.get({
                     url: '/psqls',
                     query: {
-                        name: createdPsqls[0].name
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual([createdPsqls[0]])
-            })
-
-            it('pagination', async () => {
-                const res = await req.get({
-                    url: '/psqls',
-                    query: {
-                        name: 'Psql',
-                        skip: 1,
-                        take: 2,
                         orderby: 'name:asc'
                     }
                 })
 
-                const expectedMongs = createdPsqls.slice(1, 3)
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdPsqls,
+                    total: createdPsqls.length
+                })
+            })
+
+            it('name으로 Psql 조회', async () => {
+                const targetPsql = createdPsqls[0]
+                const res = await req.get({
+                    url: '/psqls',
+                    query: {
+                        name: targetPsql.name
+                    }
+                })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(expectedMongs)
+                expect(res.body).toEqual({
+                    items: [targetPsql],
+                    total: 1
+                })
+            })
+
+            it('pagination', async () => {
+                const skip = 10
+                const take = 50
+                const res = await req.get({
+                    url: '/psqls',
+                    query: {
+                        name: 'Psql',
+                        skip,
+                        take,
+                        orderby: 'name:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdPsqls.slice(skip, skip + take),
+                    total: createdPsqls.length,
+                    skip,
+                    take
+                })
             })
 
             it('오름차순(asc) 정렬', async () => {
@@ -179,47 +192,51 @@ describe('PsqlsController', () => {
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(createdPsqls)
+                expect(res.body).toEqual({
+                    items: createdPsqls,
+                    total: createdPsqls.length
+                })
             })
 
             it('내림차순(desc) 정렬', async () => {
                 const res = await req.get({
                     url: '/psqls',
                     query: {
-                        name: 'Psql',
                         orderby: 'name:desc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body.items).toEqual(sortPsqls(createdPsqls, 'desc'))
+                expect(res.body).toEqual({
+                    items: sortPsqls(createdPsqls, 'desc'),
+                    total: createdPsqls.length
+                })
             })
 
-            it('id로 psql를 검색한다', async () => {
+            it('여러 ID로 Psql 조회', async () => {
+                const ids = createdPsqls.map((psql) => psql.id)
                 const res = await req.post({
                     url: '/psqls/findByIds',
-                    body: [createdPsqls[0].id, createdPsqls[1].id]
+                    body: ids
                 })
 
-                const psqlDtos = res.body
-
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(psqlDtos).toEqual([createdPsqls[0], createdPsqls[1]])
+                expect(sortPsqls(res.body)).toEqual(createdPsqls)
             })
         })
 
         describe('GET /psqls/:id', () => {
-            it('psql를 반환한다', async () => {
-                const psql = createdPsqls[0]
+            it('ID로 Psql 조회', async () => {
+                const targetPsql = createdPsqls[0]
                 const res = await req.get({
-                    url: `/psqls/${psql.id}`
+                    url: `/psqls/${targetPsql.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(psql)
+                expect(res.body).toEqual(targetPsql)
             })
 
-            it('psql를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
                 const res = await req.get({
                     url: '/psqls/' + nullUUID
                 })

@@ -26,7 +26,7 @@ export function sortMongos(mongos: MongoDto[], direction: 'asc' | 'desc' = 'asc'
     return [...mongos].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function createManySamples(request: any): Promise<MongoDto[]> {
+export async function createManyMongos(request: any): Promise<MongoDto[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {

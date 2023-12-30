@@ -1,10 +1,10 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { createHttpTestEnv } from 'common'
+import { HttpTestEnv, createHttpTestEnv } from 'common'
 import { SamplesModule } from './pagination.mock'
 
 describe('Pagination', () => {
-    let sut: any
+    let sut: HttpTestEnv
     let req: any
 
     beforeEach(async () => {

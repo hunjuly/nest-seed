@@ -29,11 +29,11 @@ export class PsqlsService {
     }
 
     async findPsqls(queryDto: PsqlsQueryDto): Promise<PaginationResult<PsqlDto>> {
-        const pagedPsqls = await this.psqlsRepository.findByQuery(queryDto)
+        const paginatedPsqls = await this.psqlsRepository.findByQuery(queryDto)
 
-        const items = pagedPsqls.items.map((psql) => new PsqlDto(psql))
+        const items = paginatedPsqls.items.map((psql) => new PsqlDto(psql))
 
-        return { ...pagedPsqls, items }
+        return { ...paginatedPsqls, items }
     }
 
     async getPsql(psqlId: string) {

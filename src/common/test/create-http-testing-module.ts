@@ -2,8 +2,17 @@ import { AppLoggerService } from 'common'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
+import { TestingModule } from '@nestjs/testing'
 
-export async function createHttpTestEnv(metadata: ModuleMetadataEx) {
+export interface HttpTestEnv {
+    server: any
+    module: TestingModule
+    app: any
+    request: HttpRequest
+    close: () => Promise<void>
+}
+
+export async function createHttpTestEnv(metadata: ModuleMetadataEx): Promise<HttpTestEnv> {
     const module = await createTestingModule(metadata)
 
     const app = module.createNestApplication()

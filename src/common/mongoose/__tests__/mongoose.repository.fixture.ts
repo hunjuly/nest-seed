@@ -81,7 +81,7 @@ expect.extend({
 
         return { pass, message }
     },
-    toPaginationEqual(received, expected) {
+    toPaginatedEqual(received, expected) {
         if (
             received.total !== expected.total ||
             received.take !== expected.take ||
@@ -99,7 +99,7 @@ expect.extend({
 
 declare module 'expect' {
     interface Matchers<R> {
-        toPaginationEqual(expected: PaginationResult<SampleDocument>): R
+        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
         toDocumentsEqual(expected: SampleDocument[]): R
         toDocumentEqual(expected: SampleDocument): R
         toValidDocument(expected: Partial<Sample>): R

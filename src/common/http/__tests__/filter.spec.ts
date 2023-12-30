@@ -1,9 +1,9 @@
 import { HttpStatus } from '@nestjs/common'
-import { createHttpTestEnv } from 'common'
+import { HttpTestEnv, createHttpTestEnv } from 'common'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {
-    let sut: any
+    let sut: HttpTestEnv
     let req: any
 
     beforeEach(async () => {

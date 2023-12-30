@@ -42,22 +42,28 @@ describe('TypeormRepository', () => {
 
                 expect(createdSample).toValidEntity({ ...sampleCreationData })
             })
+
+            it('필수 항목이 누락되면 예외 처리', async () => {
+                const promise = repository.create({})
+
+                await expect(promise).rejects.toThrowError()
+            })
         })
     })
 
     describe('TypeormRepository(Modifying)', () => {
-        let sample: Sample
+        let createdSample: Sample
 
         beforeEach(async () => {
             await before()
-            sample = await createSample(repository)
+            createdSample = await createSample(repository)
         })
         afterEach(after)
 
         describe('update', () => {
             it('엔티티 업데이트', async () => {
                 const updateSampleData = { name: 'new name' }
-                const updatedSample = await repository.update(sample.id, updateSampleData)
+                const updatedSample = await repository.update(createdSample.id, updateSampleData)
 
                 expect(updatedSample).toValidEntity(updateSampleData)
             })
@@ -71,9 +77,9 @@ describe('TypeormRepository', () => {
 
         describe('remove', () => {
             it('엔티티 삭제', async () => {
-                await repository.remove(sample.id)
+                await repository.remove(createdSample.id)
 
-                const removedSample = await repository.findById(sample.id)
+                const removedSample = await repository.findById(createdSample.id)
                 expect(removedSample).toBeNull()
             })
 
@@ -96,8 +102,8 @@ describe('TypeormRepository', () => {
 
         describe('exist', () => {
             it('엔티티 존재 여부 확인', async () => {
-                const sample = createdSamples[0]
-                const exist = await repository.exist(sample.id)
+                const targetSample = createdSamples[0]
+                const exist = await repository.exist(targetSample.id)
 
                 expect(exist).toBeTruthy()
             })
@@ -111,10 +117,10 @@ describe('TypeormRepository', () => {
 
         describe('findById', () => {
             it('ID로 엔티티 조회', async () => {
-                const sample = createdSamples[0]
-                const foundSample = await repository.findById(sample.id)
+                const targetSample = createdSamples[0]
+                const foundSample = await repository.findById(targetSample.id)
 
-                expect(foundSample).toEqual(sample)
+                expect(foundSample).toEqual(targetSample)
             })
 
             it('존재하지 않는 ID로 조회 시 null 반환', async () => {
@@ -134,7 +140,7 @@ describe('TypeormRepository', () => {
         })
 
         describe('find', () => {
-            it('오름차순 정렬(asc)', async () => {
+            it('오름차순(asc) 정렬', async () => {
                 const take = createdSamples.length
                 const paginatedResult = await repository.find({
                     take,
@@ -152,7 +158,7 @@ describe('TypeormRepository', () => {
                 })
             })
 
-            it('내림차순 정렬(desc)', async () => {
+            it('내림차순(desc) 정렬', async () => {
                 const take = createdSamples.length
                 const paginatedResult = await repository.find({
                     take,
@@ -172,7 +178,7 @@ describe('TypeormRepository', () => {
 
             it('pagination 적용 조회', async () => {
                 const skip = 10
-                const take = 5
+                const take = 50
                 const paginatedResult = await repository.find({
                     skip,
                     take,
@@ -190,7 +196,7 @@ describe('TypeormRepository', () => {
                 })
             })
 
-            it('검색 조건 없을 시 예외 처리', async () => {
+            it('조회 조건 없을 시 예외 처리', async () => {
                 const promise = repository.find({})
 
                 await expect(promise).rejects.toThrow(ParameterTypeormException)

@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { AppModule } from 'app/app.module'
-import { createHttpTestEnv, nullUUID, sleep } from 'common'
+import { HttpTestEnv, createHttpTestEnv, nullUUID, sleep } from 'common'
 import { LoginCredentials, prepareUserCredentials as prepareLoginCredentials } from './authentication.fixture'
 
 jest.mock('config', () => {
@@ -19,7 +19,7 @@ jest.mock('config', () => {
 })
 
 describe('Authentication', () => {
-    let sut: any
+    let sut: HttpTestEnv
     let req: any
     let jwtService: JwtService
     let login: LoginCredentials

@@ -69,7 +69,7 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 
 ### 2. GET과 POST 선택
 
-10,000명의 user정보 검색 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
+10,000명의 user정보 조회 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
 
 ```sh
 GET /users?user-id=userid1, userid2, userid3 ...

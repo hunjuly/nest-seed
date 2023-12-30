@@ -26,7 +26,7 @@ export function sortPsqls(psqls: PsqlDto[], direction: 'asc' | 'desc' = 'asc') {
     return [...psqls].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function createManySamples(request: any): Promise<PsqlDto[]> {
+export async function createManyPsqls(request: any): Promise<PsqlDto[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
