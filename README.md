@@ -1,6 +1,6 @@
 # NEST-SEED
 
-nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 boilerplate이다.
+nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
 
 ## Requirements
 
