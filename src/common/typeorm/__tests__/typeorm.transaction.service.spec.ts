@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing'
 import { TypeormTransactionService, createTestingModule, createTypeormMemoryModule } from 'common'
-import { Sample, SamplesRepository, SamplesModule } from './typeorm.transaction.service.fixture'
+import { Sample, SamplesRepository, SamplesModule } from './typeorm.transaction.service.mock'
 
 describe('TypeormTransactionService', () => {
     let module: TestingModule
@@ -23,10 +23,10 @@ describe('TypeormTransactionService', () => {
     it('rollback a transaction', async () => {
         let createdEntity!: Sample
 
-        await transactionService.execute(async (transactionRepository) => {
-            createdEntity = await transactionRepository.create(Sample, { name: 'Create Sample' })
+        await transactionService.execute(async (transaction) => {
+            createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
 
-            transactionRepository.rollback()
+            transaction.rollback()
         })
 
         const foundEntity = await sampleRepository.findById(createdEntity.id)
@@ -37,8 +37,8 @@ describe('TypeormTransactionService', () => {
     it('create in transaction', async () => {
         let createdEntity!: Sample
 
-        await transactionService.execute(async (transactionRepository) => {
-            createdEntity = await transactionRepository.create(Sample, { name: 'Create Sample' })
+        await transactionService.execute(async (transaction) => {
+            createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
         })
 
         const foundEntity = await sampleRepository.findById(createdEntity.id)
@@ -49,11 +49,11 @@ describe('TypeormTransactionService', () => {
     it('update in transaction', async () => {
         let updatedEntity!: Sample
 
-        await transactionService.execute(async (transactionRepository) => {
-            const createdEntity = await transactionRepository.create(Sample, { name: 'Create Sample' })
+        await transactionService.execute(async (transaction) => {
+            const createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
             createdEntity.name = 'Updated Name'
 
-            updatedEntity = await transactionRepository.update(createdEntity)
+            updatedEntity = await transaction.update(createdEntity)
         })
 
         const foundEntity = await sampleRepository.findById(updatedEntity.id)
@@ -65,10 +65,10 @@ describe('TypeormTransactionService', () => {
     it('remove in transaction', async () => {
         let createdEntity!: Sample
 
-        await transactionService.execute(async (transactionRepository) => {
-            createdEntity = await transactionRepository.create(Sample, { name: 'Create Sample' })
+        await transactionService.execute(async (transaction) => {
+            createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
 
-            await transactionRepository.remove(createdEntity)
+            await transaction.remove(createdEntity)
         })
 
         const foundEntity = await sampleRepository.findById(createdEntity.id)

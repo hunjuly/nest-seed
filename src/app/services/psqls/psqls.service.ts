@@ -20,12 +20,20 @@ export class PsqlsService {
         return exists
     }
 
+    async findByIds(psqlIds: string[]) {
+        const foundPsqls = await this.psqlsRepository.findByIds(psqlIds)
+
+        const psqlDtos = foundPsqls.map((psql) => new PsqlDto(psql))
+
+        return psqlDtos
+    }
+
     async findPsqls(queryDto: PsqlsQueryDto): Promise<PaginationResult<PsqlDto>> {
-        const pagedPsqls = await this.psqlsRepository.findByQuery(queryDto)
+        const paginatedPsqls = await this.psqlsRepository.findByQuery(queryDto)
 
-        const items = pagedPsqls.items.map((psql) => new PsqlDto(psql))
+        const items = paginatedPsqls.items.map((psql) => new PsqlDto(psql))
 
-        return { ...pagedPsqls, items }
+        return { ...paginatedPsqls, items }
     }
 
     async getPsql(psqlId: string) {

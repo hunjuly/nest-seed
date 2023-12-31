@@ -1,156 +1,90 @@
+import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
-import { createHttpTestingModule, nullUUID } from 'common'
-import { createUserDto, createUserDtos, createdUser } from './mocks'
+import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
+import { createManyUsers, createUser, userCreationDto } from './users.controller.fixture'
 
 describe('UsersController', () => {
-    let module: TestingModule
-    let request: any
+    let sut: HttpTestEnv
+    let req: any
 
-    beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+    const before = async () => {
+        sut = await createHttpTestEnv({
             imports: [AppModule],
             bypassGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 
-        module = sut.module
-        request = sut.request
-    })
+        req = sut.request
+    }
 
-    afterEach(async () => {
-        if (module) await module.close()
-    })
+    const after = async () => {
+        if (sut) await sut.close()
+    }
 
-    it('should be defined', () => {
-        expect(module).toBeDefined()
-        expect(request).toBeDefined()
-    })
+    describe('UsersController(Creation)', () => {
+        beforeEach(before)
+        afterEach(after)
 
-    describe('POST /users', () => {
-        it('새로운 user를 생성한다', async () => {
-            const res = await request.post({
-                url: '/users',
-                body: createUserDto
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual(createdUser)
-        })
-
-        it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
-            const res = await request.post({
-                url: '/users',
-                body: {}
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
-        })
-    })
-
-    describe('GET /users', () => {
-        let createdUsers: UserDto[] = []
-
-        beforeEach(async () => {
-            createdUsers = []
-
-            for (const createDto of createUserDtos) {
-                const res = await request.post({
+        describe('POST /users', () => {
+            it('User 생성', async () => {
+                const res = await req.post({
                     url: '/users',
-                    body: createDto,
-                    status: HttpStatus.CREATED
+                    body: userCreationDto
                 })
 
-                createdUsers.push(res.body)
-            }
-        })
-
-        it('모든 user를 반환한다', async () => {
-            const res = await request.get({
-                url: '/users'
+                expect(res.statusCode).toEqual(HttpStatus.CREATED)
+                expect(res.body).toValidUserDto(userCreationDto)
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdUsers)
-        })
+            it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
+                const res = await req.post({
+                    url: '/users',
+                    body: {}
+                })
 
-        it('email로 user를 검색한다', async () => {
-            const res = await request.get({
-                url: '/users',
-                query: {
-                    email: createUserDtos[0].email
-                }
+                expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual([createdUsers[0]])
+            it('이미 존재하는 Email로 User를 생성을 하면 CONFLICT(409)', async () => {
+                const createResponse = await req.post({ url: '/users', body: userCreationDto })
+                const duplicateCreateResponse = await req.post({ url: '/users', body: userCreationDto })
+
+                expect(createResponse.statusCode).toEqual(HttpStatus.CREATED)
+                expect(duplicateCreateResponse.statusCode).toEqual(HttpStatus.CONFLICT)
+            })
         })
     })
 
-    describe('특정 user에 대한 작업', () => {
-        let user: UserDto
+    describe('UsersController(Modifying)', () => {
+        let createdUser: UserDto
 
         beforeEach(async () => {
-            const res = await request.post({
-                url: '/users',
-                body: createUserDto,
-                status: HttpStatus.CREATED
-            })
-
-            user = res.body
+            await before()
+            createdUser = await createUser(req)
         })
-
-        it('should be defined', () => {
-            expect(user.id).toBeDefined()
-        })
-
-        it('이미 존재하는 email로 user 생성을 하면 CONFLICT(409)', async () => {
-            const res = await request.post({
-                url: '/users',
-                body: createUserDto
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
-        })
-
-        describe('GET /users/:id', () => {
-            it('user를 반환한다', async () => {
-                const res = await request.get({
-                    url: `/users/${user.id}`
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(user)
-                expect(res.body.password).toBeUndefined()
-            })
-
-            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.get({
-                    url: `/users/${nullUUID}`
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)
-            })
-        })
+        afterEach(after)
 
         describe('PATCH /users/:id', () => {
-            it('user를 업데이트한다', async () => {
-                const updateInfo = { email: 'new@mail.com' }
-
-                const res = await request.patch({
-                    url: `/users/${user.id}`,
-                    body: updateInfo
+            it('User 업데이트', async () => {
+                const res = await req.patch({
+                    url: `/users/${createdUser.id}`,
+                    body: {
+                        email: 'new@mail.com'
+                    }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({ ...user, ...updateInfo })
+                expect(res.body).toEqual({
+                    ...createdUser,
+                    email: 'new@mail.com'
+                })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
-                const res = await request.patch({
-                    url: `/users/${user.id}`,
+                const res = await req.patch({
+                    url: `/users/${createdUser.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -159,12 +93,10 @@ describe('UsersController', () => {
                 expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.patch({
+            it('User를 찾지 못하면 NOT_FOUND(404)', async () => {
+                const res = await req.patch({
                     url: `/users/${nullUUID}`,
-                    body: {
-                        email: 'user@mail.com'
-                    }
+                    body: {}
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)
@@ -172,16 +104,79 @@ describe('UsersController', () => {
         })
 
         describe('DELETE /users/:id', () => {
-            it('user를 삭제한다', async () => {
-                const res = await request.delete({
-                    url: `/users/${user.id}`
+            it('User를 삭제한다', async () => {
+                const res = await req.delete({
+                    url: `/users/${createdUser.id}`
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
             })
 
-            it('user를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.delete({
+            it('User를 찾지 못하면 NOT_FOUND(404)', async () => {
+                const res = await req.delete({
+                    url: `/users/${nullUUID}`
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.NOT_FOUND)
+            })
+        })
+    })
+
+    describe('UsersController(Querying)', () => {
+        let createdUsers: UserDto[] = []
+
+        beforeAll(async () => {
+            await before()
+            createdUsers = await createManyUsers(req)
+        })
+        afterAll(after)
+
+        describe('GET /users', () => {
+            it('모든 User를 조회', async () => {
+                const res = await req.get({
+                    url: '/users',
+                    query: {
+                        orderby: 'email:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdUsers,
+                    total: createdUsers.length
+                })
+            })
+
+            it('email로 User 조회', async () => {
+                const targetUser = createdUsers[0]
+                const res = await req.get({
+                    url: '/users',
+                    query: {
+                        email: targetUser.email
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: [targetUser],
+                    total: 1
+                })
+            })
+        })
+
+        describe('GET /users/:id', () => {
+            it('ID로 User 조회', async () => {
+                const targetUser = createdUsers[0]
+                const res = await req.get({
+                    url: `/users/${targetUser.id}`
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual(targetUser)
+            })
+
+            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
+                const res = await req.get({
                     url: `/users/${nullUUID}`
                 })
 

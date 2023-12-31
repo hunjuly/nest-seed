@@ -1,30 +1,27 @@
 import { HttpStatus } from '@nestjs/common'
-import { TestingModule } from '@nestjs/testing'
-import { createHttpTestingModule } from 'common'
+import { HttpTestEnv, createHttpTestEnv } from 'common'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {
-    let module: TestingModule
-    let request: any
+    let sut: HttpTestEnv
+    let req: any
 
     beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+        sut = await createHttpTestEnv({
             imports: [TestModule]
         })
 
-        module = sut.module
-        request = sut.request
-
+        req = sut.request
         // error를 console에 출력하지 않도록 설정
         sut.app.useLogger(false)
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        if (sut) await sut.close()
     })
 
     it('ErrorFilter', async () => {
-        const res = await request.get({
+        const res = await req.get({
             url: '/error'
         })
 
@@ -32,7 +29,7 @@ describe('common/filters', () => {
     })
 
     it('HttpExceptionFilter', async () => {
-        const res = await request.get({
+        const res = await req.get({
             url: '/http-exception'
         })
 
@@ -40,7 +37,7 @@ describe('common/filters', () => {
     })
 
     it('HttpSuccessInterceptor', async () => {
-        const res = await request.get({
+        const res = await req.get({
             url: '/http-success'
         })
 

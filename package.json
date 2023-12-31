@@ -5,9 +5,9 @@
     "scripts": {
         "start": "nest start --debug 9230 --watch",
         "start:prod": "node dist/app/main",
-        "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged --runInBand",
-        "test:all": "jest --runInBand --coverage && npm run migration:test",
-        "test:app": "jest --runInBand src/app",
+        "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
+        "test:all": "jest --coverage && npm run migration:test",
+        "test:app": "jest src/app",
         "build": "nest build",
         "lint": "eslint src/**/*.ts --fix",
         "format": "prettier --write src/**/*.ts",
@@ -16,9 +16,6 @@
         "migration:run": "typeorm migration:run -d ./dist/databases/psql/data-source.js",
         "migration:revert": "typeorm migration:revert -d ./dist/databases/psql/data-source.js",
         "migration:test": "npm run build && typeorm migration:show -d ./dist/databases/psql/data-source.js"
-    },
-    "comments": {
-        "jest": "sqlite(memory)는 상관없으나 postgresql은 jest 테스트가 동시에 실행되면 서로 데이터를 덮어써서 오류가 발생한다. --runInBand 옵션은 Jest가 모든 테스트를 동시에 실행하지 않도록 한다."
     },
     "dependencies": {
         "@nestjs/cache-manager": "^2.0.0",

@@ -5,8 +5,8 @@ import { DocumentNotFoundMongooseException, ParameterMongooseException } from '.
 export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(documentData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const savedDocument = await this.model.create({ ...documentData })
+    async create(creationData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
+        const savedDocument = await this.model.create({ ...creationData })
 
         return savedDocument
     }

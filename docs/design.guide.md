@@ -21,7 +21,7 @@
 
 ## Controller의 분리
 
-Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈에 위치하는 `Feature Module` 구조를 사용한다. 그러나 이 구조는 [해결이 어려운 문제](./problems-with-feature-modules.md)가 쉽게 발생할 수 있다. 따라서 이 문제를 해결하기 위해 Controller와 Service를 분리하는 구조를 선택했다.
+Nest에서는 일반적으로 Controller, Service, Repository가 같은 모듈에 위치하는 `Feature Module` 구조를 사용한다. 그러나 이 구조는 [순환 참조 문제](./problems-with-feature-modules.md)가 쉽게 발생할 수 있다. 따라서 이 문제를 해결하기 위해 Controller와 Service를 분리하는 구조를 선택했다.
 
 Layered Architecture 관점에서도 Controller를 모듈에서 분리하는 것이 자연스럽다.
 Controller와 Service는 Layered Architecture에서 서로 다른 계층에 속하며, Controller는 서비스 계층의 기능을 활용하기 위해 특별한 제약을 두지 않는다.
@@ -69,7 +69,7 @@ REST API의 라우팅 디자인은 크게 `Shallow Routing`과 `Nested Routing`�
 
 ### 2. GET과 POST 선택
 
-10,000명의 user정보 검색 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
+10,000명의 user정보 조회 요청은 너무 길어서 GET 메소드로 전달할 수 없다.
 
 ```sh
 GET /users?user-id=userid1, userid2, userid3 ...

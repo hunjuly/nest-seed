@@ -1,203 +1,87 @@
+import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { TestingModule } from '@nestjs/testing'
 import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
-import { createHttpTestingModule } from 'common'
-import { createMongoDto, createMongoDtos, createdMongo } from './mocks'
+import { HttpTestEnv, createHttpTestEnv, nullObjectId } from 'common'
+import {
+    mongoCreationDto,
+    createManyMongos as createManyMongos,
+    sortMongos,
+    createMongo
+} from './mongos.controller.fixture'
 
 describe('MongosController', () => {
-    let module: TestingModule
-    let request: any
+    let sut: HttpTestEnv
+    let req: any
 
-    beforeEach(async () => {
-        const sut = await createHttpTestingModule({
+    const before = async () => {
+        sut = await createHttpTestEnv({
             imports: [AppModule]
         })
 
-        module = sut.module
-        request = sut.request
-    })
+        req = sut.request
+    }
 
-    afterEach(async () => {
-        if (module) await module.close()
-    })
+    const after = async () => {
+        if (sut) await sut.close()
+    }
 
-    it('should be defined', () => {
-        expect(module).toBeDefined()
-        expect(request).toBeDefined()
-    })
+    describe('MongosController(Creation)', () => {
+        beforeEach(before)
+        afterEach(after)
 
-    describe('POST /mongos', () => {
-        it('새로운 mongo를 생성한다', async () => {
-            const res = await request.post({
-                url: '/mongos',
-                body: createMongoDto
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual(createdMongo)
-        })
-
-        it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
-            const res = await request.post({
-                url: '/mongos',
-                body: {}
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
-        })
-    })
-
-    describe('GET /mongos', () => {
-        let createdMongos: MongoDto[] = []
-
-        beforeEach(async () => {
-            createdMongos = []
-
-            for (const createDto of createMongoDtos) {
-                const res = await request.post({
+        describe('POST /mongos', () => {
+            it('Mongo 생성', async () => {
+                const res = await req.post({
                     url: '/mongos',
-                    body: createDto,
-                    status: HttpStatus.CREATED
+                    body: mongoCreationDto
                 })
 
-                createdMongos.push(res.body)
-            }
-        })
-
-        it('모든 mongo를 반환한다', async () => {
-            const res = await request.get({
-                url: '/mongos'
+                expect(res.statusCode).toEqual(HttpStatus.CREATED)
+                expect(res.body).toValidUserDto(mongoCreationDto)
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdMongos)
-        })
+            it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
+                const res = await req.post({
+                    url: '/mongos',
+                    body: {}
+                })
 
-        it('name으로 mongo를 검색한다', async () => {
-            const res = await request.get({
-                url: '/mongos',
-                query: {
-                    name: createMongoDtos[0].name
-                }
+                expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual([createdMongos[0]])
-        })
-
-        it('pagination', async () => {
-            const res = await request.get({
-                url: '/mongos',
-                query: {
-                    name: 'Mongo',
-                    skip: 1,
-                    take: 2
-                }
-            })
-
-            const expectedMongs = createdMongos.slice(1, 3)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(expectedMongs)
-        })
-
-        it('오름차순(asc) 정렬', async () => {
-            const res = await request.get({
-                url: '/mongos',
-                query: {
-                    name: 'Mongo',
-                    orderby: 'name:asc'
-                }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdMongos)
-        })
-
-        it('내림차순(desc) 정렬', async () => {
-            const res = await request.get({
-                url: '/mongos',
-                query: {
-                    name: 'Mongo',
-                    orderby: 'name:desc'
-                }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(createdMongos.reverse())
-        })
-
-        it('id로 mongo를 검색한다', async () => {
-            const res = await request.post({
-                url: '/mongos/findByIds',
-                body: [createdMongos[0].id, createdMongos[1].id]
-            })
-
-            const mongoDtos = res.body
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(mongoDtos).toEqual([createdMongos[0], createdMongos[1]])
         })
     })
 
-    describe('특정 mongo에 대한 작업', () => {
-        let mongo: MongoDto
+    describe('MongosController(Modifying)', () => {
+        let createdMongo: MongoDto
 
         beforeEach(async () => {
-            const res = await request.post({
-                url: '/mongos',
-                body: createMongoDto,
-                status: HttpStatus.CREATED
-            })
-
-            mongo = res.body
+            await before()
+            createdMongo = await createMongo(req)
         })
-
-        it('should be defined', () => {
-            expect(mongo.id).toBeDefined()
-        })
-
-        describe('GET /mongos/:id', () => {
-            it('mongo를 반환한다', async () => {
-                const res = await request.get({
-                    url: `/mongos/${mongo.id}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(mongo)
-            })
-
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.get({
-                    url: '/mongos/123456789012345678901234'
-                })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
-            })
-        })
+        afterEach(after)
 
         describe('PATCH /mongos/:id', () => {
-            it('mongo를 업데이트한다', async () => {
-                const res = await request.patch({
-                    url: `/mongos/${mongo.id}`,
+            it('Mongo 업데이트', async () => {
+                const res = await req.patch({
+                    url: `/mongos/${createdMongo.id}`,
                     body: {
-                        name: 'Updated Mongo2'
+                        name: 'Updated Mongo'
                     }
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    ...mongo,
+                    ...createdMongo,
                     updatedAt: expect.anything(),
-                    name: 'Updated Mongo2',
+                    name: 'Updated Mongo',
                     version: 1
                 })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
-                const res = await request.patch({
-                    url: `/mongos/${mongo.id}`,
+                const res = await req.patch({
+                    url: `/mongos/${createdMongo.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -206,12 +90,10 @@ describe('MongosController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.patch({
-                    url: '/mongos/123456789012345678901234',
-                    body: {
-                        name: 'Updated Mongo'
-                    }
+            it('Mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+                const res = await req.patch({
+                    url: `/mongos/${nullObjectId}`,
+                    body: {}
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -219,17 +101,142 @@ describe('MongosController', () => {
         })
 
         describe('DELETE /mongos/:id', () => {
-            it('mongo를 삭제한다', async () => {
-                const res = await request.delete({
-                    url: `/mongos/${mongo.id}`
+            it('Mongo 삭제', async () => {
+                const res = await req.delete({
+                    url: `/mongos/${createdMongo.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await request.delete({
-                    url: '/mongos/123456789012345678901234'
+            it('Mongo를 찾지 못하면 NOT_FOUND(404)', async () => {
+                const res = await req.delete({
+                    url: `/mongos/${nullObjectId}`
+                })
+
+                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            })
+        })
+    })
+
+    describe('MongosController(Querying)', () => {
+        let createdMongos: MongoDto[] = []
+
+        beforeAll(async () => {
+            await before()
+            createdMongos = await createManyMongos(req)
+        })
+        afterAll(after)
+
+        describe('GET /mongos', () => {
+            it('모든 Mongo 조회', async () => {
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        orderby: 'name:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdMongos,
+                    total: createdMongos.length
+                })
+            })
+
+            it('name으로 Mongo 조회', async () => {
+                const targetMongo = createdMongos[0]
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        name: targetMongo.name
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: [targetMongo],
+                    total: 1
+                })
+            })
+
+            it('pagination', async () => {
+                const skip = 10
+                const take = 50
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        skip,
+                        take,
+                        orderby: 'name:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdMongos.slice(skip, skip + take),
+                    total: createdMongos.length,
+                    skip,
+                    take
+                })
+            })
+
+            it('오름차순(asc) 정렬', async () => {
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        orderby: 'name:asc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: createdMongos,
+                    total: createdMongos.length
+                })
+            })
+
+            it('내림차순(desc) 정렬', async () => {
+                const res = await req.get({
+                    url: '/mongos',
+                    query: {
+                        orderby: 'name:desc'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: sortMongos(createdMongos, 'desc'),
+                    total: createdMongos.length
+                })
+            })
+
+            it('여러 ID로 Mongo 조회', async () => {
+                const ids = createdMongos.map((mongo) => mongo.id)
+                const res = await req.post({
+                    url: '/mongos/findByIds',
+                    body: ids
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(sortMongos(res.body)).toEqual(createdMongos)
+            })
+        })
+
+        describe('GET /mongos/:id', () => {
+            it('ID로 Mongo 조회', async () => {
+                const targetMongo = createdMongos[0]
+                const res = await req.get({
+                    url: `/mongos/${targetMongo.id}`
+                })
+
+                expect(res.status).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual(targetMongo)
+            })
+
+            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
+                const res = await req.get({
+                    url: '/mongos/' + nullObjectId
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -237,47 +244,3 @@ describe('MongosController', () => {
         })
     })
 })
-
-// it('특정 국가에 있는 문서 찾기', async () => {
-//     const sample1 = await repository.create({
-//         name: 'sample name 1',
-//         address: {
-//             street: '123 Main St',
-//             city: 'Anytown',
-//             country: 'USA'
-//         }
-//     })
-
-//     const _sample2 = await repository.create({
-//         name: 'sample name 2',
-//         address: {
-//             street: '456 Main St',
-//             city: 'Othertown',
-//             country: 'Korea'
-//         }
-//     })
-
-//     const sample3 = await repository.create({
-//         name: 'sample name 3',
-//         address: {
-//             street: '456 Main St',
-//             city: 'Othertown',
-//             country: 'USA'
-//         }
-//     })
-
-//     const paginatedResult = await repository.find({
-//         middleware: (helpers) => {
-//             helpers.setQuery({ 'address.country': 'USA' })
-//         }
-//     })
-
-//     expect(
-//         arePaginatedResultsEqual(paginatedResult, {
-//             items: [sample1, sample3],
-//             total: 2,
-//             skip: undefined,
-//             take: undefined
-//         })
-//     ).toBeTruthy()
-// })

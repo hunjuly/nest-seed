@@ -1,101 +1,107 @@
-import { isEqual } from 'lodash'
-import { Injectable, Module } from '@nestjs/common'
-import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { MongooseRepository, MongooseSchema, PaginationResult, createMongooseSchema } from 'common'
-import { HydratedDocument, Model } from 'mongoose'
+import { PaginationResult, padNumber } from 'common'
+import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
-@Schema()
-export class Sample extends MongooseSchema {
-    @Prop()
-    name: string
+export const sampleCreationData: Partial<Sample> = {
+    name: 'sample name'
 }
 
-export const SampleSchema = createMongooseSchema(Sample)
-export type SampleDocument = HydratedDocument<Sample>
-
-@Injectable()
-export class SamplesRepository extends MongooseRepository<Sample> {
-    constructor(@InjectModel(Sample.name) model: Model<Sample>) {
-        super(model)
+export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc' = 'asc') {
+    if (direction === 'desc') {
+        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
     }
 
-    async update(id: string, updateMongoDto: Partial<Sample>): Promise<SampleDocument> {
-        /**
-         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
-         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
-         * Database query built from user-controlled sources
-         */
-        const updateData: Partial<Sample> = {}
-        updateData.name = updateMongoDto.name
-
-        return super.update(id, updateData)
-    }
-}
-
-@Module({
-    imports: [MongooseModule.forFeature([{ name: Sample.name, schema: SampleSchema }])],
-    providers: [SamplesRepository]
-})
-export class SamplesModule {}
-
-export function sortSamples(samples: SampleDocument[]) {
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function isCreatedDocumentCorrect(document: SampleDocument, createData: any): Promise<boolean> {
-    const entityBase = {
-        _id: expect.anything(),
-        createdAt: expect.anything(),
-        updatedAt: expect.anything(),
-        version: expect.anything()
-    }
+export async function createSample(repository: SamplesRepository): Promise<SampleDocument> {
+    const sample = await repository.create(sampleCreationData)
 
-    return isEqual(document.toJSON(), {
-        ...entityBase,
-        ...createData
-    })
+    return sample
 }
 
-export function areDocumentsEqual(a: SampleDocument[], b: SampleDocument[]) {
-    if (a.length !== b.length) return false
+export async function createManySamples(repository: SamplesRepository): Promise<SampleDocument[]> {
+    const createPromises = []
 
-    for (let i = 0; i < a.length; i++) {
-        if (!isEqual(a[i].toJSON(), b[i].toJSON())) {
-            console.log('a[i].toJSON()', a[i].toJSON(), 'b[i].toJSON()', b[i].toJSON())
-            return false
+    for (let i = 0; i < 100; i++) {
+        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
+        createPromises.push(repository.create(data))
+    }
+
+    const samples = await Promise.all(createPromises)
+
+    return sortSamples(samples)
+}
+
+function areDocsEqual(received: SampleDocument[], expected: SampleDocument[]) {
+    if (received.length !== expected.length) {
+        return {
+            pass: false,
+            message: () =>
+                `Items length mismatch: received length ${received.length}, expected length ${expected.length}`
         }
     }
 
-    return true
+    for (let i = 0; i < received.length; i++) {
+        if (!received[i].equals(expected[i])) {
+            return {
+                pass: false,
+                message: () =>
+                    `Document at index ${i} does not match: received: ${received[i]}, expected: ${expected[i]}`
+            }
+        }
+    }
+
+    return {
+        pass: true,
+        message: () => 'Documents match'
+    }
 }
 
-export function arePaginatedResultsEqual(
-    a: PaginationResult<SampleDocument>,
-    b: PaginationResult<SampleDocument>
-) {
-    if (a.total !== b.total) {
-        console.log('a.total', a.total, 'b.total', b.total)
-        return false
+expect.extend({
+    toValidDocument(received, expected) {
+        const pass = this.equals(received.toJSON(), {
+            _id: expect.anything(),
+            createdAt: expect.anything(),
+            updatedAt: expect.anything(),
+            version: expect.anything(),
+            ...expected
+        })
+
+        const message = pass ? () => `expected document not to match` : () => `expected document to match`
+
+        return { pass, message }
+    },
+    toDocumentsEqual(received, expected) {
+        return areDocsEqual(received, expected)
+    },
+    toDocumentEqual(received, expected) {
+        const pass = received.equals(expected)
+
+        const message = pass ? () => `document not to match` : () => `document to match`
+
+        return { pass, message }
+    },
+    toPaginatedEqual(received, expected) {
+        if (
+            received.total !== expected.total ||
+            received.take !== expected.take ||
+            received.skip !== expected.skip
+        ) {
+            return {
+                pass: false,
+                message: () => `Pagination mismatch: received: ${received}, expected: ${expected}`
+            }
+        }
+
+        return areDocsEqual(received, expected)
     }
+})
 
-    if (a.take !== b.take) {
-        console.log('a.take', a.take, 'b.take', b.take)
-        return false
+declare module 'expect' {
+    interface Matchers<R> {
+        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
+        toDocumentsEqual(expected: SampleDocument[]): R
+        toDocumentEqual(expected: SampleDocument): R
+        toValidDocument(expected: Partial<Sample>): R
     }
-
-    if (a.skip !== b.skip) {
-        console.log('a.skip', a.skip, 'b.skip', b.skip)
-        return false
-    }
-
-    if (!areDocumentsEqual(a.items, b.items)) {
-        console.log('a.items', a.items, 'b.items', b.items)
-        return false
-    }
-
-    return true
-}
-
-export const createData = {
-    name: 'sample name'
 }

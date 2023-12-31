@@ -44,7 +44,7 @@ ProjectsController에서 ClearAssetService를 호출하면 Scene와 Room을 참�
 /reviews/movies/abc123
 ```
 
-이 디자인은 부자연스러워서 이해하기 어렵다.
+그러나 이 디자인은 부자연스러워서 이해하기 어렵다.
 
 ## Path의 분산
 
