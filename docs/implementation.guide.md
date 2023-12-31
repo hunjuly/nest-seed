@@ -55,42 +55,13 @@ getUser()는 사용자가 존재하지 않으면 예외를 던진다. Controller
 
 ## Domain 레이어
 
-### AggregateRoot와 Entity의 Identifier
-
-DDD(Domain Driven Design)에서 제안하는 AggregateRoot와 Entity 개념을 다음과 같이 구현했다.
-
-```ts
-export abstract class AggregateRoot {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
-
-    @CreateDateColumn()
-    createdAt: Date
-
-    @UpdateDateColumn()
-    updatedAt: Date
-
-    @VersionColumn()
-    version: number
-}
-
-export abstract class BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number
-}
-```
-
-`AggregateRoot`의 id는 UUID type으로 한다. Entity는 Aggregate에서만 유일하면 되고 영향 범위도 Aggregate에 한정되기 때문에 auto-increment 되는 정수형 ID를 사용한다.
-
-만약 `AggregateRoot`의 ID를 UUID로 하는 것이 Database의 성능에 영향을 준다면 Database를 개선하거나 `AggregateRoot`를 Entity로 취급해야 하는 것은 아닌지 고민해야 한다. `AggregateRoot`의 ID 타입을 변경하면 안 된다.
-
 ### TypeORM과 도메인의 Entity 관계
 
 다음은 일반적인 Entity를 구현한 코드다.
 
 ```ts
 @Entity()
-export class Seed extends AggregateRoot {
+export class Seed extends TypeormEntity {
     @Column()
     name: string
 
@@ -115,21 +86,6 @@ Entity 코드와 Infrastructure 레이어에 위치하는 TypeORM의 코드가 �
 결과적으로, 도메인 객체에 TypeORM 코드가 추가된 것은 엔티티와 ORM 사이의 편리한 연결을 위한 것이다. 이것은 TypeORM이 도메인 엔티티에 의존하게 하고, 엔티티가 TypeORM에 의존하지 않게 한다. 이 구조는 DDD의 개념과 상충하지 않으며, 두 영역 간의 깔끔한 분리를 제공한다.
 
 ## 그 외
-
-### Authentication 모듈의 통합
-
-UsersModule과 AuthModule로 분리되어 있었다. 그러나 다음의 이유로 UsersModule에 통합했다.
-
-1. 만약 User의 종류가 둘이 된다면 Auth의 종류도 그에 맞게 생겨야 한다.
-1. AuthModule로 분리해서 생기는 장점이 크지 않고 결합이 강해진다.
-
-### Assert, Expect
-
-아래와 같이 expect 구문을 사용했었다. 그러나 이렇게 하면 vscode에서 showtime이 undefined가 아니라고 단정할 수 없어서 에러가 발생한다.
-
-```js
-Expect.found(showtime, `${showtime} not found`)
-```
 
 ### Exception의 테스트 작성
 
