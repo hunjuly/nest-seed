@@ -38,52 +38,49 @@ describe('Authentication', () => {
         if (sut) await sut.close()
     })
 
-    it('should be defined', () => {
-        expect(sut).toBeDefined()
-    })
+    describe('비로그인 상태에서 작업', () => {
+        describe('POST /auth/login', () => {
+            it('정상 로그인 시 CREATED(201) 상태와 TokenPair 반환', async () => {
+                const res = await req.post({
+                    url: '/auth/login',
+                    body: {
+                        email: login.email,
+                        password: login.password
+                    }
+                })
 
-    describe('POST /auth/login', () => {
-        it('로그인 성공시 CREATED(201)과 TokenPair 반환', async () => {
-            const res = await req.post({
-                url: '/auth/login',
-                body: {
-                    email: login.email,
-                    password: login.password
-                }
+                expect(res.statusCode).toEqual(HttpStatus.CREATED)
+                expect(res.body).toEqual({
+                    accessToken: expect.anything(),
+                    refreshToken: expect.anything()
+                })
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual({
-                accessToken: expect.anything(),
-                refreshToken: expect.anything()
-            })
-        })
+            it('잘못된 비밀번호 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
+                const res = await req.post({
+                    url: '/auth/login',
+                    body: {
+                        email: login.email,
+                        password: 'wrong password'
+                    }
+                })
 
-        it('비밀번호가 틀리면 UNAUTHORIZED(401) 반환한다', async () => {
-            const res = await req.post({
-                url: '/auth/login',
-                body: {
-                    email: login.email,
-                    password: 'wrong password'
-                }
+                expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
-        })
+            it('존재하지 않는 email 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
+                const res = await req.post({
+                    url: '/auth/login',
+                    body: {
+                        email: 'unknown@mail.com',
+                        password: login.password
+                    }
+                })
 
-        it('email이 존재하지 않으면 UNAUTHORIZED(401) 반환한다', async () => {
-            const res = await req.post({
-                url: '/auth/login',
-                body: {
-                    email: 'unknown@mail.com',
-                    password: login.password
-                }
+                expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
         })
     })
-
     describe('로그인 상태에서 작업', () => {
         let accessToken: any
         let refreshToken: any
@@ -91,11 +88,7 @@ describe('Authentication', () => {
         beforeEach(async () => {
             const res = await req.post({
                 url: '/auth/login',
-                body: {
-                    email: login.email,
-                    password: login.password
-                },
-                status: HttpStatus.CREATED
+                body: login
             })
 
             accessToken = res.body.accessToken
@@ -103,7 +96,7 @@ describe('Authentication', () => {
         })
 
         describe('POST /auth/refresh', () => {
-            it('새로운 TokenPair를 반환한다', async () => {
+            it('유효한 refreshToken 제공 시 새로운 TokenPair를 반환', async () => {
                 const res = await req.post({
                     url: '/auth/refresh',
                     body: { refreshToken }
@@ -114,7 +107,7 @@ describe('Authentication', () => {
                 expect(res.body.refreshToken).not.toEqual(refreshToken)
             })
 
-            it('잘못된 refreshToken은 Unauthorized(401) 반환한다', async () => {
+            it('잘못된 refreshToken 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
                 const res = await req.post({
                     url: '/auth/refresh',
                     body: { refreshToken: 'invalid-token' }
@@ -123,7 +116,7 @@ describe('Authentication', () => {
                 expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
             })
 
-            it('refreshToken이 만료된 후 refresh 하면 UNAUTHORIZED(401)', async () => {
+            it('만료된 refreshToken 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
                 await sleep(1500)
 
                 const res = await req.post({
@@ -136,7 +129,7 @@ describe('Authentication', () => {
         })
 
         describe('JwtAuthGuard', () => {
-            it('accessToken이 필요하다', async () => {
+            it('유효한 accessToken 제공 시 접근 허용', async () => {
                 const res = await req.get({
                     url: `/auth/jwt-testing`,
                     headers: {
@@ -147,7 +140,7 @@ describe('Authentication', () => {
                 expect(res.statusCode).toEqual(HttpStatus.OK)
             })
 
-            it('형식이 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
+            it('형식에 맞지 않는 accessToken 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
                 const res = await req.get({
                     url: `/auth/jwt-testing`,
                     headers: {
@@ -158,7 +151,7 @@ describe('Authentication', () => {
                 expect(res.statusCode).toEqual(HttpStatus.UNAUTHORIZED)
             })
 
-            it('데이터가 잘못된 accessToken은 Unauthorized(401) 반환한다', async () => {
+            it('잘못된 데이터가 포함된 accessToken 제공 시 UNAUTHORIZED(401) 상태 반환', async () => {
                 const wrongUserIdToken = jwtService.sign(
                     { userId: nullUUID },
                     { secret: 'mockAccessSecret', expiresIn: '15m' }

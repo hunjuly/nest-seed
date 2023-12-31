@@ -29,10 +29,6 @@ describe('Pagination', () => {
         if (sut) await sut.close()
     })
 
-    it('should be defined', () => {
-        expect(sut).toBeDefined()
-    })
-
     it('Pagination 옵션이 적용되어야 한다', async () => {
         const skip = 2
         const take = 3

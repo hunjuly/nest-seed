@@ -6,7 +6,7 @@ import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
 import {
     createManyPsqls as createManyPsqls,
     createPsql,
-    psqlCreationData,
+    psqlCreationDto,
     sortPsqls
 } from './psqls.controller.fixture'
 
@@ -34,11 +34,11 @@ describe('PsqlsController', () => {
             it('Psql 생성', async () => {
                 const res = await req.post({
                     url: '/psqls',
-                    body: psqlCreationData
+                    body: psqlCreationDto
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidPsqlDto(psqlCreationData)
+                expect(res.body).toValidPsqlDto(psqlCreationDto)
             })
 
             it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {

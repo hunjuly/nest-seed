@@ -1,12 +1,10 @@
 import * as supertest from 'supertest'
-import { HttpStatus } from '@nestjs/common'
 
 interface TestRequestContext {
     url: string
     headers?: any
     body?: any
     query?: any
-    status?: HttpStatus
 }
 
 export class HttpRequest {
@@ -20,12 +18,6 @@ export class HttpRequest {
         }
 
         const res = await req
-
-        if (ctx.status) {
-            if (res.statusCode !== ctx.status) console.log(res.body)
-
-            expect(res.statusCode).toEqual(ctx.status)
-        }
 
         return res
     }

@@ -4,7 +4,7 @@ import { AppModule } from 'app/app.module'
 import { MongoDto } from 'app/services/mongos'
 import { HttpTestEnv, createHttpTestEnv, nullObjectId } from 'common'
 import {
-    mongoCreationData,
+    mongoCreationDto,
     createManyMongos as createManyMongos,
     sortMongos,
     createMongo
@@ -34,11 +34,11 @@ describe('MongosController', () => {
             it('Mongo 생성', async () => {
                 const res = await req.post({
                     url: '/mongos',
-                    body: mongoCreationData
+                    body: mongoCreationDto
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidUserDto(mongoCreationData)
+                expect(res.body).toValidUserDto(mongoCreationDto)
             })
 
             it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {

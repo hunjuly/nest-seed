@@ -1,13 +1,4 @@
-import { HttpStatus } from '@nestjs/common'
-
-export const createUserDto = {
-    email: 'user@mail.com',
-    username: 'testuser',
-    firstName: 'Test',
-    lastName: 'User',
-    birthdate: new Date('2020-12-12'),
-    password: 'password'
-}
+import { createUser, userCreationDto } from './users.controller.fixture'
 
 export interface LoginCredentials {
     email: string
@@ -15,12 +6,8 @@ export interface LoginCredentials {
 }
 
 export async function prepareUserCredentials(req: any) {
-    await req.post({
-        url: '/users',
-        body: createUserDto,
-        status: HttpStatus.CREATED
-    })
+    await createUser(req)
 
-    const { email, password } = createUserDto
+    const { email, password } = userCreationDto
     return { email, password }
 }

@@ -1,7 +1,7 @@
 import { UserDto } from 'app/services/users'
 import { objToJson, padNumber } from 'common'
 
-export const userCreationData = {
+export const userCreationDto = {
     email: 'user@mail.com',
     username: 'testuser',
     firstName: 'Test',
@@ -13,7 +13,7 @@ export const userCreationData = {
 export async function createUser(request: any): Promise<UserDto> {
     const res = await request.post({
         url: '/users',
-        body: userCreationData
+        body: userCreationDto
     })
 
     return res.body
@@ -35,7 +35,7 @@ export async function createManyUsers(request: any): Promise<UserDto[]> {
             request.post({
                 url: '/users',
                 body: {
-                    ...userCreationData,
+                    ...userCreationDto,
                     email: `user_${padNumber(i, 3)}@mail.com`
                 }
             })

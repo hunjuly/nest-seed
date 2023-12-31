@@ -4,7 +4,7 @@ import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
 import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
-import { createManyUsers, createUser, userCreationData } from './users.controller.fixture'
+import { createManyUsers, createUser, userCreationDto } from './users.controller.fixture'
 
 describe('UsersController', () => {
     let sut: HttpTestEnv
@@ -31,11 +31,11 @@ describe('UsersController', () => {
             it('User 생성', async () => {
                 const res = await req.post({
                     url: '/users',
-                    body: userCreationData
+                    body: userCreationDto
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidUserDto(userCreationData)
+                expect(res.body).toValidUserDto(userCreationDto)
             })
 
             it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
@@ -48,8 +48,8 @@ describe('UsersController', () => {
             })
 
             it('이미 존재하는 Email로 User를 생성을 하면 CONFLICT(409)', async () => {
-                const createResponse = await req.post({ url: '/users', body: userCreationData })
-                const duplicateCreateResponse = await req.post({ url: '/users', body: userCreationData })
+                const createResponse = await req.post({ url: '/users', body: userCreationDto })
+                const duplicateCreateResponse = await req.post({ url: '/users', body: userCreationDto })
 
                 expect(createResponse.statusCode).toEqual(HttpStatus.CREATED)
                 expect(duplicateCreateResponse.statusCode).toEqual(HttpStatus.CONFLICT)

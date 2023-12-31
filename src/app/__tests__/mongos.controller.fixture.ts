@@ -1,7 +1,7 @@
 import { MongoDto } from 'app/services/mongos'
 import { objToJson, padNumber } from 'common'
 
-export const mongoCreationData = {
+export const mongoCreationDto = {
     name: 'mongo name',
     desc: 'mongo desc',
     date: new Date('2020-12-12'),
@@ -12,7 +12,7 @@ export const mongoCreationData = {
 export async function createMongo(request: any): Promise<MongoDto> {
     const res = await request.post({
         url: '/mongos',
-        body: mongoCreationData
+        body: mongoCreationDto
     })
 
     return res.body
@@ -34,7 +34,7 @@ export async function createManyMongos(request: any): Promise<MongoDto[]> {
             request.post({
                 url: '/mongos',
                 body: {
-                    ...mongoCreationData,
+                    ...mongoCreationDto,
                     name: `Mongo_${padNumber(i, 3)}`
                 }
             })

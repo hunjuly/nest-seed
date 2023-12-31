@@ -1,7 +1,7 @@
 import { PsqlDto } from 'app/services/psqls'
 import { objToJson, padNumber } from 'common'
 
-export const psqlCreationData = {
+export const psqlCreationDto = {
     name: 'psql name',
     desc: 'psql desc',
     date: new Date('2020-12-12'),
@@ -12,7 +12,7 @@ export const psqlCreationData = {
 export async function createPsql(request: any): Promise<PsqlDto> {
     const res = await request.post({
         url: '/psqls',
-        body: psqlCreationData
+        body: psqlCreationDto
     })
 
     return res.body
@@ -34,7 +34,7 @@ export async function createManyPsqls(request: any): Promise<PsqlDto[]> {
             request.post({
                 url: '/psqls',
                 body: {
-                    ...psqlCreationData,
+                    ...psqlCreationDto,
                     name: `Psql_${padNumber(i, 3)}`
                 }
             })
