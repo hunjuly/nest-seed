@@ -9,4 +9,4 @@ desktop.ini
 
 /.env
 /.env.*
-/!.env.development
+!/.env.development
