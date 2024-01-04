@@ -101,7 +101,6 @@ $ npm run start:prod
 -   [Design Guide](./docs/design.guide.md)
 -   [Problems with Feature Modules](./docs/problems-with-feature-modules.md)
 -   [Implementation Guide](./docs/implementation.guide.md)
--   [Data Mapper VS Active Record](./docs/data-mapper-vs-active-record.guide.md)
 -   [Troubleshooting](./docs/troubleshooting.md)
 
 ## Known Issues
