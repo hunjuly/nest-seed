@@ -44,7 +44,7 @@ nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 te
 .env.development를 업데이트 하면 다음 파일을 같이 변경해야 한다.
 
 -   `.github/workflows/test-coverage.yaml`
--   docker-compose.yml
+-   devcontainer.json에서 `forwardPorts`
 
 ## Debugging
 
