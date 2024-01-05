@@ -16,7 +16,7 @@ jobs:
         container: node:lts-bullseye
 
         services:
-            nest_postgres:
+            nest-postgres:
                 image: postgres:15-alpine3.18
                 # 아래처럼 volumes은 설정할 수 없다. workflow는 git clone을 하기전에 서비스를 먼저 실행한다.
                 # 그래서 /scripts가 존재하지 않는 상태에서 맵핑하게 된다.
@@ -24,10 +24,10 @@ jobs:
                 # - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
                 env:
                     POSTGRES_PASSWORD: postgres_password
-            nest_redis:
+            nest-redis:
                 image: redis:7.0-alpine
 
-            nest_mongo:
+            nest-mongo:
                 image: mongo:7
                 env:
                     MONGO_INITDB_ROOT_USERNAME: mongouser
