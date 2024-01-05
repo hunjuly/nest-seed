@@ -94,14 +94,13 @@ $ npm run start:prod
 -   md 파일에 포함된 UML다이어그램을 `PlantUML Preview`로 보려면 `@startuml`과 `@enduml` 사이에 커서가 위치해야 한다.
 -   `Preview markdown`에서 UML다이어그램이 나오지 않는다면 secure 설정이 필요하다. `Preview` 화면 오른쪽 상단에 `...`을 눌러서 `change preview security setting`을 설정해라.
 
-## Supplementary Guides
+## Guides
 
 그 외에 README에서 다루지 못한 중요 정보들이다.
 
 -   [Design Guide](./docs/guides/design.guide.md)
 -   [Problems with Feature Modules](./docs/guides/problems-with-feature-modules.md)
 -   [Implementation Guide](./docs/guides/implementation.guide.md)
--   [Troubleshooting](./docs/guides/troubleshooting.md)
 
 ## Known Issues
 
