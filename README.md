@@ -98,11 +98,10 @@ $ npm run start:prod
 
 그 외에 README에서 다루지 못한 중요 정보들이다.
 
--   [Design Guide](./docs/design.guide.md)
--   [Problems with Feature Modules](./docs/problems-with-feature-modules.md)
--   [Implementation Guide](./docs/implementation.guide.md)
--   [Data Mapper VS Active Record](./docs/data-mapper-vs-active-record.guide.md)
--   [Troubleshooting](./docs/troubleshooting.md)
+-   [Design Guide](./docs/guides/design.guide.md)
+-   [Problems with Feature Modules](./docs/guides/problems-with-feature-modules.md)
+-   [Implementation Guide](./docs/guides/implementation.guide.md)
+-   [Troubleshooting](./docs/guides/troubleshooting.md)
 
 ## Known Issues
 

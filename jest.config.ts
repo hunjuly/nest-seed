@@ -37,7 +37,9 @@ const config: Config.InitialOptions = {
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],
     coverageDirectory: './coverage',
-    testTimeout: 10000 // 10s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
+    // 60s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
+    // memory-mongodb 다운로드가 느린 경우가 있다.
+    testTimeout: 60000
 }
 
 export default config
