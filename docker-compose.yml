@@ -34,9 +34,7 @@ services:
     mongo-express:
         image: mongo-express:1-20-alpine3.18
         profiles: ['infra']
-        container_name: ${MONGO_DB_EXPRESS_HOST}
-        ports:
-            - 8081:8081
+        container_name: ${MONGO_DB_HOST}-express
         networks:
             - default
         environment:
