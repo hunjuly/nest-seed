@@ -21,11 +21,11 @@ jobs:
             - name: Update Packages
               run: apt-get update
 
-            # - name: Install Docker
-            #   run: apt-get install -y docker.io
-
             - name: Install Tools
-              run: apt-get install -y jq bash postgresql curl bash bash-completion
+              run: apt-get install -y git curl jq tree vim postgresql
+
+            - name: Install Bash
+              run: apt-get install -y bash bash-completion
 
             - name: Install Docker
               run: |
@@ -44,22 +44,15 @@ jobs:
             - name: Checkout Code
               uses: actions/checkout@v3
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '20'
+            # - name: Setup Node.js
+            #   uses: actions/setup-node@v3
+            #   with:
+            #       node-version: '20'
 
-            # - name: Initialize Workflow Environment
-            #   run: bash scripts/init_github_workflow.sh
             - name: Create Docker Network
               run: |
                 docker network create ${PROJECT_NAME}
                 docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
-            - name: Verify Docker Network
-              run: docker network ls
-
-            - name: Verify Docker ps
-              run: docker ps -a
 
             - name: Initialize Workflow Environment
               run: bash scripts/init_dev_env.sh
