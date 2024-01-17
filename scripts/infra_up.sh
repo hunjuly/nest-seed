@@ -4,13 +4,14 @@ set -e
 . $ENV_FILE
 
 run_psql() {
+    export LANG=C.UTF-8
     export PGPASSWORD=postgres_password
     psql -h $POSTGRES_DB_HOST -U postgres -w "$@"
 }
 
 wait_for_postgresql() {
     count=0
-    max_retries=10  # 최대 시도 횟수 설정
+    max_retries=10 # 최대 시도 횟수 설정
     until run_psql -c 'SELECT 1' >/dev/null 2>&1; do
         sleep 1
 

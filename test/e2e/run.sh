@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 . "$(dirname "$0")"/common.cfg
 
 clear
