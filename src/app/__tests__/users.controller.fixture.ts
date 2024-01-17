@@ -1,5 +1,6 @@
 import { UserDto } from 'app/services/users'
-import { objToJson, padNumber } from 'common'
+import { objToJson } from 'common/test'
+import { padNumber } from 'common'
 
 export const userCreationDto = {
     email: 'user@mail.com',

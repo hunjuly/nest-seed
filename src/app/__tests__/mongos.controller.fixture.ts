@@ -1,5 +1,6 @@
 import { MongoDto } from 'app/services/mongos'
-import { objToJson, padNumber } from 'common'
+import { padNumber } from 'common'
+import { objToJson } from 'common/test'
 
 export const mongoCreationDto = {
     name: 'mongo name',

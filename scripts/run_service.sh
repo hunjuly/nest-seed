@@ -27,4 +27,4 @@ docker_compose --profile service up -d --build
 
 wait_for_service $PROJECT_NAME
 
-docker exec $PROJECT_NAME npm run migration:run 2>&1
+docker exec $PROJECT_NAME npm run migration:run

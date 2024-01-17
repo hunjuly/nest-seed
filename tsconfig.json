@@ -17,8 +17,8 @@
             "common": [
                 "src/common/index"
             ],
-            "common/*": [
-                "src/common/*"
+            "common/test": [
+                "src/common/test/index"
             ],
             "config": [
                 "src/config/index"
