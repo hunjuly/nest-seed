@@ -20,13 +20,11 @@ jobs:
             WORKSPACE_ROOT: ${{ github.workspace }}
 
         steps:
-            - name: Install Docker
-              run: |
-                sudo apt-get update
-                sudo apt-get install -y docker.io
-
             - name: Update Packages
               run: apt-get update
+
+            - name: Install Docker
+              run: apt-get install -y docker.io
 
             - name: Install Tools
               run: apt-get install -y jq bash postgresql
