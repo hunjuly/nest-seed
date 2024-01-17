@@ -55,5 +55,5 @@ jobs:
               run: bash scripts/init_dev_env.sh
 
             # Test all
-            - name: Run Tests and Coverage
-              run: npm run test:all
+            - name: Run Tests
+              run: bash scripts/test.sh
