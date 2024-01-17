@@ -18,6 +18,10 @@ jobs:
             WORKSPACE_ROOT: ${{ github.workspace }}
             PROJECT_NAME: ${{ github.event.repository.name }} # 프로젝트 이름 환경 변수 추가
         steps:
+            - name: Checkout Code
+              uses: actions/checkout@v3
+
+            # .devcontainer/Dockerfile
             - name: Update Packages
               run: apt-get update
 
@@ -41,21 +45,15 @@ jobs:
                   apt-get update
                   apt-get install -y docker-ce-cli
 
-            - name: Checkout Code
-              uses: actions/checkout@v3
-
-            # - name: Setup Node.js
-            #   uses: actions/setup-node@v3
-            #   with:
-            #       node-version: '20'
-
-            - name: Create Docker Network
+            # devcontainer.json
+            - name: initializeCommand
               run: |
-                docker network create ${PROJECT_NAME}
-                docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
+                  docker network create ${PROJECT_NAME}
+                  docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
 
-            - name: Initialize Workflow Environment
+            - name: postCreateCommand
               run: bash scripts/init_dev_env.sh
 
+            # Test all
             - name: Run Tests and Coverage
               run: npm run test:all
