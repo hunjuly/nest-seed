@@ -4,8 +4,8 @@ cd "$(dirname "$0")"
 
 clear
 echo "🚀 Starting infra..."
-echo "$(bash ../../scripts/infra_up.sh)"
-echo "$(bash ../../scripts/run_service.sh)"
+bash $WORKSPACE_ROOT/scripts/infra_up.sh
+bash $WORKSPACE_ROOT/scripts/run_service.sh
 echo "Infra is running"
 
 # 현재 작업 중인 디렉터리 (pwd)에서 $WORKSPACE_ROOT을 제거
@@ -15,7 +15,7 @@ CURRENT_HOST_PATH="$HOST_PATH$RELATIVE_PATH"
 
 CONTAINER_NAME=$PROJECT_NAME-jmeter
 
-# docker build -t jmeter .
+docker build -t jmeter .
 
 rm -f results.jtl
 

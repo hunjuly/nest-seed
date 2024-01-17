@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e
-. "$(dirname "$0")"/common.cfg
+cd "$(dirname "$0")"
+. ./common.cfg
 
 clear
 
 ERROR_LOG=""
 
-. $SCRIPTS_PATH/auth.test
-. $SCRIPTS_PATH/users.test
+. ./auth.test
+. ./users.test
 
 if [[ -z "$ERROR_LOG" ]]; then
     echo "Test Successful"
