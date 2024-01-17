@@ -54,6 +54,9 @@ jobs:
             - name: postCreateCommand
               run: bash scripts/init_dev_env.sh
 
+            - name: Run Tests
+              run: bash test/e2e/run.sh
+
             # Test all
             - name: Run Tests
               run: bash scripts/test.sh
