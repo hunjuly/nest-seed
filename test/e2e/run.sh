@@ -3,7 +3,7 @@ set -ex
 . "$(dirname "$0")"/common.cfg
 
 echo "1"
-clear
+# clear
 echo "2"
 
 ERROR_LOG=""
