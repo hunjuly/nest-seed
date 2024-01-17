@@ -15,36 +15,15 @@ jobs:
 
         container: node:lts-bullseye
 
-        # services:
-        #     nest-postgres:
-        #         image: postgres:15-alpine3.18
-        #         # 아래처럼 volumes은 설정할 수 없다. workflow는 git clone을 하기전에 서비스를 먼저 실행한다.
-        #         # 그래서 /scripts가 존재하지 않는 상태에서 맵핑하게 된다.
-        #         # volumes:
-        #         # - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-        #         env:
-        #             POSTGRES_PASSWORD: postgres_password
-        #     nest-redis:
-        #         image: redis:7.0-alpine
-
-        #     nest-mongo:
-        #         image: mongo:7
-        #         env:
-        #             MONGO_INITDB_ROOT_USERNAME: mongouser
-        #             MONGO_INITDB_ROOT_PASSWORD: mongo_password
-
         env:
             NODE_ENV: development
             WORKSPACE_ROOT: ${{ github.workspace }}
 
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '18'
+            - name: Install Docker
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y docker.io
 
             - name: Update Packages
               run: apt-get update
@@ -52,11 +31,16 @@ jobs:
             - name: Install Tools
               run: apt-get install -y jq bash postgresql
 
+            - name: Checkout Code
+              uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '20'
+
             # - name: Initialize Workflow Environment
             #   run: bash scripts/init_github_workflow.sh
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v1
-
             - name: Initialize Workflow Environment
               run: bash scripts/init_dev_env.sh
 
