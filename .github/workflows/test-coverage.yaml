@@ -54,6 +54,9 @@ jobs:
 
             # - name: Initialize Workflow Environment
             #   run: bash scripts/init_github_workflow.sh
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+
             - name: Initialize Workflow Environment
               run: bash scripts/init_dev_env.sh
 
