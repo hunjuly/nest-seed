@@ -16,7 +16,8 @@ jobs:
         env:
             NODE_ENV: development
             WORKSPACE_ROOT: ${{ github.workspace }}
-            PROJECT_NAME: ${{ github.event.repository.name }} # 프로젝트 이름 환경 변수 추가
+            PROJECT_NAME: ${{ github.event.repository.name }}
+            TERM: xterm
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
