@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing'
-import { TypeormTransactionService, createTestingModule, createTypeormMemoryModule } from 'common'
+import { TypeormTransactionService, createTypeormMemoryModule } from 'common'
 import { Sample, SamplesRepository, SamplesModule } from './typeorm.transaction.service.mock'
+import { createTestingModule } from 'common/test'
 
 describe('TypeormTransactionService', () => {
     let module: TestingModule

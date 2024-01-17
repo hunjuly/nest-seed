@@ -3,8 +3,9 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
-import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
+import { nullUUID } from 'common'
 import { createManyUsers, createUser, userCreationDto } from './users.controller.fixture'
+import { HttpTestEnv, createHttpTestEnv } from 'common/test'
 
 describe('UsersController', () => {
     let sut: HttpTestEnv

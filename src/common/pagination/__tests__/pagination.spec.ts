@@ -1,6 +1,6 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpTestEnv, createHttpTestEnv } from 'common'
+import { HttpTestEnv, createHttpTestEnv } from 'common/test'
 import { SamplesModule } from './pagination.mock'
 
 describe('Pagination', () => {
