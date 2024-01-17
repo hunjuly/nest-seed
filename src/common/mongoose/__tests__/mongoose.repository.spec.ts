@@ -5,7 +5,6 @@ import {
     DocumentNotFoundMongooseException,
     OrderDirection,
     ParameterMongooseException,
-    createTestingModule,
     nullObjectId
 } from 'common'
 import { MongoMemoryServer } from 'mongodb-memory-server'
@@ -16,6 +15,7 @@ import {
     sortSamples
 } from './mongoose.repository.fixture'
 import { SampleDocument, SamplesModule, SamplesRepository } from './mongoose.repository.mock'
+import { createTestingModule } from 'common/test'
 
 describe('MongooseRepository', () => {
     let mongoServer: MongoMemoryServer

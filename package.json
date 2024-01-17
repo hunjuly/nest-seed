@@ -6,7 +6,7 @@
         "start": "nest start --debug 9230 --watch",
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
-        "test:all": "jest --coverage && npm run migration:test",
+        "test:all": "jest --coverage",
         "test:app": "jest src/app",
         "build": "nest build",
         "lint": "eslint src/**/*.ts --fix",
@@ -14,8 +14,7 @@
         "migration:generate": "npm run build && typeorm migration:generate -d ./dist/databases/psql/data-source.js ./src/databases/psql/migrations/$npm_package_name",
         "migration:show": "typeorm migration:show -d ./dist/databases/psql/data-source.js",
         "migration:run": "typeorm migration:run -d ./dist/databases/psql/data-source.js",
-        "migration:revert": "typeorm migration:revert -d ./dist/databases/psql/data-source.js",
-        "migration:test": "npm run build && typeorm migration:show -d ./dist/databases/psql/data-source.js"
+        "migration:revert": "typeorm migration:revert -d ./dist/databases/psql/data-source.js"
     },
     "dependencies": {
         "@nestjs/cache-manager": "^2.0.0",

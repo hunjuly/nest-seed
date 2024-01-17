@@ -4,7 +4,6 @@ import {
     EntityNotFoundTypeormException,
     OrderDirection,
     ParameterTypeormException,
-    createTestingModule,
     createTypeormMemoryModule,
     nullUUID
 } from 'common'
@@ -15,6 +14,7 @@ import {
     createSample
 } from './typeorm.repository.fixture'
 import { Sample, SamplesModule, SamplesRepository } from './typeorm.repository.mock'
+import { createTestingModule } from 'common/test'
 
 describe('TypeormRepository', () => {
     let module: TestingModule

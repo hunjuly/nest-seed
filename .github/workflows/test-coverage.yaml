@@ -12,48 +12,49 @@ on:
 jobs:
     test-coverage:
         runs-on: ubuntu-latest
-
         container: node:lts-bullseye
-
-        services:
-            nest-postgres:
-                image: postgres:15-alpine3.18
-                # 아래처럼 volumes은 설정할 수 없다. workflow는 git clone을 하기전에 서비스를 먼저 실행한다.
-                # 그래서 /scripts가 존재하지 않는 상태에서 맵핑하게 된다.
-                # volumes:
-                # - ${{ github.workspace }}/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-                env:
-                    POSTGRES_PASSWORD: postgres_password
-            nest-redis:
-                image: redis:7.0-alpine
-
-            nest-mongo:
-                image: mongo:7
-                env:
-                    MONGO_INITDB_ROOT_USERNAME: mongouser
-                    MONGO_INITDB_ROOT_PASSWORD: mongo_password
-
         env:
             NODE_ENV: development
             WORKSPACE_ROOT: ${{ github.workspace }}
-
+            PROJECT_NAME: ${{ github.event.repository.name }}
+            TERM: xterm # bash의 clear 명령어를 사용하기 위해 필요하다
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: '18'
-
+            # .devcontainer/Dockerfile
             - name: Update Packages
               run: apt-get update
 
             - name: Install Tools
-              run: apt-get install -y jq bash postgresql
+              run: apt-get install -y git curl jq tree vim postgresql
 
-            - name: Initialize Workflow Environment
-              run: bash scripts/init_github_workflow.sh
+            - name: Install Bash
+              run: apt-get install -y bash bash-completion
 
-            - name: Run Tests and Coverage
-              run: npm run test:all
+            - name: Install Docker
+              run: |
+                  apt-get update
+                  apt-get install -y ca-certificates curl gnupg
+                  install -m 0755 -d /etc/apt/keyrings
+                  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                  chmod a+r /etc/apt/keyrings/docker.gpg
+                  echo \
+                    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+                    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+                    tee /etc/apt/sources.list.d/docker.list > /dev/null
+                  apt-get update
+                  apt-get install -y docker-ce-cli
+
+            # devcontainer.json
+            - name: initializeCommand
+              run: |
+                  docker network create ${PROJECT_NAME}
+                  docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
+
+            - name: postCreateCommand
+              run: bash scripts/init_dev_env.sh
+
+            # Test all
+            - name: Run All Tests
+              run: bash scripts/test_all.sh

@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common'
-import { HttpTestEnv, createHttpTestEnv } from 'common'
+import { HttpTestEnv, createHttpTestEnv } from 'common/test'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {

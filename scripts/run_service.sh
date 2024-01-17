@@ -3,7 +3,7 @@ set -e
 . "$(dirname "$0")"/common.cfg
 . $ENV_FILE
 
-check_application_start() (
+wait_for_service() (
     local TIMEOUT=10
     local COUNTER=0
 
@@ -25,8 +25,6 @@ check_application_start() (
 docker_compose --profile service down
 docker_compose --profile service up -d --build
 
+wait_for_service $PROJECT_NAME
+
 docker exec $PROJECT_NAME npm run migration:run
-
-check_application_start $PROJECT_NAME
-
-docker logs $PROJECT_NAME

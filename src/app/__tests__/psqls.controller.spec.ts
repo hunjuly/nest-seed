@@ -2,13 +2,14 @@ import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { PsqlDto } from 'app/services/psqls'
-import { HttpTestEnv, createHttpTestEnv, nullUUID } from 'common'
+import { nullUUID } from 'common'
 import {
     createManyPsqls as createManyPsqls,
     createPsql,
     psqlCreationDto,
     sortPsqls
 } from './psqls.controller.fixture'
+import { HttpTestEnv, createHttpTestEnv } from 'common/test'
 
 describe('PsqlsController', () => {
     let sut: HttpTestEnv

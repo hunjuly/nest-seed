@@ -1,5 +1,6 @@
 import { PsqlDto } from 'app/services/psqls'
-import { objToJson, padNumber } from 'common'
+import { padNumber } from 'common'
+import { objToJson } from 'common/test'
 
 export const psqlCreationDto = {
     name: 'psql name',
