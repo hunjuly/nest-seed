@@ -38,17 +38,5 @@
             "type": "shell",
             "command": "npm run migration:generate"
         }
-    ],
-    "inputs": [
-        {
-            "id": "enable_disable",
-            "description": "",
-            "default": "disable",
-            "type": "pickString",
-            "options": [
-                "enable",
-                "disable"
-            ]
-        }
     ]
 }

@@ -1,6 +1,19 @@
 # NEST-SEED
 
-nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 template이다.
+NestJS를 사용한 프로젝트 개발을 위한 시작점으로, 필수 기능 및 구성을 포함한 template입니다. 이 문서는 프로젝트 설정, 실행 및 관리에 필요한 상세 지침을 제공합니다.
+
+## Project Setup Guide
+
+프로젝트를 시작하기 위해 아래 설정 사항들을 검토하고 필요에 따라 변경하세요.
+
+-   .env.development
+    -   REDIS_HOST
+    -   POSTGRES_DB_HOST
+    -   MONGO_DB_HOST
+-   devcontainer.json
+    -   forwardPorts
+-   package.json
+    -   name
 
 ## Requirements
 
@@ -38,13 +51,6 @@ nest 프로젝트를 시작할 때 필요한 기본적인 기능을 구현한 te
     -   `Watch Start`: Nest 애플리케이션을 디버그 모드로 시작하며, 파일 변경을 감지하여 자동으로 재시작한다.
     -   `Watch Test`: 테스트 코드를 실행하며, 파일 변경을 감지하여 자동으로 다시 테스트한다.
 -   유닛 테스트를 실행해야 하는 환경에서는 테스트 마다 DB를 초기화 하기 위해서 `NODE_ENV=development`와 typeorm의 `synchronize`를 허용해야 한다.
-
-## Updating `.env.development` File
-
-.env.development를 업데이트 하면 다음 파일을 같이 변경해야 한다.
-
--   `.github/workflows/test-coverage.yaml`
--   devcontainer.json에서 `forwardPorts`
 
 ## Debugging
 
