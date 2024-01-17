@@ -52,8 +52,9 @@ jobs:
             # - name: Initialize Workflow Environment
             #   run: bash scripts/init_github_workflow.sh
             - name: Create Docker Network
-              run: docker network create ${PROJECT_NAME}
-
+              run: |
+                docker network create ${PROJECT_NAME}
+                docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
             - name: Verify Docker Network
               run: docker network ls
 
