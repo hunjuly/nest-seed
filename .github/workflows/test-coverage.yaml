@@ -56,5 +56,5 @@ jobs:
               run: bash scripts/init_dev_env.sh
 
             # Test all
-            - name: Run Tests
+            - name: Run All Tests
               run: bash scripts/test_all.sh
