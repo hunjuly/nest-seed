@@ -6,7 +6,7 @@
         "start": "nest start --debug 9230 --watch",
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
-        "test:all": "jest --coverage && npm run migration:test",
+        "test:all": "jest --coverage && npm run migration:test && bash test/e2e/run.sh",
         "test:app": "jest src/app",
         "build": "nest build",
         "lint": "eslint src/**/*.ts --fix",
