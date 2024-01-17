@@ -57,6 +57,9 @@ jobs:
             - name: Verify Docker Network
               run: docker network ls
 
+            - name: Verify Docker ps
+              run: docker ps -a
+
             - name: Initialize Workflow Environment
               run: bash scripts/init_dev_env.sh
 
