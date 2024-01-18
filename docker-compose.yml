@@ -1,10 +1,15 @@
 # https://docs.docker.com/compose/compose-file/05-services/
 version: '3'
+x-logging: &default-logging
+  options:
+    max-size: '10m'
+    max-file: '3'
 services:
     postgres:
-        image: postgres:15-alpine3.18
+        image: postgres:latest
         profiles: ['infra']
         container_name: ${POSTGRES_DB_HOST}
+        logging: *default-logging
         environment:
             POSTGRES_USER: ${POSTGRES_DB_USERNAME}
             POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
@@ -13,28 +18,29 @@ services:
             - default
 
     redis:
-        image: redis:7.0-alpine
+        image: redis:latest
         profiles: ['infra']
         container_name: ${REDIS_HOST}
+        logging: *default-logging
         networks:
             - default
 
     mongo:
-        image: mongo:7
+        image: mongo:latest
         profiles: ['infra']
         container_name: ${MONGO_DB_HOST}
-        networks:
-            - default
+        logging: *default-logging
         environment:
             MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
             MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
-
-    mongo-express:
-        image: mongo-express:1-20-alpine3.18
-        profiles: ['infra']
-        container_name: ${MONGO_DB_HOST}-express
         networks:
             - default
+
+    mongo-express:
+        image: mongo-express:latest
+        profiles: ['infra']
+        container_name: ${MONGO_DB_HOST}-express
+        logging: *default-logging
         environment:
             ME_CONFIG_BASICAUTH_USERNAME: user
             ME_CONFIG_BASICAUTH_PASSWORD: password
@@ -43,21 +49,20 @@ services:
             ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_PASSWORD}
             ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST}
             ME_CONFIG_MONGODB_PORT: ${MONGO_DB_PORT}
+        networks:
+            - default
 
     service:
         image: $PROJECT_NAME
         build: .
         profiles: ['service']
         container_name: $PROJECT_NAME
+        logging: *default-logging
         environment:
             - NODE_ENV=production
         env_file: .env.development
         volumes:
             - ./logs:/app/logs
-        logging:
-            options:
-                max-size: '10m'
-                max-file: '3'
         networks:
             - default
 

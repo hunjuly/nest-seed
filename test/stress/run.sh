@@ -2,9 +2,8 @@
 set -e
 cd "$(dirname "$0")"
 
-clear
 echo "🚀 Starting infra..."
-bash $WORKSPACE_ROOT/scripts/infra_up.sh
+bash $WORKSPACE_ROOT/scripts/run_infra.sh
 bash $WORKSPACE_ROOT/scripts/run_service.sh
 echo "Infra is running"
 

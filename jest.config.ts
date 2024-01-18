@@ -1,6 +1,6 @@
-import type { Config } from '@jest/types'
+import type { Config } from 'jest'
 
-const config: Config.InitialOptions = {
+const config: Config = {
     maxWorkers: 1, // --runInBand, jest 테스트가 동시에 실행되면 서로 postgresql을 초기화 해서 오류가 발생한다.
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],

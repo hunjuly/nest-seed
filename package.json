@@ -7,7 +7,7 @@
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
         "test:all": "jest --coverage",
-        "test:app": "jest src/app",
+        "test:app": "jest",
         "build": "nest build",
         "lint": "eslint src/**/*.ts --fix",
         "format": "prettier --write src/**/*.ts",
