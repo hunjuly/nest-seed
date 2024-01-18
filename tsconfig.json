@@ -9,7 +9,7 @@
         "target": "ES2021",
         "sourceMap": true,
         "outDir": "./dist",
-        "baseUrl": ".",
+        "baseUrl": "./",
         "paths": {
             "app/*": [
                 "src/app/*"
@@ -35,7 +35,5 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": [
-        "src"
-    ]
+    "include":["src/**/*"]
 }
