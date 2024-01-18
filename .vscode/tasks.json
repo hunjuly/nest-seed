@@ -5,7 +5,7 @@
     "tasks": [
         {
             "label": "Run Test Suites",
-            "detail": "선택한 테스트 스위트를 실행합니다.",
+            "detail": "선택한 테스트 스위트를 실행합니다(all, app, common).",
             "type": "shell",
             "command": "npm run ${input:testSuite}"
         },
@@ -35,7 +35,7 @@
         },
         {
             "label": "Launch psql",
-            "detail": "개발 데이터베이스에서 psql 쉘을 실행합니다.",
+            "detail": "개발 데이터베이스(POSTGRES_DB_HOST)에서 psql 쉘을 실행합니다.",
             "type": "shell",
             "command": "bash scripts/launch_psql.sh"
         },

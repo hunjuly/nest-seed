@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "echo": "echo $npm_package_config_common",
         "start": "nest start --debug 9230 --watch",
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",

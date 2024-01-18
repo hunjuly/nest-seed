@@ -27,7 +27,7 @@ jobs:
               run: apt-get update
 
             - name: Install Tools
-              run: apt-get install -y git curl jq tree vim postgresql
+              run: apt-get install -y git curl jq tree vim
 
             - name: Install Bash
               run: apt-get install -y bash bash-completion
@@ -52,7 +52,7 @@ jobs:
                   docker network create ${PROJECT_NAME}
                   docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
 
-            # Runåå
+            # Run All Tests
             - name: Setup Workspace
               run: bash scripts/workspace_setup.sh
 
