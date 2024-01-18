@@ -3,7 +3,7 @@ FROM node:lts-bullseye
 RUN apt-get update
 
 # 개발 도구 설치
-RUN apt-get install -y git curl jq tree vim postgresql
+RUN apt-get install -y git curl jq tree vim
 
 # Bash 설치
 RUN apt-get install -y bash bash-completion

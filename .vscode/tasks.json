@@ -4,39 +4,63 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Test App",
+            "label": "Test Suites",
+            "detail": "일부 소스 코드에 대한 테스트 스위트를 실행합니다.",
             "type": "shell",
-            "command": "npm run test:app"
+            "command": "npm run test:app -- src/${input:testSuite}"
         },
         {
-            "label": "Test All",
+            "label": "Test All Suites & Coverage",
+            "detail": "전체 소스 코드에 대한 테스트 스위트를 실행합니다.",
             "type": "shell",
             "command": "npm run test:all"
         },
         {
             "label": "Watch Start",
+            "detail": "Nest 개발 서버를 시작하고 파일 변경을 감시합니다(--debug 9230).",
             "type": "shell",
             "command": "npm start"
         },
         {
             "label": "Watch Test",
+            "detail": "Jest 테스트를 실행하고 파일 변경을 감시합니다(--inspect=9231).",
             "type": "shell",
             "command": "npm test"
         },
         {
-            "label": "Launch PSQL",
+            "label": "Launch psql",
+            "detail": "개발 데이터베이스에서 psql 쉘을 실행합니다.",
             "type": "shell",
             "command": "bash scripts/launch_psql.sh"
         },
         {
-            "label": "Clean up",
+            "label": "Workspace Setup",
+            "detail": "개발 환경을 설정하고 필요한 종속성을 설치합니다.",
             "type": "shell",
-            "command": "bash scripts/clean_up.sh"
+            "command": "bash scripts/workspace_setup.sh"
+        },
+        {
+            "label": "Workspace Clean Up",
+            "detail": "개발 환경을 초기화하고 모든 데이터를 제거합니다.",
+            "type": "shell",
+            "command": "bash scripts/workspace_cleanup.sh"
         },
         {
             "label": "Generate Migration",
+            "detail": "새로운 마이그레이션 파일을 생성합니다.",
             "type": "shell",
             "command": "npm run migration:generate"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testSuite",
+            "type": "pickString",
+            "options": [
+                "app",
+                "common"
+            ],
+            "description": "Select a test suite to run."
         }
     ]
 }

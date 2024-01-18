@@ -3,8 +3,6 @@ set -e
 cd "$(dirname "$0")"
 . ./common.cfg
 
-clear
-
 ERROR_LOG=""
 
 . ./auth.test
