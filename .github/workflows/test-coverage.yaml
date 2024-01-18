@@ -52,9 +52,9 @@ jobs:
                   docker network create ${PROJECT_NAME}
                   docker network connect ${PROJECT_NAME} $(docker ps --filter "ancestor=node:lts-bullseye" --format "{{.ID}}")
 
-            - name: postCreateCommand
-              run: bash scripts/init_dev_env.sh
+            # Runåå
+            - name: Setup Workspace
+              run: bash scripts/workspace_setup.sh
 
-            # Test all
             - name: Run All Tests
               run: bash scripts/test_all.sh
