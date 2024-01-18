@@ -5,7 +5,7 @@ const config: Config = {
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
-    roots: ['<rootDir>/src/'],
+    roots: ['<rootDir>/src/app', '<rootDir>/src/common'],
     testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/src/app/$1',
@@ -28,11 +28,11 @@ const config: Config = {
         }
     },
     collectCoverageFrom: [
-        'src/app/**/*.{ts,tsx}',
+        'src/app/**/*.ts',
         '!src/app/main.ts',
-        'src/common/**/*.{ts,tsx}',
+        'src/common/**/*.ts',
         '!src/common/test/**/*',
-        '!src/**/index.{ts,tsx}',
+        '!src/**/index.ts',
         '!src/**/*.module.ts'
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],

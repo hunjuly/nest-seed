@@ -4,16 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Test Suites",
-            "detail": "일부 소스 코드에 대한 테스트 스위트를 실행합니다.",
+            "label": "Run Test Suites",
+            "detail": "선택한 테스트 스위트를 실행합니다.",
             "type": "shell",
-            "command": "npm run test:app -- src/${input:testSuite}"
-        },
-        {
-            "label": "Test All Suites & Coverage",
-            "detail": "전체 소스 코드에 대한 테스트 스위트를 실행합니다.",
-            "type": "shell",
-            "command": "npm run test:all"
+            "command": "npm run ${input:testSuite}"
         },
         {
             "label": "Watch Start",
@@ -28,12 +22,6 @@
             "command": "npm test"
         },
         {
-            "label": "Launch psql",
-            "detail": "개발 데이터베이스에서 psql 쉘을 실행합니다.",
-            "type": "shell",
-            "command": "bash scripts/launch_psql.sh"
-        },
-        {
             "label": "Workspace Setup",
             "detail": "개발 환경을 설정하고 필요한 종속성을 설치합니다.",
             "type": "shell",
@@ -44,6 +32,12 @@
             "detail": "개발 환경을 초기화하고 모든 데이터를 제거합니다.",
             "type": "shell",
             "command": "bash scripts/workspace_cleanup.sh"
+        },
+        {
+            "label": "Launch psql",
+            "detail": "개발 데이터베이스에서 psql 쉘을 실행합니다.",
+            "type": "shell",
+            "command": "bash scripts/launch_psql.sh"
         },
         {
             "label": "Generate Migration",
@@ -57,8 +51,9 @@
             "id": "testSuite",
             "type": "pickString",
             "options": [
-                "app",
-                "common"
+                "test:all",
+                "test:app",
+                "test:common"
             ],
             "description": "Select a test suite to run."
         }
