@@ -6,11 +6,9 @@ services:
         profiles: ['infra']
         container_name: ${POSTGRES_DB_HOST}
         environment:
+            POSTGRES_USER: ${POSTGRES_DB_USERNAME}
             POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
-            # 아래 설정은 github workflow 스크립트(test-coverage.yaml)에서는 동작하지 않는다.
-            # POSTGRES_DB_USER: ${POSTGRES_DB_USERNAME}
-            # POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
-            # POSTGRES_DB_DB: ${POSTGRES_DB_DATABASE}
+            POSTGRES_DB: ${POSTGRES_DB_DATABASE}
         networks:
             - default
 
