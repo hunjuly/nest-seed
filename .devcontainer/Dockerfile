@@ -3,7 +3,7 @@ FROM node:lts-bullseye
 RUN apt-get update
 
 # 개발 도구 설치
-RUN apt-get install -y git curl jq tree vim
+RUN apt-get install -y git curl jq tree vim net-tools
 
 # Bash 설치
 RUN apt-get install -y bash bash-completion
@@ -15,16 +15,16 @@ RUN echo "alias l='ls --color=auto -lA'" >> ~/.bashrc
 
 # Docker 설치
 # https://docs.docker.com/engine/install/debian/
-RUN apt-get update
-RUN apt-get install -y ca-certificates curl gnupg
-RUN install -m 0755 -d /etc/apt/keyrings
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-RUN chmod a+r /etc/apt/keyrings/docker.gpg
-RUN echo \
+RUN apt-get update && \
+  apt-get install -y ca-certificates curl gnupg && \
+  install -m 0755 -d /etc/apt/keyrings && \
+  curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+  chmod a+r /etc/apt/keyrings/docker.gpg && \
+  echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
-RUN apt-get update
-RUN apt-get install -y docker-ce-cli
+  tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+  apt-get update && \
+  apt-get install -y docker-ce-cli
 
 EXPOSE 3000
