@@ -1,23 +1,25 @@
 import { HttpStatus } from '@nestjs/common'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
 
     beforeEach(async () => {
-        sut = await createHttpTestEnv({
+        testingContext = await createHttpTestingContext({
             imports: [TestModule]
         })
 
-        req = sut.request
+        req = testingContext.request
         // error를 console에 출력하지 않도록 설정
-        sut.app.useLogger(false)
+        testingContext.app.useLogger(false)
     })
 
     afterEach(async () => {
-        if (sut) await sut.close()
+        if (testingContext) {
+            await testingContext.close()
+        }
     })
 
     it('ErrorFilter', async () => {

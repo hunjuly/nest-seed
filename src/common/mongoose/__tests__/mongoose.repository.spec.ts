@@ -30,7 +30,7 @@ describe('MongooseRepository', () => {
         await mongoServer.stop()
     })
 
-    const before = async () => {
+    const setupTestingContext = async () => {
         module = await createTestingModule({
             imports: [
                 MongooseModule.forRoot(mongoServer.getUri(), {
@@ -43,16 +43,19 @@ describe('MongooseRepository', () => {
                 SamplesModule
             ]
         })
+
         repository = module.get(SamplesRepository)
     }
 
-    const after = async () => {
-        if (module) await module.close()
+    const teardownTestingContext = async () => {
+        if (module) {
+            await module.close()
+        }
     }
 
     describe('MongooseRepository(Creation)', () => {
-        beforeEach(before)
-        afterEach(after)
+        beforeEach(setupTestingContext)
+        afterEach(teardownTestingContext)
 
         describe('create', () => {
             it('문서 생성', async () => {
@@ -74,10 +77,12 @@ describe('MongooseRepository', () => {
         let createdSample: SampleDocument
 
         beforeEach(async () => {
-            await before()
+            await setupTestingContext()
+
             createdSample = await createSample(repository)
         })
-        afterEach(after)
+
+        afterEach(teardownTestingContext)
 
         describe('update', () => {
             it('문서 업데이트', async () => {
@@ -114,10 +119,12 @@ describe('MongooseRepository', () => {
         let createdSamples: SampleDocument[]
 
         beforeAll(async () => {
-            await before()
+            await setupTestingContext()
+
             createdSamples = await createManySamples(repository)
         })
-        afterAll(after)
+
+        afterAll(teardownTestingContext)
 
         describe('exist', () => {
             it('문서 존재 여부 확인', async () => {

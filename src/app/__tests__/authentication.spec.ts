@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt'
 import { AppModule } from 'app/app.module'
 import { nullUUID, sleep } from 'common'
 import { LoginCredentials, prepareUserCredentials as prepareLoginCredentials } from './authentication.fixture'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 jest.mock('config', () => {
     const actualConfig = jest.requireActual('config')
@@ -20,23 +20,25 @@ jest.mock('config', () => {
 })
 
 describe('Authentication', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
     let jwtService: JwtService
     let login: LoginCredentials
 
     beforeEach(async () => {
-        sut = await createHttpTestEnv({
+        testingContext = await createHttpTestingContext({
             imports: [AppModule]
         })
 
-        req = sut.request
-        jwtService = sut.module.get(JwtService)
+        req = testingContext.request
+        jwtService = testingContext.module.get(JwtService)
         login = await prepareLoginCredentials(req)
     })
 
     afterEach(async () => {
-        if (sut) await sut.close()
+        if (testingContext) {
+            await testingContext.close()
+        }
     })
 
     describe('비로그인 상태에서 작업', () => {

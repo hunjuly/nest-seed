@@ -5,28 +5,30 @@ import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
 import { nullUUID } from 'common'
 import { createManyUsers, createUser, userCreationDto } from './users.controller.fixture'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 describe('UsersController', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
 
-    const before = async () => {
-        sut = await createHttpTestEnv({
+    const setupTestingContext = async () => {
+        testingContext = await createHttpTestingContext({
             imports: [AppModule],
             bypassGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 
-        req = sut.request
+        req = testingContext.request
     }
 
-    const after = async () => {
-        if (sut) await sut.close()
+    const teardownTestingContext = async () => {
+        if (testingContext) {
+            await testingContext.close()
+        }
     }
 
     describe('UsersController(Creation)', () => {
-        beforeEach(before)
-        afterEach(after)
+        beforeEach(setupTestingContext)
+        afterEach(teardownTestingContext)
 
         describe('POST /users', () => {
             it('User 생성', async () => {
@@ -62,10 +64,12 @@ describe('UsersController', () => {
         let createdUser: UserDto
 
         beforeEach(async () => {
-            await before()
+            await setupTestingContext()
+
             createdUser = await createUser(req)
         })
-        afterEach(after)
+
+        afterEach(teardownTestingContext)
 
         describe('PATCH /users/:id', () => {
             it('User 업데이트', async () => {
@@ -127,10 +131,12 @@ describe('UsersController', () => {
         let createdUsers: UserDto[] = []
 
         beforeAll(async () => {
-            await before()
+            await setupTestingContext()
+
             createdUsers = await createManyUsers(req)
         })
-        afterAll(after)
+
+        afterAll(teardownTestingContext)
 
         describe('GET /users', () => {
             it('모든 User를 조회', async () => {
