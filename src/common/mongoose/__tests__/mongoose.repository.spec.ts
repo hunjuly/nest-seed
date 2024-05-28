@@ -22,26 +22,23 @@ describe('MongooseRepository', () => {
     let module: TestingModule
     let repository: SamplesRepository
 
-    beforeAll(async () => {
-        mongoServer = await MongoMemoryServer.create()
-    })
-
-    afterAll(async () => {
-        await mongoServer.stop()
-    })
-
     const setupTestingContext = async () => {
+        mongoServer = await MongoMemoryServer.create()
+
+        const options = {
+            /*
+            아래처럼 dropDatabase()을 사용하면 MongoMemoryServer.create()을 한 번만 호출하면 되고 성능도 70% 정도 좋아진다.
+            그러나 dropDatabase() 호출 후에 repository.create()를 호출하지 않으면 module.close() 할 때 에러가 발생한다.
+
+            connectionFactory: (connection: any) => {
+                connection.dropDatabase()
+                return connection
+            }
+            */
+        }
+
         module = await createTestingModule({
-            imports: [
-                MongooseModule.forRoot(mongoServer.getUri(), {
-                    bufferCommands: false,
-                    connectionFactory: (connection: any) => {
-                        connection.dropDatabase()
-                        return connection
-                    }
-                }),
-                SamplesModule
-            ]
+            imports: [MongooseModule.forRoot(mongoServer.getUri(), options), SamplesModule]
         })
 
         repository = module.get(SamplesRepository)
@@ -51,6 +48,8 @@ describe('MongooseRepository', () => {
         if (module) {
             await module.close()
         }
+
+        await mongoServer.stop()
     }
 
     describe('MongooseRepository(Creation)', () => {
@@ -64,8 +63,7 @@ describe('MongooseRepository', () => {
                 expect(createdSample).toValidDocument(sampleCreationData)
             })
 
-            // 실행하면 module.close() 할 때 에러 발생. 그런데 catch()로 잡을 수 없음
-            it.skip('필수 항목이 누락되면 예외 처리', async () => {
+            it('필수 항목이 누락되면 예외 처리', async () => {
                 const promise = repository.create({})
 
                 await expect(promise).rejects.toThrowError()
