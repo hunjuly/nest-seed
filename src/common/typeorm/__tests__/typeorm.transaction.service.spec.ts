@@ -18,7 +18,9 @@ describe('TypeormTransactionService', () => {
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        if (module) {
+            await module.close()
+        }
     })
 
     it('rollback a transaction', async () => {

@@ -20,7 +20,7 @@ describe('TypeormRepository', () => {
     let module: TestingModule
     let repository: SamplesRepository
 
-    const before = async () => {
+    const setupTestingContext = async () => {
         module = await createTestingModule({
             imports: [createTypeormMemoryModule(), SamplesModule]
         })
@@ -28,13 +28,15 @@ describe('TypeormRepository', () => {
         repository = module.get(SamplesRepository)
     }
 
-    const after = async () => {
-        if (module) await module.close()
+    const teardownTestingContext = async () => {
+        if (module) {
+            await module.close()
+        }
     }
 
     describe('TypeormRepository(Creation)', () => {
-        beforeEach(before)
-        afterEach(after)
+        beforeEach(setupTestingContext)
+        afterEach(teardownTestingContext)
 
         describe('create', () => {
             it('엔티티 생성', async () => {
@@ -55,10 +57,12 @@ describe('TypeormRepository', () => {
         let createdSample: Sample
 
         beforeEach(async () => {
-            await before()
+            await setupTestingContext()
+
             createdSample = await createSample(repository)
         })
-        afterEach(after)
+
+        afterEach(teardownTestingContext)
 
         describe('update', () => {
             it('엔티티 업데이트', async () => {
@@ -95,10 +99,12 @@ describe('TypeormRepository', () => {
         let createdSamples: Sample[]
 
         beforeAll(async () => {
-            await before()
+            await setupTestingContext()
+
             createdSamples = await createManySamples(repository)
         })
-        afterAll(after)
+
+        afterAll(teardownTestingContext)
 
         describe('exist', () => {
             it('엔티티 존재 여부 확인', async () => {

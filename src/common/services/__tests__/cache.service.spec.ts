@@ -17,7 +17,9 @@ describe('CacheService', () => {
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        if (module) {
+            await module.close()
+        }
     })
 
     it('캐시에 값을 설정한다', async () => {

@@ -4,7 +4,7 @@ import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
 import { TestingModule } from '@nestjs/testing'
 
-export interface HttpTestEnv {
+export interface HttpTestingContext {
     server: any
     module: TestingModule
     app: any
@@ -12,7 +12,7 @@ export interface HttpTestEnv {
     close: () => Promise<void>
 }
 
-export async function createHttpTestEnv(metadata: ModuleMetadataEx): Promise<HttpTestEnv> {
+export async function createHttpTestingContext(metadata: ModuleMetadataEx): Promise<HttpTestingContext> {
     const module = await createTestingModule(metadata)
 
     const app = module.createNestApplication()
@@ -48,8 +48,13 @@ export async function createHttpTestEnv(metadata: ModuleMetadataEx): Promise<Htt
     const request = new HttpRequest(server)
 
     const close = async () => {
-        if (server) await server.close()
-        if (module) await module.close()
+        if (server) {
+            await server.close()
+        }
+
+        if (module) {
+            await module.close()
+        }
     }
 
     return { server, module, app, request, close }

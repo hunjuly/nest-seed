@@ -9,27 +9,29 @@ import {
     psqlCreationDto,
     sortPsqls
 } from './psqls.controller.fixture'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 describe('PsqlsController', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
 
-    const before = async () => {
-        sut = await createHttpTestEnv({
+    const setupTestingContext = async () => {
+        testingContext = await createHttpTestingContext({
             imports: [AppModule]
         })
 
-        req = sut.request
+        req = testingContext.request
     }
 
-    const after = async () => {
-        if (sut) await sut.close()
+    const teardownTestingContext = async () => {
+        if (testingContext) {
+            await testingContext.close()
+        }
     }
 
     describe('PsqlsController(Creation)', () => {
-        beforeEach(before)
-        afterEach(after)
+        beforeEach(setupTestingContext)
+        afterEach(teardownTestingContext)
 
         describe('POST /psqls', () => {
             it('Psql 생성', async () => {
@@ -57,10 +59,12 @@ describe('PsqlsController', () => {
         let createdPsql: PsqlDto
 
         beforeEach(async () => {
-            await before()
+            await setupTestingContext()
+
             createdPsql = await createPsql(req)
         })
-        afterEach(after)
+
+        afterEach(teardownTestingContext)
 
         describe('PATCH /psqls/:id', () => {
             it('Psql 업데이트', async () => {
@@ -124,10 +128,12 @@ describe('PsqlsController', () => {
         let createdPsqls: PsqlDto[] = []
 
         beforeAll(async () => {
-            await before()
+            await setupTestingContext()
+
             createdPsqls = await createManyPsqls(req)
         })
-        afterAll(after)
+
+        afterAll(teardownTestingContext)
 
         describe('GET /psqls', () => {
             it('모든 Psql 조회', async () => {

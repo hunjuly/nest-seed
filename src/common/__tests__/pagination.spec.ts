@@ -1,14 +1,14 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { SamplesModule } from './pagination.mock'
 
 describe('Pagination', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
 
     beforeEach(async () => {
-        sut = await createHttpTestEnv({
+        testingContext = await createHttpTestingContext({
             imports: [SamplesModule],
             providers: [
                 {
@@ -22,11 +22,13 @@ describe('Pagination', () => {
             ]
         })
 
-        req = sut.request
+        req = testingContext.request
     })
 
     afterEach(async () => {
-        if (sut) await sut.close()
+        if (testingContext) {
+            await testingContext.close()
+        }
     })
 
     it('Pagination 옵션이 적용되어야 한다', async () => {

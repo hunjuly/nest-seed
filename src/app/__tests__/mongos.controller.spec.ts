@@ -9,27 +9,29 @@ import {
     sortMongos,
     createMongo
 } from './mongos.controller.fixture'
-import { HttpTestEnv, createHttpTestEnv } from 'common/test'
+import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 describe('MongosController', () => {
-    let sut: HttpTestEnv
+    let testingContext: HttpTestingContext
     let req: any
 
-    const before = async () => {
-        sut = await createHttpTestEnv({
+    const setupTestingContext = async () => {
+        testingContext = await createHttpTestingContext({
             imports: [AppModule]
         })
 
-        req = sut.request
+        req = testingContext.request
     }
 
-    const after = async () => {
-        if (sut) await sut.close()
+    const teardownTestingContext = async () => {
+        if (testingContext) {
+            await testingContext.close()
+        }
     }
 
     describe('MongosController(Creation)', () => {
-        beforeEach(before)
-        afterEach(after)
+        beforeEach(setupTestingContext)
+        afterEach(teardownTestingContext)
 
         describe('POST /mongos', () => {
             it('Mongo 생성', async () => {
@@ -57,10 +59,12 @@ describe('MongosController', () => {
         let createdMongo: MongoDto
 
         beforeEach(async () => {
-            await before()
+            await setupTestingContext()
+
             createdMongo = await createMongo(req)
         })
-        afterEach(after)
+
+        afterEach(teardownTestingContext)
 
         describe('PATCH /mongos/:id', () => {
             it('Mongo 업데이트', async () => {
@@ -124,10 +128,12 @@ describe('MongosController', () => {
         let createdMongos: MongoDto[] = []
 
         beforeAll(async () => {
-            await before()
+            await setupTestingContext()
+
             createdMongos = await createManyMongos(req)
         })
-        afterAll(after)
+
+        afterAll(teardownTestingContext)
 
         describe('GET /mongos', () => {
             it('모든 Mongo 조회', async () => {
