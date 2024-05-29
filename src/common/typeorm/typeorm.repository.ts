@@ -94,8 +94,8 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         }
     }
 
-    async exist(id: string): Promise<boolean> {
-        return this.repo.exist({
+    async isIdExists(id: string): Promise<boolean> {
+        return this.repo.exists({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
     }

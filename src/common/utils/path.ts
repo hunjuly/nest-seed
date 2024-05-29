@@ -31,11 +31,11 @@ export class Path {
         }
     }
 
-    public static isExistsSync(path: string): boolean {
+    public static existsSync(path: string): boolean {
         return syncFs.existsSync(path)
     }
 
-    public static async isExists(path: string): Promise<boolean> {
+    public static async exists(path: string): Promise<boolean> {
         try {
             await fs.access(path)
 
@@ -57,7 +57,7 @@ export class Path {
     }
 
     public static async remove(path: string): Promise<void> {
-        if (await this.isExists(path)) {
+        if (await this.exists(path)) {
             await fs.rm(path, { recursive: true, force: true })
         }
     }

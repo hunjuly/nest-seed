@@ -9,7 +9,7 @@ export class UniqueEmailGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const email = request.body.email
 
-        const emailExists = await this.usersService.emailExists(email)
+        const emailExists = await this.usersService.isEmailExists(email)
 
         if (emailExists) {
             throw new ConflictException(`User with email ${email} already exists`)

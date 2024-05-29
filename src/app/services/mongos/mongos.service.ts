@@ -15,10 +15,10 @@ export class MongosService {
         return new MongoDto(savedMongo)
     }
 
-    async mongoExists(mongoId: string): Promise<boolean> {
-        const exists = await this.mongosRepository.exist(mongoId)
+    async isMongoExists(mongoId: string): Promise<boolean> {
+        const mongoExists = await this.mongosRepository.isIdExists(mongoId)
 
-        return exists
+        return mongoExists
     }
 
     async findByIds(mongoIds: string[]) {

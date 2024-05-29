@@ -36,7 +36,7 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @Get(':userId')
     async getUser(@Param('userId') userId: string) {
-        const userExists = await this.usersService.userExists(userId)
+        const userExists = await this.usersService.isUserExists(userId)
 
         // userId가 존재하지 않으면 NOT_FOUND(404) 반환한다
         if (!userExists) {

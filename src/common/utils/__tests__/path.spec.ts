@@ -16,7 +16,7 @@ describe('Path', () => {
     })
 
     it('tempDir이 존재해야 한다.', async () => {
-        const exists = await Path.isExists(tempDir)
+        const exists = await Path.exists(tempDir)
         expect(exists).toBe(true)
 
         // ensure it's under OS temp directory
@@ -27,7 +27,7 @@ describe('Path', () => {
         const filePath = Path.join(tempDir, 'testfile.txt')
         await fs.writeFile(filePath, 'hello world')
 
-        const exists = await Path.isExists(filePath)
+        const exists = await Path.exists(filePath)
         expect(exists).toBe(true)
     })
 
@@ -35,7 +35,7 @@ describe('Path', () => {
         const filePath = Path.join(tempDir, 'testfile.txt')
         await fs.writeFile(filePath, 'hello world')
 
-        const exists = await Path.isExistsSync(filePath)
+        const exists = await Path.existsSync(filePath)
         expect(exists).toBe(true)
     })
 
@@ -48,11 +48,11 @@ describe('Path', () => {
         const dirPath = Path.join(tempDir, 'testdir')
 
         await Path.mkdir(dirPath)
-        let exists = await Path.isExists(dirPath)
+        let exists = await Path.exists(dirPath)
         expect(exists).toBe(true)
 
         await Path.remove(dirPath)
-        exists = await Path.isExists(dirPath)
+        exists = await Path.exists(dirPath)
         expect(exists).toBe(false)
     })
 
@@ -73,7 +73,7 @@ describe('Path', () => {
         const destFilePath = Path.join(tempDir, 'testfile_copy.txt')
         await Path.copyFileOrDir(srcFilePath, destFilePath)
 
-        const copiedExists = await Path.isExists(destFilePath)
+        const copiedExists = await Path.exists(destFilePath)
         expect(copiedExists).toBe(true)
 
         // check the contents of the copied file
@@ -91,12 +91,12 @@ describe('Path', () => {
         const destDirPath = Path.join(tempDir, 'testdir_copy')
         await Path.copyFileOrDir(srcDirPath, destDirPath)
 
-        const copiedDirExists = await Path.isExists(destDirPath)
+        const copiedDirExists = await Path.exists(destDirPath)
         expect(copiedDirExists).toBe(true)
 
         // check that the file was also copied
         const copiedFilePath = Path.join(destDirPath, 'testfile.txt')
-        const copiedFileExists = await Path.isExists(copiedFilePath)
+        const copiedFileExists = await Path.exists(copiedFilePath)
         expect(copiedFileExists).toBe(true)
 
         // check the contents of the copied file
