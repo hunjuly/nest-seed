@@ -81,7 +81,7 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
-    async exist(id: string): Promise<boolean> {
+    async isIdExists(id: string): Promise<boolean> {
         const document = await this.model.exists({ _id: id } as any).exec()
 
         return document != null

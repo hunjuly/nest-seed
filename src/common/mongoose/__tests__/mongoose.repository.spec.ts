@@ -124,18 +124,18 @@ describe('MongooseRepository', () => {
 
         afterAll(teardownTestingContext)
 
-        describe('exist', () => {
+        describe('isIdExists', () => {
             it('문서 존재 여부 확인', async () => {
                 const targetSample = createdSamples[0]
-                const exist = await repository.exist(targetSample.id)
+                const exists = await repository.isIdExists(targetSample.id)
 
-                expect(exist).toBeTruthy()
+                expect(exists).toBeTruthy()
             })
 
             it('존재하지 않는 문서 확인', async () => {
-                const exist = await repository.exist(nullObjectId)
+                const exists = await repository.isIdExists(nullObjectId)
 
-                expect(exist).toBeFalsy()
+                expect(exists).toBeFalsy()
             })
         })
 

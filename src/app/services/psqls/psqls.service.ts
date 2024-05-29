@@ -14,10 +14,10 @@ export class PsqlsService {
         return new PsqlDto(savedPsql)
     }
 
-    async psqlExists(psqlId: string): Promise<boolean> {
-        const exists = await this.psqlsRepository.exist(psqlId)
+    async isPsqlExists(psqlId: string): Promise<boolean> {
+        const psqlExists = await this.psqlsRepository.isIdExists(psqlId)
 
-        return exists
+        return psqlExists
     }
 
     async findByIds(psqlIds: string[]) {

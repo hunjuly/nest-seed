@@ -32,8 +32,8 @@ export class UsersRepository extends TypeormRepository<User> {
         return this.repo.findOneBy({ email })
     }
 
-    async emailExists(email: string): Promise<boolean> {
-        return this.repo.exist({
+    async isEmailExists(email: string): Promise<boolean> {
+        return this.repo.exists({
             where: { email } as FindOptionsWhere<User>
         })
     }
