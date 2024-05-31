@@ -1,8 +1,8 @@
 import { Type } from 'class-transformer'
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator'
-import { MongoEnum } from '../schemas'
+import { MongolEnum } from '../schemas'
 
-export class CreateMongoDto {
+export class CreateMongolDto {
     @IsString()
     @IsNotEmpty()
     name: string
@@ -16,8 +16,8 @@ export class CreateMongoDto {
     date: Date
 
     @IsArray()
-    @IsEnum(MongoEnum, { each: true })
-    enums: MongoEnum[]
+    @IsEnum(MongolEnum, { each: true })
+    enums: MongolEnum[]
 
     @IsInt()
     integer: number

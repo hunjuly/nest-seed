@@ -3,33 +3,34 @@ import { InjectModel } from '@nestjs/mongoose'
 import { MongooseRepository, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { MongosQueryDto, UpdateMongoDto } from './dto'
-import { Mongo, MongoDocument } from './schemas'
+import { MongolsQueryDto, UpdateMongolDto } from './dto'
+import { Mongol, MongolDocument } from './schemas'
 
 @Injectable()
-export class MongosRepository extends MongooseRepository<Mongo> {
-    constructor(@InjectModel(Mongo.name) model: Model<Mongo>) {
+export class MongolsRepository extends MongooseRepository<Mongol> {
+    constructor(@InjectModel(Mongol.name) model: Model<Mongol>) {
         super(model)
     }
 
-    async update(id: string, updateMongoDto: UpdateMongoDto): Promise<MongoDocument> {
+    async update(id: string, updateMongolDto: UpdateMongolDto): Promise<MongolDocument> {
         /**
          * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
          * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
          * Database query built from user-controlled sources
          */
-        const updateData: Partial<UpdateMongoDto> = {}
-        updateData.name = updateMongoDto.name
-        updateData.desc = updateMongoDto.desc
-        updateData.date = updateMongoDto.date
-        updateData.enums = updateMongoDto.enums
-        updateData.integer = updateMongoDto.integer
+        const mongolUpdates: UpdateMongolDto = {
+            name: updateMongolDto.name,
+            desc: updateMongolDto.desc,
+            date: updateMongolDto.date,
+            enums: updateMongolDto.enums,
+            integer: updateMongolDto.integer
+        }
 
-        return super.update(id, updateData)
+        return super.update(id, mongolUpdates)
     }
 
-    async findByQuery(queryDto: MongosQueryDto): Promise<PaginationResult<MongoDocument>> {
-        const { take, skip, orderby, name } = queryDto
+    async findByQuery(mongolQueryDto: MongolsQueryDto): Promise<PaginationResult<MongolDocument>> {
+        const { take, skip, orderby, name } = mongolQueryDto
 
         const query: Record<string, any> = {}
 

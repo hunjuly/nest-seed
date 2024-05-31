@@ -2,7 +2,7 @@ import { Prop, Schema } from '@nestjs/mongoose'
 import { MongooseSchema, createMongooseSchema } from 'common'
 import { HydratedDocument } from 'mongoose'
 
-export enum MongoEnum {
+export enum MongolEnum {
     EnumA = 'EnumA',
     EnumB = 'EnumB',
     EnumC = 'EnumC',
@@ -11,7 +11,7 @@ export enum MongoEnum {
 }
 
 @Schema()
-export class Mongo extends MongooseSchema {
+export class Mongol extends MongooseSchema {
     @Prop()
     name: string
 
@@ -21,15 +21,15 @@ export class Mongo extends MongooseSchema {
     @Prop()
     integer: number
 
-    @Prop({ type: [String], enum: MongoEnum, default: [MongoEnum.EnumA] })
-    enums: MongoEnum[]
+    @Prop({ type: [String], enum: MongolEnum, default: [MongolEnum.EnumA] })
+    enums: MongolEnum[]
 
     @Prop()
     date: Date
 }
 
-// Mongo 모델의 Mongoose 스키마 정의
-export const MongoSchema = createMongooseSchema(Mongo)
+// Mongol 모델의 Mongoose 스키마 정의
+export const MongolSchema = createMongooseSchema(Mongol)
 
-// Mongo 문서 타입 정의
-export type MongoDocument = HydratedDocument<Mongo>
+// Mongol 문서 타입 정의
+export type MongolDocument = HydratedDocument<Mongol>

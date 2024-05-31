@@ -11,8 +11,8 @@ export class PsqlsRepository extends TypeormRepository<Psql> {
         super(repo)
     }
 
-    async findByQuery(queryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {
-        const { take, skip, orderby, ...filters } = queryDto
+    async findByQuery(psqlQueryDto: PsqlsQueryDto): Promise<PaginationResult<Psql>> {
+        const { take, skip, orderby, ...filters } = psqlQueryDto
 
         const result = await this.find({
             take,

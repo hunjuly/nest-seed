@@ -3,12 +3,7 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { PsqlDto } from 'app/services/psqls'
 import { nullUUID } from 'common'
-import {
-    createManyPsqls as createManyPsqls,
-    createPsql,
-    psqlCreationDto,
-    sortPsqls
-} from './psqls.controller.fixture'
+import { createManyPsqls, createPsql, psqlCreationDto, sortPsqls } from './psqls.controller.fixture'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 describe('PsqlsController', () => {
@@ -219,7 +214,9 @@ describe('PsqlsController', () => {
                     total: createdPsqls.length
                 })
             })
+        })
 
+        describe('POST /psqls/findByIds', () => {
             it('여러 ID로 Psql 조회', async () => {
                 const ids = createdPsqls.map((psql) => psql.id)
                 const res = await req.post({
