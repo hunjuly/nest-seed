@@ -1,3 +1,4 @@
+export * from './customer-exists.guard'
 export * from './jwt-auth.guard'
 export * from './local-auth.guard'
 export * from './mongo-exists.guard'
