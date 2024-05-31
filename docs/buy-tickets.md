@@ -59,7 +59,7 @@
 actor Customer
 
 Customer -> Frontend : 영화 예매 시스템에 접속
-Frontend -> Backend : 추천 영화 목록 요청\nGET /showing/movies/recommended\n?customerid={}
+Frontend -> Backend : 추천 영화 목록 요청\nGET /showing/movies/recommended?customerid={}
 Backend -> Showing: getRecommendedMovies({customerId})
 Showing -> Customers : doesCustomerExist(customerId)
 Showing <-- Customers : true
