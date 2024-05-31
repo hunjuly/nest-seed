@@ -48,7 +48,7 @@ export async function createManyMongols(request: any): Promise<MongolDto[]> {
 }
 
 expect.extend({
-    toValidUserDto(received, expected) {
+    toValidMongolDto(received, expected) {
         const pass = this.equals(received, {
             id: expect.anything(),
             createdAt: expect.anything(),
@@ -65,6 +65,6 @@ expect.extend({
 
 declare module 'expect' {
     interface Matchers<R> {
-        toValidUserDto(expected: any): R
+        toValidMongolDto(expected: any): R
     }
 }

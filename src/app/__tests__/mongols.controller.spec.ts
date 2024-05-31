@@ -3,12 +3,7 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { MongolDto } from 'app/services/mongols'
 import { nullObjectId } from 'common'
-import {
-    mongolCreationDto,
-    createManyMongols as createManyMongols,
-    sortMongols,
-    createMongol
-} from './mongols.controller.fixture'
+import { mongolCreationDto, createManyMongols, sortMongols, createMongol } from './mongols.controller.fixture'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 describe('MongolsController', () => {
@@ -41,7 +36,7 @@ describe('MongolsController', () => {
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidUserDto(mongolCreationDto)
+                expect(res.body).toValidMongolDto(mongolCreationDto)
             })
 
             it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
@@ -217,7 +212,9 @@ describe('MongolsController', () => {
                     total: createdMongols.length
                 })
             })
+        })
 
+        describe('POST /findByIds ', () => {
             it('여러 ID로 Mongol 조회', async () => {
                 const ids = createdMongols.map((mongol) => mongol.id)
                 const res = await req.post({

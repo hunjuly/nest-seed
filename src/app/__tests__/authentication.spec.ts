@@ -2,7 +2,7 @@ import { HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { AppModule } from 'app/app.module'
 import { nullUUID, sleep } from 'common'
-import { LoginCredentials, prepareUserCredentials as prepareLoginCredentials } from './authentication.fixture'
+import { LoginCredentials, prepareUserCredentials } from './authentication.fixture'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
 jest.mock('config', () => {
@@ -32,7 +32,7 @@ describe('Authentication', () => {
 
         req = testingContext.request
         jwtService = testingContext.module.get(JwtService)
-        login = await prepareLoginCredentials(req)
+        login = await prepareUserCredentials(req)
     })
 
     afterEach(async () => {

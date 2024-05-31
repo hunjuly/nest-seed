@@ -16,7 +16,7 @@ export class PsqlsController {
         return this.psqlsService.findPsqls(query)
     }
 
-    @Post('/findByIds')
+    @Post('findByIds')
     @HttpCode(200)
     async findByIds(@Body() psqlIds: string[]) {
         return this.psqlsService.findByIds(psqlIds)

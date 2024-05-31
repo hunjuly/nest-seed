@@ -1,6 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+    BadRequestException
+} from '@nestjs/common'
 import { CreateMongolDto, MongolsQueryDto, MongolsService, UpdateMongolDto } from 'app/services/mongols'
 import { MongolExistsGuard } from './guards'
+import { isUndefined } from 'lodash'
 
 @Controller('mongols')
 export class MongolsController {
@@ -16,7 +29,7 @@ export class MongolsController {
         return this.mongolsService.findMongols(query)
     }
 
-    @Post('/findByIds')
+    @Post('findByIds')
     @HttpCode(200)
     async findByIds(@Body() mongolIds: string[]) {
         return this.mongolsService.findByIds(mongolIds)

@@ -1,4 +1,4 @@
-import * as myModule from './timer'
+import * as MyModule from './timer'
 
 /**
  * Jest의 fake timer는 JavaScript의 setTimeout, setInterval, setImmediate와 같은
@@ -18,7 +18,7 @@ describe('Timer', () => {
 
     test('타이머 함수가 제대로 모킹되었는지 확인', () => {
         const mockCallback = jest.fn()
-        myModule.delayedAction(mockCallback)
+        MyModule.delayedAction(mockCallback)
 
         jest.advanceTimersByTime(1000)
 
