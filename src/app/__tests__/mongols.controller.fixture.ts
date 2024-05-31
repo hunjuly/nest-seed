@@ -1,42 +1,42 @@
-import { MongoDto } from 'app/services/mongos'
+import { MongolDto } from 'app/services/mongols'
 import { padNumber } from 'common'
 import { objToJson } from 'common/test'
 
-export const mongoCreationDto = {
-    name: 'mongo name',
-    desc: 'mongo desc',
+export const mongolCreationDto = {
+    name: 'mongol name',
+    desc: 'mongol desc',
     date: new Date('2020-12-12'),
     enums: ['EnumA', 'EnumB', 'EnumC'],
     integer: 100
 }
 
-export async function createMongo(request: any): Promise<MongoDto> {
+export async function createMongol(request: any): Promise<MongolDto> {
     const res = await request.post({
-        url: '/mongos',
-        body: mongoCreationDto
+        url: '/mongols',
+        body: mongolCreationDto
     })
 
     return res.body
 }
 
-export function sortMongos(mongos: MongoDto[], direction: 'asc' | 'desc' = 'asc') {
+export function sortMongols(mongols: MongolDto[], direction: 'asc' | 'desc' = 'asc') {
     if (direction === 'desc') {
-        return [...mongos].sort((b, a) => a.name.localeCompare(b.name))
+        return [...mongols].sort((b, a) => a.name.localeCompare(b.name))
     }
 
-    return [...mongos].sort((a, b) => a.name.localeCompare(b.name))
+    return [...mongols].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function createManyMongos(request: any): Promise<MongoDto[]> {
+export async function createManyMongols(request: any): Promise<MongolDto[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
         createPromises.push(
             request.post({
-                url: '/mongos',
+                url: '/mongols',
                 body: {
-                    ...mongoCreationDto,
-                    name: `Mongo_${padNumber(i, 3)}`
+                    ...mongolCreationDto,
+                    name: `Mongol_${padNumber(i, 3)}`
                 }
             })
         )
@@ -44,7 +44,7 @@ export async function createManyMongos(request: any): Promise<MongoDto[]> {
 
     const responses = await Promise.all(createPromises)
 
-    return sortMongos(responses.map((res) => res.body))
+    return sortMongols(responses.map((res) => res.body))
 }
 
 expect.extend({
@@ -57,7 +57,7 @@ expect.extend({
             ...objToJson(expected)
         })
 
-        const message = pass ? () => `expected MongoDto not to match` : () => `expected MongoDto to match`
+        const message = pass ? () => `expected MongolDto not to match` : () => `expected MongolDto to match`
 
         return { pass, message }
     }

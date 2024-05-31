@@ -1,18 +1,18 @@
-import { MongoDocument, MongoEnum } from '../schemas'
+import { MongolDocument, MongolEnum } from '../schemas'
 
-export class MongoDto {
+export class MongolDto {
     id: string
     name: string
     desc: string
     date: Date
-    enums: MongoEnum[]
+    enums: MongolEnum[]
     integer: number
     createdAt: Date
     updatedAt: Date
     version: number
 
-    constructor(mongo: MongoDocument) {
-        const { id, name, desc, date, enums, integer, createdAt, updatedAt, version } = mongo
+    constructor(mongol: MongolDocument) {
+        const { id, name, desc, date, enums, integer, createdAt, updatedAt, version } = mongol
 
         Object.assign(this, {
             id,
