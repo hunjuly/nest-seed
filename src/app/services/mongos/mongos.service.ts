@@ -15,8 +15,8 @@ export class MongosService {
         return new MongoDto(savedMongo)
     }
 
-    async isMongoExists(mongoId: string): Promise<boolean> {
-        const mongoExists = await this.mongosRepository.isIdExists(mongoId)
+    async doesMongoExist(mongoId: string): Promise<boolean> {
+        const mongoExists = await this.mongosRepository.doesIdExist(mongoId)
 
         return mongoExists
     }

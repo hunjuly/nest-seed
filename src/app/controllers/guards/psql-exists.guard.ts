@@ -9,7 +9,7 @@ export class PsqlExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const psqlId = request.params.psqlId
 
-        const psqlExists = await this.psqlsService.isPsqlExists(psqlId)
+        const psqlExists = await this.psqlsService.doesPsqlExist(psqlId)
 
         if (!psqlExists) {
             throw new NotFoundException(`Psql with ID ${psqlId} not found`)

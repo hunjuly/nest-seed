@@ -9,7 +9,7 @@ export class MongoExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const mongoId = request.params.mongoId
 
-        const mongoExists = await this.mongosService.isMongoExists(mongoId)
+        const mongoExists = await this.mongosService.doesMongoExist(mongoId)
 
         if (!mongoExists) {
             throw new NotFoundException(`Mongo with ID ${mongoId} not found`)

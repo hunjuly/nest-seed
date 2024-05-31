@@ -109,13 +109,13 @@ describe('TypeormRepository', () => {
         describe('isIdExists', () => {
             it('엔티티 존재 여부 확인', async () => {
                 const targetSample = createdSamples[0]
-                const exists = await repository.isIdExists(targetSample.id)
+                const exists = await repository.doesIdExist(targetSample.id)
 
                 expect(exists).toBeTruthy()
             })
 
             it('존재하지 않는 엔티티 확인', async () => {
-                const exists = await repository.isIdExists(nullUUID)
+                const exists = await repository.doesIdExist(nullUUID)
 
                 expect(exists).toBeFalsy()
             })

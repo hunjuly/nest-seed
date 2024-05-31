@@ -127,13 +127,13 @@ describe('MongooseRepository', () => {
         describe('isIdExists', () => {
             it('문서 존재 여부 확인', async () => {
                 const targetSample = createdSamples[0]
-                const exists = await repository.isIdExists(targetSample.id)
+                const exists = await repository.doesIdExist(targetSample.id)
 
                 expect(exists).toBeTruthy()
             })
 
             it('존재하지 않는 문서 확인', async () => {
-                const exists = await repository.isIdExists(nullObjectId)
+                const exists = await repository.doesIdExist(nullObjectId)
 
                 expect(exists).toBeFalsy()
             })

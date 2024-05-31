@@ -4,7 +4,7 @@
 
 ## Naming Rules
 
-### find vs get
+### 1. find vs get
 
 함수명이 find...인 경우와 get...인 경우가 있는데 요청한 리소스가 없을 때 처리 방법이 다르다.
 
@@ -22,6 +22,18 @@ getSeed(seedId: string)
 
 찾는 것이 없을 수도 있기 때문에 find는 null을 반환한다. 그러나 존재하지 않는 것을 가지려고 한다면 오류이기 때문에 get은 예외를 발생시킨다.
 
+### 2. 함수명에 전달인자 언급 피하기
+
+전달인자를 함수명에 반영하면 유연성이 떨어지고 읽기 어렵다.
+
+```ts
+// 함수명에 전달인자 정보를 넣는 것은 피한다.
+findTheatersForMovie(movieId)
+
+// 대신 아래와 같이 object로 받는다.
+findTheaters({movieId})
+```
+
 ## Controller 레이어
 
 Controller는 사용자 입력에 대한 점검과 변환을 담당한다.
@@ -36,7 +48,7 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @Get(':userId')
     async getUser(@Param('userId') userId: string) {
-        const userExists = await this.usersService.isUserExists(userId)
+        const userExists = await this.usersService.doesUserExist(userId)
 
         // userId가 존재하지 않으면 NOT_FOUND(404) 반환한다
         if (!userExists) {
