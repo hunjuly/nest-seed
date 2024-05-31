@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: AccessTokenPayload): Promise<AccessTokenPayload | null> {
-        const userExists = await this.usersService.isUserExists(payload.userId)
+        const userExists = await this.usersService.doesUserExist(payload.userId)
 
         return userExists ? payload : null
     }

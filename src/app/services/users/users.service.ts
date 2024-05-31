@@ -47,14 +47,14 @@ export class UsersService {
         return null
     }
 
-    async isEmailExists(email: string) {
-        const emailExists = await this.usersRepository.isEmailExists(email)
+    async doesEmailExist(email: string) {
+        const emailExists = await this.usersRepository.doesEmailExist(email)
 
         return emailExists
     }
 
-    async isUserExists(userId: string) {
-        const userExists = await this.usersRepository.isIdExists(userId)
+    async doesUserExist(userId: string) {
+        const userExists = await this.usersRepository.doesIdExist(userId)
 
         return userExists
     }

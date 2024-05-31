@@ -14,8 +14,8 @@ export class PsqlsService {
         return new PsqlDto(savedPsql)
     }
 
-    async isPsqlExists(psqlId: string): Promise<boolean> {
-        const psqlExists = await this.psqlsRepository.isIdExists(psqlId)
+    async doesPsqlExist(psqlId: string): Promise<boolean> {
+        const psqlExists = await this.psqlsRepository.doesIdExist(psqlId)
 
         return psqlExists
     }
