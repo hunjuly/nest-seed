@@ -29,7 +29,7 @@ export class MongolsService {
         return mongolDtos
     }
 
-    async findMongols(queryDto: MongolsQueryDto): Promise<PaginationResult<MongolDto>> {
+    async findByQuery(queryDto: MongolsQueryDto): Promise<PaginationResult<MongolDto>> {
         const paginatedMongols = await this.mongolsRepository.findByQuery(queryDto)
 
         const items = paginatedMongols.items.map((mongol) => new MongolDto(mongol))

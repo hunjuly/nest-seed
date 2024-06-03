@@ -12,8 +12,8 @@ export class PsqlsController {
     }
 
     @Get()
-    async findPsqls(@Query() query: PsqlsQueryDto) {
-        return this.psqlsService.findPsqls(query)
+    async findByQuery(@Query() query: PsqlsQueryDto) {
+        return this.psqlsService.findByQuery(query)
     }
 
     @Post('findByIds')

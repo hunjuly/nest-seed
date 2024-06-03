@@ -17,8 +17,8 @@ export class CustomersController {
     }
 
     @Get()
-    async findCustomers(@Query() query: CustomersQueryDto) {
-        return this.customersService.findCustomers(query)
+    async findByQuery(@Query() query: CustomersQueryDto) {
+        return this.customersService.findByQuery(query)
     }
 
     @Post('/findByIds')

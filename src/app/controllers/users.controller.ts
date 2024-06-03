@@ -15,8 +15,8 @@ export class UsersController {
     }
 
     @Get()
-    async findUsers(@Query() query: UsersQueryDto) {
-        return this.usersService.findUsers(query)
+    async findByQuery(@Query() query: UsersQueryDto) {
+        return this.usersService.findByQuery(query)
     }
 
     @UseGuards(UserExistsGuard)

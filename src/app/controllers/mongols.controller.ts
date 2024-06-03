@@ -1,19 +1,6 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards,
-    BadRequestException
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreateMongolDto, MongolsQueryDto, MongolsService, UpdateMongolDto } from 'app/services/mongols'
 import { MongolExistsGuard } from './guards'
-import { isUndefined } from 'lodash'
 
 @Controller('mongols')
 export class MongolsController {
@@ -25,8 +12,9 @@ export class MongolsController {
     }
 
     @Get()
-    async findMongols(@Query() query: MongolsQueryDto) {
-        return this.mongolsService.findMongols(query)
+    // TODO findMongols -> findByQuery
+    async findByQuery(@Query() query: MongolsQueryDto) {
+        return this.mongolsService.findByQuery(query)
     }
 
     @Post('findByIds')

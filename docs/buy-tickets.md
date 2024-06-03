@@ -59,33 +59,33 @@
 actor Customer
 
 Customer -> Frontend : 영화 예매 시스템에 접속
-Frontend -> Backend : 추천 영화 목록 요청\nGET /showing/movies/recommended?customerid={}
-Backend -> Showing: getRecommendedMovies({customerId})
-Showing -> Customers : doesCustomerExist(customerId)
-Showing <-- Customers : true
-group if customer does not exist
-Backend <-- Showing : 404 Not Found
-end
-Showing -> Showtimes : getShowingMovieIds()
-Showing <-- Showtimes : showingMovieIds
-Showing -> Movies : getMovies({movieIds: showingMovieIds})
-Showing <-- Movies : movies
-Showing -> Customers : getWatchHistory(customerId)
-Showing <-- Customers : watchHistory
-Showing -> Showing : generateRecommendedMovies(movies, watchHistory)
-note left
-아래 순서로 간단하게 구현한다.
-1. genre 일치
-2. 최신 개봉일
+    Frontend -> Backend : 추천 영화 목록 요청\nGET /showing/movies/recommended?customerid={}
+        Backend -> Showing: getRecommendedMovies({customerId})
+            Showing -> Customers : doesCustomerExist(customerId)
+            Showing <-- Customers : true
+            group if customer does not exist
+            Backend <-- Showing : 404 Not Found
+            end
+            Showing -> Showtimes : getShowingMovieIds()
+            Showing <-- Showtimes : showingMovieIds
+            Showing -> Movies : getMovies({movieIds: showingMovieIds})
+            Showing <-- Movies : movies
+            Showing -> Customers : getWatchHistory(customerId)
+            Showing <-- Customers : watchHistory
+            Showing -> Showing : generateRecommendedMovies(movies, watchHistory)
+                note left
+                아래 순서로 간단하게 구현한다.
+                1. genre 일치
+                2. 최신 개봉일
 
-showingMovies는 ShowingService에서 관리한다.
-ShowingMovie{
-    ...
-    theaterIds:[]
-}
-end note
-Backend <-- Showing : recommendedMovies[]
-Frontend <-- Backend : recommendedMovies[]
+                showingMovies는 ShowingService에서 관리한다.
+                ShowingMovie{
+                    ...
+                    theaterIds:[]
+                }
+                end note
+        Backend <-- Showing : recommendedMovies[]
+    Frontend <-- Backend : recommendedMovies[]
 Customer <-- Frontend : 영화 목록 제공
 @enduml
 ```
@@ -95,15 +95,15 @@ Customer <-- Frontend : 영화 목록 제공
 actor Customer
 
 Customer -> Frontend : 영화 선택
-Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?coords=37.123,128.678
-Backend -> Showing: findShowingTheaters({movieId, coords})
-Showing -> Showtimes: findShowingTheaterIds({movieId})
-Showing <-- Showtimes: theaterIds[]
-Showing -> Theaters: getTheaters({theaterIds})
-Showing <-- Theaters: theaters[]
-Showing -> Showing: sortTheatersByDistance({theaters, coords})
-Backend <-- Showing: showingTheaters[]
-Frontend <-- Backend : showingTheaters[]
+    Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?coords=37.123,128.678
+        Backend -> Showing: findShowingTheaters({movieId, coords})
+            Showing -> Showtimes: findShowingTheaterIds({movieId})
+            Showing <-- Showtimes: theaterIds[]
+            Showing -> Theaters: getTheaters({theaterIds})
+            Showing <-- Theaters: theaters[]
+            Showing -> Showing: sortTheatersByDistance({theaters, coords})
+        Backend <-- Showing: showingTheaters[]
+    Frontend <-- Backend : showingTheaters[]
 Customer <-- Frontend : 상영 극장 목록 제공
 @enduml
 ```
@@ -113,16 +113,16 @@ Customer <-- Frontend : 상영 극장 목록 제공
 actor Customer
 
 Customer -> Frontend : 상영 극장 선택
-Frontend -> Backend : 상영일 목록 요청\nGET /showing/movies/{}/theaters/{}/showdates
-Backend -> Showing: findShowdates({movieId, theaterId})
-note left
-findShowdates를 단순 호출하고 있는 안티패턴이다.
-그러나 ShowingService의 일관성을 우선한다.
-end note
-Showing -> Showtimes: findShowdates({movieId, theaterId})
-Showing <-- Showtimes: showdates[]
-Backend <-- Showing: showdates[]
-Frontend <-- Backend : showdates[]
+    Frontend -> Backend : 상영일 목록 요청\nGET /showing/movies/{}/theaters/{}/showdates
+        Backend -> Showing: findShowdates({movieId, theaterId})
+            Showing -> Showtimes: findShowdates({movieId, theaterId})
+                note left
+                findShowdates를 단순 호출하고 있는 안티패턴이다.
+                그러나 ShowingService의 일관성을 우선한다.
+                end note
+            Showing <-- Showtimes: showdates[]
+        Backend <-- Showing: showdates[]
+    Frontend <-- Backend : showdates[]
 Customer <-- Frontend : 상영일 목록 제공
 @enduml
 ```
@@ -132,22 +132,22 @@ Customer <-- Frontend : 상영일 목록 제공
 actor Customer
 
 Customer -> Frontend : 상영일 선택
-Frontend -> Backend : 상영 시간 목록 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes
-Backend -> Showing: getShowtimesWithSalesStatus({movieId, theaterId, showdate})
-Showing -> Showtimes: findShowtimes({movieId, theaterId, showdate})
-Showing <-- Showtimes: showtimes[]
-Showing -> Tickets: getSalesStatuses({ showtimeIds })
-note left
-getSalesStatuses({
-    showtimeIds: [1, 2, 3, 4],
-    region: 'Seoul',
-    theaterId: 123
-})
-end note
-Showing <-- Tickets: salesStatuses[]
-Showing -> Showing: generateShowtimesWithSalesStatus(Showtimes[], salesStatuses)
-Backend <-- Showing: showtimesWithSalesStatus[]
-Frontend <-- Backend : showtimesWithSalesStatus[]
+    Frontend -> Backend : 상영 시간 목록 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes
+        Backend -> Showing: getShowtimesWithSalesStatus({movieId, theaterId, showdate})
+            Showing -> Showtimes: findShowtimes({movieId, theaterId, showdate})
+            Showing <-- Showtimes: showtimes[]
+            Showing -> Tickets: getSalesStatuses({ showtimeIds })
+            note left
+            getSalesStatuses({
+                showtimeIds: [1, 2, 3, 4],
+                region: 'Seoul',
+                theaterId: 123
+            })
+            end note
+            Showing <-- Tickets: salesStatuses[]
+            Showing -> Showing: generateShowtimesWithSalesStatus(Showtimes[], salesStatuses)
+        Backend <-- Showing: showtimesWithSalesStatus[]
+    Frontend <-- Backend : showtimesWithSalesStatus[]
 Customer <-- Frontend : 상영일의 상세 정보 제공
 @enduml
 ```
@@ -157,15 +157,15 @@ Customer <-- Frontend : 상영일의 상세 정보 제공
 actor Customer
 
 Customer -> Frontend : 상영 시간 선택
-Frontend -> Backend : 상영 시간의 좌석 정보 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes/{}/seatmap
-Backend -> Showing : getShowingSeatmap(showtimeId)
-Showing -> Theaters : getSeatmap(theaterId)
-Showing <-- Theaters : seatmap
-Showing -> Tickets : getTickets(showtimeId)
-Showing <-- Tickets : tickets[]
-Showing -> Showing : generateShowingSeatmap(seatmap, tickets)
-Backend <-- Showing: showingSeatmap
-Frontend <-- Backend : showingSeatmap
+    Frontend -> Backend : 상영 시간의 좌석 정보 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes/{}/seatmap
+        Backend -> Showing : getShowingSeatmap(showtimeId)
+            Showing -> Theaters : getSeatmap(theaterId)
+            Showing <-- Theaters : seatmap
+            Showing -> Tickets : getTickets(showtimeId)
+            Showing <-- Tickets : tickets[]
+            Showing -> Showing : generateShowingSeatmap(seatmap, tickets)
+        Backend <-- Showing: showingSeatmap
+    Frontend <-- Backend : showingSeatmap
 Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 @enduml
 ```

@@ -23,7 +23,7 @@ export class UsersService {
         return new UserDto(user)
     }
 
-    async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
+    async findByQuery(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
         const users = await this.usersRepository.findByQuery(queryDto)
 
         const items = users.items.map((user) => new UserDto(user))

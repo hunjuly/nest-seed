@@ -29,7 +29,7 @@ export class CustomersService {
         return customerDtos
     }
 
-    async findCustomers(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDto>> {
+    async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDto>> {
         const paginatedCustomers = await this.customersRepository.findByQuery(queryDto)
 
         const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
