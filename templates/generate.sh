@@ -39,4 +39,4 @@ find "$directory" -type f -name "*$old_string*" | while read file; do
 done
 
 
-mv  "$DEST_DIR" "$WORKSPACE_ROOT/src"
+cp -r  "$DEST_DIR" "$WORKSPACE_ROOT/src/app"
