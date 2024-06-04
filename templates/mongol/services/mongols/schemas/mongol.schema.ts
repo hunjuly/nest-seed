@@ -28,8 +28,6 @@ export class Mongol extends MongooseSchema {
     date: Date
 }
 
-// Mongol 모델의 Mongoose 스키마 정의
 export const MongolSchema = createMongooseSchema(Mongol)
 
-// Mongol 문서 타입 정의
 export type MongolDocument = HydratedDocument<Mongol>

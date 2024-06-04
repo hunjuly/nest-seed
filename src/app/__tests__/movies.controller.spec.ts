@@ -1,17 +1,12 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
-import { CustomerDto } from 'app/services/customers'
+import { MovieDto } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import {
-    customerCreationDto,
-    createManyCustomers,
-    sortCustomers,
-    createCustomer
-} from './customers.controller.fixture'
+import { movieCreationDto, createManyMovies, sortMovies, createMovie } from './movies.controller.fixture'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 
-describe('CustomersController', () => {
+describe('MoviesController', () => {
     let testingContext: HttpTestingContext
     let req: any
 
@@ -29,62 +24,58 @@ describe('CustomersController', () => {
         }
     }
 
-    describe('CustomersController - Creation', () => {
+    describe('깨끗한 상태', () => {
         beforeEach(setupTestingContext)
         afterEach(teardownTestingContext)
 
-        describe('POST /customers', () => {
-            it('Customer 생성', async () => {
-                const res = await req.post({
-                    url: '/customers',
-                    body: customerCreationDto
-                })
+        describe('POST /movies', () => {
+            it('Movie 생성', async () => {
+                const res = await req.post({ url: '/movies', body: movieCreationDto })
 
                 expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidUserDto(customerCreationDto)
+                expect(res.body).toValidMovieDto(movieCreationDto)
             })
 
             it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
-                const res = await req.post({
-                    url: '/customers',
-                    body: {}
-                })
+                const res = await req.post({ url: '/movies', body: {} })
 
                 expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
             })
         })
     })
 
-    describe('CustomersController - Modifying', () => {
-        let createdCustomer: CustomerDto
+    describe('MoviesController - Modifying', () => {
+        let createdMovie: MovieDto
 
         beforeEach(async () => {
             await setupTestingContext()
 
-            createdCustomer = await createCustomer(req)
+            createdMovie = await createMovie(req)
         })
 
         afterEach(teardownTestingContext)
 
-        describe('PATCH /customers/:id', () => {
-            it('Customer 업데이트', async () => {
+        describe('PATCH /movies/:id', () => {
+            it('Movie 업데이트', async () => {
                 const res = await req.patch({
-                    url: `/customers/${createdCustomer.id}`,
+                    url: `/movies/${createdMovie.id}`,
                     body: {
-                        name: 'Updated Customer'
+                        title: 'Updated Movie'
                     }
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    ...createdCustomer,
-                    name: 'Updated Customer'
+                    ...createdMovie,
+                    updatedAt: expect.anything(),
+                    title: 'Updated Movie',
+                    version: 1
                 })
             })
 
             it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
                 const res = await req.patch({
-                    url: `/customers/${createdCustomer.id}`,
+                    url: `/movies/${createdMovie.id}`,
                     body: {
                         wrong_item: 0
                     }
@@ -93,9 +84,9 @@ describe('CustomersController', () => {
                 expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
             })
 
-            it('Customer를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Movie를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.patch({
-                    url: `/customers/${nullObjectId}`,
+                    url: `/movies/${nullObjectId}`,
                     body: {}
                 })
 
@@ -103,18 +94,18 @@ describe('CustomersController', () => {
             })
         })
 
-        describe('DELETE /customers/:id', () => {
-            it('Customer 삭제', async () => {
+        describe('DELETE /movies/:id', () => {
+            it('Movie 삭제', async () => {
                 const res = await req.delete({
-                    url: `/customers/${createdCustomer.id}`
+                    url: `/movies/${createdMovie.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
             })
 
-            it('Customer를 찾지 못하면 NOT_FOUND(404)', async () => {
+            it('Movie를 찾지 못하면 NOT_FOUND(404)', async () => {
                 const res = await req.delete({
-                    url: `/customers/${nullObjectId}`
+                    url: `/movies/${nullObjectId}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
@@ -122,45 +113,69 @@ describe('CustomersController', () => {
         })
     })
 
-    describe('CustomersController - Querying', () => {
-        let createdCustomers: CustomerDto[] = []
+    describe('MoviesController - Querying', () => {
+        let createdMovies: MovieDto[] = []
 
         beforeAll(async () => {
             await setupTestingContext()
 
-            createdCustomers = await createManyCustomers(req)
+            createdMovies = await createManyMovies(req)
         })
 
         afterAll(teardownTestingContext)
 
-        describe('GET /customers', () => {
-            it('모든 Customer 조회', async () => {
+        describe('GET /movies', () => {
+            it('모든 Movie 조회', async () => {
+                const res = await req.get({ url: '/movies', query: { orderby: 'title:asc' } })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({ items: createdMovies, total: createdMovies.length })
+            })
+
+            it('title으로 Movie 조회', async () => {
+                const targetMovie = createdMovies[0]
                 const res = await req.get({
-                    url: '/customers',
+                    url: '/movies',
                     query: {
-                        orderby: 'name:asc'
+                        title: targetMovie.title
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    items: createdCustomers,
-                    total: createdCustomers.length
+                    items: [targetMovie],
+                    total: 1
                 })
             })
 
-            it('name으로 Customer 조회', async () => {
-                const targetCustomer = createdCustomers[0]
+            it('releaseDate로 Movie 조회', async () => {
+                const targetMovie = createdMovies[0]
                 const res = await req.get({
-                    url: '/customers',
+                    url: '/movies',
                     query: {
-                        name: targetCustomer.name
+                        releaseDate: targetMovie.releaseDate
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    items: [targetCustomer],
+                    items: [targetMovie],
+                    total: 1
+                })
+            })
+
+            it('genre로 Movie 조회', async () => {
+                const targetMovie = createdMovies[0]
+                const res = await req.get({
+                    url: '/movies',
+                    query: {
+                        genre: 'Drama'
+                    }
+                })
+
+                expect(res.statusCode).toEqual(HttpStatus.OK)
+                expect(res.body).toEqual({
+                    items: [targetMovie],
                     total: 1
                 })
             })
@@ -169,18 +184,18 @@ describe('CustomersController', () => {
                 const skip = 10
                 const take = 50
                 const res = await req.get({
-                    url: '/customers',
+                    url: '/movies',
                     query: {
                         skip,
                         take,
-                        orderby: 'name:asc'
+                        orderby: 'title:asc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    items: createdCustomers.slice(skip, skip + take),
-                    total: createdCustomers.length,
+                    items: createdMovies.slice(skip, skip + take),
+                    total: createdMovies.length,
                     skip,
                     take
                 })
@@ -188,60 +203,62 @@ describe('CustomersController', () => {
 
             it('오름차순(asc) 정렬', async () => {
                 const res = await req.get({
-                    url: '/customers',
+                    url: '/movies',
                     query: {
-                        orderby: 'name:asc'
+                        orderby: 'title:asc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    items: createdCustomers,
-                    total: createdCustomers.length
+                    items: createdMovies,
+                    total: createdMovies.length
                 })
             })
 
             it('내림차순(desc) 정렬', async () => {
                 const res = await req.get({
-                    url: '/customers',
+                    url: '/movies',
                     query: {
-                        orderby: 'name:desc'
+                        orderby: 'title:desc'
                     }
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
                 expect(res.body).toEqual({
-                    items: sortCustomers(createdCustomers, 'desc'),
-                    total: createdCustomers.length
+                    items: sortMovies(createdMovies, 'desc'),
+                    total: createdMovies.length
                 })
             })
+        })
 
-            it('여러 ID로 Customer 조회', async () => {
-                const ids = createdCustomers.map((customer) => customer.id)
+        describe('POST /findByIds ', () => {
+            it('여러 ID로 Movie 조회', async () => {
+                const ids = createdMovies.map((movie) => movie.id)
                 const res = await req.post({
-                    url: '/customers/findByIds',
+                    url: '/movies/findByIds',
                     body: ids
                 })
 
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(sortCustomers(res.body)).toEqual(createdCustomers)
+                expect(sortMovies(res.body)).toEqual(createdMovies)
             })
         })
 
-        describe('GET /customers/:id', () => {
-            it('ID로 Customer 조회', async () => {
-                const targetCustomer = createdCustomers[0]
+        describe('GET /movies/:id', () => {
+            it('ID로 Movie 조회', async () => {
+                const targetMovie = createdMovies[0]
                 const res = await req.get({
-                    url: `/customers/${targetCustomer.id}`
+                    url: `/movies/${targetMovie.id}`
                 })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(targetCustomer)
+                expect(res.body).toEqual(targetMovie)
             })
 
             it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
                 const res = await req.get({
-                    url: '/customers/' + nullObjectId
+                    url: '/movies/' + nullObjectId
                 })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)

@@ -34,7 +34,7 @@ describe('TypeormRepository', () => {
         }
     }
 
-    describe('TypeormRepository(Creation)', () => {
+    describe('TypeormRepository - Creation', () => {
         beforeEach(setupTestingContext)
         afterEach(teardownTestingContext)
 
@@ -53,7 +53,7 @@ describe('TypeormRepository', () => {
         })
     })
 
-    describe('TypeormRepository(Modifying)', () => {
+    describe('TypeormRepository - Modifying', () => {
         let createdSample: Sample
 
         beforeEach(async () => {
@@ -95,7 +95,7 @@ describe('TypeormRepository', () => {
         })
     })
 
-    describe('MongooseRepository(Querying)', () => {
+    describe('MongooseRepository - Querying', () => {
         let createdSamples: Sample[]
 
         beforeAll(async () => {

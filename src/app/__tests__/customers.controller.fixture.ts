@@ -4,7 +4,8 @@ import { objToJson } from 'common/test'
 
 export const customerCreationDto = {
     name: 'customer name',
-    date: new Date('2020-12-12')
+    email: 'user@mail.com',
+    birthday: new Date('2020-12-12')
 }
 
 export async function createCustomer(request: any): Promise<CustomerDto> {
@@ -18,7 +19,7 @@ export async function createCustomer(request: any): Promise<CustomerDto> {
 
 export function sortCustomers(customers: CustomerDto[], direction: 'asc' | 'desc' = 'asc') {
     if (direction === 'desc') {
-        return [...customers].sort((b, a) => a.name.localeCompare(b.name))
+        return [...customers].sort((a, b) => b.name.localeCompare(a.name))
     }
 
     return [...customers].sort((a, b) => a.name.localeCompare(b.name))

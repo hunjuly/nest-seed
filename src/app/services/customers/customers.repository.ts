@@ -20,7 +20,8 @@ export class CustomersRepository extends MongooseRepository<Customer> {
          */
         const customerUpdates: Partial<UpdateCustomerDto> = {}
         customerUpdates.name = customerDto.name
-        customerUpdates.date = customerDto.date
+        customerUpdates.email = customerDto.email
+        customerUpdates.birthday = customerDto.birthday
 
         return super.update(id, customerUpdates)
     }

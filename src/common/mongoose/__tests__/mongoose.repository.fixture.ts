@@ -7,7 +7,7 @@ export const sampleCreationData: Partial<Sample> = {
 
 export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc' = 'asc') {
     if (direction === 'desc') {
-        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+        return [...samples].sort((a, b) => b.name.localeCompare(a.name))
     }
 
     return [...samples].sort((a, b) => a.name.localeCompare(b.name))

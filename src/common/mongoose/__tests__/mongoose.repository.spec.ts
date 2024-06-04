@@ -52,7 +52,7 @@ describe('MongooseRepository', () => {
         await mongoServer.stop()
     }
 
-    describe('MongooseRepository(Creation)', () => {
+    describe('MongooseRepository - Creation', () => {
         beforeEach(setupTestingContext)
         afterEach(teardownTestingContext)
 
@@ -71,7 +71,7 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('MongooseRepository(Modifying)', () => {
+    describe('MongooseRepository - Modifying', () => {
         let createdSample: SampleDocument
 
         beforeEach(async () => {
@@ -113,7 +113,7 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('MongooseRepository(Querying)', () => {
+    describe('MongooseRepository - Querying', () => {
         let createdSamples: SampleDocument[]
 
         beforeAll(async () => {
