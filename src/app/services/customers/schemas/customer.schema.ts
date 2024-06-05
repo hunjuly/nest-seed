@@ -7,7 +7,7 @@ export class Customer extends MongooseSchema {
     @Prop()
     name: string
 
-    @Prop()
+    @Prop({ unique: true })
     email: string
 
     @Prop()

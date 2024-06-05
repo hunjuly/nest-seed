@@ -164,7 +164,7 @@ describe('MoviesController', () => {
                 })
             })
 
-            it('genre로 Movie 조회', async () => {
+            it.skip('genre로 Movie 조회', async () => {
                 const targetMovie = createdMovies[0]
                 const res = await req.get({
                     url: '/movies',

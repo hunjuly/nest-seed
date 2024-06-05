@@ -1,6 +1,6 @@
 import { PaginationOptions, PaginationResult } from 'common'
 import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
-import { DocumentNotFoundMongooseException, ParameterMongooseException } from './exceptions'
+import { DocumentNotFoundMongooseException } from './exceptions'
 
 export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
@@ -35,6 +35,12 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
+    async doesIdExist(id: string): Promise<boolean> {
+        const document = await this.model.exists({ _id: id } as any).exec()
+
+        return document != null
+    }
+
     async findById(id: string): Promise<HydratedDocument<Doc> | null> {
         return this.model.findById(id).exec()
     }
@@ -43,21 +49,14 @@ export abstract class MongooseRepository<Doc> {
         return this.model.find({ _id: { $in: ids } } as any).exec()
     }
 
-    async find(
+    async findByMiddleware(
         option: {
-            query?: Record<string, any>
-            middleware?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
+            middleware: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
         } & PaginationOptions
     ): Promise<PaginationResult<HydratedDocument<Doc>>> {
-        const { take, skip, orderby, query, middleware } = option
+        const { take, skip, orderby, middleware } = option
 
-        if (!take && !query && !middleware) {
-            throw new ParameterMongooseException(
-                'At least one of the following options is required: [take, query, middleware].'
-            )
-        }
-
-        const helpers = this.model.find(query ?? {})
+        const helpers = this.model.find({})
 
         skip && helpers.skip(skip)
         take && helpers.limit(take)
@@ -81,9 +80,12 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
-    async doesIdExist(id: string): Promise<boolean> {
-        const document = await this.model.exists({ _id: id } as any).exec()
-
-        return document != null
+    async findByQuery(
+        option: { query: Record<string, any> } & PaginationOptions
+    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+        return this.findByMiddleware({
+            ...option,
+            middleware: (helpers) => helpers.setQuery(option.query)
+        })
     }
 }

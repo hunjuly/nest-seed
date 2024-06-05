@@ -3,249 +3,212 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
-import {
-    customerCreationDto,
-    createManyCustomers,
-    sortCustomers,
-    createCustomer
-} from './customers.controller.fixture'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import {
+    createManyCustomers,
+    createCustomerDto,
+    sortByName,
+    sortByNameDescending
+} from './customers.controller.fixture'
 
 describe('CustomersController', () => {
     let testingContext: HttpTestingContext
     let req: any
 
-    const setupTestingContext = async () => {
-        testingContext = await createHttpTestingContext({
-            imports: [AppModule]
-        })
+    let customers: CustomerDto[] = []
+    let customer: CustomerDto
 
+    beforeEach(async () => {
+        testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
-    }
 
-    const teardownTestingContext = async () => {
+        customers = await createManyCustomers(req)
+        customer = customers[0]
+    })
+
+    afterEach(async () => {
         if (testingContext) {
             await testingContext.close()
         }
-    }
+    })
 
-    describe('CustomersController - Creation', () => {
-        beforeEach(setupTestingContext)
-        afterEach(teardownTestingContext)
-
-        describe('POST /customers', () => {
-            it('Customer 생성', async () => {
-                const res = await req.post({
-                    url: '/customers',
-                    body: customerCreationDto
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidUserDto(customerCreationDto)
+    describe('POST /customers', () => {
+        it('Create a customer', async () => {
+            const res = await req.post({
+                url: '/customers',
+                body: createCustomerDto
             })
 
-            it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
-                const res = await req.post({
-                    url: '/customers',
-                    body: {}
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expect(res.statusCode).toEqual(HttpStatus.CREATED)
+            expect(res.body).toEqual({
+                id: expect.anything(),
+                ...createCustomerDto
             })
+        })
+
+        it('CONFLICT(409) if email already exists', async () => {
+            const res1 = await req.post({ url: '/customers', body: createCustomerDto })
+            const res2 = await req.post({ url: '/customers', body: createCustomerDto })
+
+            expect(res1.statusCode).toEqual(HttpStatus.CREATED)
+            expect(res2.statusCode).toEqual(HttpStatus.CONFLICT)
+        })
+
+        it('BAD_REQUEST(400) if required fields are missing', async () => {
+            const res = await req.post({
+                url: '/customers',
+                body: {}
+            })
+
+            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
         })
     })
 
-    describe('CustomersController - Modifying', () => {
-        let createdCustomer: CustomerDto
+    describe('PATCH /customers/:id', () => {
+        it('Update a customer', async () => {
+            const updateResponse = await req.patch({
+                url: `/customers/${customer.id}`,
+                body: { name: 'Updated Customer' }
+            })
 
-        beforeEach(async () => {
-            await setupTestingContext()
+            const findResponse = await req.get({
+                url: `/customers/${customer.id}`
+            })
 
-            createdCustomer = await createCustomer(req)
+            expect(updateResponse.status).toEqual(HttpStatus.OK)
+            expect(updateResponse.body).toEqual({ ...customer, name: 'Updated Customer' })
+            expect(updateResponse.body).toEqual(findResponse.body)
         })
 
-        afterEach(teardownTestingContext)
-
-        describe('PATCH /customers/:id', () => {
-            it('Customer 업데이트', async () => {
-                const res = await req.patch({
-                    url: `/customers/${createdCustomer.id}`,
-                    body: {
-                        name: 'Updated Customer'
-                    }
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    ...createdCustomer,
-                    name: 'Updated Customer'
-                })
+        it('BAD_REQUEST(400) for invalid update fields', async () => {
+            const res = await req.patch({
+                url: `/customers/${customer.id}`,
+                body: { wrong_item: 0 }
             })
 
-            it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
-                const res = await req.patch({
-                    url: `/customers/${createdCustomer.id}`,
-                    body: {
-                        wrong_item: 0
-                    }
-                })
-
-                expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
-            })
-
-            it('Customer를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await req.patch({
-                    url: `/customers/${nullObjectId}`,
-                    body: {}
-                })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
-            })
+            expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
         })
 
-        describe('DELETE /customers/:id', () => {
-            it('Customer 삭제', async () => {
-                const res = await req.delete({
-                    url: `/customers/${createdCustomer.id}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
+        it('NOT_FOUND(404) if customer is not found', async () => {
+            const res = await req.patch({
+                url: `/customers/${nullObjectId}`,
+                body: {}
             })
 
-            it('Customer를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await req.delete({
-                    url: `/customers/${nullObjectId}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
-            })
+            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('CustomersController - Querying', () => {
-        let createdCustomers: CustomerDto[] = []
+    describe('DELETE /customers/:id', () => {
+        it('Delete a customer', async () => {
+            const res = await req.delete({ url: `/customers/${customer.id}` })
 
-        beforeAll(async () => {
-            await setupTestingContext()
-
-            createdCustomers = await createManyCustomers(req)
+            expect(res.status).toEqual(HttpStatus.OK)
         })
 
-        afterAll(teardownTestingContext)
+        it('NOT_FOUND(404) if customer is not found', async () => {
+            const res = await req.delete({ url: `/customers/${nullObjectId}` })
 
-        describe('GET /customers', () => {
-            it('모든 Customer 조회', async () => {
-                const res = await req.get({
-                    url: '/customers',
-                    query: {
-                        orderby: 'name:asc'
-                    }
-                })
+            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+        })
+    })
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: createdCustomers,
-                    total: createdCustomers.length
-                })
+    describe('GET /customers', () => {
+        it('Retrieve all customers', async () => {
+            const res = await req.get({ url: '/customers', query: { orderby: 'name:asc' } })
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body).toEqual({ items: customers, total: customers.length })
+        })
+
+        it('Retrieve customers by name', async () => {
+            const res = await req.get({ url: '/customers', query: { name: customer.name } })
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual([customer])
+        })
+
+        it('Retrieve customers by partial name', async () => {
+            const res = await req.get({ url: '/customers', query: { name: 'Customer-' } })
+
+            sortByName(res.body.items)
+            sortByName(customers)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(customers)
+        })
+
+        it('Pagination', async () => {
+            const skip = 10
+            const take = 50
+            const res = await req.get({
+                url: '/customers',
+                query: { skip, take, orderby: 'name:asc' }
             })
 
-            it('name으로 Customer 조회', async () => {
-                const targetCustomer = createdCustomers[0]
-                const res = await req.get({
-                    url: '/customers',
-                    query: {
-                        name: targetCustomer.name
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: [targetCustomer],
-                    total: 1
-                })
-            })
-
-            it('pagination', async () => {
-                const skip = 10
-                const take = 50
-                const res = await req.get({
-                    url: '/customers',
-                    query: {
-                        skip,
-                        take,
-                        orderby: 'name:asc'
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: createdCustomers.slice(skip, skip + take),
-                    total: createdCustomers.length,
-                    skip,
-                    take
-                })
-            })
-
-            it('오름차순(asc) 정렬', async () => {
-                const res = await req.get({
-                    url: '/customers',
-                    query: {
-                        orderby: 'name:asc'
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: createdCustomers,
-                    total: createdCustomers.length
-                })
-            })
-
-            it('내림차순(desc) 정렬', async () => {
-                const res = await req.get({
-                    url: '/customers',
-                    query: {
-                        orderby: 'name:desc'
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: sortCustomers(createdCustomers, 'desc'),
-                    total: createdCustomers.length
-                })
-            })
-
-            it('여러 ID로 Customer 조회', async () => {
-                const ids = createdCustomers.map((customer) => customer.id)
-                const res = await req.post({
-                    url: '/customers/findByIds',
-                    body: ids
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(sortCustomers(res.body)).toEqual(createdCustomers)
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body).toEqual({
+                items: customers.slice(skip, skip + take),
+                total: customers.length,
+                skip,
+                take
             })
         })
 
-        describe('GET /customers/:id', () => {
-            it('ID로 Customer 조회', async () => {
-                const targetCustomer = createdCustomers[0]
-                const res = await req.get({
-                    url: `/customers/${targetCustomer.id}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(targetCustomer)
+        it('Sort in ascending order', async () => {
+            const res = await req.get({
+                url: '/customers',
+                query: { orderby: 'name:asc' }
             })
 
-            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
-                const res = await req.get({
-                    url: '/customers/' + nullObjectId
-                })
+            sortByName(customers)
 
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(customers)
+        })
+
+        it('Sort in descending order', async () => {
+            const res = await req.get({
+                url: '/customers',
+                query: { orderby: 'name:desc' }
             })
+
+            sortByNameDescending(customers)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(customers)
+        })
+    })
+
+    describe('POST /customers/findByIds', () => {
+        it('Retrieve customers by multiple IDs', async () => {
+            const customerIds = customers.map((customer) => customer.id)
+
+            const res = await req.post({
+                url: '/customers/findByIds',
+                body: customerIds
+            })
+
+            sortByName(res.body)
+            sortByName(customers)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body).toEqual(customers)
+        })
+    })
+
+    describe('GET /customers/:id', () => {
+        it('Retrieve a customer by ID', async () => {
+            const res = await req.get({ url: `/customers/${customer.id}` })
+
+            expect(res.status).toEqual(HttpStatus.OK)
+            expect(res.body).toEqual(customer)
+        })
+
+        it('NOT_FOUND(404) if ID does not exist', async () => {
+            const res = await req.get({ url: `/customers/${nullObjectId}` })
+
+            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
 })

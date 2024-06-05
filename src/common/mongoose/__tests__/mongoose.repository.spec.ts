@@ -1,12 +1,8 @@
 import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import {
-    DocumentNotFoundMongooseException,
-    OrderDirection,
-    ParameterMongooseException,
-    nullObjectId
-} from 'common'
+import { DocumentNotFoundMongooseException, OrderDirection, nullObjectId } from 'common'
+import { createTestingModule } from 'common/test'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import {
     createManySamples,
@@ -15,7 +11,6 @@ import {
     sortSamples
 } from './mongoose.repository.fixture'
 import { SampleDocument, SamplesModule, SamplesRepository } from './mongoose.repository.mock'
-import { createTestingModule } from 'common/test'
 
 describe('MongooseRepository', () => {
     let mongoServer: MongoMemoryServer
@@ -163,15 +158,22 @@ describe('MongooseRepository', () => {
             })
         })
 
-        describe('find', () => {
+        describe('findByQuery', () => {
+            it('조건 없이 모든 데이터를 페이징하여 조회', async () => {
+                const paginatedResult = await repository.findByQuery({ query: {} })
+
+                expect(paginatedResult.items.length).toBeGreaterThan(0)
+            })
+
             it('오름차순(asc) 정렬', async () => {
                 const take = createdSamples.length
-                const paginatedResult = await repository.find({
+                const paginatedResult = await repository.findByQuery({
                     take,
                     orderby: {
                         name: 'name',
                         direction: OrderDirection.asc
-                    }
+                    },
+                    query: {}
                 })
 
                 expect(paginatedResult).toPaginatedEqual({
@@ -184,12 +186,13 @@ describe('MongooseRepository', () => {
 
             it('내림차순(desc) 정렬', async () => {
                 const take = createdSamples.length
-                const paginatedResult = await repository.find({
+                const paginatedResult = await repository.findByQuery({
                     take,
                     orderby: {
                         name: 'name',
                         direction: OrderDirection.desc
-                    }
+                    },
+                    query: {}
                 })
 
                 expect(paginatedResult).toPaginatedEqual({
@@ -203,7 +206,7 @@ describe('MongooseRepository', () => {
             it('pagination 적용 조회', async () => {
                 const skip = 10
                 const take = 50
-                const paginatedResult = await repository.find({ skip, take })
+                const paginatedResult = await repository.findByQuery({ skip, take, query: {} })
 
                 expect(paginatedResult).toPaginatedEqual({
                     items: createdSamples.slice(skip, skip + take),
@@ -213,27 +216,10 @@ describe('MongooseRepository', () => {
                 })
             })
 
-            it('정규 표현식 패턴 조회', async () => {
-                const paginatedResult = await repository.find({ query: { name: /Sample_00/i } })
-
-                expect(paginatedResult).toPaginatedEqual({
-                    items: createdSamples.slice(0, 10),
-                    total: 10,
-                    skip: undefined,
-                    take: undefined
-                })
-            })
-
-            it('조회 조건 없을 시 예외 처리', async () => {
-                const promise = repository.find({})
-
-                await expect(promise).rejects.toThrow(ParameterMongooseException)
-            })
-
             it('skip 한계 초과 시 빈 결과 반환', async () => {
                 const skip = createdSamples.length
                 const take = 5
-                const paginatedResult = await repository.find({ skip, take })
+                const paginatedResult = await repository.findByQuery({ skip, take, query: {} })
 
                 expect(paginatedResult).toPaginatedEqual({
                     items: [],
@@ -243,9 +229,22 @@ describe('MongooseRepository', () => {
                 })
             })
 
+            it('정규 표현식 패턴 조회', async () => {
+                const paginatedResult = await repository.findByQuery({ query: { name: /Sample_00/i } })
+
+                expect(paginatedResult).toPaginatedEqual({
+                    items: createdSamples.slice(0, 10),
+                    total: 10,
+                    skip: undefined,
+                    take: undefined
+                })
+            })
+        })
+
+        describe('findByMiddleware', () => {
             describe('middleware 사용', () => {
                 it('orderby 설정', async () => {
-                    const paginatedResult = await repository.find({
+                    const paginatedResult = await repository.findByMiddleware({
                         middleware: (helpers) => {
                             helpers.sort({ name: 'desc' })
                         }
@@ -260,7 +259,7 @@ describe('MongooseRepository', () => {
                 })
 
                 it('query 설정', async () => {
-                    const paginatedResult = await repository.find({
+                    const paginatedResult = await repository.findByMiddleware({
                         middleware: (helpers) => {
                             helpers.setQuery({ name: /Sample_00/i })
                             helpers.sort({ name: 'asc' })
@@ -278,7 +277,7 @@ describe('MongooseRepository', () => {
                 it('pagination 설정', async () => {
                     const skip = 10
                     const take = 5
-                    const paginatedResult = await repository.find({
+                    const paginatedResult = await repository.findByMiddleware({
                         middleware: (helpers) => {
                             helpers.skip(skip)
                             helpers.limit(take)

@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import {
+    Body,
+    ConflictException,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards
+} from '@nestjs/common'
 import {
     CreateCustomerDto,
     CustomersQueryDto,
@@ -13,6 +25,12 @@ export class CustomersController {
 
     @Post()
     async createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
+        const customerExists = await this.customersService.doesEmailExist(createCustomerDto.email)
+
+        if (customerExists) {
+            throw new ConflictException(`Customer's email, ${createCustomerDto.email}, already exists.`)
+        }
+
         return this.customersService.createCustomer(createCustomerDto)
     }
 

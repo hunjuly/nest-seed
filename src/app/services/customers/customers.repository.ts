@@ -27,15 +27,15 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     }
 
     async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDocument>> {
-        const { take, skip, orderby, name } = queryDto
+        const { take, skip, orderby, ...args } = queryDto
 
-        const query: Record<string, any> = {}
+        const query: Record<string, any> = args
 
-        if (name) {
-            query['name'] = new RegExp(escapeRegExp(name), 'i')
+        if (args.name) {
+            query['name'] = new RegExp(escapeRegExp(args.name), 'i')
         }
 
-        const result = await this.find({ take, skip, orderby, query })
+        const result = await super.findByQuery({ take, skip, orderby, query: args })
 
         return result
     }

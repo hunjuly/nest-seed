@@ -1,67 +1,38 @@
 import { CustomerDto } from 'app/services/customers'
 import { padNumber } from 'common'
-import { objToJson } from 'common/test'
 
-export const customerCreationDto = {
+export const createCustomerDto = {
     name: 'customer name',
     email: 'user@mail.com',
     birthday: new Date('2020-12-12')
 }
 
-export async function createCustomer(request: any): Promise<CustomerDto> {
-    const res = await request.post({
-        url: '/customers',
-        body: customerCreationDto
-    })
-
-    return res.body
-}
-
-export function sortCustomers(customers: CustomerDto[], direction: 'asc' | 'desc' = 'asc') {
-    if (direction === 'desc') {
-        return [...customers].sort((a, b) => b.name.localeCompare(a.name))
-    }
-
-    return [...customers].sort((a, b) => a.name.localeCompare(b.name))
-}
-
 export async function createManyCustomers(request: any): Promise<CustomerDto[]> {
-    const createPromises = []
+    const promises = []
 
     for (let i = 0; i < 100; i++) {
-        createPromises.push(
-            request.post({
-                url: '/customers',
-                body: {
-                    ...customerCreationDto,
-                    name: `Customer_${padNumber(i, 3)}`
-                }
-            })
-        )
+        const tag = padNumber(i, 3)
+
+        const body = {
+            name: `Customer-${tag}`,
+            email: `user-${tag}@mail.com`,
+            birthday: new Date(2020, 1, i)
+        }
+
+        const promise = request.post({ url: '/customers', body })
+
+        promises.push(promise)
     }
 
-    const responses = await Promise.all(createPromises)
+    const responses = await Promise.all(promises)
 
-    return sortCustomers(responses.map((res) => res.body))
+    return responses.map((res) => res.body)
 }
 
-expect.extend({
-    toValidUserDto(received, expected) {
-        const pass = this.equals(received, {
-            id: expect.anything(),
-            ...objToJson(expected)
-        })
+export function sortByName(customers: CustomerDto[]) {
+    return customers.sort((a, b) => a.name.localeCompare(b.name))
+}
 
-        const message = pass
-            ? () => `expected CustomerDto not to match`
-            : () => `expected CustomerDto to match`
-
-        return { pass, message }
-    }
-})
-
-declare module 'expect' {
-    interface Matchers<R> {
-        toValidUserDto(expected: any): R
-    }
+export function sortByNameDescending(customers: CustomerDto[]) {
+    return customers.sort((a, b) => b.name.localeCompare(a.name))
 }

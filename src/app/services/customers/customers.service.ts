@@ -21,6 +21,12 @@ export class CustomersService {
         return customerExists
     }
 
+    async doesEmailExist(email: string): Promise<boolean> {
+        const paginatedCustomers = await this.customersRepository.findByQuery({ email })
+
+        return 0 < paginatedCustomers.items.length
+    }
+
     async findByIds(customerIds: string[]) {
         const foundCustomers = await this.customersRepository.findByIds(customerIds)
 
