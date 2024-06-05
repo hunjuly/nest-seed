@@ -4,16 +4,17 @@ import { AppModule } from 'app/app.module'
 import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpRequest } from 'src/common/test'
 import {
-    createManyCustomers,
     createCustomerDto,
+    createManyCustomers,
     sortByName,
     sortByNameDescending
 } from './customers.controller.fixture'
 
 describe('CustomersController', () => {
     let testingContext: HttpTestingContext
-    let req: any
+    let req: HttpRequest
 
     let customers: CustomerDto[] = []
     let customer: CustomerDto
@@ -47,11 +48,12 @@ describe('CustomersController', () => {
         })
 
         it('CONFLICT(409) if email already exists', async () => {
-            const res1 = await req.post({ url: '/customers', body: createCustomerDto })
-            const res2 = await req.post({ url: '/customers', body: createCustomerDto })
+            const res = await req.post({
+                url: '/customers',
+                body: { ...createCustomerDto, email: customer.email }
+            })
 
-            expect(res1.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res2.statusCode).toEqual(HttpStatus.CONFLICT)
+            expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
@@ -71,13 +73,11 @@ describe('CustomersController', () => {
                 body: { name: 'Updated Customer' }
             })
 
-            const findResponse = await req.get({
-                url: `/customers/${customer.id}`
-            })
+            const getResponse = await req.get({ url: `/customers/${customer.id}` })
 
             expect(updateResponse.status).toEqual(HttpStatus.OK)
             expect(updateResponse.body).toEqual({ ...customer, name: 'Updated Customer' })
-            expect(updateResponse.body).toEqual(findResponse.body)
+            expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('BAD_REQUEST(400) for invalid update fields', async () => {
@@ -101,9 +101,11 @@ describe('CustomersController', () => {
 
     describe('DELETE /customers/:id', () => {
         it('Delete a customer', async () => {
-            const res = await req.delete({ url: `/customers/${customer.id}` })
+            const deleteResponse = await req.delete({ url: `/customers/${customer.id}` })
+            const getResponse = await req.get({ url: `/customers/${customer.id}` })
 
-            expect(res.status).toEqual(HttpStatus.OK)
+            expect(deleteResponse.status).toEqual(HttpStatus.OK)
+            expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
         })
 
         it('NOT_FOUND(404) if customer is not found', async () => {
@@ -115,21 +117,30 @@ describe('CustomersController', () => {
 
     describe('GET /customers', () => {
         it('Retrieve all customers', async () => {
-            const res = await req.get({ url: '/customers', query: { orderby: 'name:asc' } })
+            const res = await req.get({
+                url: '/customers',
+                query: { orderby: 'name:asc' }
+            })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual({ items: customers, total: customers.length })
+            expect(res.body.items).toEqual(customers)
         })
 
         it('Retrieve customers by name', async () => {
-            const res = await req.get({ url: '/customers', query: { name: customer.name } })
+            const res = await req.get({
+                url: '/customers',
+                query: { name: customer.name }
+            })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual([customer])
         })
 
         it('Retrieve customers by partial name', async () => {
-            const res = await req.get({ url: '/customers', query: { name: 'Customer-' } })
+            const res = await req.get({
+                url: '/customers',
+                query: { name: 'Customer-' }
+            })
 
             sortByName(res.body.items)
             sortByName(customers)
@@ -141,6 +152,7 @@ describe('CustomersController', () => {
         it('Pagination', async () => {
             const skip = 10
             const take = 50
+
             const res = await req.get({
                 url: '/customers',
                 query: { skip, take, orderby: 'name:asc' }

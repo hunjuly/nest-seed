@@ -186,7 +186,6 @@ Customer <-- Backend : 전자 티켓 이메일 발송
 @enduml
 ```
 
-
 ```plantuml
 
 @startuml

@@ -9,24 +9,9 @@ export class MovieDto {
     durationMinutes: number
     director: string
     rated: MovieRated
-    createdAt: Date
-    updatedAt: Date
-    version: number
 
     constructor(movie: MovieDocument) {
-        const {
-            id,
-            title,
-            genre,
-            releaseDate,
-            plot,
-            durationMinutes,
-            director,
-            rated,
-            createdAt,
-            updatedAt,
-            version
-        } = movie
+        const { id, title, genre, releaseDate, plot, durationMinutes, director, rated } = movie
 
         Object.assign(this, {
             id,
@@ -36,10 +21,7 @@ export class MovieDto {
             plot,
             durationMinutes,
             director,
-            rated,
-            createdAt,
-            updatedAt,
-            version
+            rated
         })
     }
 }

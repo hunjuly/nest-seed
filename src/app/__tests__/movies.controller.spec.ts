@@ -1,265 +1,238 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
-import { MovieDto } from 'app/services/movies'
+import { MovieDto, MovieGenre } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import { movieCreationDto, createManyMovies, sortMovies, createMovie } from './movies.controller.fixture'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
+import {
+    createManyMovies,
+    createMovieDto,
+    sortByTitle,
+    sortByTitleDescending
+} from './movies.controller.fixture'
 
 describe('MoviesController', () => {
     let testingContext: HttpTestingContext
-    let req: any
+    let req: HttpRequest
 
-    const setupTestingContext = async () => {
-        testingContext = await createHttpTestingContext({
-            imports: [AppModule]
-        })
+    let movies: MovieDto[] = []
+    let movie: MovieDto
 
+    beforeEach(async () => {
+        testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
-    }
 
-    const teardownTestingContext = async () => {
+        movies = await createManyMovies(req)
+        movie = movies[0]
+    })
+
+    afterEach(async () => {
         if (testingContext) {
             await testingContext.close()
         }
-    }
+    })
 
-    describe('깨끗한 상태', () => {
-        beforeEach(setupTestingContext)
-        afterEach(teardownTestingContext)
-
-        describe('POST /movies', () => {
-            it('Movie 생성', async () => {
-                const res = await req.post({ url: '/movies', body: movieCreationDto })
-
-                expect(res.statusCode).toEqual(HttpStatus.CREATED)
-                expect(res.body).toValidMovieDto(movieCreationDto)
+    describe('POST /movies', () => {
+        it('Create a movie', async () => {
+            const res = await req.post({
+                url: '/movies',
+                body: createMovieDto
             })
 
-            it('필수 항목이 누락되면 BAD_REQUEST(400)', async () => {
-                const res = await req.post({ url: '/movies', body: {} })
-
-                expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expect(res.statusCode).toEqual(HttpStatus.CREATED)
+            expect(res.body).toEqual({
+                id: expect.anything(),
+                ...createMovieDto
             })
+        })
+
+        it('BAD_REQUEST(400) if required fields are missing', async () => {
+            const res = await req.post({
+                url: '/movies',
+                body: {}
+            })
+
+            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
         })
     })
 
-    describe('MoviesController - Modifying', () => {
-        let createdMovie: MovieDto
+    describe('PATCH /movies/:id', () => {
+        it('Update a movie', async () => {
+            const updateResponse = await req.patch({
+                url: `/movies/${movie.id}`,
+                body: { title: 'Updated Movie' }
+            })
 
-        beforeEach(async () => {
-            await setupTestingContext()
+            const getResponse = await req.get({ url: `/movies/${movie.id}` })
 
-            createdMovie = await createMovie(req)
+            expect(updateResponse.status).toEqual(HttpStatus.OK)
+            expect(updateResponse.body).toEqual({ ...movie, title: 'Updated Movie' })
+            expect(updateResponse.body).toEqual(getResponse.body)
         })
 
-        afterEach(teardownTestingContext)
-
-        describe('PATCH /movies/:id', () => {
-            it('Movie 업데이트', async () => {
-                const res = await req.patch({
-                    url: `/movies/${createdMovie.id}`,
-                    body: {
-                        title: 'Updated Movie'
-                    }
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    ...createdMovie,
-                    updatedAt: expect.anything(),
-                    title: 'Updated Movie',
-                    version: 1
-                })
+        it('BAD_REQUEST(400) for invalid update fields', async () => {
+            const res = await req.patch({
+                url: `/movies/${movie.id}`,
+                body: { wrong_item: 0 }
             })
 
-            it('잘못된 업데이트 항목은 BAD_REQUEST(400)', async () => {
-                const res = await req.patch({
-                    url: `/movies/${createdMovie.id}`,
-                    body: {
-                        wrong_item: 0
-                    }
-                })
-
-                expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
-            })
-
-            it('Movie를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await req.patch({
-                    url: `/movies/${nullObjectId}`,
-                    body: {}
-                })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
-            })
+            expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
         })
 
-        describe('DELETE /movies/:id', () => {
-            it('Movie 삭제', async () => {
-                const res = await req.delete({
-                    url: `/movies/${createdMovie.id}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.OK)
+        it('NOT_FOUND(404) if movie is not found', async () => {
+            const res = await req.patch({
+                url: `/movies/${nullObjectId}`,
+                body: {}
             })
 
-            it('Movie를 찾지 못하면 NOT_FOUND(404)', async () => {
-                const res = await req.delete({
-                    url: `/movies/${nullObjectId}`
-                })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
-            })
+            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('MoviesController - Querying', () => {
-        let createdMovies: MovieDto[] = []
+    describe('DELETE /movies/:id', () => {
+        it('Delete a movie', async () => {
+            const deleteResponse = await req.delete({ url: `/movies/${movie.id}` })
+            const getResponse = await req.get({ url: `/movies/${movie.id}` })
 
-        beforeAll(async () => {
-            await setupTestingContext()
-
-            createdMovies = await createManyMovies(req)
+            expect(deleteResponse.status).toEqual(HttpStatus.OK)
+            expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
         })
 
-        afterAll(teardownTestingContext)
+        it('NOT_FOUND(404) if movie is not found', async () => {
+            const res = await req.delete({ url: `/movies/${nullObjectId}` })
 
-        describe('GET /movies', () => {
-            it('모든 Movie 조회', async () => {
-                const res = await req.get({ url: '/movies', query: { orderby: 'title:asc' } })
+            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+        })
+    })
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({ items: createdMovies, total: createdMovies.length })
+    describe('GET /movies', () => {
+        it('Retrieve all movies', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { orderby: 'title:asc' }
             })
 
-            it('title으로 Movie 조회', async () => {
-                const targetMovie = createdMovies[0]
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        title: targetMovie.title
-                    }
-                })
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(movies)
+        })
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: [targetMovie],
-                    total: 1
-                })
+        it('Retrieve movies by title', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { title: movie.title }
             })
 
-            it('releaseDate로 Movie 조회', async () => {
-                const targetMovie = createdMovies[0]
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        releaseDate: targetMovie.releaseDate
-                    }
-                })
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual([movie])
+        })
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: [targetMovie],
-                    total: 1
-                })
+        it('Retrieve movies by partial title', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { title: 'MovieTitle-' }
             })
 
-            it.skip('genre로 Movie 조회', async () => {
-                const targetMovie = createdMovies[0]
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        genre: 'Drama'
-                    }
-                })
+            sortByTitle(res.body.items)
+            sortByTitle(movies)
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: [targetMovie],
-                    total: 1
-                })
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(movies)
+        })
+
+        it('Retrieve movies by releaseDate', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { releaseDate: movie.releaseDate }
             })
 
-            it('pagination', async () => {
-                const skip = 10
-                const take = 50
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        skip,
-                        take,
-                        orderby: 'title:asc'
-                    }
-                })
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual([movie])
+        })
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: createdMovies.slice(skip, skip + take),
-                    total: createdMovies.length,
-                    skip,
-                    take
-                })
+        it('Retrieve movies by genre', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { genre: 'Drama' }
             })
 
-            it('오름차순(asc) 정렬', async () => {
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        orderby: 'title:asc'
-                    }
-                })
+            const dramaMovies = movies.filter((movie) => movie.genre.includes(MovieGenre.Drama))
 
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: createdMovies,
-                    total: createdMovies.length
-                })
+            sortByTitle(res.body.items)
+            sortByTitle(dramaMovies)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(dramaMovies)
+        })
+
+        it('Pagination', async () => {
+            const skip = 10
+            const take = 50
+
+            const res = await req.get({
+                url: '/movies',
+                query: { skip, take, orderby: 'title:asc' }
             })
 
-            it('내림차순(desc) 정렬', async () => {
-                const res = await req.get({
-                    url: '/movies',
-                    query: {
-                        orderby: 'title:desc'
-                    }
-                })
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual({
-                    items: sortMovies(createdMovies, 'desc'),
-                    total: createdMovies.length
-                })
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body).toEqual({
+                items: movies.slice(skip, skip + take),
+                total: movies.length,
+                skip,
+                take
             })
         })
 
-        describe('POST /findByIds ', () => {
-            it('여러 ID로 Movie 조회', async () => {
-                const ids = createdMovies.map((movie) => movie.id)
+        it('Sort in ascending order', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { orderby: 'title:asc' }
+            })
+
+            sortByTitle(movies)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(movies)
+        })
+
+        it('Sort in descending order', async () => {
+            const res = await req.get({
+                url: '/movies',
+                query: { orderby: 'title:desc' }
+            })
+
+            sortByTitleDescending(movies)
+
+            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expect(res.body.items).toEqual(movies)
+        })
+
+        describe('POST /movies/findByIds ', () => {
+            it('Retrieve movies by multiple IDs', async () => {
+                const movieIds = movies.map((movie) => movie.id)
+
                 const res = await req.post({
                     url: '/movies/findByIds',
-                    body: ids
+                    body: movieIds
                 })
 
+                sortByTitle(res.body)
+                sortByTitle(movies)
+
                 expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(sortMovies(res.body)).toEqual(createdMovies)
+                expect(res.body).toEqual(movies)
             })
         })
 
         describe('GET /movies/:id', () => {
-            it('ID로 Movie 조회', async () => {
-                const targetMovie = createdMovies[0]
-                const res = await req.get({
-                    url: `/movies/${targetMovie.id}`
-                })
+            it('Retrieve a movie by ID', async () => {
+                const res = await req.get({ url: `/movies/${movie.id}` })
 
                 expect(res.status).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(targetMovie)
+                expect(res.body).toEqual(movie)
             })
 
-            it('존재하지 않는 ID로 조회 시 NOT_FOUND(404)', async () => {
-                const res = await req.get({
-                    url: '/movies/' + nullObjectId
-                })
+            it('NOT_FOUND(404) if ID does not exist', async () => {
+                const res = await req.get({ url: `/movies/${nullObjectId}` })
 
                 expect(res.status).toEqual(HttpStatus.NOT_FOUND)
             })

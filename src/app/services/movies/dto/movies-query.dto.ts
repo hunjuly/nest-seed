@@ -3,23 +3,23 @@ import { PaginationOptions } from 'common'
 
 export class MoviesQueryDto extends PaginationOptions {
     @IsOptional()
-    title: string
+    title?: string
 
     @IsOptional()
-    genre: string
+    genre?: string
 
     @IsOptional()
-    releaseDate: Date
+    releaseDate?: Date
 
     @IsOptional()
-    plot: string
+    plot?: string
 
     @IsOptional()
-    durationMinutes: number
+    durationMinutes?: number
 
     @IsOptional()
-    director: string
+    director?: string
 
     @IsOptional()
-    rated: string
+    rated?: string
 }

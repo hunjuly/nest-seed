@@ -35,7 +35,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
             query['name'] = new RegExp(escapeRegExp(args.name), 'i')
         }
 
-        const result = await super.findByQuery({ take, skip, orderby, query: args })
+        const result = await super.find({ take, skip, orderby, query })
 
         return result
     }

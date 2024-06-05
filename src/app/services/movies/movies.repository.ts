@@ -32,23 +32,15 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     }
 
     async findByQuery(movieQueryDto: MoviesQueryDto): Promise<PaginationResult<MovieDocument>> {
-        const { take, skip, orderby, title, releaseDate, genre } = movieQueryDto
+        const { take, skip, orderby, ...args } = movieQueryDto
 
-        const query: Record<string, any> = {}
+        const query: Record<string, any> = args
 
-        if (title) {
-            query['title'] = new RegExp(escapeRegExp(title), 'i')
+        if (args.title) {
+            query['title'] = new RegExp(escapeRegExp(args.title), 'i')
         }
 
-        if (releaseDate) {
-            query['releaseDate'] = releaseDate
-        }
-
-        if (genre) {
-            query['genre'] = genre
-        }
-
-        const result = await this.find({ take, skip, orderby, query })
+        const result = await super.find({ take, skip, orderby, query })
 
         return result
     }

@@ -158,16 +158,16 @@ describe('MongooseRepository', () => {
             })
         })
 
-        describe('findByQuery', () => {
+        describe('find', () => {
             it('조건 없이 모든 데이터를 페이징하여 조회', async () => {
-                const paginatedResult = await repository.findByQuery({ query: {} })
+                const paginatedResult = await repository.find({ query: {} })
 
                 expect(paginatedResult.items.length).toBeGreaterThan(0)
             })
 
             it('오름차순(asc) 정렬', async () => {
                 const take = createdSamples.length
-                const paginatedResult = await repository.findByQuery({
+                const paginatedResult = await repository.find({
                     take,
                     orderby: {
                         name: 'name',
@@ -186,7 +186,7 @@ describe('MongooseRepository', () => {
 
             it('내림차순(desc) 정렬', async () => {
                 const take = createdSamples.length
-                const paginatedResult = await repository.findByQuery({
+                const paginatedResult = await repository.find({
                     take,
                     orderby: {
                         name: 'name',
@@ -206,7 +206,7 @@ describe('MongooseRepository', () => {
             it('pagination 적용 조회', async () => {
                 const skip = 10
                 const take = 50
-                const paginatedResult = await repository.findByQuery({ skip, take, query: {} })
+                const paginatedResult = await repository.find({ skip, take, query: {} })
 
                 expect(paginatedResult).toPaginatedEqual({
                     items: createdSamples.slice(skip, skip + take),
@@ -219,7 +219,7 @@ describe('MongooseRepository', () => {
             it('skip 한계 초과 시 빈 결과 반환', async () => {
                 const skip = createdSamples.length
                 const take = 5
-                const paginatedResult = await repository.findByQuery({ skip, take, query: {} })
+                const paginatedResult = await repository.find({ skip, take, query: {} })
 
                 expect(paginatedResult).toPaginatedEqual({
                     items: [],
@@ -230,7 +230,7 @@ describe('MongooseRepository', () => {
             })
 
             it('정규 표현식 패턴 조회', async () => {
-                const paginatedResult = await repository.findByQuery({ query: { name: /Sample_00/i } })
+                const paginatedResult = await repository.find({ query: { name: /Sample_00/i } })
 
                 expect(paginatedResult).toPaginatedEqual({
                     items: createdSamples.slice(0, 10),

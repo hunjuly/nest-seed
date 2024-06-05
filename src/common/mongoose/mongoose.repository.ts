@@ -80,7 +80,7 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
-    async findByQuery(
+    async find(
         option: { query: Record<string, any> } & PaginationOptions
     ): Promise<PaginationResult<HydratedDocument<Doc>>> {
         return this.findByMiddleware({
