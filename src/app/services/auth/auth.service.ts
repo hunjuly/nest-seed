@@ -56,7 +56,7 @@ export class AuthService {
 
             return payload
         } catch (error) {
-            comment('형식에 맞지 않는 토큰이 들어와서 발생하는 예외는 무시한다')
+            comment('Ignore exceptions that are thrown because an unformatted token comes in')
         }
 
         return undefined

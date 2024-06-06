@@ -15,7 +15,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     async validate(email: string, password: string): Promise<any> {
         const user = await this.authService.getUserWithPassword(email, password)
 
-        /* user는 해당 @UseGuards(LocalAuthGuard)에 전달된다. */
+        /* user is passed to the corresponding @UseGuards (LocalAuthGuard). */
         return user
     }
 }

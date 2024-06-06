@@ -11,7 +11,7 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Req() req: { user: UserDto }) {
-        // req.user는 LocalStrategy.validate의 반환값
+        // req.user is the return value from LocalStrategy.validate
         Assert.defined(req.user, 'login failed. req.user is null.')
 
         const tokenPair = await this.authService.login(req.user)

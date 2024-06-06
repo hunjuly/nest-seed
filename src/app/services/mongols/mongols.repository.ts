@@ -14,8 +14,8 @@ export class MongolsRepository extends MongooseRepository<Mongol> {
 
     async update(id: string, mongolUpdateDto: UpdateMongolDto): Promise<MongolDocument> {
         /**
-         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
-         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
+         * Convert the user's input to a safe value instead of using it as is.
+         * Failure to do so will result in a warning from github about the following vulnerability.
          * Database query built from user-controlled sources
          */
         const mongolUpdates: UpdateMongolDto = {

@@ -13,11 +13,6 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     }
 
     async update(id: string, customerDto: UpdateCustomerDto): Promise<CustomerDocument> {
-        /**
-         * 사용자의 입력값을 그대로 사용하지 않고 안전한 값으로 변환하여 사용.
-         * 이렇게 하지 않으면 github에서 아래의 취약점에 대한 경고가 발생.
-         * Database query built from user-controlled sources
-         */
         const customerUpdates: Partial<UpdateCustomerDto> = {}
         customerUpdates.name = customerDto.name
         customerUpdates.email = customerDto.email
