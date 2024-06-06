@@ -2,17 +2,19 @@ import { CanActivate, ExecutionContext, Injectable, ConflictException } from '@n
 import { UsersService } from 'app/services/users'
 
 @Injectable()
-export class UniqueEmailGuard implements CanActivate {
+export class UserEmailNotExistsGuard implements CanActivate {
     constructor(private readonly usersService: UsersService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
         const email = request.body.email
 
-        const emailExists = await this.usersService.doesEmailExist(email)
+        if (email) {
+            const user = await this.usersService.findByEmail(email)
 
-        if (emailExists) {
-            throw new ConflictException(`User with email ${email} already exists`)
+            if (user) {
+                throw new ConflictException(`User with email ${email} already exists`)
+            }
         }
 
         return true

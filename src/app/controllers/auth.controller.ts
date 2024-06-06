@@ -21,7 +21,7 @@ export class AuthController {
 
     @Post('refresh')
     async refreshToken(@Body('refreshToken') refreshToken: string) {
-        const tokenPair = await this.authService.refreshTokenPair(refreshToken)
+        const tokenPair = await this.authService.refreshAuthTokens(refreshToken)
 
         if (!tokenPair) {
             throw new UnauthorizedException('refresh failed.')

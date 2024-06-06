@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { JwtAuthGuard, Public, UniqueEmailGuard, UserExistsGuard } from './guards'
+import { JwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
 import { UsersService, CreateUserDto, UsersQueryDto, UpdateUserDto } from 'app/services/users'
 
 @UseGuards(JwtAuthGuard)
@@ -8,7 +8,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Public()
-    @UseGuards(UniqueEmailGuard)
+    @UseGuards(UserEmailNotExistsGuard)
     @Post()
     async createUser(@Body() createUserDto: CreateUserDto) {
         return this.usersService.createUser(createUserDto)

@@ -1,6 +1,7 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
+import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
 import { nullUUID } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
@@ -14,7 +15,11 @@ describe('UsersController', () => {
     let user: UserDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
+        testingContext = await createHttpTestingContext({
+            imports: [AppModule],
+            bypassGuards: [LocalAuthGuard, JwtAuthGuard]
+        })
+
         req = testingContext.request
 
         users = await createManyUsers(req)
@@ -34,10 +39,12 @@ describe('UsersController', () => {
                 body: createUserDto
             })
 
+            const { password: _, ...rest } = createUserDto
+
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
             expect(res.body).toEqual({
                 id: expect.anything(),
-                ...createUserDto
+                ...rest
             })
         })
 

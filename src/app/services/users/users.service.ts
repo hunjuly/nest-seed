@@ -38,19 +38,15 @@ export class UsersService {
     }
 
     async findByEmail(email: string): Promise<UserDto | null> {
-        const user = await this.usersRepository.findByEmail(email)
+        const result = await this.usersRepository.findByQuery({ email })
 
-        if (user) {
-            return new UserDto(user)
+        if (1 === result.items.length) {
+            return new UserDto(result.items[0])
         }
 
+        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
+
         return null
-    }
-
-    async doesEmailExist(email: string) {
-        const emailExists = await this.usersRepository.doesEmailExist(email)
-
-        return emailExists
     }
 
     async doesUserExist(userId: string) {

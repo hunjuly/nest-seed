@@ -21,10 +21,16 @@ export class MongolsService {
         return mongolExists
     }
 
-    async doesEmailExist(email: string): Promise<boolean> {
-        const paginatedCustomers = await this.mongolsRepository.findByQuery({ email })
+    async findByEmail(email: string): Promise<MongolDto | null> {
+        const result = await this.mongolsRepository.findByQuery({ email })
 
-        return 0 < paginatedCustomers.items.length
+        if (1 === result.items.length) {
+            return new MongolDto(result.items[0])
+        }
+
+        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
+
+        return null
     }
 
     async findByIds(mongolIds: string[]) {

@@ -1,31 +1,14 @@
-import {
-    Body,
-    ConflictException,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreateMongolDto, MongolsQueryDto, MongolsService, UpdateMongolDto } from 'app/services/mongols'
-import { MongolExistsGuard } from './guards'
+import { MongolEmailNotExistsGuard, MongolExistsGuard } from './guards'
 
 @Controller('mongols')
 export class MongolsController {
     constructor(private readonly mongolsService: MongolsService) {}
 
+    @UseGuards(MongolEmailNotExistsGuard)
     @Post()
     async createMongol(@Body() createMongolDto: CreateMongolDto) {
-        const mongolExists = await this.mongolsService.doesEmailExist(createMongolDto.email)
-
-        if (mongolExists) {
-            throw new ConflictException(`Mongol's email, ${createMongolDto.email}, already exists.`)
-        }
-
         return this.mongolsService.createMongol(createMongolDto)
     }
 

@@ -1,4 +1,4 @@
-import { Assert, FatalException, LogicException } from '..'
+import { Assert, LogicException } from '..'
 
 describe('Assert', () => {
     describe('deepEquals', () => {
@@ -62,6 +62,16 @@ describe('Assert', () => {
 
         it('false 아니라면 LogicException', () => {
             expect(() => Assert.falsy(true, 'error message')).toThrow(LogicException)
+        })
+    })
+
+    describe('unique', () => {
+        it('값은 1개 이하여야 한다.', () => {
+            expect(() => Assert.unique([''], 'error message')).not.toThrow()
+        })
+
+        it('값이 2개 이상이라면 LogicException', () => {
+            expect(() => Assert.unique(['', ''], 'error message')).toThrow(LogicException)
         })
     })
 })

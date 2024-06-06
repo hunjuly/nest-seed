@@ -20,12 +20,6 @@ export class PsqlsService {
         return psqlExists
     }
 
-    async doesEmailExist(email: string): Promise<boolean> {
-        const paginatedPsqls = await this.psqlsRepository.findByQuery({ email })
-
-        return 0 < paginatedPsqls.items.length
-    }
-
     async findByIds(psqlIds: string[]) {
         const foundPsqls = await this.psqlsRepository.findByIds(psqlIds)
 
@@ -40,6 +34,18 @@ export class PsqlsService {
         const items = paginatedPsqls.items.map((psql) => new PsqlDto(psql))
 
         return { ...paginatedPsqls, items }
+    }
+
+    async findByEmail(email: string): Promise<PsqlDto | null> {
+        const result = await this.psqlsRepository.findByQuery({ email })
+
+        if (1 === result.items.length) {
+            return new PsqlDto(result.items[0])
+        }
+
+        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
+
+        return null
     }
 
     async getPsql(psqlId: string) {

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UserDto, UsersService } from 'app/services/users'
 import { CacheService, comment, generateUUID, notUsed } from 'common'
 import { authOptions } from 'config'
-import { AccessTokenPayload, AuthTokenPair, RefreshTokenPayload } from './interfaces'
+import { AccessTokenPayload, AuthTokens, RefreshTokenPayload } from './interfaces'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
@@ -30,17 +30,17 @@ export class AuthService {
     }
 
     async login(user: UserDto) {
-        return this.generateAuthTokenPair(user.id, user.email)
+        return this.generateAuthTokens(user.id, user.email)
     }
 
-    async refreshTokenPair(refreshToken: string) {
+    async refreshAuthTokens(refreshToken: string) {
         const refreshTokenPayload = await this.getRefreshTokenPayload(refreshToken)
 
         if (refreshTokenPayload) {
             const storedRefreshToken = await this.getStoredRefreshToken(refreshTokenPayload.userId)
 
             if (storedRefreshToken === refreshToken) {
-                return this.generateAuthTokenPair(refreshTokenPayload.userId, refreshTokenPayload.email)
+                return this.generateAuthTokens(refreshTokenPayload.userId, refreshTokenPayload.email)
             }
         }
 
@@ -62,7 +62,7 @@ export class AuthService {
         return undefined
     }
 
-    private async generateAuthTokenPair(userId: string, email: string): Promise<AuthTokenPair> {
+    private async generateAuthTokens(userId: string, email: string): Promise<AuthTokens> {
         const commonPayload = { userId, email }
 
         const accessToken = await this.createToken(

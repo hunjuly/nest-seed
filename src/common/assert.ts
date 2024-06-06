@@ -35,4 +35,10 @@ export class Assert {
             throw new LogicException(message)
         }
     }
+
+    static unique(value: any, message: string) {
+        if (1 < value.length) {
+            throw new LogicException(message)
+        }
+    }
 }

@@ -1,31 +1,14 @@
-import {
-    Body,
-    ConflictException,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CreatePsqlDto, PsqlsQueryDto, PsqlsService, UpdatePsqlDto } from 'app/services/psqls'
-import { PsqlExistsGuard } from './guards'
+import { PsqlEmailNotExistsGuard, PsqlExistsGuard } from './guards'
 
 @Controller('psqls')
 export class PsqlsController {
     constructor(private readonly psqlsService: PsqlsService) {}
 
+    @UseGuards(PsqlEmailNotExistsGuard)
     @Post()
     async createPsql(@Body() createPsqlDto: CreatePsqlDto) {
-        const psqlExists = await this.psqlsService.doesEmailExist(createPsqlDto.email)
-
-        if (psqlExists) {
-            throw new ConflictException(`Psql's email, ${createPsqlDto.email}, already exists.`)
-        }
-
         return this.psqlsService.createPsql(createPsqlDto)
     }
 

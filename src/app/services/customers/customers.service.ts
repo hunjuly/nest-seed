@@ -21,12 +21,6 @@ export class CustomersService {
         return customerExists
     }
 
-    async doesEmailExist(email: string): Promise<boolean> {
-        const paginatedCustomers = await this.customersRepository.findByQuery({ email })
-
-        return 0 < paginatedCustomers.items.length
-    }
-
     async findByIds(customerIds: string[]) {
         const foundCustomers = await this.customersRepository.findByIds(customerIds)
 
@@ -41,6 +35,18 @@ export class CustomersService {
         const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
 
         return { ...paginatedCustomers, items }
+    }
+
+    async findByEmail(email: string): Promise<CustomerDto | null> {
+        const result = await this.customersRepository.findByQuery({ email })
+
+        if (1 === result.items.length) {
+            return new CustomerDto(result.items[0])
+        }
+
+        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
+
+        return null
     }
 
     async getCustomer(customerId: string) {
