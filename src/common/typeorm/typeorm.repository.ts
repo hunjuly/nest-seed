@@ -59,9 +59,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
     }
 
     async find(
-        option: {
-            middleware?: (qb: SelectQueryBuilder<Entity>) => void
-        } & PaginationOptions
+        option: { middleware?: (qb: SelectQueryBuilder<Entity>) => void } & PaginationOptions
     ): Promise<PaginationResult<Entity>> {
         const { take, skip, orderby, middleware } = option
 
