@@ -1,4 +1,5 @@
 import * as supertest from 'supertest'
+import { LogicException } from '../exceptions'
 
 interface RequestContext {
     url: string
@@ -41,7 +42,7 @@ export class HttpRequest {
 
     async get(ctx: RequestContext) {
         if (ctx.body) {
-            throw new Error('get does not have a body')
+            throw new LogicException('get does not have a body')
         }
 
         const req = supertest(this.server).get(ctx.url).query(ctx.query).send()
@@ -57,7 +58,7 @@ export class HttpRequest {
 
     async delete(ctx: RequestContext) {
         if (ctx.body) {
-            throw new Error('delete does not have a body')
+            throw new LogicException('delete does not have a body')
         }
 
         const req = supertest(this.server).delete(ctx.url).query(ctx.query).send()

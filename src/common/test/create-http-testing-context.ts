@@ -48,13 +48,8 @@ export async function createHttpTestingContext(metadata: ModuleMetadataEx): Prom
     const request = new HttpRequest(server)
 
     const close = async () => {
-        if (server) {
-            await server.close()
-        }
-
-        if (module) {
-            await module.close()
-        }
+        if (server) await server.close()
+        if (module) await module.close()
     }
 
     return { server, module, app, request, close }

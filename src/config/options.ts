@@ -34,7 +34,7 @@ export const logOptions = {
 export const redisOptions = {
     host: getString('REDIS_HOST'),
     port: getNumber('REDIS_PORT')
-    // ttl: 기본값은 5
+    // ttl: defaults to 5
 }
 
 export const psqlOptions = {

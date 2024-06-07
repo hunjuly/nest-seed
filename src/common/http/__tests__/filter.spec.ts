@@ -12,36 +12,28 @@ describe('common/filters', () => {
         })
 
         req = testingContext.request
-        // error를 console에 출력하지 않도록 설정
+        // Disable outputting errors to the console
         testingContext.app.useLogger(false)
     })
 
     afterEach(async () => {
-        if (testingContext) {
-            await testingContext.close()
-        }
+        if (testingContext) await testingContext.close()
     })
 
     it('ErrorFilter', async () => {
-        const res = await req.get({
-            url: '/error'
-        })
+        const res = await req.get({ url: '/error' })
 
         expect(res.status).toEqual(HttpStatus.INTERNAL_SERVER_ERROR)
     })
 
     it('HttpExceptionFilter', async () => {
-        const res = await req.get({
-            url: '/http-exception'
-        })
+        const res = await req.get({ url: '/http-exception' })
 
         expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
     })
 
     it('HttpSuccessInterceptor', async () => {
-        const res = await req.get({
-            url: '/http-success'
-        })
+        const res = await req.get({ url: '/http-success' })
 
         expect(res.status).toEqual(HttpStatus.OK)
     })

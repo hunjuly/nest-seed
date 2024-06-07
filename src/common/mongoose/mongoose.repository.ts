@@ -1,6 +1,6 @@
 import { PaginationOptions, PaginationResult } from 'common'
 import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
-import { DocumentNotFoundMongooseException } from './exceptions'
+import { MongooseException } from './exceptions'
 
 export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
@@ -12,14 +12,17 @@ export abstract class MongooseRepository<Doc> {
     }
 
     protected async update(id: string, query: Partial<Doc>): Promise<HydratedDocument<Doc>> {
+        /**
+         * upsert:
+         * An action that updates a specific record if it already exists in the database,
+         * or inserts a new record if it doesn't.
+         */
         const updatedDocument = await this.model
             .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
             .exec()
 
         if (!updatedDocument) {
-            throw new DocumentNotFoundMongooseException(
-                `Failed to update document with id: ${id}. Document not found.`
-            )
+            throw new MongooseException(`Failed to update document with id: ${id}. Document not found.`)
         }
 
         return updatedDocument as HydratedDocument<Doc>
@@ -29,9 +32,7 @@ export abstract class MongooseRepository<Doc> {
         const removedDocument = await this.model.findByIdAndDelete(id).exec()
 
         if (!removedDocument) {
-            throw new DocumentNotFoundMongooseException(
-                `Failed to remove document with id: ${id}. Document not found.`
-            )
+            throw new MongooseException(`Failed to remove document with id: ${id}. Document not found.`)
         }
     }
 

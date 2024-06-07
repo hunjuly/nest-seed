@@ -65,7 +65,7 @@
                 "[markdown]": {
                     "editor.defaultFormatter": "esbenp.prettier-vscode"
                 },
-                "jestrunner.codeLensSelector": "**/{*.test,*.spec,__tests__/*}.{js,jsx,ts,tsx}",
+                "jestrunner.codeLensSelector": "**/__tests__/*.{test,spec}.{js,jsx,ts,tsx}",
                 "plantuml.server": "https://www.plantuml.com/plantuml",
                 "plantuml.render": "PlantUMLServer",
                 "githubIssues.queries": [

@@ -28,9 +28,7 @@ describe('CustomersController', () => {
     })
 
     afterEach(async () => {
-        if (testingContext) {
-            await testingContext.close()
-        }
+        if (testingContext) await testingContext.close()
     })
 
     describe('POST /customers', () => {

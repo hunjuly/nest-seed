@@ -1,35 +1,28 @@
 import { PaginationResult, padNumber } from 'common'
 import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
 
-export const sampleCreationData: Partial<Sample> = {
-    name: 'sample name'
+export function sortByName(samples: SampleDocument[]) {
+    return samples.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc' = 'asc') {
-    if (direction === 'desc') {
-        return [...samples].sort((a, b) => b.name.localeCompare(a.name))
-    }
-
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
-}
-
-export async function createSample(repository: SamplesRepository): Promise<SampleDocument> {
-    const sample = await repository.create(sampleCreationData)
-
-    return sample
+export function sortByNameDescending(samples: SampleDocument[]) {
+    return samples.sort((a, b) => b.name.localeCompare(a.name))
 }
 
 export async function createManySamples(repository: SamplesRepository): Promise<SampleDocument[]> {
-    const createPromises = []
+    const promises = []
 
     for (let i = 0; i < 100; i++) {
-        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
-        createPromises.push(repository.create(data))
+        const promise = repository.create({
+            name: `Sample_${padNumber(i, 3)}`
+        })
+
+        promises.push(promise)
     }
 
-    const samples = await Promise.all(createPromises)
+    const samples = await Promise.all(promises)
 
-    return sortSamples(samples)
+    return samples
 }
 
 function areDocsEqual(received: SampleDocument[], expected: SampleDocument[]) {
@@ -99,9 +92,9 @@ expect.extend({
 
 declare module 'expect' {
     interface Matchers<R> {
-        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
-        toDocumentsEqual(expected: SampleDocument[]): R
-        toDocumentEqual(expected: SampleDocument): R
-        toValidDocument(expected: Partial<Sample>): R
+        // toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
+        // toDocumentsEqual(expected: SampleDocument[]): R
+        // toDocumentEqual(expected: SampleDocument): R
+        // toValidDocument(expected: Partial<Sample>): R
     }
 }

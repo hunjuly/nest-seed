@@ -2,14 +2,14 @@ import { Assert, LogicException } from '..'
 
 describe('Assert', () => {
     describe('deepEquals', () => {
-        it('두 값이 같다', () => {
+        it('The two values are the same', () => {
             const a = 10
             const b = 10
 
             expect(() => Assert.deepEquals(a, b, 'error messages')).not.toThrow()
         })
 
-        it('두 값이 다르면 LogicException', () => {
+        it('If the two values are different, throw a LogicException', () => {
             const a = 10
             const b = 20
 
@@ -18,59 +18,59 @@ describe('Assert', () => {
     })
 
     describe('defined', () => {
-        it('값은 유효해야 한다', () => {
+        it('The value should be valid', () => {
             const value = 'test'
 
             expect(() => Assert.defined(value, 'error message')).not.toThrow()
         })
 
-        it('값이 유효하지 않으면 LogicException', () => {
+        it('If the value is not valid, throw a LogicException', () => {
             const value = undefined
 
             expect(() => Assert.defined(value, 'error message')).toThrow(LogicException)
         })
     })
 
-    describe('undefined', () => {
-        it('값이 없어야 한다', () => {
+    describe('notDefined', () => {
+        it('The value should be null|undefined', () => {
             const value = undefined
 
-            expect(() => Assert.undefined(value, 'error message')).not.toThrow()
+            expect(() => Assert.notDefined(value, 'error message')).not.toThrow()
         })
 
-        it('값이 유효하면 LogicException', () => {
+        it('If the value is valid, throw a LogicException', () => {
             const value = 'test'
 
-            expect(() => Assert.undefined(value, 'error message')).toThrow(LogicException)
+            expect(() => Assert.notDefined(value, 'error message')).toThrow(LogicException)
         })
     })
 
     describe('truthy', () => {
-        it('값은 true여야 한다', () => {
+        it('The value should be true', () => {
             expect(() => Assert.truthy(true, 'error message')).not.toThrow()
         })
 
-        it('true가 아니라면 LogicException', () => {
+        it('If it is not true, throw a LogicException', () => {
             expect(() => Assert.truthy(false, 'error message')).toThrow(LogicException)
         })
     })
 
     describe('falsy', () => {
-        it('값은 false여야 한다', () => {
+        it('The value should be false', () => {
             expect(() => Assert.falsy(false, 'error message')).not.toThrow()
         })
 
-        it('false 아니라면 LogicException', () => {
+        it('If it is not false, throw a LogicException', () => {
             expect(() => Assert.falsy(true, 'error message')).toThrow(LogicException)
         })
     })
 
     describe('unique', () => {
-        it('값은 1개 이하여야 한다.', () => {
+        it('The value should be 1 or less', () => {
             expect(() => Assert.unique([''], 'error message')).not.toThrow()
         })
 
-        it('값이 2개 이상이라면 LogicException', () => {
+        it('If there are 2 or more values, throw a LogicException', () => {
             expect(() => Assert.unique(['', ''], 'error message')).toThrow(LogicException)
         })
     })

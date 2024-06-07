@@ -26,12 +26,10 @@ describe('Pagination', () => {
     })
 
     afterEach(async () => {
-        if (testingContext) {
-            await testingContext.close()
-        }
+        if (testingContext) await testingContext.close()
     })
 
-    it('Pagination 옵션이 적용되어야 한다', async () => {
+    it('should apply pagination options correctly', async () => {
         const skip = 2
         const take = 3
 
@@ -48,7 +46,7 @@ describe('Pagination', () => {
         })
     })
 
-    it('orderby 형식이 틀림', async () => {
+    it('should return Bad Request when orderby format is incorrect', async () => {
         const res = await req.get({
             url: '/samples',
             query: { orderby: 'wrong' }
@@ -57,7 +55,7 @@ describe('Pagination', () => {
         expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
     })
 
-    it('order direction이 틀림', async () => {
+    it('should return Bad Request when order direction is incorrect', async () => {
         const res = await req.get({
             url: '/samples',
             query: { orderby: 'name:wrong' }

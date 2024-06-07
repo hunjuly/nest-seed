@@ -2,8 +2,8 @@ import { isEqual } from 'lodash'
 import { LogicException } from './exceptions'
 
 /**
- * 명백한 논리 에러나 그 외 예측하지 못한 에러들
- * 이런 것들은 즉시 시스템을 중단해야 한다.
+ * Obvious logic errors or other unexpected errors.
+ * These should stop the system immediately.
  */
 export class Assert {
     static deepEquals<T>(a: T, b: T, message: string) {
@@ -18,7 +18,7 @@ export class Assert {
         }
     }
 
-    static undefined(value: any, message: string) {
+    static notDefined(value: any, message: string) {
         if (value) {
             throw new LogicException(message)
         }

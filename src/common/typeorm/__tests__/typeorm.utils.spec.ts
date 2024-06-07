@@ -12,7 +12,7 @@ describe('enumsTransformer', () => {
         const input: Color[] = [Color.Red, Color.Blue, Color.Green]
         const output = transformer.to(input)
 
-        expect(output).toBe('RED,BLUE,GREEN')
+        expect(output).toEqual('RED,BLUE,GREEN')
     })
 
     it('쉼표로 구분된 문자열을 열거형 값의 배열로 변환한다', () => {

@@ -7,7 +7,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
     async create(creationData: DeepPartial<Entity>): Promise<Entity> {
-        Assert.undefined(creationData.id, `id${creationData.id}가 정의되어 있으면 안 된다.`)
+        Assert.notDefined(creationData.id, `id${creationData.id}가 정의되어 있으면 안 된다.`)
 
         // repo.save(creationData)를 하면 creationData에 id가 자동으로 생성돼서 변형된다.
         const cloned = { ...creationData }

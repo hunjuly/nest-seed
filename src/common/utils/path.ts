@@ -5,7 +5,7 @@ import * as p from 'path'
 
 export class Path {
     public static async getAbsolute(src: string): Promise<string> {
-        // resolve 함수는 상대 경로를 절대 경로로 변환
+        // resolve function converts relative paths to absolute paths
         return p.isAbsolute(src) ? src : p.resolve(src)
     }
 

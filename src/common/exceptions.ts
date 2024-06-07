@@ -6,15 +6,24 @@ export class Exception extends Error {
 }
 
 /**
- * 일어날 수 없거나 일어나서는 안 되는 예외.
- * 즉시, 전체 시스템을 멈추고 문제의 원인을 찾아야 한다.
+ * An exception that cannot or should not occur.
+ * The entire system should be immediately stopped, and the cause of the problem should be investigated.
  */
 export class FatalException extends Exception {}
 
 /**
- * 코드 로직에서 잘못된 상태나 동작에 의해 발생하는 예외입니다.
- * 이는 프로그래머의 실수로 발생하는 경우가 대부분입니다.
+ * An exception caused by an incorrect state or behavior in the code logic.
+ * This is usually caused by a programmer's mistake.
  */
 export class LogicException extends FatalException {}
 
-export class InvalidArgumentException extends Exception {}
+/**
+ * Exceptions caused by invalid user input
+ */
+export class UserException extends Exception {}
+
+/**
+ * Exception caused by a preference issue.
+ * You need to shut down the instance.
+ */
+export class EnvironmentException extends Exception {}

@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcrypt'
-import { Coordinate, InvalidArgumentException } from 'common'
+import { Coordinate, UserException } from 'common'
 import { randomUUID } from 'crypto'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
@@ -21,7 +21,7 @@ export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
             }
             return updated
         },
-        { ...obj1 } // obj1의 사본을 만듭니다
+        { ...obj1 } // Create a copy of obj1
     )
 
     return updatedObject
@@ -36,10 +36,11 @@ export function convertStringToMillis(str: string): number {
         d: 24 * 60 * 60 * 1000
     }
 
-    // 유효한 시간 형식인지 검사하는 정규 표현식
+    // Regular expressions to check for valid time formats
     const validFormatRegex = /^(-?\d+(\.\d+)?)(ms|s|m|h|d)(\s*(-?\d+(\.\d+)?)(ms|s|m|h|d))*$/
+
     if (!validFormatRegex.test(str)) {
-        throw new InvalidArgumentException(`Invalid time format(${str})`)
+        throw new UserException(`Invalid time format(${str})`)
     }
 
     const regex = /(-?\d+(\.\d+)?)(ms|s|m|h|d)/g
@@ -84,12 +85,12 @@ export function convertMillisToString(ms: number): string {
 }
 
 /**
- * 숫자 값을 따옴표로 감싸는 함수
- * 64bit 정수가 json으로 오면 BigInt가 아니라 number로 처리하기 때문에 정확한 값을 얻을 수 없다.
- * 따라서 숫자 값을 따옴표로 감싸서 string으로 처리해야 한다.
+ * Functions that wrap numeric values in quotes
+ * When a 64-bit integer comes in json, you can't get the exact value because it is treated as a number, not a BigInt.
+ * Therefore, we need to wrap the numeric value in quotes and treat it as a string.
  *
- * addQuotesToNumbers('{"id":1234}') // '{"id":"1234"}'
- * addQuotesToNumbers('[{"id":1234}]') // '[{"id":"1234"}]'
+ * addQuotesToNumbers('{"id":1234}') -> '{"id":"1234"}'
+ * addQuotesToNumbers('[{"id":1234}]') -> '[{"id":"1234"}]'
  */
 export function addQuotesToNumbers(text: string) {
     return text.replace(/:(\s*)(\d+)(\s*[,\}])/g, ':"$2"$3')

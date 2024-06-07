@@ -1,43 +1,37 @@
-describe('async throw', () => {
-    async function throwException() {
-        throw new Error('error')
-    }
+describe('error handlings', () => {
+    describe('asynchronous error handling', () => {
+        const throwException = async () => {
+            throw new Error('error')
+        }
 
-    async function notThrow() {
-        return 'ok'
-    }
+        const notThrow = async () => 'ok'
 
-    it('notThrow', async () => {
-        const promise = notThrow()
+        it('notThrow', async () => {
+            const promise = notThrow()
+            await expect(promise).resolves.toEqual('ok')
+        })
 
-        await expect(promise).resolves.toEqual('ok')
+        it('throwException', async () => {
+            const promise = throwException()
+            await expect(promise).rejects.toThrow('error')
+        })
     })
 
-    it('throwException', async () => {
-        const promise = throwException()
+    describe('synchronous error handling', () => {
+        const throwException = () => {
+            throw new Error('error')
+        }
 
-        await expect(promise).rejects.toThrow(Error)
-    })
-})
+        const notThrow = () => 'ok'
 
-describe('sync throw', () => {
-    function throwException() {
-        throw new Error('error')
-    }
+        it('notThrow', () => {
+            const callback = () => notThrow()
+            expect(callback).not.toThrow()
+        })
 
-    function notThrow() {
-        return 'ok'
-    }
-
-    it('notThrow', async () => {
-        const callback = () => notThrow()
-
-        expect(callback).not.toThrow()
-    })
-
-    it('throwException', async () => {
-        const callback = () => throwException()
-
-        expect(callback).toThrow(Error)
+        it('throwException', () => {
+            const callback = () => throwException()
+            expect(callback).toThrow('error')
+        })
     })
 })

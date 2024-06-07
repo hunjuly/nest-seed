@@ -25,8 +25,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
             response: responseBody
         }
 
-        // 여기에 2xx, 5xx 에러는 올 수 없다.
-        // 2xx는 예외가 아니고 5xx는 error-exception.filter.ts에서 처리한다.
+        // 2xx and 5xx errors are not allowed here.
+        // 2xx is not an exception and 5xx is handled by HttpErrorFilter
         Logger.warn(message, 'HTTP', { ...additionalInfo, stack: exception.stack })
     }
 }

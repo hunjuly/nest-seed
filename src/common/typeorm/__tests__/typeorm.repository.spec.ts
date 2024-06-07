@@ -29,9 +29,7 @@ describe('TypeormRepository', () => {
     }
 
     const teardownTestingContext = async () => {
-        if (module) {
-            await module.close()
-        }
+        if (module) await module.close()
     }
 
     describe('TypeormRepository - Creation', () => {
