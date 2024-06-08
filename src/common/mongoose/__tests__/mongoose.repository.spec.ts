@@ -123,18 +123,16 @@ describe('MongooseRepository', () => {
     })
 
     describe('findById', () => {
-        describe('findById', () => {
-            it('ID로 문서 조회', async () => {
-                const foundSample = await repository.findById(sample.id)
+        it('ID로 문서 조회', async () => {
+            const foundSample = await repository.findById(sample.id)
 
-                expect(foundSample?.toJSON()).toEqual(sample.toJSON())
-            })
+            expect(foundSample?.toJSON()).toEqual(sample.toJSON())
+        })
 
-            it('존재하지 않는 ID로 조회 시 null 반환', async () => {
-                const notFoundSample = await repository.findById(nullObjectId)
+        it('존재하지 않는 ID로 조회 시 null 반환', async () => {
+            const notFoundSample = await repository.findById(nullObjectId)
 
-                expect(notFoundSample).toBeNull()
-            })
+            expect(notFoundSample).toBeNull()
         })
     })
 

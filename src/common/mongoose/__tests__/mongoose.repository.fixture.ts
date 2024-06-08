@@ -92,7 +92,7 @@ expect.extend({
 
 declare module 'expect' {
     interface Matchers<R> {
-        // toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
+        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
         // toDocumentsEqual(expected: SampleDocument[]): R
         // toDocumentEqual(expected: SampleDocument): R
         // toValidDocument(expected: Partial<Sample>): R
