@@ -10,7 +10,7 @@ export const createPsqlDto = {
     integer: 100
 }
 
-export async function createManyPsqls(request: any): Promise<PsqlDto[]> {
+export async function createPsqls(request: any): Promise<PsqlDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {

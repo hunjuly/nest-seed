@@ -10,7 +10,7 @@ export const createMongolDto = {
     integer: 100
 }
 
-export async function createManyMongols(request: any): Promise<MongolDto[]> {
+export async function createMongols(request: any): Promise<MongolDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {

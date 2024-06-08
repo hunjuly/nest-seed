@@ -5,7 +5,7 @@ import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
 import { UserDto } from 'app/services/users'
 import { nullUUID } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
-import { createManyUsers, createUserDto } from './users.controller.fixture'
+import { createUsers, createUserDto } from './users.controller.fixture'
 
 describe('UsersController', () => {
     let testingContext: HttpTestingContext
@@ -22,7 +22,7 @@ describe('UsersController', () => {
 
         req = testingContext.request
 
-        users = await createManyUsers(req)
+        users = await createUsers(req)
         user = users[0]
     })
 

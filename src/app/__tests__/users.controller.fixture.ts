@@ -10,7 +10,7 @@ export const createUserDto = {
     password: 'password'
 }
 
-export async function createManyUsers(request: any): Promise<UserDto[]> {
+export async function createUsers(request: any): Promise<UserDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {

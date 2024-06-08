@@ -39,8 +39,8 @@ describe('CacheService', () => {
         expect(initialValue).toEqual(value)
 
         await cacheService.delete(key)
-        const valueAfterDeletion = await cacheService.get(key)
-        expect(valueAfterDeletion).toBeUndefined()
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
     it('sets an expiration time', async () => {
@@ -53,8 +53,8 @@ describe('CacheService', () => {
         expect(initialValue).toEqual(value)
 
         await sleep(1000 + 100)
-        const valueAfterExpiration = await cacheService.get(key)
-        expect(valueAfterExpiration).toBeUndefined()
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
     it('expresses milliseconds as a decimal', async () => {
@@ -67,8 +67,8 @@ describe('CacheService', () => {
         expect(initialValue).toEqual(value)
 
         await sleep(500 + 100)
-        const valueAfterExpiration = await cacheService.get(key)
-        expect(valueAfterExpiration).toBeUndefined()
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
     it('throws an exception if the expiration time is negative', async () => {

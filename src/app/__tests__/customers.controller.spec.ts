@@ -7,7 +7,7 @@ import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import {
     createCustomerDto,
-    createManyCustomers,
+    createCustomers,
     sortByName,
     sortByNameDescending
 } from './customers.controller.fixture'
@@ -23,7 +23,7 @@ describe('CustomersController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        customers = await createManyCustomers(req)
+        customers = await createCustomers(req)
         customer = customers[0]
     })
 

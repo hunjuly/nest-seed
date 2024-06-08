@@ -9,7 +9,7 @@ import {
 } from 'common'
 import {
     sampleCreationData,
-    createManySamples,
+    createSamples,
     sortSamples,
     createSample
 } from './typeorm.repository.fixture'
@@ -99,7 +99,7 @@ describe('TypeormRepository', () => {
         beforeAll(async () => {
             await setupTestingContext()
 
-            createdSamples = await createManySamples(repository)
+            createdSamples = await createSamples(repository)
         })
 
         afterAll(teardownTestingContext)

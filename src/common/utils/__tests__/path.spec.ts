@@ -53,8 +53,8 @@ describe('Path', () => {
         expect(exists).toBeTruthy()
 
         await Path.remove(dirPath)
-        const existsAfterDeletion = await Path.exists(dirPath)
-        expect(existsAfterDeletion).toBeFalsy()
+        const existsAfterRemove = await Path.exists(dirPath)
+        expect(existsAfterRemove).toBeFalsy()
     })
 
     it('should correctly list subdirectories', async () => {

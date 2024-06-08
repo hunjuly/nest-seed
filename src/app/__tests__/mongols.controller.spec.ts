@@ -7,7 +7,7 @@ import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import {
     createMongolDto,
-    createManyMongols,
+    createMongols,
     sortByName,
     sortByNameDescending
 } from './mongols.controller.fixture'
@@ -23,7 +23,7 @@ describe('MongolsController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        mongols = await createManyMongols(req)
+        mongols = await createMongols(req)
         mongol = mongols[0]
     })
 

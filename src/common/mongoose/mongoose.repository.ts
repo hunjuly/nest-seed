@@ -1,31 +1,14 @@
 import { PaginationOptions, PaginationResult } from 'common'
-import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
+import { Model, QueryWithHelpers } from 'mongoose'
 import { MongooseException } from './exceptions'
 
 export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(creationData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const savedDocument = await this.model.create({ ...creationData })
+    async create(creationData: Partial<Doc>): Promise<Doc> {
+        const savedDocument = await this.model.create(creationData)
 
-        return savedDocument
-    }
-
-    protected async update(id: string, query: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        /**
-         * upsert:
-         * An action that updates a specific record if it already exists in the database,
-         * or inserts a new record if it doesn't.
-         */
-        const updatedDocument = await this.model
-            .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
-            .exec()
-
-        if (!updatedDocument) {
-            throw new MongooseException(`Failed to update document with id: ${id}. Document not found.`)
-        }
-
-        return updatedDocument as HydratedDocument<Doc>
+        return savedDocument.toObject()
     }
 
     async remove(id: string): Promise<void> {
@@ -42,19 +25,19 @@ export abstract class MongooseRepository<Doc> {
         return document != null
     }
 
-    async findById(id: string): Promise<HydratedDocument<Doc> | null> {
-        return this.model.findById(id).exec()
+    async findById(id: string): Promise<Doc | null> {
+        return this.model.findById(id).lean()
     }
 
-    async findByIds(ids: string[]): Promise<HydratedDocument<Doc>[]> {
-        return this.model.find({ _id: { $in: ids } } as any).exec()
+    async findByIds(ids: string[]): Promise<Doc[]> {
+        return this.model.find({ _id: { $in: ids } } as any).lean()
     }
 
     async findByMiddleware(
         option: {
             middleware: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
         } & PaginationOptions
-    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+    ): Promise<PaginationResult<Doc>> {
         const { take, skip, orderby, middleware } = option
 
         const helpers = this.model.find({})
@@ -68,8 +51,8 @@ export abstract class MongooseRepository<Doc> {
 
         middleware?.(helpers)
 
-        const items = await helpers.exec()
-        const total = await this.model.countDocuments(helpers.getQuery()).exec()
+        const items: Doc[] = await helpers.lean()
+        const total = await this.model.countDocuments(helpers.getQuery()).lean()
 
         const opts = helpers.getOptions()
 
@@ -81,9 +64,7 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
-    async find(
-        option: { query: Record<string, any> } & PaginationOptions
-    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+    async find(option: { query: Record<string, any> } & PaginationOptions): Promise<PaginationResult<Doc>> {
         return this.findByMiddleware({
             ...option,
             middleware: (helpers) => helpers.setQuery(option.query)

@@ -19,7 +19,7 @@ export function sortByTitleDescending(movies: MovieDto[]) {
     return movies.sort((a, b) => b.title.localeCompare(a.title))
 }
 
-export async function createManyMovies(request: any): Promise<MovieDto[]> {
+export async function createMovies(request: any): Promise<MovieDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {

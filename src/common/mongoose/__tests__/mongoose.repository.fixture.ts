@@ -1,100 +1,63 @@
-import { PaginationResult, padNumber } from 'common'
-import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
+import { Injectable, Module } from '@nestjs/common'
+import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
+import { Exception, MongooseRepository, MongooseSchema, createMongooseSchema, padNumber } from 'common'
+import { Model } from 'mongoose'
 
-export function sortByName(samples: SampleDocument[]) {
-    return samples.sort((a, b) => a.name.localeCompare(b.name))
+@Schema()
+export class Document extends MongooseSchema {
+    @Prop({ required: true })
+    name: string
 }
 
-export function sortByNameDescending(samples: SampleDocument[]) {
-    return samples.sort((a, b) => b.name.localeCompare(a.name))
+export const DocumentSchema = createMongooseSchema(Document)
+
+@Injectable()
+export class DocumentsRepository extends MongooseRepository<Document> {
+    constructor(@InjectModel(Document.name) model: Model<Document>) {
+        super(model)
+    }
+
+    async update(id: string, updateDto: Partial<Document>): Promise<Document> {
+        const document = await this.model.findById(id).exec()
+
+        if (!document) {
+            throw new Exception(`Failed to update document with id: ${id}. Document not found.`)
+        }
+
+        if (updateDto.name) document.name = updateDto.name
+
+        await document.save()
+
+        return document.toObject()
+    }
 }
 
-export async function createManySamples(repository: SamplesRepository): Promise<SampleDocument[]> {
+@Module({
+    imports: [MongooseModule.forFeature([{ name: Document.name, schema: DocumentSchema }])],
+    providers: [DocumentsRepository]
+})
+export class DocumentsModule {}
+
+export function sortByName(documents: Document[]) {
+    return documents.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function sortByNameDescending(documents: Document[]) {
+    return documents.sort((a, b) => b.name.localeCompare(a.name))
+}
+
+export async function createDocuments(repository: DocumentsRepository): Promise<Document[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {
         const promise = repository.create({
-            name: `Sample_${padNumber(i, 3)}`
+            name: `Document-${padNumber(i, 3)}`
         })
 
         promises.push(promise)
     }
 
-    const samples = await Promise.all(promises)
+    const documents = await Promise.all(promises)
 
-    return samples
-}
-
-function areDocsEqual(received: SampleDocument[], expected: SampleDocument[]) {
-    if (received.length !== expected.length) {
-        return {
-            pass: false,
-            message: () =>
-                `Items length mismatch: received length ${received.length}, expected length ${expected.length}`
-        }
-    }
-
-    for (let i = 0; i < received.length; i++) {
-        if (!received[i].equals(expected[i])) {
-            return {
-                pass: false,
-                message: () =>
-                    `Document at index ${i} does not match: received: ${received[i]}, expected: ${expected[i]}`
-            }
-        }
-    }
-
-    return {
-        pass: true,
-        message: () => 'Documents match'
-    }
-}
-
-expect.extend({
-    toValidDocument(received, expected) {
-        const pass = this.equals(received.toJSON(), {
-            _id: expect.anything(),
-            createdAt: expect.anything(),
-            updatedAt: expect.anything(),
-            version: expect.anything(),
-            ...expected
-        })
-
-        const message = pass ? () => `expected document not to match` : () => `expected document to match`
-
-        return { pass, message }
-    },
-    toDocumentsEqual(received, expected) {
-        return areDocsEqual(received, expected)
-    },
-    toDocumentEqual(received, expected) {
-        const pass = received.equals(expected)
-
-        const message = pass ? () => `document not to match` : () => `document to match`
-
-        return { pass, message }
-    },
-    toPaginatedEqual(received, expected) {
-        if (
-            received.total !== expected.total ||
-            received.take !== expected.take ||
-            received.skip !== expected.skip
-        ) {
-            return {
-                pass: false,
-                message: () => `Pagination mismatch: received: ${received}, expected: ${expected}`
-            }
-        }
-
-        return areDocsEqual(received, expected)
-    }
-})
-
-declare module 'expect' {
-    interface Matchers<R> {
-        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
-        // toDocumentsEqual(expected: SampleDocument[]): R
-        // toDocumentEqual(expected: SampleDocument): R
-        // toValidDocument(expected: Partial<Sample>): R
-    }
+    return documents
 }

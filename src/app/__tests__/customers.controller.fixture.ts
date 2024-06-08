@@ -7,7 +7,7 @@ export const createCustomerDto = {
     birthday: new Date('2020-12-12')
 }
 
-export async function createManyCustomers(request: any): Promise<CustomerDto[]> {
+export async function createCustomers(request: any): Promise<CustomerDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {

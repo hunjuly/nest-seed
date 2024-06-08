@@ -19,11 +19,11 @@ export async function createSample(repository: SamplesRepository): Promise<Sampl
     return sample
 }
 
-export async function createManySamples(repository: SamplesRepository): Promise<Sample[]> {
+export async function createSamples(repository: SamplesRepository): Promise<Sample[]> {
     const createPromises = []
 
     for (let i = 0; i < 100; i++) {
-        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
+        const data = { ...sampleCreationData, name: `Sample-${padNumber(i, 3)}` }
         createPromises.push(repository.create(data))
     }
 

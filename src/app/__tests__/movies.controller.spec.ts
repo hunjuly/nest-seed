@@ -5,7 +5,7 @@ import { MovieDto, MovieGenre } from 'app/services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
 import {
-    createManyMovies,
+    createMovies,
     createMovieDto,
     sortByTitle,
     sortByTitleDescending
@@ -22,7 +22,7 @@ describe('MoviesController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        movies = await createManyMovies(req)
+        movies = await createMovies(req)
         movie = movies[0]
     })
 
