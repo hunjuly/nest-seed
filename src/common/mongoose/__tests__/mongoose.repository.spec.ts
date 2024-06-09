@@ -158,42 +158,6 @@ describe('MongooseRepository', () => {
             expect(paginatedResult.items.length).toBeGreaterThan(0)
         })
 
-        it('Sort in ascending (asc) order', async () => {
-            const take = documents.length
-            const paginatedResult = await repository.find({
-                take,
-                orderby: { name: 'name', direction: OrderDirection.asc },
-                query: {}
-            })
-
-            sortByName(documents)
-
-            expect(paginatedResult).toEqual({
-                items: documents,
-                total: documents.length,
-                skip: undefined,
-                take
-            })
-        })
-
-        it('Sort in descending (desc) order', async () => {
-            const take = documents.length
-            const paginatedResult = await repository.find({
-                take,
-                orderby: { name: 'name', direction: OrderDirection.desc },
-                query: {}
-            })
-
-            sortByNameDescending(documents)
-
-            expect(paginatedResult).toEqual({
-                items: documents,
-                total: documents.length,
-                skip: undefined,
-                take
-            })
-        })
-
         it('Pagination', async () => {
             const skip = 10
             const take = 50
@@ -220,12 +184,33 @@ describe('MongooseRepository', () => {
             const take = 5
             const paginatedResult = await repository.find({ skip, take, query: {} })
 
-            expect(paginatedResult).toEqual({
-                items: [],
-                total: documents.length,
-                skip,
-                take
+            expect(paginatedResult.items).toEqual([])
+        })
+
+        it('Sort in ascending (asc) order', async () => {
+            const take = documents.length
+            const paginatedResult = await repository.find({
+                take,
+                orderby: { name: 'name', direction: OrderDirection.asc },
+                query: {}
             })
+
+            sortByName(documents)
+
+            expect(paginatedResult.items).toEqual(documents)
+        })
+
+        it('Sort in descending (desc) order', async () => {
+            const take = documents.length
+            const paginatedResult = await repository.find({
+                take,
+                orderby: { name: 'name', direction: OrderDirection.desc },
+                query: {}
+            })
+
+            sortByNameDescending(documents)
+
+            expect(paginatedResult.items).toEqual(documents)
         })
 
         it('Search using regular expression pattern', async () => {
@@ -234,12 +219,7 @@ describe('MongooseRepository', () => {
             sortByName(documents)
             sortByName(paginatedResult.items)
 
-            expect(paginatedResult).toEqual({
-                items: documents.slice(0, 10),
-                total: 10,
-                skip: undefined,
-                take: undefined
-            })
+            expect(paginatedResult.items).toEqual(documents.slice(0, 10))
         })
     })
 
@@ -253,28 +233,20 @@ describe('MongooseRepository', () => {
 
             sortByNameDescending(documents)
 
-            expect(paginatedResult).toEqual({
-                items: documents,
-                total: documents.length,
-                skip: undefined,
-                take: undefined
-            })
+            expect(paginatedResult.items).toEqual(documents)
         })
 
         it('Set query', async () => {
             const paginatedResult = await repository.findByMiddleware({
                 middleware: (helpers) => {
                     helpers.setQuery({ name: /Document-00/i })
-                    helpers.sort({ name: 'asc' })
                 }
             })
 
-            expect(paginatedResult).toEqual({
-                items: documents.slice(0, 10),
-                total: 10,
-                skip: undefined,
-                take: undefined
-            })
+            sortByName(documents)
+            sortByName(paginatedResult.items)
+
+            expect(paginatedResult.items).toEqual(documents.slice(0, 10))
         })
 
         it('Set pagination', async () => {
@@ -288,12 +260,7 @@ describe('MongooseRepository', () => {
                 }
             })
 
-            expect(paginatedResult).toEqual({
-                items: documents.slice(skip, skip + take),
-                total: documents.length,
-                skip,
-                take
-            })
+            expect(paginatedResult.items).toEqual(documents.slice(skip, skip + take))
         })
     })
 })

@@ -16,6 +16,7 @@ services:
             POSTGRES_DB: ${POSTGRES_DB_DATABASE}
         networks:
             - default
+        restart: always
 
     redis:
         image: redis:latest
@@ -24,6 +25,7 @@ services:
         logging: *default-logging
         networks:
             - default
+        restart: always
 
     mongo:
         image: mongo:latest
@@ -35,6 +37,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
         networks:
             - default
+        restart: always
 
     mongo-express:
         image: mongo-express:latest
@@ -51,6 +54,7 @@ services:
             ME_CONFIG_MONGODB_PORT: ${MONGO_DB_PORT}
         networks:
             - default
+        restart: always
 
     service:
         image: $PROJECT_NAME

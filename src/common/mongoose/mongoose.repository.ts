@@ -42,7 +42,7 @@ export abstract class MongooseRepository<Doc> {
 
         const helpers = this.model.find({})
 
-        skip && helpers.skip(skip)
+        helpers.skip(skip ?? 0)
         take && helpers.limit(take)
 
         if (orderby) {
