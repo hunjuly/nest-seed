@@ -1,6 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { MongooseSchema, createMongooseSchema } from 'common'
-import { HydratedDocument } from 'mongoose'
 
 export enum MovieGenre {
     Action = 'Action',
@@ -47,5 +46,3 @@ export class Movie extends MongooseSchema {
 }
 
 export const MovieSchema = createMongooseSchema(Movie)
-
-export type MovieDocument = HydratedDocument<Movie>

@@ -5,12 +5,7 @@ import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import {
-    createCustomerDto,
-    createCustomers,
-    sortByName,
-    sortByNameDescending
-} from './customers.controller.fixture'
+import { createCustomers, sortByName, sortByNameDescending } from './customers.controller.fixture'
 
 describe('CustomersController', () => {
     let testingContext: HttpTestingContext
@@ -32,11 +27,14 @@ describe('CustomersController', () => {
     })
 
     describe('POST /customers', () => {
+        const createCustomerDto = {
+            name: 'customer name',
+            email: 'user@mail.com',
+            birthday: new Date('2020-12-12')
+        }
+
         it('Create a customer', async () => {
-            const res = await req.post({
-                url: '/customers',
-                body: createCustomerDto
-            })
+            const res = await req.post({ url: '/customers', body: createCustomerDto })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
             expect(res.body).toEqual({
@@ -66,15 +64,18 @@ describe('CustomersController', () => {
 
     describe('PATCH /customers/:id', () => {
         it('Update a customer', async () => {
-            const updateResponse = await req.patch({
-                url: `/customers/${customer.id}`,
-                body: { name: 'Updated Customer' }
-            })
+            const updateData = {
+                name: 'update name',
+                email: 'new@mail.com',
+                birthday: new Date('1920-12-12')
+            }
+
+            const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateData })
 
             const getResponse = await req.get({ url: `/customers/${customer.id}` })
 
             expect(updateResponse.status).toEqual(HttpStatus.OK)
-            expect(updateResponse.body).toEqual({ ...customer, name: 'Updated Customer' })
+            expect(updateResponse.body).toEqual({ ...customer, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 

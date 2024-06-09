@@ -23,20 +23,14 @@ describe('MongooseRepository', () => {
     beforeEach(async () => {
         mongoServer = await MongoMemoryServer.create()
 
-        const options = {
-            /*
-            By using dropDatabase() as shown below, you only need to call MongoMemoryServer.create() once, and the performance improves by about 70%.
-            However, if you don't call repository.create() after calling dropDatabase(), an error occurs when you call module.close().
-
-            connectionFactory: (connection: any) => {
-                connection.dropDatabase()
-                return connection
-            }
-            */
-        }
-
+        /**
+         * By using dropDatabase() as shown below, you only need to call MongoMemoryServer.create() once,
+         * and the performance improves by about 70%.
+         * However, if you don't call repository.create() after calling dropDatabase(),
+         * an error occurs when you call module.close().
+         */
         module = await createTestingModule({
-            imports: [MongooseModule.forRoot(mongoServer.getUri(), options), DocumentsModule]
+            imports: [MongooseModule.forRoot(mongoServer.getUri()), DocumentsModule]
         })
 
         repository = module.get(DocumentsRepository)
@@ -155,7 +149,7 @@ describe('MongooseRepository', () => {
         it('Search for all documents', async () => {
             const paginatedResult = await repository.find({ query: {} })
 
-            expect(paginatedResult.items.length).toBeGreaterThan(0)
+            expect(paginatedResult.items.length).toEqual(documents.length)
         })
 
         it('Pagination', async () => {

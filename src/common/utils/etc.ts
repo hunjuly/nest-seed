@@ -13,19 +13,24 @@ export function generateUUID() {
 export const nullUUID = '00000000000000000000000000000000'
 export const nullObjectId = '000000000000000000000000'
 
-export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
-    const updatedObject = Object.keys(obj2).reduce(
-        (updated, key) => {
-            if (key in updated) {
-                updated[key as keyof T] = obj2[key]
-            }
-            return updated
-        },
-        { ...obj1 } // Create a copy of obj1
-    )
+// export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
+//     const updatedObject = merge({}, obj1, pick(obj2, keys(obj1)))
+//     return updatedObject
+// }
 
-    return updatedObject
-}
+// export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
+//     const updatedObject = Object.keys(obj2).reduce(
+//         (updated, key) => {
+//             if (key in updated) {
+//                 updated[key as keyof T] = obj2[key]
+//             }
+//             return updated
+//         },
+//         { ...obj1 } // Create a copy of obj1
+//     )
+
+//     return updatedObject
+// }
 
 export function convertStringToMillis(str: string): number {
     const timeUnits: { [key: string]: number } = {

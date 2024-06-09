@@ -1,12 +1,6 @@
 import { CustomerDto } from 'app/services/customers'
 import { padNumber } from 'common'
 
-export const createCustomerDto = {
-    name: 'customer name',
-    email: 'user@mail.com',
-    birthday: new Date('2020-12-12')
-}
-
 export async function createCustomers(request: any): Promise<CustomerDto[]> {
     const promises = []
 

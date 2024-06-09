@@ -5,12 +5,7 @@ import { MongolDto } from 'app/services/mongols'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import {
-    createMongolDto,
-    createMongols,
-    sortByName,
-    sortByNameDescending
-} from './mongols.controller.fixture'
+import { createMongols, sortByName, sortByNameDescending } from './mongols.controller.fixture'
 
 describe('MongolsController', () => {
     let testingContext: HttpTestingContext
@@ -32,11 +27,17 @@ describe('MongolsController', () => {
     })
 
     describe('POST /mongols', () => {
+        const createMongolDto = {
+            name: 'mongol name',
+            email: 'user@mail.com',
+            desc: 'mongol long text',
+            date: new Date('2020-12-12'),
+            enums: ['EnumA', 'EnumB', 'EnumC'],
+            integer: 100
+        }
+
         it('Create a mongol', async () => {
-            const res = await req.post({
-                url: '/mongols',
-                body: createMongolDto
-            })
+            const res = await req.post({ url: '/mongols', body: createMongolDto })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
             expect(res.body).toEqual({
@@ -66,15 +67,21 @@ describe('MongolsController', () => {
 
     describe('PATCH /mongols/:id', () => {
         it('Update a mongol', async () => {
-            const updateResponse = await req.patch({
-                url: `/mongols/${mongol.id}`,
-                body: { name: 'Updated Mongol' }
-            })
+            const updateData = {
+                name: 'update name',
+                email: 'new@mail.com',
+                desc: 'update long text',
+                date: new Date('2000-12-12'),
+                enums: ['EnumC', 'EnumD', 'EnumE'],
+                integer: 999
+            }
+
+            const updateResponse = await req.patch({ url: `/mongols/${mongol.id}`, body: updateData })
+            expect(updateResponse.status).toEqual(HttpStatus.OK)
 
             const getResponse = await req.get({ url: `/mongols/${mongol.id}` })
 
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
-            expect(updateResponse.body).toEqual({ ...mongol, name: 'Updated Mongol' })
+            expect(updateResponse.body).toEqual({ ...mongol, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 

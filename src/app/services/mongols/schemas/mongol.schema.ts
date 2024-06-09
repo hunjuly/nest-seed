@@ -1,6 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { MongooseSchema, createMongooseSchema } from 'common'
-import { HydratedDocument } from 'mongoose'
 
 export enum MongolEnum {
     EnumA = 'EnumA',
@@ -32,5 +31,3 @@ export class Mongol extends MongooseSchema {
 }
 
 export const MongolSchema = createMongooseSchema(Mongol)
-
-export type MongolDocument = HydratedDocument<Mongol>

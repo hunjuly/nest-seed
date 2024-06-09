@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository, PaginationResult } from 'common'
+import { LogicException, MongooseRepository, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { CustomersQueryDto, UpdateCustomerDto } from './dto'
-import { Customer, CustomerDocument } from './schemas'
+import { Customer } from './schemas'
 
 @Injectable()
 export class CustomersRepository extends MongooseRepository<Customer> {
@@ -12,16 +12,24 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         super(model)
     }
 
-    async update(id: string, customerDto: UpdateCustomerDto): Promise<CustomerDocument> {
-        const customerUpdates: Partial<UpdateCustomerDto> = {}
-        customerUpdates.name = customerDto.name
-        customerUpdates.email = customerDto.email
-        customerUpdates.birthday = customerDto.birthday
+    async update(id: string, updateDto: UpdateCustomerDto): Promise<Customer> {
+        const customer = await this.model.findById(id).exec()
 
-        return super.update(id, customerUpdates)
+        /* istanbul ignore if */
+        if (!customer) {
+            throw new LogicException(`Failed to update customer with id: ${id}. Customer not found.`)
+        }
+
+        if (updateDto.name) customer.name = updateDto.name
+        if (updateDto.email) customer.email = updateDto.email
+        if (updateDto.birthday) customer.birthday = updateDto.birthday
+
+        await customer.save()
+
+        return customer.toObject()
     }
 
-    async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDocument>> {
+    async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<Customer>> {
         const { take, skip, orderby, ...args } = queryDto
 
         const query: Record<string, any> = args

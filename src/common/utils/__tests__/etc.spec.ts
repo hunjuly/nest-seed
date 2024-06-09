@@ -9,8 +9,7 @@ import {
     equalsIgnoreCase,
     generateUUID,
     notUsed,
-    sleep,
-    updateIntersection
+    sleep
 } from '..'
 
 describe('common/utils/etc', () => {
@@ -46,23 +45,23 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('updateIntersection', () => {
-        it('updates obj1 with the common properties of obj1 and obj2', () => {
-            const obj1 = { name: 'Alice', age: 30, address: '123 Main St' }
-            const obj2 = { name: 'Bob', age: 25, phone: '555-5555' }
-            const result = updateIntersection(obj1, obj2)
+    // describe('updateIntersection', () => {
+    //     it('updates obj1 with the common properties of obj1 and obj2', () => {
+    //         const obj1 = { name: 'Alice', age: 30, address: '123 Main St' }
+    //         const obj2 = { name: 'Bob', age: 25, phone: '555-5555' }
+    //         const result = updateIntersection(obj1, obj2)
 
-            expect(result).toEqual({ name: 'Bob', age: 25, address: '123 Main St' })
-        })
+    //         expect(result).toEqual({ name: 'Bob', age: 25, address: '123 Main St' })
+    //     })
 
-        it('returns obj1 if there are no common properties between obj1 and obj2', () => {
-            const obj1 = { name: 'Alice', age: 30 }
-            const obj2 = { phone: '555-5555', email: 'alice@example.com' }
-            const result = updateIntersection(obj1, obj2)
+    //     it('returns obj1 if there are no common properties between obj1 and obj2', () => {
+    //         const obj1 = { name: 'Alice', age: 30 }
+    //         const obj2 = { phone: '555-5555', email: 'alice@example.com' }
+    //         const result = updateIntersection(obj1, obj2)
 
-            expect(result).toEqual(obj1)
-        })
-    })
+    //         expect(result).toEqual(obj1)
+    //     })
+    // })
 
     describe('convertStringToMillis', () => {
         it('30m == 30*60*1000', () => {

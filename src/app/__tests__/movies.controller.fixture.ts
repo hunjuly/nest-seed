@@ -1,16 +1,6 @@
 import { MovieDto } from 'app/services/movies'
 import { padNumber } from 'common'
 
-export const createMovieDto = {
-    title: 'movie title',
-    genre: ['Action', 'Comedy', 'Drama'],
-    releaseDate: new Date('2024-12-12'),
-    plot: 'movie plot',
-    durationMinutes: 90,
-    director: 'James Cameron',
-    rated: 'PG'
-}
-
 export function sortByTitle(movies: MovieDto[]) {
     return movies.sort((a, b) => a.title.localeCompare(b.title))
 }

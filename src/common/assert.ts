@@ -6,7 +6,7 @@ import { LogicException } from './exceptions'
  * These should stop the system immediately.
  */
 export class Assert {
-    static deepEquals<T>(a: T, b: T, message: string) {
+    static equals<T>(a: T, b: T, message: string) {
         if (!isEqual(a, b)) {
             throw new LogicException(`${JSON.stringify(a)} !== ${JSON.stringify(b)}, ${message}`)
         }
@@ -14,6 +14,12 @@ export class Assert {
 
     static defined(value: any, message: string) {
         if (!value) {
+            throw new LogicException(message)
+        }
+    }
+
+    static undefined(value: any, message: string) {
+        if (value !== undefined) {
             throw new LogicException(message)
         }
     }

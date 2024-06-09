@@ -1,19 +1,19 @@
 import { Assert, LogicException } from '..'
 
 describe('Assert', () => {
-    describe('deepEquals', () => {
+    describe('equals', () => {
         it('The two values are the same', () => {
             const a = 10
             const b = 10
 
-            expect(() => Assert.deepEquals(a, b, 'error messages')).not.toThrow()
+            expect(() => Assert.equals(a, b, 'error messages')).not.toThrow()
         })
 
         it('If the two values are different, throw a LogicException', () => {
             const a = 10
             const b = 20
 
-            expect(() => Assert.deepEquals(a, b, 'error message')).toThrow(LogicException)
+            expect(() => Assert.equals(a, b, 'error message')).toThrow(LogicException)
         })
     })
 
@@ -31,9 +31,23 @@ describe('Assert', () => {
         })
     })
 
+    describe('undefined', () => {
+        it('The value should be undefined', () => {
+            const value = undefined
+
+            expect(() => Assert.undefined(value, 'error message')).not.toThrow()
+        })
+
+        it('If the value is valid, throw a LogicException', () => {
+            const value = null
+
+            expect(() => Assert.undefined(value, 'error message')).toThrow(LogicException)
+        })
+    })
+
     describe('notDefined', () => {
         it('The value should be null|undefined', () => {
-            const value = undefined
+            const value = null
 
             expect(() => Assert.notDefined(value, 'error message')).not.toThrow()
         })

@@ -1,4 +1,4 @@
-import { CustomerDocument } from '../schemas'
+import { Customer } from '../schemas'
 
 export class CustomerDto {
     id: string
@@ -6,8 +6,8 @@ export class CustomerDto {
     email: string
     birthday: Date
 
-    constructor(customer: CustomerDocument) {
-        const { id, name, email, birthday } = customer
+    constructor(customer: Customer) {
+        const { _id: id, name, email, birthday } = customer
 
         Object.assign(this, {
             id,

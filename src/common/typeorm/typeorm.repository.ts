@@ -1,4 +1,4 @@
-import { Assert, PaginationOptions, PaginationResult, updateIntersection } from 'common'
+import { Assert, PaginationOptions, PaginationResult } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository, SelectQueryBuilder } from 'typeorm'
 import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException, ParameterTypeormException } from './exceptions'
@@ -7,7 +7,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
     async create(creationData: DeepPartial<Entity>): Promise<Entity> {
-        Assert.notDefined(creationData.id, `id${creationData.id}가 정의되어 있으면 안 된다.`)
+        Assert.undefined(creationData.id, `id${creationData.id}가 정의되어 있으면 안 된다.`)
 
         // repo.save(creationData)를 하면 creationData에 id가 자동으로 생성돼서 변형된다.
         const cloned = { ...creationData }
@@ -16,17 +16,17 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         return savedEntity
     }
 
-    async update(id: string, query: Partial<Entity>): Promise<Entity> {
+    async update(id: string, query: DeepPartial<Entity>): Promise<Entity> {
         const entity = await this.repo.findOne({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
 
         if (entity) {
-            const updatePsql = updateIntersection(entity, query)
+            this.repo.merge(entity, query)
 
-            const saved = await this.repo.save(updatePsql)
+            const saved = await this.repo.save(entity)
 
-            Assert.deepEquals(saved, updatePsql, 'update 요청과 결과가 다름')
+            Assert.equals(saved, entity, 'update 요청과 결과가 다름')
 
             return saved
         }
@@ -71,8 +71,8 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
 
         const qb = this.repo.createQueryBuilder('entity')
 
+        qb.skip(skip ?? 0)
         take && qb.take(take)
-        skip && qb.skip(skip)
 
         if (orderby) {
             const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'

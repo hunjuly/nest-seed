@@ -4,12 +4,7 @@ import { AppModule } from 'app/app.module'
 import { MovieDto, MovieGenre } from 'app/services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
-import {
-    createMovies,
-    createMovieDto,
-    sortByTitle,
-    sortByTitleDescending
-} from './movies.controller.fixture'
+import { createMovies, sortByTitle, sortByTitleDescending } from './movies.controller.fixture'
 
 describe('MoviesController', () => {
     let testingContext: HttpTestingContext
@@ -32,10 +27,17 @@ describe('MoviesController', () => {
 
     describe('POST /movies', () => {
         it('Create a movie', async () => {
-            const res = await req.post({
-                url: '/movies',
-                body: createMovieDto
-            })
+            const createMovieDto = {
+                title: 'movie title',
+                genre: ['Action', 'Comedy', 'Drama'],
+                releaseDate: new Date('2024-12-12'),
+                plot: 'movie plot',
+                durationMinutes: 90,
+                director: 'James Cameron',
+                rated: 'PG'
+            }
+
+            const res = await req.post({ url: '/movies', body: createMovieDto })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
             expect(res.body).toEqual({
@@ -45,10 +47,7 @@ describe('MoviesController', () => {
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({
-                url: '/movies',
-                body: {}
-            })
+            const res = await req.post({ url: '/movies', body: {} })
 
             expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
         })
@@ -56,15 +55,22 @@ describe('MoviesController', () => {
 
     describe('PATCH /movies/:id', () => {
         it('Update a movie', async () => {
-            const updateResponse = await req.patch({
-                url: `/movies/${movie.id}`,
-                body: { title: 'Updated Movie' }
-            })
+            const updateData = {
+                title: 'update title',
+                genre: ['Romance', 'Thriller'],
+                releaseDate: new Date('2020-12-12'),
+                plot: 'update plot',
+                durationMinutes: 50,
+                director: 'Steven Spielberg',
+                rated: 'NC17'
+            }
+
+            const updateResponse = await req.patch({ url: `/movies/${movie.id}`, body: updateData })
 
             const getResponse = await req.get({ url: `/movies/${movie.id}` })
 
             expect(updateResponse.status).toEqual(HttpStatus.OK)
-            expect(updateResponse.body).toEqual({ ...movie, title: 'Updated Movie' })
+            expect(updateResponse.body).toEqual({ ...movie, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 

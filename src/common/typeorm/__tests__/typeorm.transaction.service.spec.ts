@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing'
-import { TypeormTransactionService, createTypeormMemoryModule } from 'common'
-import { Sample, SamplesRepository, SamplesModule } from './typeorm.transaction.service.mock'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeormTransactionService } from 'common'
 import { createTestingModule } from 'common/test'
+import { Sample, SamplesModule, SamplesRepository } from './typeorm.transaction.service.fixture'
 
 describe('TypeormTransactionService', () => {
     let module: TestingModule
@@ -10,7 +11,15 @@ describe('TypeormTransactionService', () => {
 
     beforeEach(async () => {
         module = await createTestingModule({
-            imports: [createTypeormMemoryModule(), SamplesModule]
+            imports: [
+                TypeOrmModule.forRoot({
+                    type: 'sqlite',
+                    database: ':memory:',
+                    synchronize: true,
+                    autoLoadEntities: true
+                }),
+                SamplesModule
+            ]
         })
 
         transactionService = await module.resolve(TypeormTransactionService)

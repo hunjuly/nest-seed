@@ -1,15 +1,6 @@
 import { MongolDto } from 'app/services/mongols'
 import { padNumber } from 'common'
 
-export const createMongolDto = {
-    name: 'mongol name',
-    email: 'user@mail.com',
-    desc: 'mongol long text',
-    date: new Date('2020-12-12'),
-    enums: ['EnumA', 'EnumB', 'EnumC'],
-    integer: 100
-}
-
 export async function createMongols(request: any): Promise<MongolDto[]> {
     const promises = []
 

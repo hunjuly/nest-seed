@@ -1,4 +1,4 @@
-import { MongolDocument, MongolEnum } from '../schemas'
+import { Mongol, MongolEnum } from '../schemas'
 
 export class MongolDto {
     id: string
@@ -9,8 +9,8 @@ export class MongolDto {
     enums: MongolEnum[]
     integer: number
 
-    constructor(mongol: MongolDocument) {
-        const { id, name, email, desc, date, enums, integer } = mongol
+    constructor(mongol: Mongol) {
+        const { _id: id, name, email, desc, date, enums, integer } = mongol
 
         Object.assign(this, {
             id,

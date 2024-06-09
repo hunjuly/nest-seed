@@ -1,55 +1,47 @@
-import { padNumber } from 'common'
-import { Sample, SamplesRepository } from './typeorm.repository.mock'
+import { Injectable, Module } from '@nestjs/common'
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm'
+import { TypeormEntity, TypeormRepository, padNumber } from 'common'
+import { Column, Entity, Repository } from 'typeorm'
 
-export const sampleCreationData: Partial<Sample> = {
-    name: 'sample name'
+@Entity()
+export class Sample extends TypeormEntity {
+    @Column()
+    name: string
 }
 
-export function sortSamples(samples: Sample[], direction: 'asc' | 'desc' = 'asc') {
-    if (direction === 'desc') {
-        return [...samples].sort((a, b) => b.name.localeCompare(a.name))
+@Injectable()
+export class SamplesRepository extends TypeormRepository<Sample> {
+    constructor(@InjectRepository(Sample) repo: Repository<Sample>) {
+        super(repo)
     }
-
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function createSample(repository: SamplesRepository): Promise<Sample> {
-    const sample = await repository.create(sampleCreationData)
-
-    return sample
-}
+@Module({
+    imports: [TypeOrmModule.forFeature([Sample])],
+    providers: [SamplesRepository]
+})
+export class SamplesModule {}
 
 export async function createSamples(repository: SamplesRepository): Promise<Sample[]> {
-    const createPromises = []
+    const promises = []
 
     for (let i = 0; i < 100; i++) {
-        const data = { ...sampleCreationData, name: `Sample-${padNumber(i, 3)}` }
-        createPromises.push(repository.create(data))
-    }
-
-    const samples = await Promise.all(createPromises)
-
-    return sortSamples(samples)
-}
-
-expect.extend({
-    toValidEntity(received, expected) {
-        const pass = this.equals(received, {
-            id: expect.anything(),
-            createdAt: expect.anything(),
-            updatedAt: expect.anything(),
-            version: expect.anything(),
-            ...expected
+        const promise = repository.create({
+            name: `Sample-${padNumber(i, 3)}`
         })
 
-        const message = pass ? () => `expected entity not to match` : () => `expected entity to match`
-
-        return { pass, message }
+        promises.push(promise)
     }
-})
 
-declare module 'expect' {
-    interface Matchers<R> {
-        toValidEntity(expected: Partial<Sample>): R
-    }
+    const samples = await Promise.all(promises)
+
+    return samples
+}
+
+export function sortByName(samples: Sample[]) {
+    return samples.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function sortByNameDescending(samples: Sample[]) {
+    return samples.sort((a, b) => b.name.localeCompare(a.name))
 }
