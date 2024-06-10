@@ -52,3 +52,4 @@ rm -rf $DEST_DIR/
 
 echo "export * from './${new_string}s.controller'" >>"$APP_DIR/controllers/index.ts"
 echo "export * from './$new_string-exists.guard'" >>"$APP_DIR/controllers/guards/index.ts"
+echo "export * from './$new_string-email-not-exists.guard'" >>"$APP_DIR/controllers/guards/index.ts"

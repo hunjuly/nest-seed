@@ -1,6 +1,4 @@
 export * from './auth.controller'
 export * from './customers.controller'
-export * from './mongols.controller'
 export * from './movies.controller'
-export * from './psqls.controller'
 export * from './users.controller'
