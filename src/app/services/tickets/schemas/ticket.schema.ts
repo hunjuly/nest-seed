@@ -1,7 +1,7 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { MongooseSchema, createMongooseSchema } from 'common'
 
-export enum MongolEnum {
+export enum TicketEnum {
     EnumA = 'EnumA',
     EnumB = 'EnumB',
     EnumC = 'EnumC',
@@ -10,8 +10,8 @@ export enum MongolEnum {
 }
 
 @Schema()
-export class Mongol extends MongooseSchema {
-    @Prop({ required: true })
+export class Ticket extends MongooseSchema {
+    @Prop()
     name: string
 
     @Prop({ unique: true })
@@ -23,11 +23,11 @@ export class Mongol extends MongooseSchema {
     @Prop()
     integer: number
 
-    @Prop({ type: [String], enum: MongolEnum, default: [MongolEnum.EnumA] })
-    enums: MongolEnum[]
+    @Prop({ type: [String], enum: TicketEnum, default: [TicketEnum.EnumA] })
+    enums: TicketEnum[]
 
     @Prop()
     date: Date
 }
 
-export const MongolSchema = createMongooseSchema(Mongol)
+export const TicketSchema = createMongooseSchema(Ticket)

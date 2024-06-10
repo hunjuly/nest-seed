@@ -3,13 +3,13 @@ import { MongooseSchema, createMongooseSchema } from 'common'
 
 @Schema()
 export class Customer extends MongooseSchema {
-    @Prop()
+    @Prop({ required: true })
     name: string
 
-    @Prop({ unique: true })
+    @Prop({ unique: true, required: true })
     email: string
 
-    @Prop()
+    @Prop({ required: true })
     birthday: Date
 }
 

@@ -1,22 +1,22 @@
-import { MongolDto } from 'app/services/mongols'
+import { ShowtimeDto } from 'app/services/showtimes'
 import { padNumber } from 'common'
 
-export async function createMongols(request: any): Promise<MongolDto[]> {
+export async function createShowtimes(request: any): Promise<ShowtimeDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {
         const tag = padNumber(i, 3)
 
         const body = {
-            name: `Mongol-${tag}`,
+            name: `Showtime-${tag}`,
             email: `user-${tag}@mail.com`,
-            desc: 'mongol long text',
+            desc: 'showtime long text',
             date: new Date(2020, 1, i),
             enums: ['EnumA', 'EnumB', 'EnumC'],
             integer: 100
         }
 
-        const promise = request.post({ url: '/mongols', body })
+        const promise = request.post({ url: '/showtimes', body })
 
         promises.push(promise)
     }
@@ -30,10 +30,10 @@ export async function createMongols(request: any): Promise<MongolDto[]> {
     return responses.map((res) => res.body)
 }
 
-export function sortByName(mongols: MongolDto[]) {
-    return mongols.sort((a, b) => a.name.localeCompare(b.name))
+export function sortByName(showtimes: ShowtimeDto[]) {
+    return showtimes.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export function sortByNameDescending(mongols: MongolDto[]) {
-    return mongols.sort((a, b) => b.name.localeCompare(a.name))
+export function sortByNameDescending(showtimes: ShowtimeDto[]) {
+    return showtimes.sort((a, b) => b.name.localeCompare(a.name))
 }

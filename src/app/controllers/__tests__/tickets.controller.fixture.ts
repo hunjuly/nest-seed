@@ -1,22 +1,22 @@
-import { MongolDto } from 'app/services/mongols'
+import { TicketDto } from 'app/services/tickets'
 import { padNumber } from 'common'
 
-export async function createMongols(request: any): Promise<MongolDto[]> {
+export async function createTickets(request: any): Promise<TicketDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {
         const tag = padNumber(i, 3)
 
         const body = {
-            name: `Mongol-${tag}`,
+            name: `Ticket-${tag}`,
             email: `user-${tag}@mail.com`,
-            desc: 'mongol long text',
+            desc: 'ticket long text',
             date: new Date(2020, 1, i),
             enums: ['EnumA', 'EnumB', 'EnumC'],
             integer: 100
         }
 
-        const promise = request.post({ url: '/mongols', body })
+        const promise = request.post({ url: '/tickets', body })
 
         promises.push(promise)
     }
@@ -30,10 +30,10 @@ export async function createMongols(request: any): Promise<MongolDto[]> {
     return responses.map((res) => res.body)
 }
 
-export function sortByName(mongols: MongolDto[]) {
-    return mongols.sort((a, b) => a.name.localeCompare(b.name))
+export function sortByName(tickets: TicketDto[]) {
+    return tickets.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export function sortByNameDescending(mongols: MongolDto[]) {
-    return mongols.sort((a, b) => b.name.localeCompare(a.name))
+export function sortByNameDescending(tickets: TicketDto[]) {
+    return tickets.sort((a, b) => b.name.localeCompare(a.name))
 }

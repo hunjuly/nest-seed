@@ -32,6 +32,10 @@ export async function createPsqls(request: any): Promise<PsqlDto[]> {
 
     const responses = await Promise.all(promises)
 
+    if (300 <= responses[0].statusCode) {
+        throw new Error(JSON.stringify(responses[0].body))
+    }
+
     return responses.map((res) => res.body)
 }
 

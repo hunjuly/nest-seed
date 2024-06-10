@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcrypt'
-import { Coordinate, UserException } from 'common'
+import { Coordinates, UserException } from 'common'
 import { randomUUID } from 'crypto'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
@@ -12,25 +12,6 @@ export function generateUUID() {
 
 export const nullUUID = '00000000000000000000000000000000'
 export const nullObjectId = '000000000000000000000000'
-
-// export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
-//     const updatedObject = merge({}, obj1, pick(obj2, keys(obj1)))
-//     return updatedObject
-// }
-
-// export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
-//     const updatedObject = Object.keys(obj2).reduce(
-//         (updated, key) => {
-//             if (key in updated) {
-//                 updated[key as keyof T] = obj2[key]
-//             }
-//             return updated
-//         },
-//         { ...obj1 } // Create a copy of obj1
-//     )
-
-//     return updatedObject
-// }
 
 export function convertStringToMillis(str: string): number {
     const timeUnits: { [key: string]: number } = {
@@ -101,7 +82,7 @@ export function addQuotesToNumbers(text: string) {
     return text.replace(/:(\s*)(\d+)(\s*[,\}])/g, ':"$2"$3')
 }
 
-export function coordinateDistanceInMeters(coord1: Coordinate, coord2: Coordinate) {
+export function coordinatesDistanceInMeters(coord1: Coordinates, coord2: Coordinates) {
     const toRad = (degree: number) => degree * (Math.PI / 180)
     const R = 6371000 // earth radius in meters
 

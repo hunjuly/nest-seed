@@ -100,11 +100,60 @@ Admin <-- Frontend: 등록 완료
 
 ## validateShowtimesCreationRequest(creationRequest)
 
-200개의 극장, 60일의 상영일, 8회차
+```
+  200개의 극장, 60일의 상영일, 8회차
+= 200 * 6 0 * 8
+= 96,000 개의 showtime이 있을 것으로 가정함.
+```
 
-200*60*8=96,000개의 showtime이 있을 것으로 가정함.
+1. 10분 단위로 모든 future showtime을 set에 등록한다.
+2. createShowtime(만들려는 시간)이 timeslots에 존재하면 기존 시간과 충돌하는 것이다.
 
-10분 단위로 모든 future showtime을 set에 등록한다. 그 후, 만들려는 시간=createShowtime이 times에 존재하면 해당 createShowtime은 기존 시간과 충돌하는 것이다.
+```ts
+const timeslots: Set<number> = new Set([
+    202010300430,
+    202010300440,
+    202010300450,
+    202010300500,
+    202010300510,
+    202010300520,
+]);
+
+const createShowtime = 202010300500;
+
+if (timeslots.has(createShowtime)) {
+    console.log('Conflict');
+} else {
+    console.log('No conflict');
+}
+```
+
+> 지금은 backend 메모리를 사용하여 충돌 체크하지만 규모가 커지면 redis로 timeslots을 옮길 수 있다.
+
+```plantuml
+@startuml
+start
+:Admin logs in;
+:Selects movie and theater(s);
+:Enters showtimes;
+
+repeat :For each selected theater;
+    :Retrieve existing showtimes;
+    :Check for time conflicts;
+    if (Conflict exists) then (yes)
+        :Add conflict to list;
+    endif
+repeat while (More theaters)
+
+if (Any conflicts in list?) then (yes)
+    :Report all conflicts;
+else
+    :Submit showtimes and confirm schedule;
+endif
+
+stop
+@enduml
+```
 
 ```plantuml
 @startuml

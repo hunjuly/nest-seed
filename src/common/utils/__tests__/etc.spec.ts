@@ -1,11 +1,11 @@
-import { Coordinate, UserException } from 'common'
+import { Coordinates, UserException } from 'common'
 import {
     Password,
     addQuotesToNumbers,
     comment,
     convertMillisToString,
     convertStringToMillis,
-    coordinateDistanceInMeters,
+    coordinatesDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
     notUsed,
@@ -183,16 +183,16 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('coordinateDistanceInMeters', () => {
+    describe('coordinatesDistanceInMeters', () => {
         it('calculates the distance between two coordinates in meters', () => {
             // coordinates for Seoul, South Korea
-            const seoul: Coordinate = {
+            const seoul: Coordinates = {
                 latitude: 37.5665,
                 longitude: 126.978
             }
 
             // coordinates for Busan, South Korea
-            const busan: Coordinate = {
+            const busan: Coordinates = {
                 latitude: 35.1796,
                 longitude: 129.0756
             }
@@ -202,7 +202,7 @@ describe('common/utils/etc', () => {
             const expectedDistance = 325000
 
             // get the result from our function
-            const actualDistance = coordinateDistanceInMeters(seoul, busan)
+            const actualDistance = coordinatesDistanceInMeters(seoul, busan)
 
             // define our tolerance (5% in this case)
             const tolerance = 0.05 * expectedDistance

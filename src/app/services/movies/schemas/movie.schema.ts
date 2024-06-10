@@ -23,22 +23,22 @@ export enum MovieRated {
 
 @Schema()
 export class Movie extends MongooseSchema {
-    @Prop()
+    @Prop({ required: true })
     title: string
 
     @Prop({ type: [String], enum: MovieGenre, default: [] })
     genre: MovieGenre[]
 
-    @Prop()
+    @Prop({ required: true })
     releaseDate: Date
 
-    @Prop()
+    @Prop({ default: '' })
     plot: string
 
-    @Prop()
+    @Prop({ required: true })
     durationMinutes: number
 
-    @Prop()
+    @Prop({ default: 'John Doe' })
     director: string
 
     @Prop({ type: String, enum: MovieRated })

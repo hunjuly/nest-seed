@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
-import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers/guards'
+import { JwtAuthGuard, LocalAuthGuard } from '../guards'
 import { UserDto } from 'app/services/users'
 import { nullUUID } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
