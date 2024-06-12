@@ -9,10 +9,10 @@ export function sortByTitleDescending(movies: MovieDto[]) {
     return movies.sort((a, b) => b.title.localeCompare(a.title))
 }
 
-export async function createMovies(request: any): Promise<MovieDto[]> {
+export async function createMovies(request: any, count: number): Promise<MovieDto[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
         const genre = i % 2 ? ['Action', 'Comedy', 'Drama'] : ['Romance', 'Thriller', 'Western']
         const director = i % 2 ? 'James Cameron' : 'Steven Spielberg'

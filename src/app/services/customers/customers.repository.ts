@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LogicException, MongooseRepository, PaginationResult } from 'common'
+import { Assert, MongooseRepository, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { CustomersQueryDto, UpdateCustomerDto } from './dto'
@@ -13,12 +13,9 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     }
 
     async update(id: string, updateDto: UpdateCustomerDto): Promise<Customer> {
-        const customer = await this.model.findById(id).exec()
+        const customer = (await this.model.findById(id).exec())!
 
-        /* istanbul ignore if */
-        if (!customer) {
-            throw new LogicException(`Failed to update customer with id: ${id}. Customer not found.`)
-        }
+        Assert.defined(customer, `Failed to update customer with id: ${id}. Customer not found.`)
 
         if (updateDto.name) customer.name = updateDto.name
         if (updateDto.email) customer.email = updateDto.email

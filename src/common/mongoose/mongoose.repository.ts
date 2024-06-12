@@ -1,5 +1,5 @@
 import { PaginationOptions, PaginationResult } from 'common'
-import { Model, QueryWithHelpers } from 'mongoose'
+import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
 import { MongooseException } from './exceptions'
 
 export abstract class MongooseRepository<Doc> {
@@ -9,6 +9,12 @@ export abstract class MongooseRepository<Doc> {
         const savedDocument = await this.model.create(creationData)
 
         return savedDocument.toObject()
+    }
+
+    async createMany(creationData: Partial<Doc>[]): Promise<Doc[]> {
+        const savedDocuments = (await this.model.insertMany(creationData)) as HydratedDocument<Doc>[]
+
+        return savedDocuments.map((doc) => doc.toObject())
     }
 
     async remove(id: string): Promise<void> {

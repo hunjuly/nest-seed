@@ -10,10 +10,10 @@ export const createUserDto = {
     password: 'password'
 }
 
-export async function createUsers(request: any): Promise<UserDto[]> {
+export async function createUsers(request: any, count: number): Promise<UserDto[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
 
         const body = {

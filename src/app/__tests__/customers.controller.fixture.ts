@@ -1,10 +1,10 @@
 import { CustomerDto } from 'app/services/customers'
 import { padNumber } from 'common'
 
-export async function createCustomers(request: any): Promise<CustomerDto[]> {
+export async function createCustomers(request: any, count: number): Promise<CustomerDto[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
 
         const body = {

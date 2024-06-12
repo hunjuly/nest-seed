@@ -18,7 +18,7 @@ describe('TheatersController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        theaters = await createTheaters(req)
+        theaters = await createTheaters(req, 100)
         theater = theaters[0]
     })
 

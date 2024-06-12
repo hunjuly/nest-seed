@@ -61,7 +61,7 @@ actor Admin
 Admin -> Frontend: 선택한 영화에 대한 상영 시간 입력
 Frontend -> Backend: POST /showtimes
     note right
-    ShowtimesCreationRequest {
+    CreateShowtimesRequest {
         "movieId": "movie#1",
         "theaterIds": ["theater#1","theater#2"],
         "durationMinutes": 90,

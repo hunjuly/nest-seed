@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LogicException, MongooseRepository, PaginationResult } from 'common'
+import { Assert, MongooseRepository, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { MoviesQueryDto, UpdateMovieDto } from './dto'
@@ -13,12 +13,9 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     }
 
     async update(id: string, updateDto: UpdateMovieDto): Promise<Movie> {
-        const movie = await this.model.findById(id).exec()
+        const movie = (await this.model.findById(id).exec())!
 
-        /* istanbul ignore if */
-        if (!movie) {
-            throw new LogicException(`Failed to update movie with id: ${id}. Movie not found.`)
-        }
+        Assert.defined(movie, `Failed to update movie with id: ${id}. Movie not found.`)
 
         if (updateDto.title) movie.title = updateDto.title
         if (updateDto.genre) movie.genre = updateDto.genre

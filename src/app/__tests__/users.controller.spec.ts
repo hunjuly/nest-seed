@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
-import { JwtAuthGuard, LocalAuthGuard } from '../guards'
+import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers'
 import { UserDto } from 'app/services/users'
 import { nullUUID } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
@@ -22,7 +22,7 @@ describe('UsersController', () => {
 
         req = testingContext.request
 
-        users = await createUsers(req)
+        users = await createUsers(req, 100)
         user = users[0]
     })
 

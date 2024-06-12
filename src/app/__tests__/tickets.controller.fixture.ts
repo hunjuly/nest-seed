@@ -1,10 +1,10 @@
 import { TicketDto } from 'app/services/tickets'
 import { padNumber } from 'common'
 
-export async function createTickets(request: any): Promise<TicketDto[]> {
+export async function createTickets(request: any, count: number): Promise<TicketDto[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
 
         const body = {

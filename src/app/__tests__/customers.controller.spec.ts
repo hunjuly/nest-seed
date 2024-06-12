@@ -1,55 +1,52 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
-import { ShowtimeDto } from 'app/services/showtimes'
+import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createShowtimes, sortByName, sortByNameDescending } from './showtimes.controller.fixture'
+import { createCustomers, sortByName, sortByNameDescending } from './customers.controller.fixture'
 
-describe('ShowtimesController', () => {
+describe('CustomersController', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 
-    let showtimes: ShowtimeDto[] = []
-    let showtime: ShowtimeDto
+    let customers: CustomerDto[] = []
+    let customer: CustomerDto
 
     beforeEach(async () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        showtimes = await createShowtimes(req)
-        showtime = showtimes[0]
+        customers = await createCustomers(req, 100)
+        customer = customers[0]
     })
 
     afterEach(async () => {
         if (testingContext) await testingContext.close()
     })
 
-    describe('POST /showtimes', () => {
-        const createShowtimeDto = {
-            name: 'showtime name',
+    describe('POST /customers', () => {
+        const createCustomerDto = {
+            name: 'customer name',
             email: 'user@mail.com',
-            desc: 'showtime long text',
-            date: new Date('2020-12-12'),
-            enums: ['EnumA', 'EnumB', 'EnumC'],
-            integer: 100
+            birthday: new Date('2020-12-12')
         }
 
-        it('Create a showtime', async () => {
-            const res = await req.post({ url: '/showtimes', body: createShowtimeDto })
+        it('Create a customer', async () => {
+            const res = await req.post({ url: '/customers', body: createCustomerDto })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)
             expect(res.body).toEqual({
                 id: expect.anything(),
-                ...createShowtimeDto
+                ...createCustomerDto
             })
         })
 
         it('CONFLICT(409) if email already exists', async () => {
             const res = await req.post({
-                url: '/showtimes',
-                body: { ...createShowtimeDto, email: showtime.email }
+                url: '/customers',
+                body: { ...createCustomerDto, email: customer.email }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
@@ -57,7 +54,7 @@ describe('ShowtimesController', () => {
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
             const res = await req.post({
-                url: '/showtimes',
+                url: '/customers',
                 body: {}
             })
 
@@ -65,38 +62,35 @@ describe('ShowtimesController', () => {
         })
     })
 
-    describe('PATCH /showtimes/:id', () => {
-        it('Update a showtime', async () => {
+    describe('PATCH /customers/:id', () => {
+        it('Update a customer', async () => {
             const updateData = {
                 name: 'update name',
                 email: 'new@mail.com',
-                desc: 'update long text',
-                date: new Date('2000-12-12'),
-                enums: ['EnumC', 'EnumD', 'EnumE'],
-                integer: 999
+                birthday: new Date('1920-12-12')
             }
 
-            const updateResponse = await req.patch({ url: `/showtimes/${showtime.id}`, body: updateData })
+            const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateData })
+
+            const getResponse = await req.get({ url: `/customers/${customer.id}` })
+
             expect(updateResponse.status).toEqual(HttpStatus.OK)
-
-            const getResponse = await req.get({ url: `/showtimes/${showtime.id}` })
-
-            expect(updateResponse.body).toEqual({ ...showtime, ...updateData })
+            expect(updateResponse.body).toEqual({ ...customer, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('BAD_REQUEST(400) for invalid update fields', async () => {
             const res = await req.patch({
-                url: `/showtimes/${showtime.id}`,
+                url: `/customers/${customer.id}`,
                 body: { wrong_item: 0 }
             })
 
             expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
         })
 
-        it('NOT_FOUND(404) if showtime is not found', async () => {
+        it('NOT_FOUND(404) if customer is not found', async () => {
             const res = await req.patch({
-                url: `/showtimes/${nullObjectId}`,
+                url: `/customers/${nullObjectId}`,
                 body: {}
             })
 
@@ -104,54 +98,54 @@ describe('ShowtimesController', () => {
         })
     })
 
-    describe('DELETE /showtimes/:id', () => {
-        it('Delete a showtime', async () => {
-            const deleteResponse = await req.delete({ url: `/showtimes/${showtime.id}` })
-            const getResponse = await req.get({ url: `/showtimes/${showtime.id}` })
+    describe('DELETE /customers/:id', () => {
+        it('Delete a customer', async () => {
+            const deleteResponse = await req.delete({ url: `/customers/${customer.id}` })
+            const getResponse = await req.get({ url: `/customers/${customer.id}` })
 
             expect(deleteResponse.status).toEqual(HttpStatus.OK)
             expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
         })
 
-        it('NOT_FOUND(404) if showtime is not found', async () => {
-            const res = await req.delete({ url: `/showtimes/${nullObjectId}` })
+        it('NOT_FOUND(404) if customer is not found', async () => {
+            const res = await req.delete({ url: `/customers/${nullObjectId}` })
 
             expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('GET /showtimes', () => {
-        it('Retrieve all showtimes', async () => {
+    describe('GET /customers', () => {
+        it('Retrieve all customers', async () => {
             const res = await req.get({
-                url: '/showtimes',
+                url: '/customers',
                 query: { orderby: 'name:asc' }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(showtimes)
+            expect(res.body.items).toEqual(customers)
         })
 
-        it('Retrieve showtimes by name', async () => {
+        it('Retrieve customers by name', async () => {
             const res = await req.get({
-                url: '/showtimes',
-                query: { name: showtime.name }
+                url: '/customers',
+                query: { name: customer.name }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual([showtime])
+            expect(res.body.items).toEqual([customer])
         })
 
-        it('Retrieve showtimes by partial name', async () => {
+        it('Retrieve customers by partial name', async () => {
             const res = await req.get({
-                url: '/showtimes',
-                query: { name: 'Showtime-' }
+                url: '/customers',
+                query: { name: 'Customer-' }
             })
 
             sortByName(res.body.items)
-            sortByName(showtimes)
+            sortByName(customers)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(showtimes)
+            expect(res.body.items).toEqual(customers)
         })
 
         it('Pagination', async () => {
@@ -159,14 +153,14 @@ describe('ShowtimesController', () => {
             const take = 50
 
             const res = await req.get({
-                url: '/showtimes',
+                url: '/customers',
                 query: { skip, take, orderby: 'name:asc' }
             })
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body).toEqual({
-                items: showtimes.slice(skip, skip + take),
-                total: showtimes.length,
+                items: customers.slice(skip, skip + take),
+                total: customers.length,
                 skip,
                 take
             })
@@ -174,56 +168,56 @@ describe('ShowtimesController', () => {
 
         it('Sort in ascending order', async () => {
             const res = await req.get({
-                url: '/showtimes',
+                url: '/customers',
                 query: { orderby: 'name:asc' }
             })
 
-            sortByName(showtimes)
+            sortByName(customers)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(showtimes)
+            expect(res.body.items).toEqual(customers)
         })
 
         it('Sort in descending order', async () => {
             const res = await req.get({
-                url: '/showtimes',
+                url: '/customers',
                 query: { orderby: 'name:desc' }
             })
 
-            sortByNameDescending(showtimes)
+            sortByNameDescending(customers)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(showtimes)
+            expect(res.body.items).toEqual(customers)
         })
     })
 
-    describe('POST /showtimes/findByIds', () => {
-        it('Retrieve showtimes by multiple IDs', async () => {
-            const showtimeIds = showtimes.map((showtime) => showtime.id)
+    describe('POST /customers/findByIds', () => {
+        it('Retrieve customers by multiple IDs', async () => {
+            const customerIds = customers.map((customer) => customer.id)
 
             const res = await req.post({
-                url: '/showtimes/findByIds',
-                body: showtimeIds
+                url: '/customers/findByIds',
+                body: customerIds
             })
 
             sortByName(res.body)
-            sortByName(showtimes)
+            sortByName(customers)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual(showtimes)
+            expect(res.body).toEqual(customers)
         })
     })
 
-    describe('GET /showtimes/:id', () => {
-        it('Retrieve a showtime by ID', async () => {
-            const res = await req.get({ url: `/showtimes/${showtime.id}` })
+    describe('GET /customers/:id', () => {
+        it('Retrieve a customer by ID', async () => {
+            const res = await req.get({ url: `/customers/${customer.id}` })
 
             expect(res.status).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual(showtime)
+            expect(res.body).toEqual(customer)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
-            const res = await req.get({ url: `/showtimes/${nullObjectId}` })
+            const res = await req.get({ url: `/customers/${nullObjectId}` })
 
             expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })

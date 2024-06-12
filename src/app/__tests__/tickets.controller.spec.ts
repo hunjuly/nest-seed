@@ -18,7 +18,7 @@ describe('TicketsController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        tickets = await createTickets(req)
+        tickets = await createTickets(req, 100)
         ticket = tickets[0]
     })
 

@@ -30,10 +30,12 @@ export async function createShowtimes(request: any): Promise<ShowtimeDto[]> {
     return responses.map((res) => res.body)
 }
 
-export function sortByName(showtimes: ShowtimeDto[]) {
-    return showtimes.sort((a, b) => a.name.localeCompare(b.name))
-}
+export async function sortShowtimes(showtimes: ShowtimeDto[]) {
+    return showtimes.sort((a, b) => {
+        if (a.theaterId === b.theaterId) {
+            return a.theaterId.localeCompare(b.theaterId)
+        }
 
-export function sortByNameDescending(showtimes: ShowtimeDto[]) {
-    return showtimes.sort((a, b) => b.name.localeCompare(a.name))
+        return a.startTime.getTime() - b.startTime.getTime()
+    })
 }

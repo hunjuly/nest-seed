@@ -1,7 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { EnvironmentException, convertStringToMillis } from 'common'
+import { EnvironmentException, stringToMillisecs } from 'common'
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
@@ -14,7 +14,7 @@ export class CacheService implements OnModuleDestroy {
     }
 
     async set(key: string, value: string, expireTime = '0s'): Promise<void> {
-        const expireMillisecs = convertStringToMillis(expireTime)
+        const expireMillisecs = stringToMillisecs(expireTime)
 
         if (expireMillisecs < 0) {
             throw new EnvironmentException('ttlMiliseconds should not be negative')

@@ -1,25 +1,15 @@
-import { Showtime, ShowtimeEnum } from '../schemas'
+import { Showtime } from '../schemas'
 
 export class ShowtimeDto {
     id: string
-    name: string
-    email: string
-    desc: string
-    date: Date
-    enums: ShowtimeEnum[]
-    integer: number
+    startTime: Date
+    endTime: Date
+    theaterId: string
+    movieId: string
 
     constructor(showtime: Showtime) {
-        const { _id: id, name, email, desc, date, enums, integer } = showtime
+        const { _id: id, startTime, endTime, theaterId, movieId } = showtime
 
-        Object.assign(this, {
-            id,
-            name,
-            email,
-            desc,
-            date,
-            enums,
-            integer
-        })
+        Object.assign(this, { id, startTime, endTime, theaterId, movieId })
     }
 }

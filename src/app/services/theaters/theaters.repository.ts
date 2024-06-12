@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LogicException, MongooseRepository, PaginationResult } from 'common'
+import { Assert, MongooseRepository, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
 import { TheatersQueryDto, UpdateTheaterDto } from './dto'
@@ -13,12 +13,9 @@ export class TheatersRepository extends MongooseRepository<Theater> {
     }
 
     async update(id: string, updateDto: UpdateTheaterDto): Promise<Theater> {
-        const theater = await this.model.findById(id).exec()
+        const theater = (await this.model.findById(id).exec())!
 
-        /* istanbul ignore if */
-        if (!theater) {
-            throw new LogicException(`Failed to update theater with id: ${id}. Theater not found.`)
-        }
+        Assert.defined(theater, `Failed to update theater with id: ${id}. Theater not found.`)
 
         if (updateDto.name) theater.name = updateDto.name
         if (updateDto.coordinates) theater.coordinates = updateDto.coordinates

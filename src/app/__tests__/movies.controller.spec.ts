@@ -17,7 +17,7 @@ describe('MoviesController', () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        movies = await createMovies(req)
+        movies = await createMovies(req, 100)
         movie = movies[0]
     })
 

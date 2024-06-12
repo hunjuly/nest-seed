@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LogicException, MongooseRepository, PaginationResult } from 'common'
-import { escapeRegExp } from 'lodash'
+import { MongooseRepository } from 'common'
 import { Model } from 'mongoose'
-import { ShowtimesQueryDto, UpdateShowtimeDto } from './dto'
 import { Showtime } from './schemas'
 
 @Injectable()
@@ -12,37 +10,22 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         super(model)
     }
 
-    async update(id: string, updateDto: UpdateShowtimeDto): Promise<Showtime> {
-        const showtime = await this.model.findById(id).exec()
+    async findShowtimesWithinDateRange(query: {
+        theaterId: string
+        startTime: Date
+        endTime: Date
+    }): Promise<Showtime[]> {
+        /**
+         * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
+         * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
+         */
+        const showtimes = await this.model
+            .find({
+                theaterId: query.theaterId,
+                startTime: { $gte: query.startTime, $lte: query.endTime }
+            })
+            .lean()
 
-        /* istanbul ignore if */
-        if (!showtime) {
-            throw new LogicException(`Failed to update showtime with id: ${id}. Showtime not found.`)
-        }
-
-        if (updateDto.name) showtime.name = updateDto.name
-        if (updateDto.email) showtime.email = updateDto.email
-        if (updateDto.desc) showtime.desc = updateDto.desc
-        if (updateDto.date) showtime.date = updateDto.date
-        if (updateDto.enums) showtime.enums = updateDto.enums
-        if (updateDto.integer) showtime.integer = updateDto.integer
-
-        await showtime.save()
-
-        return showtime.toObject()
-    }
-
-    async findByQuery(queryDto: ShowtimesQueryDto): Promise<PaginationResult<Showtime>> {
-        const { take, skip, orderby, ...args } = queryDto
-
-        const query: Record<string, any> = args
-
-        if (args.name) {
-            query['name'] = new RegExp(escapeRegExp(args.name), 'i')
-        }
-
-        const result = await super.find({ take, skip, orderby, query })
-
-        return result
+        return showtimes
     }
 }

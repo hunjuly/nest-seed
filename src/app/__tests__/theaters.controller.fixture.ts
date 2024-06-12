@@ -10,10 +10,10 @@ export const seatmap = {
     ]
 }
 
-export async function createTheaters(request: any): Promise<TheaterDto[]> {
+export async function createTheaters(request: any, count: number): Promise<TheaterDto[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
 
         const body = {
