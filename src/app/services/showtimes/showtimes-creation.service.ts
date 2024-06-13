@@ -1,4 +1,4 @@
-import { Assert, LogicException, addMinutes, findMaxDate, findMinDate } from 'common'
+import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate } from 'common'
 import { CreateShowtimesRequest } from './dto'
 import { Showtime } from './schemas'
 import { ShowtimesRepository } from './showtimes.repository'
@@ -9,6 +9,14 @@ export class CreateShowtimesResult {
 }
 
 type Timeslot = Map<number, Showtime>
+
+function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => boolean | void) {
+    for (let time = start.getTime(); time < end.getTime(); time = time + 10 * 60 * 1000) {
+        if (false === callback(time)) {
+            break
+        }
+    }
+}
 
 export class CreateShowtimesService {
     constructor(private showtimesRepository: ShowtimesRepository) {}
@@ -25,8 +33,8 @@ export class CreateShowtimesService {
         return { createdShowtimes }
     }
 
-    private async saveShowtimes(createShowtimesDto: CreateShowtimesRequest) {
-        const { movieId, theaterIds, durationMinutes, startTimes } = createShowtimesDto
+    private async saveShowtimes(request: CreateShowtimesRequest) {
+        const { movieId, theaterIds, durationMinutes, startTimes } = request
 
         const showtimeEntries: Partial<Showtime>[] = []
 
@@ -34,7 +42,12 @@ export class CreateShowtimesService {
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
 
-                showtimeEntries.push({ movieId, theaterId, startTime, endTime })
+                showtimeEntries.push({
+                    movieId: new ObjectId(movieId),
+                    theaterId: new ObjectId(theaterId),
+                    startTime,
+                    endTime
+                })
             }
         }
 
@@ -43,10 +56,10 @@ export class CreateShowtimesService {
         return createdShowtimes
     }
 
-    async checkForTimeConflicts(createShowtimesDto: CreateShowtimesRequest): Promise<Showtime[]> {
-        const { durationMinutes, startTimes, theaterIds } = createShowtimesDto
+    async checkForTimeConflicts(request: CreateShowtimesRequest): Promise<Showtime[]> {
+        const { durationMinutes, startTimes, theaterIds } = request
 
-        const timeslotsByTheater = await this.createTimeslotsByTheater(createShowtimesDto)
+        const timeslotsByTheater = await this.createTimeslotsByTheater(request)
 
         const conflictShowtimes: Showtime[] = []
 
@@ -58,28 +71,22 @@ export class CreateShowtimesService {
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
 
-                for (
-                    let timeslot = startTime.getTime();
-                    timeslot < endTime.getTime();
-                    timeslot = timeslot + 10 * 60 * 1000 //10Min
-                ) {
-                    const showtime = timeslots.get(timeslot)
+                executeEvery10Mins(startTime, endTime, (time) => {
+                    const showtime = timeslots.get(time)
 
                     if (showtime) {
                         conflictShowtimes.push(showtime)
-                        break
+                        return false
                     }
-                }
+                })
             }
         }
 
         return conflictShowtimes
     }
 
-    private async createTimeslotsByTheater(
-        createShowtimesDto: CreateShowtimesRequest
-    ): Promise<Map<string, Timeslot>> {
-        const { theaterIds, durationMinutes, startTimes } = createShowtimesDto
+    private async createTimeslotsByTheater(request: CreateShowtimesRequest): Promise<Map<string, Timeslot>> {
+        const { theaterIds, durationMinutes, startTimes } = request
 
         const startDate = findMinDate(startTimes)
         const maxDate = findMaxDate(startTimes)
@@ -89,7 +96,7 @@ export class CreateShowtimesService {
 
         for (const theaterId of theaterIds) {
             const fetchedShowtimes = await this.showtimesRepository.findShowtimesWithinDateRange({
-                theaterId,
+                theaterId: new ObjectId(theaterId),
                 startTime: startDate,
                 endTime: endDate
             })
@@ -97,13 +104,9 @@ export class CreateShowtimesService {
             const timeslots = new Map<number, Showtime>()
 
             for (const showtime of fetchedShowtimes) {
-                for (
-                    let time = showtime.startTime.getTime();
-                    time < showtime.endTime.getTime();
-                    time = time + 10 * 60 * 1000 //10Min
-                ) {
+                executeEvery10Mins(showtime.startTime, showtime.endTime, (time) => {
                     timeslots.set(time, showtime)
-                }
+                })
             }
 
             timeslotsByTheater.set(theaterId, timeslots)

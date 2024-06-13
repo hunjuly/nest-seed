@@ -59,7 +59,7 @@ class Showtime {
     movieId: string
 }
 
-class Ticket{
+class Ticket {
     showtimeId:string
     seat:Seat
     status: TicketStatus
@@ -67,12 +67,12 @@ class Ticket{
 
 note left
 enum TicketStatus {
-    OPEN, RESERVED, SOLD
+    open, reserved, sold
 }
 
 Seat {
     block: string
-    row: number
+    row: string
     seatnum: number
 }
 end note

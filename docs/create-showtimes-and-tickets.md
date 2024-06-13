@@ -1,4 +1,4 @@
-# Create Showtimes
+# Create Showtimes and Tickets
 
 goal : 하나의 영화를 여러 극장에 상영 시간 등록하기
 
@@ -155,37 +155,7 @@ stop
 @enduml
 ```
 
-```plantuml
-@startuml
-start
-:{theaterIds, durationMinutes, startTimes} = creationRequest;
-: minTime = min(startTimes);
-: maxTime = max(startTimes) + durationMinutes;
-
-while (theaterId of theaterIds)
-    : registeredShowtimes = minTime < theaterIds[]의 모든 showtimes < maxTime;
-    while (showtime of registeredShowtimes)
-        :timeslot = showtime.start;
-        while (timeslot < showtime.end)
-            :occupiedTimeslots.set(timeslot);
-            :timeslot=timeslot + 10;
-        endwhile
-    endwhile
-
-    while (startTime of startTimes)
-        : timeslot = startTime;
-        while (timeslot < startTime + duration)
-            if (occupiedTimeslots.exists(timeslot)) then (Y)
-                :conflictingShowtimes에 추가;
-                break
-            endif
-            : timeslot = timeslot + 10;
-        endwhile
-    endwhile
-endwhile
-
-:conflictingShowtimes 반환;
-note
+```ts
 ValidationResultDto
 {
     status: 'success' | 'fail';
@@ -199,7 +169,4 @@ ValidationResultDto
         }
     ]
 }
-end note
-stop
-@enduml
 ```

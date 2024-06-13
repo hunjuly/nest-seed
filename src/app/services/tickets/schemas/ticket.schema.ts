@@ -1,33 +1,34 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { MongooseSchema, createMongooseSchema } from 'common'
+import { MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 
-export enum TicketEnum {
-    EnumA = 'EnumA',
-    EnumB = 'EnumB',
-    EnumC = 'EnumC',
-    EnumD = 'EnumD',
-    EnumE = 'EnumE'
+export enum TicketStatus {
+    open = 'open',
+    reserved = 'reserved',
+    sold = 'sold'
+}
+
+export class TicketSeat {
+    block: string
+    row: string
+    seatnum: number
 }
 
 @Schema()
 export class Ticket extends MongooseSchema {
-    @Prop()
-    name: string
+    @Prop({ type: ObjectId, required: true })
+    showtimeId: ObjectId
 
-    @Prop({ unique: true })
-    email: string
+    @Prop({ type: ObjectId, required: true })
+    theaterId: ObjectId
 
-    @Prop({ maxlength: 255 })
-    desc: string
+    @Prop({ type: ObjectId, required: true })
+    movieId: ObjectId
 
-    @Prop()
-    integer: number
+    @Prop({ type: String, enum: TicketStatus, default: TicketStatus.open, required: true })
+    status: TicketStatus
 
-    @Prop({ type: [String], enum: TicketEnum, default: [TicketEnum.EnumA] })
-    enums: TicketEnum[]
-
-    @Prop()
-    date: Date
+    @Prop({ type: Object, required: true })
+    seat: TicketSeat
 }
 
 export const TicketSchema = createMongooseSchema(Ticket)

@@ -1,44 +1,37 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult } from 'common'
+import { Assert, ObjectId, PaginationResult } from 'common'
 import { HydratedDocument } from 'mongoose'
-import { CreateTicketDto, TicketDto, TicketsQueryDto, UpdateTicketDto } from './dto'
+import { TicketDto, TicketsQueryDto } from './dto'
+import { Ticket, TicketStatus } from './schemas'
 import { TicketsRepository } from './tickets.repository'
-import { Ticket } from './schemas'
+import { ShowtimeDto } from '../showtimes'
+import { TheatersService, forEachSeat } from '../theaters'
 
 @Injectable()
 export class TicketsService {
-    constructor(private ticketsRepository: TicketsRepository) {}
+    constructor(
+        private ticketsRepository: TicketsRepository,
+        private theatersService: TheatersService
+    ) {}
 
-    async createTicket(createTicketDto: CreateTicketDto) {
-        const savedTicket = await this.ticketsRepository.create(createTicketDto)
+    async createTickets(showtimes: ShowtimeDto[]) {
+        const ticketEntries: Partial<Ticket>[] = []
 
-        return new TicketDto(savedTicket)
-    }
+        for (const showtime of showtimes) {
+            const theater = await this.theatersService.getTheater(showtime.theaterId)
 
-    async doesTicketExist(ticketId: string): Promise<boolean> {
-        const ticketExists = await this.ticketsRepository.doesIdExist(ticketId)
-
-        return ticketExists
-    }
-
-    async findByEmail(email: string): Promise<TicketDto | null> {
-        const result = await this.ticketsRepository.findByQuery({ email })
-
-        if (1 === result.items.length) {
-            return new TicketDto(result.items[0])
+            forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
+                ticketEntries.push({
+                    showtimeId: new ObjectId(showtime.id),
+                    theaterId: new ObjectId(showtime.theaterId),
+                    movieId: new ObjectId(showtime.movieId),
+                    status: TicketStatus.open,
+                    seat: { block, row, seatnum }
+                })
+            })
         }
 
-        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
-
-        return null
-    }
-
-    async findByIds(ticketIds: string[]) {
-        const foundTickets = await this.ticketsRepository.findByIds(ticketIds)
-
-        const ticketDtos = foundTickets.map((ticket) => new TicketDto(ticket))
-
-        return ticketDtos
+        await this.ticketsRepository.createMany(ticketEntries)
     }
 
     async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {
@@ -47,6 +40,20 @@ export class TicketsService {
         const items = paginatedTickets.items.map((ticket) => new TicketDto(ticket))
 
         return { ...paginatedTickets, items }
+    }
+
+    async doesTicketExist(ticketId: string): Promise<boolean> {
+        const ticketExists = await this.ticketsRepository.doesIdExist(ticketId)
+
+        return ticketExists
+    }
+
+    async findByIds(ticketIds: string[]) {
+        const foundTickets = await this.ticketsRepository.findByIds(ticketIds)
+
+        const ticketDtos = foundTickets.map((ticket) => new TicketDto(ticket))
+
+        return ticketDtos
     }
 
     async getTicket(ticketId: string) {
@@ -61,12 +68,6 @@ export class TicketsService {
         Assert.defined(ticket, `Ticket(${ticketId}) not found`)
 
         return ticket as HydratedDocument<Ticket>
-    }
-
-    async updateTicket(ticketId: string, updateTicketDto: UpdateTicketDto) {
-        const savedTicket = await this.ticketsRepository.update(ticketId, updateTicketDto)
-
-        return new TicketDto(savedTicket)
     }
 
     async removeTicket(ticketId: string) {

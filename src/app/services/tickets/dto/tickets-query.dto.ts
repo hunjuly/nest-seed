@@ -3,8 +3,8 @@ import { PaginationOptions } from 'common'
 
 export class TicketsQueryDto extends PaginationOptions {
     @IsOptional()
-    name?: string
+    theaterId?: string
 
     @IsOptional()
-    email?: string
+    movieId?: string
 }

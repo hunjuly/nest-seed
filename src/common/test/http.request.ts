@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
 import { LogicException } from '../exceptions'
 
@@ -8,6 +9,10 @@ interface RequestContext {
     query?: any
 }
 
+/**
+ * When received as JSON, Date is a string. Convert it to a Date automatically.
+ * Add any other types to this function that need to be converted automatically besides Date.
+ */
 function transformObjectStrings(obj: any) {
     for (const key in obj) {
         if (typeof obj[key] === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj[key])) {
@@ -66,3 +71,15 @@ export class HttpRequest {
         return this.sendRequest(req, ctx)
     }
 }
+
+function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
+    if (response.statusCode !== status) {
+        console.log(response.body)
+    }
+
+    expect(response.statusCode).toEqual(status)
+}
+
+export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
+export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
+export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)

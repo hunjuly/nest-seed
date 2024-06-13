@@ -1,5 +1,6 @@
 import { Type } from '@nestjs/common'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Types } from 'mongoose'
 
 @Schema({
     minimize: false,
@@ -36,3 +37,5 @@ export function createMongooseSchema<T extends Type<any>>(cls: T) {
 
     return schema
 }
+
+export class ObjectId extends Types.ObjectId {}

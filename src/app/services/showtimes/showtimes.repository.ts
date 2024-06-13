@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository } from 'common'
+import { MongooseRepository, ObjectId } from 'common'
 import { Model } from 'mongoose'
 import { Showtime } from './schemas'
 
@@ -11,7 +11,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     }
 
     async findShowtimesWithinDateRange(query: {
-        theaterId: string
+        theaterId: ObjectId
         startTime: Date
         endTime: Date
     }): Promise<Showtime[]> {

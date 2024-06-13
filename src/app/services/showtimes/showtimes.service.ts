@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { TicketsService } from '../tickets'
-import { CreateShowtimesRequest, CreateShowtimesResponse } from './dto'
+import { CreateShowtimesRequest, CreateShowtimesResponse, ShowtimeDto } from './dto'
 import { CreateShowtimesService } from './showtimes-creation.service'
 import { ShowtimesRepository } from './showtimes.repository'
 
@@ -17,7 +17,9 @@ export class ShowtimesService {
         const result = await createShowtimesService.create(createShowtimesRequest)
 
         if (result.createdShowtimes) {
-            // await this.ticketsService.createTickets(result.showtimes)
+            await this.ticketsService.createTickets(
+                result.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
+            )
         }
 
         return CreateShowtimesResponse.create(result)

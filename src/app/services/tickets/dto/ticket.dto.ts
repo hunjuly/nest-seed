@@ -1,25 +1,19 @@
-import { Ticket, TicketEnum } from '../schemas'
+import { TicketSeat, Ticket } from '../schemas'
 
 export class TicketDto {
     id: string
-    name: string
-    email: string
-    desc: string
-    date: Date
-    enums: TicketEnum[]
-    integer: number
+    showtimeId: string
+    seat: TicketSeat
+    status: string
 
     constructor(ticket: Ticket) {
-        const { _id: id, name, email, desc, date, enums, integer } = ticket
+        const { _id: id, showtimeId, seat, status } = ticket
 
         Object.assign(this, {
             id,
-            name,
-            email,
-            desc,
-            date,
-            enums,
-            integer
+            showtimeId,
+            seat,
+            status
         })
     }
 }
