@@ -7,7 +7,7 @@ export class MongolExistsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
-        const mongolId = request.params.mongolId
+        const mongolId = request.query.mongolId || request.params.mongolId
 
         const mongolExists = await this.mongolsService.doesMongolExist(mongolId)
 

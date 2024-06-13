@@ -7,7 +7,7 @@ export class CustomerExistsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
-        const customerId = request.params.customerId
+        const customerId = request.query.customerId || request.params.customerId
 
         const customerExists = await this.customersService.doesCustomerExist(customerId)
 

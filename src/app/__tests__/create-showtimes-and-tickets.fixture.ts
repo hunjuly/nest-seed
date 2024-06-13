@@ -12,25 +12,34 @@ export async function sortShowtimes(showtimes: ShowtimeDto[]) {
     })
 }
 
-export function createTicketsByTheater(theaters: TheaterDto[], seatmap: Seatmap, showtimes: ShowtimeDto[]) {
-    const ticketsByTheater = new Map<string, TicketDto[]>()
+export async function sortTickets(tickets: TicketDto[]) {
+    return tickets.sort((a, b) => {
+        if (a.showtimeId === b.showtimeId) {
+            const seatA = JSON.stringify(a.seat)
+            const seatB = JSON.stringify(b.seat)
 
-    for (const theater of theaters) {
-        ticketsByTheater.set(theater.id, [])
-    }
+            return seatA.localeCompare(seatB)
+        }
+
+        return a.showtimeId.localeCompare(b.showtimeId)
+    })
+}
+
+export function createTicketsByTheater(theater: TheaterDto, seatmap: Seatmap, showtimes: ShowtimeDto[]) {
+    const tickets: TicketDto[] = []
 
     for (const showtime of showtimes) {
-        const tickets = ticketsByTheater.get(showtime.theaterId)!
-
-        forEachSeat(seatmap, (block: string, row: string, seatnum: number) => {
-            tickets.push({
-                id: expect.anything(),
-                showtimeId: showtime.id,
-                seat: { block, row, seatnum },
-                status: 'open'
+        if (theater.id === showtime.theaterId) {
+            forEachSeat(seatmap, (block: string, row: string, seatnum: number) => {
+                tickets.push({
+                    id: expect.anything(),
+                    showtimeId: showtime.id,
+                    seat: { block, row, seatnum },
+                    status: 'open'
+                })
             })
-        })
+        }
     }
 
-    return ticketsByTheater
+    return tickets
 }

@@ -7,7 +7,7 @@ export class MovieExistsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
-        const movieId = request.params.movieId
+        const movieId = request.query.movieId || request.params.movieId
 
         const movieExists = await this.moviesService.doesMovieExist(movieId)
 

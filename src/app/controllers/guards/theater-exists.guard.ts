@@ -7,7 +7,7 @@ export class TheaterExistsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
-        const theaterId = request.params.theaterId
+        const theaterId = request.query.theaterId || request.params.theaterId
 
         const theaterExists = await this.theatersService.doesTheaterExist(theaterId)
 

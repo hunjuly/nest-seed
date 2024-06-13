@@ -11,7 +11,7 @@ import {
     expectOk
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTicketsByTheater, sortShowtimes } from './create-showtimes-and-tickets.fixture'
+import { createTicketsByTheater, sortShowtimes, sortTickets } from './create-showtimes-and-tickets.fixture'
 
 describe('Use Case - Create Showtimes', () => {
     let testingContext: HttpTestingContext
@@ -143,11 +143,14 @@ describe('Use Case - Create Showtimes', () => {
     })
 
     it('Find created tickets', async () => {
-        const ticketsByTheater = createTicketsByTheater(theaters, seatmap, showtimes)
         const theater = theaters[0]
+        const expectedTickets = createTicketsByTheater(theater, seatmap, showtimes)
 
         const res = await req.get({ url: `/tickets?movieId=${movie.id}&theaterId=${theater.id}` })
         expectOk(res)
-        expect(res.body.items).toEqual(ticketsByTheater.get(theater.id))
+
+        sortTickets(res.body.items)
+        sortTickets(expectedTickets)
+        expect(res.body.items).toEqual(expectedTickets)
     })
 })
