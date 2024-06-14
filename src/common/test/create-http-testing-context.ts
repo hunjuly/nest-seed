@@ -1,13 +1,14 @@
+import { INestApplication } from '@nestjs/common'
+import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
-import { TestingModule } from '@nestjs/testing'
 
 export interface HttpTestingContext {
     server: any
     module: TestingModule
-    app: any
+    app: INestApplication<any>
     request: HttpRequest
     close: () => Promise<void>
 }
@@ -26,6 +27,8 @@ export async function createHttpTestingContext(metadata: ModuleMetadataEx): Prom
         } catch (error) {
             app.useLogger(console)
         }
+    } else {
+        app.useLogger(false)
     }
 
     if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {

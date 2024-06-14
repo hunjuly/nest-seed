@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository, ObjectId } from 'common'
+import { MongooseRepository, ObjectId, PaginationResult } from 'common'
 import { Model } from 'mongoose'
 import { Showtime } from './schemas'
+import { ShowtimesQueryDto } from './dto'
 
 @Injectable()
 export class ShowtimesRepository extends MongooseRepository<Showtime> {
@@ -27,5 +28,19 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             .lean()
 
         return showtimes
+    }
+
+    async findByQuery(queryDto: ShowtimesQueryDto): Promise<PaginationResult<Showtime>> {
+        const { take, skip, orderby, ...args } = queryDto
+
+        const query: Record<string, any> = args
+
+        if (args.theaterId) {
+            query['theaterId'] = new ObjectId(args.theaterId)
+        }
+
+        const result = await super.find({ take, skip, orderby, query })
+
+        return result
     }
 }

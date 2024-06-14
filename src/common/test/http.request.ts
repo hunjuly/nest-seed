@@ -83,3 +83,6 @@ function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
 export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
 export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
 export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)
+export const expectNotFound = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.NOT_FOUND)
+export const expectInternalServerError = (res: supertest.Response) =>
+    expectHttpStatus(res, HttpStatus.INTERNAL_SERVER_ERROR)

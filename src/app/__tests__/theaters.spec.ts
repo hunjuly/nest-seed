@@ -5,7 +5,7 @@ import { TheaterDto } from 'app/services/theaters'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTheaters, seatmap, sortByName, sortByNameDescending } from './theaters.controller.fixture'
+import { createTheaters, seatmap, sortByName, sortByNameDescending } from './theaters.fixture'
 
 describe('TheatersController', () => {
     let testingContext: HttpTestingContext

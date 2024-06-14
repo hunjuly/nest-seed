@@ -5,7 +5,7 @@ import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createCustomers, sortByName, sortByNameDescending } from './customers.controller.fixture'
+import { createCustomers, sortByName, sortByNameDescending } from './customers.fixture'
 
 describe('CustomersController', () => {
     let testingContext: HttpTestingContext

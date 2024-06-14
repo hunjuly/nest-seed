@@ -25,10 +25,19 @@ export abstract class MongooseRepository<Doc> {
         }
     }
 
-    async doesIdExist(id: string): Promise<boolean> {
-        const document = await this.model.exists({ _id: id } as any).exec()
+    async deleteItemsByIds(ids: string[]) {
+        const result = await this.model.deleteMany({ _id: { $in: ids } as any })
 
-        return document != null
+        console.log(`Deleted count: ${result.deletedCount}`)
+
+        return result.deletedCount
+    }
+
+    async doesIdExist(id: string | string[]): Promise<boolean> {
+        const ids = Array.isArray(id) ? id : [id]
+        const count = await this.model.countDocuments({ _id: { $in: ids } } as any).lean()
+
+        return count === ids.length
     }
 
     async findById(id: string): Promise<Doc | null> {
@@ -36,7 +45,7 @@ export abstract class MongooseRepository<Doc> {
     }
 
     async findByIds(ids: string[]): Promise<Doc[]> {
-        return this.model.find({ _id: { $in: ids } } as any).lean()
+        return this.model.find({ _id: { $in: ids } as any }).lean()
     }
 
     async findByMiddleware(

@@ -12,6 +12,8 @@ import {
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createTicketsByTheater, sortShowtimes, sortTickets } from './create-showtimes-and-tickets.fixture'
+import { createMovies } from './movies.fixture'
+import { createTheaters } from './theaters.fixture'
 
 describe('Use Case - Create Showtimes', () => {
     let testingContext: HttpTestingContext
@@ -21,48 +23,18 @@ describe('Use Case - Create Showtimes', () => {
     let theaters: TheaterDto[]
     let showtimes: ShowtimeDto[]
 
-    const seatmap = { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOXXOOOO' }] }] }
-
     beforeAll(async () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
+
+        const movies = await createMovies(req, 1)
+        movie = movies[0]
+
+        theaters = await createTheaters(req, 2)
     })
 
     afterAll(async () => {
         if (testingContext) await testingContext.close()
-    })
-
-    it('Create a movie', async () => {
-        const createMovieDto = {
-            releaseDate: new Date('2024-12-12'),
-            durationMinutes: 90,
-            title: '.',
-            genre: [],
-            plot: '',
-            director: '',
-            rated: 'PG'
-        }
-
-        const res = await req.post({ url: '/movies', body: createMovieDto })
-        expectCreated(res)
-
-        movie = res.body
-    })
-
-    it('Create theaters', async () => {
-        const createTheaterDto = {
-            name: `Theater#1`,
-            coordinates: { latitude: 0, longitude: 0 },
-            seatmap
-        }
-
-        const res1 = await req.post({ url: '/theaters', body: createTheaterDto })
-        expectCreated(res1)
-
-        const res2 = await req.post({ url: '/theaters', body: createTheaterDto })
-        expectCreated(res2)
-
-        theaters = [res1.body, res2.body]
     })
 
     it('Create showtimes', async () => {
@@ -144,9 +116,12 @@ describe('Use Case - Create Showtimes', () => {
 
     it('Find created tickets', async () => {
         const theater = theaters[0]
-        const expectedTickets = createTicketsByTheater(theater, seatmap, showtimes)
+        const expectedTickets = createTicketsByTheater(theater, showtimes)
 
-        const res = await req.get({ url: `/tickets?movieId=${movie.id}&theaterId=${theater.id}` })
+        const res = await req.get({
+            url: '/tickets',
+            query: { movieId: movie.id, theaterId: theater.id }
+        })
         expectOk(res)
 
         sortTickets(res.body.items)

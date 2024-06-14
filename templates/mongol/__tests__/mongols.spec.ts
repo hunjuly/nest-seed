@@ -5,7 +5,7 @@ import { MongolDto } from 'app/services/mongols'
 import { nullObjectId } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createMongols, sortByName, sortByNameDescending } from './mongols.controller.fixture'
+import { createMongols, sortByName, sortByNameDescending } from './mongols.fixture'
 
 describe('MongolsController', () => {
     let testingContext: HttpTestingContext

@@ -1,8 +1,14 @@
 import { CanActivate, ExecutionContext, ModuleMetadata } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 
+interface OverrideItem {
+    original: any
+    replacement: any
+}
+
 export interface ModuleMetadataEx extends ModuleMetadata {
-    bypassGuards?: any[]
+    ignoreGuards?: any[]
+    overrideProviders?: OverrideItem[]
 }
 
 class NullGuard implements CanActivate {
@@ -12,12 +18,18 @@ class NullGuard implements CanActivate {
 }
 
 export async function createTestingModule(metadata: ModuleMetadataEx) {
-    const { bypassGuards, ...moduleConfig } = metadata
+    const { ignoreGuards, overrideProviders, ...moduleConfig } = metadata
     const builder = Test.createTestingModule(moduleConfig)
 
-    if (bypassGuards) {
-        for (const guard of bypassGuards) {
+    if (ignoreGuards) {
+        for (const guard of ignoreGuards) {
             builder.overrideGuard(guard).useClass(NullGuard)
+        }
+    }
+
+    if (overrideProviders) {
+        for (const provider of overrideProviders) {
+            builder.overrideProvider(provider.original).useValue(provider.replacement)
         }
     }
 

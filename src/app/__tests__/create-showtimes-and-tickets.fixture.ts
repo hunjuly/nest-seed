@@ -1,5 +1,5 @@
 import { ShowtimeDto } from 'app/services/showtimes'
-import { Seatmap, TheaterDto, forEachSeat } from 'app/services/theaters'
+import { TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
 
 export async function sortShowtimes(showtimes: ShowtimeDto[]) {
@@ -25,12 +25,12 @@ export async function sortTickets(tickets: TicketDto[]) {
     })
 }
 
-export function createTicketsByTheater(theater: TheaterDto, seatmap: Seatmap, showtimes: ShowtimeDto[]) {
+export function createTicketsByTheater(theater: TheaterDto, showtimes: ShowtimeDto[]) {
     const tickets: TicketDto[] = []
 
     for (const showtime of showtimes) {
         if (theater.id === showtime.theaterId) {
-            forEachSeat(seatmap, (block: string, row: string, seatnum: number) => {
+            forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
                 tickets.push({
                     id: expect.anything(),
                     showtimeId: showtime.id,

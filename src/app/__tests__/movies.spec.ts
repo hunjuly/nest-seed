@@ -4,7 +4,7 @@ import { AppModule } from 'app/app.module'
 import { MovieDto, MovieGenre } from 'app/services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
-import { createMovies, sortByTitle, sortByTitleDescending } from './movies.controller.fixture'
+import { createMovies, sortByTitle, sortByTitleDescending } from './movies.fixture'
 
 describe('MoviesController', () => {
     let testingContext: HttpTestingContext

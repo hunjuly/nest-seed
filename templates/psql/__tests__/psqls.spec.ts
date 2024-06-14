@@ -5,7 +5,7 @@ import { PsqlDto } from 'app/services/psqls'
 import { nullUUID } from 'common'
 import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createPsqls, createPsqlDto, sortByName, sortByNameDescending } from './psqls.controller.fixture'
+import { createPsqls, createPsqlDto, sortByName, sortByNameDescending } from './psqls.fixture'
 
 describe('PsqlsController', () => {
     let testingContext: HttpTestingContext

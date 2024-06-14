@@ -15,7 +15,7 @@ export class TheatersService {
         return new TheaterDto(savedTheater)
     }
 
-    async doesTheaterExist(theaterId: string): Promise<boolean> {
+    async doesTheaterExist(theaterId: string | string[]): Promise<boolean> {
         const theaterExists = await this.theatersRepository.doesIdExist(theaterId)
 
         return theaterExists
