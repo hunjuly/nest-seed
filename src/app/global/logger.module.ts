@@ -7,14 +7,14 @@ import winston from 'winston'
 @Injectable()
 class WinstonConfigService implements OnModuleDestroy {
     private loggerInstance: winston.Logger
-    private loggerSetup: Promise<void>
+    private setupPromise: Promise<void>
 
     constructor() {
-        this.loggerSetup = this.setupLogger()
+        this.setupPromise = this.setupLogger()
     }
 
     async onModuleDestroy() {
-        await this.loggerSetup
+        await this.setupPromise
 
         this.loggerInstance.close()
     }
@@ -24,7 +24,7 @@ class WinstonConfigService implements OnModuleDestroy {
     }
 
     async getLoggerService() {
-        await this.loggerSetup
+        await this.setupPromise
 
         return new AppLoggerService(this.loggerInstance)
     }

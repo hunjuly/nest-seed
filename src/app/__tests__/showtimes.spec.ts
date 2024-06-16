@@ -2,7 +2,7 @@ import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId } from 'common'
+import { nullObjectId, sleep } from 'common'
 import {
     HttpTestingContext,
     createHttpTestingContext,
@@ -51,8 +51,12 @@ describe('/showtimes', () => {
     })
 
     afterEach(async () => {
+        // await sleep(2000)
+
         if (testingContext) await testingContext.close()
     })
+
+    it('tetst', async () => {})
 
     it('should return CREATED(201) when showtimes are successfully created', async () => {
         const res = await req.post({
