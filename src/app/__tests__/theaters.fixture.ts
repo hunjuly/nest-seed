@@ -1,5 +1,6 @@
 import { TheaterDto } from 'app/services/theaters'
 import { padNumber } from 'common'
+import { HttpRequest } from 'common/test'
 
 export const seatmap = {
     blocks: [
@@ -10,7 +11,7 @@ export const seatmap = {
     ]
 }
 
-export async function createTheaters(request: any, count: number): Promise<TheaterDto[]> {
+export async function createTheaters(req: HttpRequest, count: number): Promise<TheaterDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
@@ -22,14 +23,14 @@ export async function createTheaters(request: any, count: number): Promise<Theat
             seatmap
         }
 
-        const promise = request.post({ url: '/theaters', body })
+        const promise = req.post({ url: '/theaters', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 

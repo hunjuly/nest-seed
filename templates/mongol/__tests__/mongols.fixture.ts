@@ -1,7 +1,7 @@
 import { MongolDto } from 'app/services/mongols'
 import { padNumber } from 'common'
 
-export async function createMongols(request: any): Promise<MongolDto[]> {
+export async function createMongols(req: HttpRequest): Promise<MongolDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {
@@ -16,14 +16,14 @@ export async function createMongols(request: any): Promise<MongolDto[]> {
             integer: 100
         }
 
-        const promise = request.post({ url: '/mongols', body })
+        const promise = req.post({ url: '/mongols', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 

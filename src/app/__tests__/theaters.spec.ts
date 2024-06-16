@@ -7,7 +7,7 @@ import { HttpTestingContext, createHttpTestingContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createTheaters, seatmap, sortByName, sortByNameDescending } from './theaters.fixture'
 
-describe('TheatersController', () => {
+describe('/theaters', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 

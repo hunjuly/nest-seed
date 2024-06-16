@@ -34,6 +34,18 @@ findTheatersForMovie(movieId)
 findTheaters({movieId})
 ```
 
+### 3. 테스트 설명 형식
+
+When [Condition], expect [Error Type]
+
+1. 실패 케이스\
+    "should return [Error Type] when [Condition]"\
+    "should return NOT_FOUND(404) when movieId is not found"
+
+2. 성공 케이스\
+    "should [Action] and return [Error Type]"\
+    "should create a new resource and return CREATED(201)"
+
 ## Controller 레이어
 
 Controller는 사용자 입력에 대한 점검과 변환을 담당한다.

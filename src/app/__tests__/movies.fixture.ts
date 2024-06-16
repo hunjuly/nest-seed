@@ -1,5 +1,6 @@
 import { MovieDto } from 'app/services/movies'
 import { padNumber } from 'common'
+import { HttpRequest } from 'common/test'
 
 export function sortByTitle(movies: MovieDto[]) {
     return movies.sort((a, b) => a.title.localeCompare(b.title))
@@ -9,7 +10,7 @@ export function sortByTitleDescending(movies: MovieDto[]) {
     return movies.sort((a, b) => b.title.localeCompare(a.title))
 }
 
-export async function createMovies(request: any, count: number): Promise<MovieDto[]> {
+export async function createMovies(req: HttpRequest, count: number): Promise<MovieDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
@@ -28,14 +29,14 @@ export async function createMovies(request: any, count: number): Promise<MovieDt
             rated
         }
 
-        const promise = request.post({ url: '/movies', body })
+        const promise = req.post({ url: '/movies', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 

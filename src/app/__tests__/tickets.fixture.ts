@@ -2,16 +2,6 @@ import { ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
 
-export async function sortShowtimes(showtimes: ShowtimeDto[]) {
-    return showtimes.sort((a, b) => {
-        if (a.theaterId === b.theaterId) {
-            return a.theaterId.localeCompare(b.theaterId)
-        }
-
-        return a.startTime.getTime() - b.startTime.getTime()
-    })
-}
-
 export async function sortTickets(tickets: TicketDto[]) {
     return tickets.sort((a, b) => {
         if (a.showtimeId === b.showtimeId) {

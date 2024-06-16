@@ -33,7 +33,7 @@ describe('CustomersController', () => {
             birthday: new Date('2020-12-12')
         }
 
-        it('Create a customer', async () => {
+        it('should create a customer and return CREATED status', async () => {
             const res = await req.post({ url: '/customers', body: createCustomerDto })
 
             expect(res.statusCode).toEqual(HttpStatus.CREATED)

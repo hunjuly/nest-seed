@@ -1,12 +1,5 @@
 import { Controller, Get, Module, Query } from '@nestjs/common'
-import { PaginationOptions, TypeormEntity } from 'common'
-import { Column, Entity } from 'typeorm'
-
-@Entity()
-export class Sample extends TypeormEntity {
-    @Column()
-    name: string
-}
+import { PaginationOptions } from 'common'
 
 @Controller('samples')
 class SamplesController {

@@ -30,6 +30,7 @@ export class ShowtimesService {
 
                 const deletedCount = await this.showtimesRepository.deleteItemsByIds(showtimeIds)
 
+                /* istanbul ignore else */
                 if (showtimeIds.length === deletedCount) {
                     Logger.warn(`생성한 ${deletedCount}개의 showtimes 삭제`)
                 } else {

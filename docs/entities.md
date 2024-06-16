@@ -52,15 +52,17 @@ Seatmap {
 end note
 
 class Showtime {
-    id: string
+    id: ObjectId
     start: Date
     end: Date
-    theaterId: string
-    movieId: string
+    theaterId: ObjectId
+    movieId: ObjectId
+    batchId:ObjectId
 }
 
 class Ticket {
-    showtimeId:string
+    id: ObjectId
+    showtimeId: ObjectId
     seat:Seat
     status: TicketStatus
 }
@@ -80,6 +82,5 @@ end note
 Showtime "1" --> "*" Ticket
 Movie "1" --> "*" Showtime
 Theater "1" --> "*" Showtime
-Customer "1" --> "*" Ticket
 @enduml
 ```

@@ -1,7 +1,8 @@
 import { CustomerDto } from 'app/services/customers'
 import { padNumber } from 'common'
+import { HttpRequest } from 'common/test'
 
-export async function createCustomers(request: any, count: number): Promise<CustomerDto[]> {
+export async function createCustomers(req: HttpRequest, count: number): Promise<CustomerDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
@@ -13,14 +14,14 @@ export async function createCustomers(request: any, count: number): Promise<Cust
             birthday: new Date(2020, 1, i)
         }
 
-        const promise = request.post({ url: '/customers', body })
+        const promise = req.post({ url: '/customers', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 

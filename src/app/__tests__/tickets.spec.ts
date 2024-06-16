@@ -3,19 +3,13 @@ import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
 import { CreateShowtimesResponse, ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
-import {
-    HttpTestingContext,
-    createHttpTestingContext,
-    expectConflict,
-    expectCreated,
-    expectOk
-} from 'common/test'
+import { HttpTestingContext, createHttpTestingContext, expectCreated, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTicketsByTheater, sortShowtimes, sortTickets } from './create-showtimes-and-tickets.fixture'
+import { createTicketsByTheater, sortTickets } from './tickets.fixture'
 import { createMovies } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
 
-describe('Use Case - Create Showtimes', () => {
+describe('Use Case - Create Tickets', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 
@@ -64,54 +58,6 @@ describe('Use Case - Create Showtimes', () => {
         expect(createdShowtimes).toHaveLength(expectedShowtimesLength)
 
         showtimes = createdShowtimes!
-    })
-
-    it('Conflicting showtimes', async () => {
-        const conflictShowtimesDto = {
-            movieId: movie.id,
-            theaterIds: theaters.map((theater) => theater.id),
-            durationMinutes: movie.durationMinutes,
-            startTimes: [new Date('2020-01-31T12:00:00Z'), new Date('2020-01-31T16:00:00Z')]
-        }
-
-        const res = await req.post({ url: '/showtimes', body: conflictShowtimesDto })
-        expectConflict(res)
-
-        const conflictShowtimes = [
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[0].id,
-                startTime: new Date('2020-01-31T12:00:00Z'),
-                endTime: new Date('2020-01-31T13:30:00Z')
-            },
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[0].id,
-                startTime: new Date('2020-01-31T16:30:00Z'),
-                endTime: new Date('2020-01-31T18:00:00Z')
-            },
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[1].id,
-                startTime: new Date('2020-01-31T12:00:00Z'),
-                endTime: new Date('2020-01-31T13:30:00Z')
-            },
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[1].id,
-                startTime: new Date('2020-01-31T16:30:00Z'),
-                endTime: new Date('2020-01-31T18:00:00Z')
-            }
-        ]
-
-        sortShowtimes(res.body.conflictShowtimes)
-        sortShowtimes(conflictShowtimes as any)
-
-        expect(res.body).toEqual({ status: 'conflict', conflictShowtimes })
     })
 
     it('Find created tickets', async () => {

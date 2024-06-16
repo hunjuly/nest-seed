@@ -39,4 +39,6 @@ export class MoviesController {
     async removeMovie(@Param('movieId') movieId: string) {
         return this.moviesService.removeMovie(movieId)
     }
+
+    // 파일업로드 구현하자
 }

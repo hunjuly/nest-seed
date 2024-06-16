@@ -11,7 +11,7 @@ export class CreateShowtimesResult {
 type Timeslot = Map<number, Showtime>
 
 function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => boolean | void) {
-    for (let time = start.getTime(); time < end.getTime(); time = time + 10 * 60 * 1000) {
+    for (let time = start.getTime(); time <= end.getTime(); time = time + 10 * 60 * 1000) {
         if (false === callback(time)) {
             break
         }

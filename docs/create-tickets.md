@@ -1,4 +1,12 @@
-# Create Showtimes and Tickets
+# Create Tickets
+```
+Showtime과 Ticket을 한 번에 생성하려는 시행착오가 있었다.
+ShowtimesService에서 createTickets를 호출했다.
+
+Showtime과 Ticket이 분리된 서비스라면 각자 알아서 행동하도록 해야 한다.
+event를 도입하고 각자의 할 일이나 오류 처리는 각자가 하도록 한다.
+지금은 showtime과 ticket이지만 나중에 showtime이나 ticket에 기반한 서비스가 생성되면 종속성 문제가 생길 것이다.
+```
 
 goal : 하나의 영화를 여러 극장에 상영 시간 등록하기
 

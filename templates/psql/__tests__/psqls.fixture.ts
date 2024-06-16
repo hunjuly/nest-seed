@@ -10,7 +10,7 @@ export const createPsqlDto = {
     integer: 100
 }
 
-export async function createPsqls(request: any): Promise<PsqlDto[]> {
+export async function createPsqls(req: HttpRequest): Promise<PsqlDto[]> {
     const promises = []
 
     for (let i = 0; i < 100; i++) {
@@ -25,14 +25,14 @@ export async function createPsqls(request: any): Promise<PsqlDto[]> {
             integer: 100
         }
 
-        const promise = request.post({ url: '/psqls', body })
+        const promise = req.post({ url: '/psqls', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 

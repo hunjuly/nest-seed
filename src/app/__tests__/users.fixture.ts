@@ -1,5 +1,6 @@
 import { UserDto } from 'app/services/users'
 import { padNumber } from 'common'
+import { HttpRequest } from 'common/test'
 
 export const createUserDto = {
     email: 'user@mail.com',
@@ -10,7 +11,7 @@ export const createUserDto = {
     password: 'password'
 }
 
-export async function createUsers(request: any, count: number): Promise<UserDto[]> {
+export async function createUsers(req: HttpRequest, count: number): Promise<UserDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
@@ -25,14 +26,14 @@ export async function createUsers(request: any, count: number): Promise<UserDto[
             password: 'password'
         }
 
-        const promise = request.post({ url: '/users', body })
+        const promise = req.post({ url: '/users', body })
 
         promises.push(promise)
     }
 
     const responses = await Promise.all(promises)
 
-    if (300 <= responses[0].statusCode) {
+    if (201 !== responses[0].statusCode) {
         throw new Error(JSON.stringify(responses[0].body))
     }
 
