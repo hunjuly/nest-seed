@@ -1,43 +1,61 @@
 import { expect } from '@jest/globals'
 import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
-import { CreateShowtimesResponse, ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
+import { sleep } from 'common'
 import { HttpTestingContext, createHttpTestingContext, expectCreated, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTicketsByTheater, sortTickets } from './tickets.fixture'
 import { createMovies } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
 import { createShowtimes } from './showtimes.fixture'
-import { sleep } from 'common'
+import { createTheaters } from './theaters.fixture'
+import { makeExpectedTickets, sortTickets } from './tickets.fixture'
+import { TicketsService } from 'app/services/tickets'
 
 describe('/tickets', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 
     let movie: MovieDto
-    let theaters: TheaterDto[]
-    // let showtimes: ShowtimeDto[]
+    let theater: TheaterDto
+
+    let ticketsService: TicketsService
 
     beforeEach(async () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
         movie = (await createMovies(req, 1))[0]
-        theaters = await createTheaters(req, 2)
+        theater = (await createTheaters(req, 1))[0]
+
+        ticketsService = testingContext.module.get<TicketsService>(TicketsService)
     })
 
-    afterAll(async () => {
+    afterEach(async () => {
         if (testingContext) await testingContext.close()
     })
 
-    it('Find created tickets', async () => {
-        const showtimes = await createShowtimes(req, movie, theaters, 90)
+    it('should handle asynchronous event listeners', async () => {
+        jest.spyOn(ticketsService, 'createTickets')
+
+        const res = await req.post({
+            url: '/showtimes',
+            body: {
+                movieId: movie.id,
+                theaterIds: [theater.id],
+                durationMinutes: 90,
+                startTimes: [new Date('1900-01-31T14:00')]
+            }
+        })
+        expectCreated(res)
+        expect(ticketsService.createTickets).toHaveBeenCalled()
+    })
+
+    it('create and find tickets', async () => {
+        const showtimes = await createShowtimes(req, movie, [theater], 90)
 
         await sleep(1000)
 
-        const theater = theaters[0]
-        const expectedTickets = createTicketsByTheater(theater, showtimes.createdShowtimes!)
+        const expectedTickets = makeExpectedTickets(theater, showtimes.createdShowtimes!)
 
         const res = await req.get({
             url: '/tickets',

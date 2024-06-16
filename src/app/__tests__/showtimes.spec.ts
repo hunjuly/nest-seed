@@ -1,6 +1,6 @@
 import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
-import { ShowtimeDto } from 'app/services/showtimes'
+import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
 import { nullObjectId } from 'common'
 import {
@@ -13,7 +13,12 @@ import {
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
-import { ShowtimesCreatedListener, createShowtimes, sortShowtimes } from './showtimes.fixture'
+import {
+    ShowtimesCreatedListener,
+    createShowtimes,
+    createShowtimesParallel,
+    sortShowtimes
+} from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
 describe('/showtimes', () => {
@@ -25,6 +30,7 @@ describe('/showtimes', () => {
     let createdShowtimes: ShowtimeDto[]
     let batchId: string
     let listener: ShowtimesCreatedListener
+    let showtimesService: ShowtimesService
 
     beforeEach(async () => {
         testingContext = await createHttpTestingContext({
@@ -40,7 +46,8 @@ describe('/showtimes', () => {
         createdShowtimes = response.createdShowtimes!
         batchId = response.batchId!
 
-        listener = testingContext.module.get<ShowtimesCreatedListener>(ShowtimesCreatedListener)
+        listener = testingContext.module.get(ShowtimesCreatedListener)
+        showtimesService = testingContext.module.get(ShowtimesService)
     })
 
     afterEach(async () => {
@@ -84,6 +91,12 @@ describe('/showtimes', () => {
             batchId: expect.anything(),
             createdShowtimes: expectedShowtimes
         })
+    })
+
+    it('batchId로 조회', async () => {
+        const res = await req.get({ url: '/showtimes', query: { batchId } })
+        expectOk(res)
+        expect(res.body.items).toEqual(createdShowtimes)
     })
 
     it('should handle asynchronous event listeners', async () => {
@@ -170,9 +183,16 @@ describe('/showtimes', () => {
         expectNotFound(res)
     })
 
-    it('batchId로 조회', async () => {
-        const res = await req.get({ url: '/showtimes', query: { batchId } })
-        expectOk(res)
-        expect(res.body.items).toEqual(createdShowtimes)
+    it('createShowtimesParallel', async () => {
+        const responses = await createShowtimesParallel(req, movie, theaters, 90)
+        expect(responses).toHaveLength(100)
+
+        const allShowtimes = []
+        for (const response of responses) {
+            const showtimes = await showtimesService.getShowtimesByBatchId(response.batchId!)
+            allShowtimes.push(...showtimes)
+        }
+
+        expect(allShowtimes).toHaveLength(8 * 100)
     })
 })

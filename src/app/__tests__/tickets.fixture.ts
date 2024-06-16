@@ -15,20 +15,18 @@ export async function sortTickets(tickets: TicketDto[]) {
     })
 }
 
-export function createTicketsByTheater(theater: TheaterDto, showtimes: ShowtimeDto[]) {
+export function makeExpectedTickets(theater: TheaterDto, showtimes: ShowtimeDto[]) {
     const tickets: TicketDto[] = []
 
     for (const showtime of showtimes) {
-        if (theater.id === showtime.theaterId) {
-            forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
-                tickets.push({
-                    id: expect.anything(),
-                    showtimeId: showtime.id,
-                    seat: { block, row, seatnum },
-                    status: 'open'
-                })
+        forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
+            tickets.push({
+                id: expect.anything(),
+                showtimeId: showtime.id,
+                seat: { block, row, seatnum },
+                status: 'open'
             })
-        }
+        })
     }
 
     return tickets

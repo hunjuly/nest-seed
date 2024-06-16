@@ -1,3 +1,4 @@
+import * as supertest from 'supertest'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { MovieDto } from 'app/services/movies'
@@ -41,6 +42,44 @@ export async function createShowtimes(
     }
 
     return res.body
+}
+
+export async function createShowtimesParallel(
+    req: HttpRequest,
+    movie: MovieDto,
+    theaters: TheaterDto[],
+    durationMinutes: number
+): Promise<CreateShowtimesResponse[]> {
+    const promises: Promise<supertest.Response>[] = []
+
+    for (let i = 0; i < 100; i++) {
+        const promise = req.post({
+            url: '/showtimes',
+            body: {
+                movieId: movie.id,
+                theaterIds: theaters.map((theater) => theater.id),
+                durationMinutes,
+                startTimes: [
+                    new Date(1900, i, 31, 12, 0),
+                    new Date(1900, i, 31, 14, 0),
+                    new Date(1900, i, 31, 16, 30),
+                    new Date(1900, i, 31, 18, 30)
+                ]
+            }
+        })
+
+        promises.push(promise)
+    }
+
+    const responses = await Promise.all(promises)
+
+    for (const response of responses) {
+        if (201 !== response.statusCode) {
+            throw new Error(JSON.stringify(response.body))
+        }
+    }
+
+    return responses.map((res) => res.body)
 }
 
 @Injectable()

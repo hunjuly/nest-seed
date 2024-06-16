@@ -46,9 +46,6 @@ export class TicketsService {
         const tickets = await this.ticketsRepository.createMany(ticketEntries)
 
         Logger.log(`${tickets.length} tickets have been successfully created and saved.`)
-
-        // 나중에는 tickets을 return 하지 않을 것이다.
-        return tickets.map((ticket) => new TicketDto(ticket))
     }
 
     async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {
