@@ -14,6 +14,9 @@ export class Showtime extends MongooseSchema {
 
     @Prop({ required: true })
     endTime: Date
+
+    @Prop({ type: ObjectId, required: true })
+    batchId: ObjectId
 }
 
 export const ShowtimeSchema = createMongooseSchema(Showtime)

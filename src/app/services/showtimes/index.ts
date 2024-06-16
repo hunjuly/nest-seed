@@ -1,4 +1,5 @@
 export * from './dto'
+export * from './events'
+export * from './schemas'
 export * from './showtimes.module'
 export * from './showtimes.service'
-export * from './schemas'

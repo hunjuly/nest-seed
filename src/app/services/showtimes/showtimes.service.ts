@@ -1,15 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PaginationResult } from 'common'
-import { TicketsService } from '../tickets'
 import { CreateShowtimesRequest, CreateShowtimesResponse, ShowtimeDto, ShowtimesQueryDto } from './dto'
 import { CreateShowtimesService } from './showtimes-creation.service'
 import { ShowtimesRepository } from './showtimes.repository'
+import { ShowtimesCreatedEvent } from './events'
 
 @Injectable()
 export class ShowtimesService {
     constructor(
-        private showtimesRepository: ShowtimesRepository,
-        private ticketsService: TicketsService
+        private eventEmitter: EventEmitter2,
+        private showtimesRepository: ShowtimesRepository
     ) {}
 
     async createShowtimes(createShowtimesRequest: CreateShowtimesRequest): Promise<CreateShowtimesResponse> {
@@ -17,21 +18,20 @@ export class ShowtimesService {
 
         const result = await createShowtimesService.create(createShowtimesRequest)
 
-        if (result.createdShowtimes) {
-            const showtimeDtos = result.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-
+        if (result.createdShowtimes && result.batchId) {
             try {
-                const tickets = await this.ticketsService.createTickets(showtimeDtos)
+                const event: ShowtimesCreatedEvent = { batchId: result.batchId }
+                await this.eventEmitter.emitAsync('showtimes.created', event)
+                // const tickets = await this.ticketsService.createTickets(showtimeDtos)
 
-                Logger.log(`${tickets.length} tickets have been created.`)
+                // Logger.log(`${tickets.length} tickets have been created.`)
             } catch (error) {
-                Logger.error(`티켓 생성 실패`)
-                const showtimeIds = result.createdShowtimes.map((showtime) => showtime._id)
+                Logger.error(`이벤트 생성 실패`)
 
-                const deletedCount = await this.showtimesRepository.deleteItemsByIds(showtimeIds)
+                const deletedCount = await this.showtimesRepository.deleteByBatchId(result.batchId)
 
                 /* istanbul ignore else */
-                if (showtimeIds.length === deletedCount) {
+                if (result.createdShowtimes.length === deletedCount) {
                     Logger.warn(`생성한 ${deletedCount}개의 showtimes 삭제`)
                 } else {
                     Logger.error(`생성한 showtimes 삭제 실패`)
@@ -50,5 +50,11 @@ export class ShowtimesService {
         const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
 
         return { ...paginatedShowtimes, items }
+    }
+
+    async getShowtimesByBatchId(batchId: string): Promise<ShowtimeDto[]> {
+        const showtimes = await this.showtimesRepository.findAllByQuery({ batchId })
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 }

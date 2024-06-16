@@ -1,6 +1,7 @@
-import { Logger, Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 import { ObjectId, PaginationResult } from 'common'
-import { ShowtimeDto } from '../showtimes'
+import { ShowtimesCreatedEvent, ShowtimesService } from '../showtimes'
 import { TheatersService, forEachSeat } from '../theaters'
 import { TicketDto, TicketsQueryDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
@@ -10,10 +11,18 @@ import { TicketsRepository } from './tickets.repository'
 export class TicketsService {
     constructor(
         private ticketsRepository: TicketsRepository,
-        private theatersService: TheatersService
+        private theatersService: TheatersService,
+        private showtimesService: ShowtimesService
     ) {}
 
-    async createTickets(showtimes: ShowtimeDto[]) {
+    @OnEvent('showtimes.created', { async: true })
+    async handleShowtimesCreatedEvent(event: ShowtimesCreatedEvent) {
+        await this.createTickets(event.batchId)
+    }
+
+    async createTickets(showtimesBatchId: string) {
+        const showtimes = await this.showtimesService.getShowtimesByBatchId(showtimesBatchId)
+
         Logger.log('Starting the ticket creation process for multiple showtimes.')
 
         const ticketEntries: Partial<Ticket>[] = []

@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 import { MovieDto } from 'app/services/movies'
-import { ShowtimeDto } from 'app/services/showtimes'
+import { CreateShowtimesResponse, ShowtimeDto, ShowtimesCreatedEvent } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest } from 'common/test'
 
@@ -18,7 +20,7 @@ export async function createShowtimes(
     movie: MovieDto,
     theaters: TheaterDto[],
     durationMinutes: number
-): Promise<ShowtimeDto[]> {
+): Promise<CreateShowtimesResponse> {
     const res = await req.post({
         url: '/showtimes',
         body: {
@@ -38,5 +40,11 @@ export async function createShowtimes(
         throw new Error(JSON.stringify(res.body))
     }
 
-    return res.body.createdShowtimes
+    return res.body
+}
+
+@Injectable()
+export class ShowtimesCreatedListener {
+    @OnEvent('showtimes.created', { async: true })
+    async handleShowtimesCreatedEvent(_: ShowtimesCreatedEvent) {}
 }

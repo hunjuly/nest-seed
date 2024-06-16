@@ -1,4 +1,4 @@
-import { Showtime } from '../schemas'
+import { CreateShowtimesResult } from '../showtimes-creation.service'
 import { ShowtimeDto } from './showtime.dto'
 
 export enum CreateShowtimesStatus {
@@ -9,9 +9,10 @@ export enum CreateShowtimesStatus {
 export class CreateShowtimesResponse {
     conflictShowtimes?: ShowtimeDto[]
     createdShowtimes?: ShowtimeDto[]
+    batchId?: string
     status: CreateShowtimesStatus
 
-    static create(result: { conflictShowtimes?: Showtime[]; createdShowtimes?: Showtime[] }) {
+    static create(result: CreateShowtimesResult) {
         const response = new CreateShowtimesResponse()
 
         if (result.conflictShowtimes) {
@@ -20,6 +21,7 @@ export class CreateShowtimesResponse {
         } else if (result.createdShowtimes) {
             response.createdShowtimes = result.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
             response.status = CreateShowtimesStatus.success
+            response.batchId = result.batchId
         }
 
         return response

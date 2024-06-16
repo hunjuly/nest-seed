@@ -6,6 +6,7 @@ import { ShowtimesRepository } from './showtimes.repository'
 export class CreateShowtimesResult {
     conflictShowtimes?: Showtime[]
     createdShowtimes?: Showtime[]
+    batchId?: string
 }
 
 type Timeslot = Map<number, Showtime>
@@ -28,12 +29,13 @@ export class CreateShowtimesService {
             return { conflictShowtimes }
         }
 
-        const createdShowtimes = await this.saveShowtimes(request)
+        const batchId = new ObjectId()
+        const createdShowtimes = await this.saveShowtimes(request, batchId)
 
-        return { createdShowtimes }
+        return { createdShowtimes, batchId: batchId.toString() }
     }
 
-    private async saveShowtimes(request: CreateShowtimesRequest) {
+    private async saveShowtimes(request: CreateShowtimesRequest, batchId: ObjectId) {
         const { movieId, theaterIds, durationMinutes, startTimes } = request
 
         const showtimeEntries: Partial<Showtime>[] = []
@@ -46,7 +48,8 @@ export class CreateShowtimesService {
                     movieId: new ObjectId(movieId),
                     theaterId: new ObjectId(theaterId),
                     startTime,
-                    endTime
+                    endTime,
+                    batchId
                 })
             }
         }

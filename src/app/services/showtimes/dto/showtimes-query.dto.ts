@@ -4,4 +4,7 @@ import { PaginationOptions } from 'common'
 export class ShowtimesQueryDto extends PaginationOptions {
     @IsOptional()
     theaterId?: string
+
+    @IsOptional()
+    batchId?: string
 }

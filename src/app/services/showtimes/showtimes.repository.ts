@@ -30,6 +30,23 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return showtimes
     }
 
+    async findAllByQuery(queryDto: ShowtimesQueryDto): Promise<Showtime[]> {
+        const { take, skip, orderby, ...args } = queryDto
+
+        const query: Record<string, any> = args
+
+        if (args.theaterId) {
+            query['theaterId'] = new ObjectId(args.theaterId)
+        }
+        if (args.batchId) {
+            query['batchId'] = new ObjectId(args.batchId)
+        }
+
+        const showtimes = await this.model.find(query).lean()
+
+        return showtimes
+    }
+
     async findByQuery(queryDto: ShowtimesQueryDto): Promise<PaginationResult<Showtime>> {
         const { take, skip, orderby, ...args } = queryDto
 
@@ -38,9 +55,20 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         if (args.theaterId) {
             query['theaterId'] = new ObjectId(args.theaterId)
         }
+        if (args.batchId) {
+            query['batchId'] = new ObjectId(args.batchId)
+        }
 
         const result = await super.find({ take, skip, orderby, query })
 
         return result
+    }
+
+    async deleteByBatchId(batchId: string) {
+        const result = await this.model.deleteMany({ batchId })
+
+        console.log(`Deleted count: ${result.deletedCount}`)
+
+        return result.deletedCount
     }
 }

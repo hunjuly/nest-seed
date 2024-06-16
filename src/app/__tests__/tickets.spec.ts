@@ -8,22 +8,22 @@ import { HttpRequest } from 'src/common/test'
 import { createTicketsByTheater, sortTickets } from './tickets.fixture'
 import { createMovies } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
+import { createShowtimes } from './showtimes.fixture'
+import { sleep } from 'common'
 
-describe('Use Case - Create Tickets', () => {
+describe('/tickets', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 
     let movie: MovieDto
     let theaters: TheaterDto[]
-    let showtimes: ShowtimeDto[]
+    // let showtimes: ShowtimeDto[]
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         testingContext = await createHttpTestingContext({ imports: [AppModule] })
         req = testingContext.request
 
-        const movies = await createMovies(req, 1)
-        movie = movies[0]
-
+        movie = (await createMovies(req, 1))[0]
         theaters = await createTheaters(req, 2)
     })
 
@@ -31,38 +31,13 @@ describe('Use Case - Create Tickets', () => {
         if (testingContext) await testingContext.close()
     })
 
-    it('Create showtimes', async () => {
-        const theaterIds = theaters.map((theater) => theater.id)
-        const startTimes = [
-            new Date('2020-01-31T12:00:00Z'),
-            new Date('2020-01-31T14:00:00Z'),
-            new Date('2020-01-31T16:30:00Z'),
-            new Date('2020-01-31T18:30:00Z')
-        ]
-
-        const createShowtimesDto = {
-            movieId: movie.id,
-            theaterIds,
-            durationMinutes: movie.durationMinutes,
-            startTimes
-        }
-
-        const res = await req.post({ url: '/showtimes', body: createShowtimesDto })
-        expectCreated(res)
-
-        const { status, createdShowtimes } = res.body as CreateShowtimesResponse
-
-        expect(status).toEqual('success')
-
-        const expectedShowtimesLength = startTimes.length * theaterIds.length
-        expect(createdShowtimes).toHaveLength(expectedShowtimesLength)
-
-        showtimes = createdShowtimes!
-    })
-
     it('Find created tickets', async () => {
+        const showtimes = await createShowtimes(req, movie, theaters, 90)
+
+        await sleep(1000)
+
         const theater = theaters[0]
-        const expectedTickets = createTicketsByTheater(theater, showtimes)
+        const expectedTickets = createTicketsByTheater(theater, showtimes.createdShowtimes!)
 
         const res = await req.get({
             url: '/tickets',

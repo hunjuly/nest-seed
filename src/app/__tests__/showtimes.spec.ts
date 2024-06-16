@@ -8,28 +8,39 @@ import {
     createHttpTestingContext,
     expectConflict,
     expectCreated,
-    expectNotFound
+    expectNotFound,
+    expectOk
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
-import { createShowtimes, sortShowtimes } from './showtimes.fixture'
+import { ShowtimesCreatedListener, createShowtimes, sortShowtimes } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
-describe('Failed to create showtimes', () => {
+describe('/showtimes', () => {
     let testingContext: HttpTestingContext
     let req: HttpRequest
 
     let movie: MovieDto
     let theaters: TheaterDto[]
-    let showtimes: ShowtimeDto[]
+    let createdShowtimes: ShowtimeDto[]
+    let batchId: string
+    let listener: ShowtimesCreatedListener
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
+        testingContext = await createHttpTestingContext({
+            imports: [AppModule],
+            providers: [ShowtimesCreatedListener]
+        })
         req = testingContext.request
 
         movie = (await createMovies(req, 1))[0]
         theaters = await createTheaters(req, 2)
-        showtimes = await createShowtimes(req, movie, theaters, 90)
+
+        const response = await createShowtimes(req, movie, theaters, 90)
+        createdShowtimes = response.createdShowtimes!
+        batchId = response.batchId!
+
+        listener = testingContext.module.get<ShowtimesCreatedListener>(ShowtimesCreatedListener)
     })
 
     afterEach(async () => {
@@ -48,7 +59,7 @@ describe('Failed to create showtimes', () => {
         })
         expectCreated(res)
 
-        const createdShowtimes = [
+        const expectedShowtimes = [
             {
                 id: expect.anything(),
                 movieId: movie.id,
@@ -66,9 +77,29 @@ describe('Failed to create showtimes', () => {
         ]
 
         sortShowtimes(res.body.createdShowtimes)
-        sortShowtimes(createdShowtimes)
+        sortShowtimes(expectedShowtimes)
 
-        expect(res.body).toEqual({ status: 'success', createdShowtimes })
+        expect(res.body).toEqual({
+            status: 'success',
+            batchId: expect.anything(),
+            createdShowtimes: expectedShowtimes
+        })
+    })
+
+    it('should handle asynchronous event listeners', async () => {
+        jest.spyOn(listener, 'handleShowtimesCreatedEvent')
+
+        const res = await req.post({
+            url: '/showtimes',
+            body: {
+                movieId: movie.id,
+                theaterIds: [theaters[0].id],
+                durationMinutes: 90,
+                startTimes: [new Date('1900-01-31T14:00')]
+            }
+        })
+        expectCreated(res)
+        expect(listener.handleShowtimesCreatedEvent).toHaveBeenCalled()
     })
 
     it('CONFLICT(409) when attempting to create overlapping showtimes', async () => {
@@ -87,7 +118,7 @@ describe('Failed to create showtimes', () => {
         })
         expectConflict(res)
 
-        const conflictShowtimes = showtimes.filter((showtime) => {
+        const conflictShowtimes = createdShowtimes.filter((showtime) => {
             const conflictTimes = [
                 new Date('2020-01-31T12:00').getTime(),
                 new Date('2020-01-31T16:30').getTime(),
@@ -137,5 +168,11 @@ describe('Failed to create showtimes', () => {
 
         const res = await req.post({ url: '/showtimes', body: createShowtimesDto })
         expectNotFound(res)
+    })
+
+    it('batchId로 조회', async () => {
+        const res = await req.get({ url: '/showtimes', query: { batchId } })
+        expectOk(res)
+        expect(res.body.items).toEqual(createdShowtimes)
     })
 })
