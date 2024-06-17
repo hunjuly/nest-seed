@@ -1,4 +1,4 @@
-import { Query, Get, Body, ConflictException, Controller, NotFoundException, Post } from '@nestjs/common'
+import { Body, ConflictException, Controller, Get, NotFoundException, Post, Query } from '@nestjs/common'
 import { MoviesService } from 'app/services/movies'
 import {
     CreateShowtimesRequest,

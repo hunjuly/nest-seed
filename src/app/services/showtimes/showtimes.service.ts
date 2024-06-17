@@ -21,10 +21,8 @@ export class ShowtimesService {
         if (result.createdShowtimes && result.batchId) {
             try {
                 const event: ShowtimesCreatedEvent = { batchId: result.batchId }
-                await this.eventEmitter.emitAsync('showtimes.created', event)
-                // const tickets = await this.ticketsService.createTickets(showtimeDtos)
 
-                // Logger.log(`${tickets.length} tickets have been created.`)
+                await this.eventEmitter.emitAsync('showtimes.created', event)
             } catch (error) {
                 Logger.error(`이벤트 생성 실패`)
 

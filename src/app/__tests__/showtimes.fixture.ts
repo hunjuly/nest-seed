@@ -6,6 +6,12 @@ import { CreateShowtimesResponse, ShowtimeDto, ShowtimesCreatedEvent } from 'app
 import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest } from 'common/test'
 
+@Injectable()
+export class ShowtimesEventListener {
+    @OnEvent('showtimes.created', { async: true })
+    async handleShowtimesCreatedEvent(_: ShowtimesCreatedEvent) {}
+}
+
 export async function sortShowtimes(showtimes: ShowtimeDto[]) {
     return showtimes.sort((a, b) => {
         if (a.theaterId !== b.theaterId) {
@@ -16,11 +22,12 @@ export async function sortShowtimes(showtimes: ShowtimeDto[]) {
     })
 }
 
+export const durationMinutes = 90
+
 export async function createShowtimes(
     req: HttpRequest,
     movie: MovieDto,
-    theaters: TheaterDto[],
-    durationMinutes: number
+    theaters: TheaterDto[]
 ): Promise<CreateShowtimesResponse> {
     const res = await req.post({
         url: '/showtimes',
@@ -44,11 +51,10 @@ export async function createShowtimes(
     return res.body
 }
 
-export async function createShowtimesParallel(
+export async function createShowtimesSimultaneously(
     req: HttpRequest,
     movie: MovieDto,
-    theaters: TheaterDto[],
-    durationMinutes: number
+    theaters: TheaterDto[]
 ): Promise<CreateShowtimesResponse[]> {
     const promises: Promise<supertest.Response>[] = []
 
@@ -82,8 +88,34 @@ export async function createShowtimesParallel(
     return responses.map((res) => res.body)
 }
 
-@Injectable()
-export class ShowtimesCreatedListener {
-    @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreatedEvent(_: ShowtimesCreatedEvent) {}
+export async function repeatCreateShowtimes(
+    req: HttpRequest,
+    movie: MovieDto,
+    theaters: TheaterDto[],
+    count: number
+): Promise<supertest.Response[]> {
+    const promises: Promise<supertest.Response>[] = []
+
+    for (let i = 0; i < count; i++) {
+        const promise = req.post({
+            url: '/showtimes',
+            body: {
+                movieId: movie.id,
+                theaterIds: theaters.map((theater) => theater.id),
+                durationMinutes,
+                startTimes: [
+                    new Date(1900, 0, 31, 12, 0),
+                    new Date(1900, 0, 31, 14, 0),
+                    new Date(1900, 0, 31, 16, 30),
+                    new Date(1900, 0, 31, 18, 30)
+                ]
+            }
+        })
+
+        promises.push(promise)
+    }
+
+    const responses = await Promise.all(promises)
+
+    return responses
 }

@@ -1,8 +1,10 @@
-import { AppModule } from 'app/app.module'
-import { MovieDto } from 'app/services/movies'
-import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
-import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId, sleep } from 'common'
+import { HttpStatus } from '@nestjs/common'
+import { MoviesController, ShowtimesController, TheatersController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { MovieDto, MoviesModule } from 'app/services/movies'
+import { ShowtimeDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { TheaterDto, TheatersModule } from 'app/services/theaters'
+import { nullObjectId } from 'common'
 import {
     HttpTestingContext,
     createHttpTestingContext,
@@ -14,9 +16,10 @@ import {
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
 import {
-    ShowtimesCreatedListener,
+    ShowtimesEventListener,
     createShowtimes,
-    createShowtimesParallel,
+    createShowtimesSimultaneously,
+    repeatCreateShowtimes,
     sortShowtimes
 } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
@@ -29,34 +32,31 @@ describe('/showtimes', () => {
     let theaters: TheaterDto[]
     let createdShowtimes: ShowtimeDto[]
     let batchId: string
-    let listener: ShowtimesCreatedListener
+    let eventListener: ShowtimesEventListener
     let showtimesService: ShowtimesService
 
     beforeEach(async () => {
         testingContext = await createHttpTestingContext({
-            imports: [AppModule],
-            providers: [ShowtimesCreatedListener]
+            imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule],
+            controllers: [ShowtimesController, MoviesController, TheatersController],
+            providers: [ShowtimesEventListener]
         })
         req = testingContext.request
+
+        eventListener = testingContext.module.get(ShowtimesEventListener)
+        showtimesService = testingContext.module.get(ShowtimesService)
 
         movie = (await createMovies(req, 1))[0]
         theaters = await createTheaters(req, 2)
 
-        const response = await createShowtimes(req, movie, theaters, 90)
+        const response = await createShowtimes(req, movie, theaters)
         createdShowtimes = response.createdShowtimes!
         batchId = response.batchId!
-
-        listener = testingContext.module.get(ShowtimesCreatedListener)
-        showtimesService = testingContext.module.get(ShowtimesService)
     })
 
     afterEach(async () => {
-        // await sleep(2000)
-
         if (testingContext) await testingContext.close()
     })
-
-    it('tetst', async () => {})
 
     it('should return CREATED(201) when showtimes are successfully created', async () => {
         const res = await req.post({
@@ -100,11 +100,50 @@ describe('/showtimes', () => {
     it('batchId로 조회', async () => {
         const res = await req.get({ url: '/showtimes', query: { batchId } })
         expectOk(res)
+
+        sortShowtimes(res.body.items)
+        sortShowtimes(createdShowtimes)
+
         expect(res.body.items).toEqual(createdShowtimes)
     })
 
+    it('동시에 생성 요청을 해도 잘 처리해야 한다', async () => {
+        const createShowtimesResponse = await createShowtimesSimultaneously(req, movie, theaters)
+        expect(createShowtimesResponse).toHaveLength(100)
+
+        const allShowtimes = []
+        for (const response of createShowtimesResponse) {
+            const showtimes = await showtimesService.getShowtimesByBatchId(response.batchId!)
+            allShowtimes.push(...showtimes)
+        }
+
+        expect(allShowtimes).toHaveLength(8 * 100)
+    })
+
+    it('같은 요청을 동시에 해도 충돌 체크가 되어야 한다. 서버 인스턴스가 증가하면 테스트 실패할 것이다.', async () => {
+        const count = 100
+        const supertestResponses = await repeatCreateShowtimes(req, movie, theaters, count)
+        expect(supertestResponses).toHaveLength(count)
+
+        const createdResponse = []
+        const conflictResponse = []
+        const etcResponse = []
+
+        for (const response of supertestResponses) {
+            if (response.statusCode === HttpStatus.CREATED) {
+                createdResponse.push(response)
+            } else if (response.statusCode === HttpStatus.CONFLICT) {
+                conflictResponse.push(response)
+            } else etcResponse.push(response)
+        }
+
+        expect(createdResponse).toHaveLength(1)
+        expect(conflictResponse).toHaveLength(count - 1)
+        expect(etcResponse).toHaveLength(0)
+    })
+
     it('should handle asynchronous event listeners', async () => {
-        jest.spyOn(listener, 'handleShowtimesCreatedEvent')
+        jest.spyOn(eventListener, 'handleShowtimesCreatedEvent')
 
         const res = await req.post({
             url: '/showtimes',
@@ -116,7 +155,7 @@ describe('/showtimes', () => {
             }
         })
         expectCreated(res)
-        expect(listener.handleShowtimesCreatedEvent).toHaveBeenCalled()
+        expect(eventListener.handleShowtimesCreatedEvent).toHaveBeenCalled()
     })
 
     it('CONFLICT(409) when attempting to create overlapping showtimes', async () => {
@@ -185,18 +224,5 @@ describe('/showtimes', () => {
 
         const res = await req.post({ url: '/showtimes', body: createShowtimesDto })
         expectNotFound(res)
-    })
-
-    it('createShowtimesParallel', async () => {
-        const responses = await createShowtimesParallel(req, movie, theaters, 90)
-        expect(responses).toHaveLength(100)
-
-        const allShowtimes = []
-        for (const response of responses) {
-            const showtimes = await showtimesService.getShowtimesByBatchId(response.batchId!)
-            allShowtimes.push(...showtimes)
-        }
-
-        expect(allShowtimes).toHaveLength(8 * 100)
     })
 })
