@@ -1,7 +1,6 @@
 import { BadRequestException } from '@nestjs/common'
 import { Transform } from 'class-transformer'
 import { IsInt, IsOptional, IsString, Min } from 'class-validator'
-
 // TODO
 // BadRequestException는 HttpException이다.
 // 일단 http에 포함시키지만 grpc 작업 시 이동 가능성 있다.

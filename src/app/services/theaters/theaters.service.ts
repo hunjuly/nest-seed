@@ -57,7 +57,7 @@ export class TheatersService {
         return new TheaterDto(savedTheater)
     }
 
-    async removeTheater(theaterId: string) {
-        await this.theatersRepository.remove(theaterId)
+    async deleteTheater(theaterId: string) {
+        await this.theatersRepository.deleteById(theaterId)
     }
 }

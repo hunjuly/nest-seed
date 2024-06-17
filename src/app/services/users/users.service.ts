@@ -67,8 +67,8 @@ export class UsersService {
         return new UserDto(savedUser)
     }
 
-    async removeUser(userId: string) {
-        await this.usersRepository.remove(userId)
+    async deleteUser(userId: string) {
+        await this.usersRepository.delete(userId)
     }
 
     private async getUserEntity(userId: string) {

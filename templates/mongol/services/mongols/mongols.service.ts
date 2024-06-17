@@ -69,7 +69,7 @@ export class MongolsService {
         return new MongolDto(savedMongol)
     }
 
-    async removeMongol(mongolId: string) {
-        await this.mongolsRepository.remove(mongolId)
+    async deleteMongol(mongolId: string) {
+        await this.mongolsRepository.delete(mongolId)
     }
 }

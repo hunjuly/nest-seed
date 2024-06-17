@@ -72,13 +72,13 @@ describe('TypeormTransactionService', () => {
         expect(foundEntity?.name).toEqual('Updated Name')
     })
 
-    it('remove in transaction', async () => {
+    it('delete in transaction', async () => {
         let createdEntity!: Sample
 
         await transactionService.execute(async (transaction) => {
             createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
 
-            await transaction.remove(createdEntity)
+            await transaction.delete(createdEntity)
         })
 
         const foundEntity = await sampleRepository.findById(createdEntity.id)

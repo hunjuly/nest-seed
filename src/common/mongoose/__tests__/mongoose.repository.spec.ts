@@ -89,9 +89,9 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('remove', () => {
+    describe('deleteById', () => {
         it('Delete a document', async () => {
-            await repository.remove(document._id)
+            await repository.deleteById(document._id)
 
             const deletedDocument = await repository.findById(document._id)
 
@@ -99,9 +99,20 @@ describe('MongooseRepository', () => {
         })
 
         it('should throw an exception when deleting a non-existent ID', async () => {
-            const promise = repository.remove(nullObjectId)
+            const promise = repository.deleteById(nullObjectId)
 
             await expect(promise).rejects.toThrow(MongooseException)
+        })
+    })
+
+    describe('deleteByIds', () => {
+        it('Delete documents', async () => {
+            const ids = documents.map((doc) => doc._id)
+            await repository.deleteByIds(ids)
+
+            const deletedDocuments = await repository.findByIds(ids)
+
+            expect(deletedDocuments).toHaveLength(0)
         })
     })
 

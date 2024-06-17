@@ -10,6 +10,7 @@ import {
     createHttpTestingContext,
     expectConflict,
     expectCreated,
+    expectInternalServerError,
     expectNotFound,
     expectOk
 } from 'common/test'
@@ -105,6 +106,34 @@ describe('/showtimes', () => {
         sortShowtimes(createdShowtimes)
 
         expect(res.body.items).toEqual(createdShowtimes)
+    })
+
+    it('theaterId로 조회', async () => {
+        const res = await req.get({ url: '/showtimes', query: { theaterId: theaters[0].id } })
+        expectOk(res)
+
+        const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaters[0].id)
+        sortShowtimes(res.body.items)
+        sortShowtimes(expectedShowtimes)
+
+        expect(res.body.items).toEqual(expectedShowtimes)
+    })
+
+    it('이벤트 생성 실패하면 생성된 showtiems를 삭제해야 한다.', async () => {
+        jest.spyOn(showtimesService, 'emitShowtimesCreatedEvent').mockRejectedValue(
+            new Error('the emit failed')
+        )
+
+        const res = await req.post({
+            url: '/showtimes',
+            body: {
+                movieId: movie.id,
+                theaterIds: [theaters[0].id],
+                durationMinutes: 90,
+                startTimes: [new Date('1900-01-31T14:00')]
+            }
+        })
+        expectInternalServerError(res)
     })
 
     it('동시에 생성 요청을 해도 잘 처리해야 한다', async () => {

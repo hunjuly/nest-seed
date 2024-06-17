@@ -33,7 +33,7 @@ export class UsersController {
 
     @UseGuards(UserExistsGuard)
     @Delete(':userId')
-    async removeUser(@Param('userId') userId: string) {
-        return this.usersService.removeUser(userId)
+    async deleteUser(@Param('userId') userId: string) {
+        return this.usersService.deleteUser(userId)
     }
 }

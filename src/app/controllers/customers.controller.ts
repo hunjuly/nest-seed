@@ -45,7 +45,7 @@ export class CustomersController {
 
     @UseGuards(CustomerExistsGuard)
     @Delete(':customerId')
-    async removeCustomer(@Param('customerId') customerId: string) {
-        return this.customersService.removeCustomer(customerId)
+    async deleteCustomer(@Param('customerId') customerId: string) {
+        return this.customersService.deleteCustomer(customerId)
     }
 }

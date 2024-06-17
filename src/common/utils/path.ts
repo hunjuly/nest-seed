@@ -56,7 +56,7 @@ export class Path {
         await fs.mkdir(path, { recursive: true })
     }
 
-    public static async remove(path: string): Promise<void> {
+    public static async delete(path: string): Promise<void> {
         if (await this.exists(path)) {
             await fs.rm(path, { recursive: true, force: true })
         }

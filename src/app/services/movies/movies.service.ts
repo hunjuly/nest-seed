@@ -57,7 +57,7 @@ export class MoviesService {
         return new MovieDto(savedMovie)
     }
 
-    async removeMovie(movieId: string) {
-        await this.moviesRepository.remove(movieId)
+    async deleteMovie(movieId: string) {
+        await this.moviesRepository.deleteById(movieId)
     }
 }

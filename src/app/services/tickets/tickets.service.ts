@@ -18,18 +18,19 @@ export class TicketsService {
     ) {}
 
     async onModuleDestroy() {
-        // 모든 프로미스가 완료될 때까지 기다립니다.
         await Promise.all(this.promises)
     }
 
     @OnEvent('showtimes.created', { async: true })
     async handleShowtimesCreatedEvent(event: ShowtimesCreatedEvent) {
         const ticketCreation = this.createTickets(event.batchId)
-        this.promises.push(ticketCreation) // 프로미스 배열에 추가
-        await ticketCreation // 생성 작업 완료까지 기다립니다.
+
+        this.promises.push(ticketCreation)
+
+        await ticketCreation
     }
 
-    private async createTickets(showtimesBatchId: string): Promise<void> {
+    async createTickets(showtimesBatchId: string): Promise<void> {
         const showtimes = await this.showtimesService.getShowtimesByBatchId(showtimesBatchId)
 
         Logger.log('Starting the ticket creation process for multiple showtimes.')

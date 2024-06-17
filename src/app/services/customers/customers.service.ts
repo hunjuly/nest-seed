@@ -69,7 +69,7 @@ export class CustomersService {
         return new CustomerDto(savedCustomer)
     }
 
-    async removeCustomer(customerId: string) {
-        await this.customersRepository.remove(customerId)
+    async deleteCustomer(customerId: string) {
+        await this.customersRepository.deleteById(customerId)
     }
 }

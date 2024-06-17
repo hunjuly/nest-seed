@@ -17,18 +17,16 @@ export abstract class MongooseRepository<Doc> {
         return savedDocuments.map((doc) => doc.toObject())
     }
 
-    async remove(id: string): Promise<void> {
-        const removedDocument = await this.model.findByIdAndDelete(id).exec()
+    async deleteById(id: string): Promise<void> {
+        const deletedDocument = await this.model.findByIdAndDelete(id).exec()
 
-        if (!removedDocument) {
-            throw new MongooseException(`Failed to remove document with id: ${id}. Document not found.`)
+        if (!deletedDocument) {
+            throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
         }
     }
 
-    async deleteItemsByIds(ids: string[]) {
+    async deleteByIds(ids: string[]) {
         const result = await this.model.deleteMany({ _id: { $in: ids } as any })
-
-        console.log(`Deleted count: ${result.deletedCount}`)
 
         return result.deletedCount
     }

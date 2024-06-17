@@ -36,7 +36,7 @@ export class TheatersController {
 
     @UseGuards(TheaterExistsGuard)
     @Delete(':theaterId')
-    async removeTheater(@Param('theaterId') theaterId: string) {
-        return this.theatersService.removeTheater(theaterId)
+    async deleteTheater(@Param('theaterId') theaterId: string) {
+        return this.theatersService.deleteTheater(theaterId)
     }
 }

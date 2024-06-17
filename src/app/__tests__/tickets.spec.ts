@@ -16,7 +16,7 @@ describe('/tickets', () => {
     let req: HttpRequest
 
     let movie: MovieDto
-    let theater: TheaterDto
+    let theaters: TheaterDto[]
 
     let ticketsService: TicketsService
 
@@ -25,7 +25,7 @@ describe('/tickets', () => {
         req = testingContext.request
 
         movie = (await createMovies(req, 1))[0]
-        theater = (await createTheaters(req, 1))[0]
+        theaters = await createTheaters(req, 1)
 
         ticketsService = testingContext.module.get<TicketsService>(TicketsService)
     })
@@ -37,29 +37,21 @@ describe('/tickets', () => {
     it('should handle asynchronous event listeners', async () => {
         jest.spyOn(ticketsService, 'createTickets')
 
-        const res = await req.post({
-            url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: [theater.id],
-                durationMinutes: 90,
-                startTimes: [new Date('1900-01-31T14:00')]
-            }
-        })
-        expectCreated(res)
-        expect(ticketsService.createTickets).toHaveBeenCalled()
+        const result = await createShowtimes(req, movie, theaters)
+        expect(result.batchId).toBeDefined()
+        expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
     })
 
     it('create and find tickets', async () => {
-        const showtimes = await createShowtimes(req, movie, [theater], 90)
+        const result = await createShowtimes(req, movie, theaters)
 
         await sleep(1000)
 
-        const expectedTickets = makeExpectedTickets(theater, showtimes.createdShowtimes!)
+        const expectedTickets = makeExpectedTickets(theaters[0], result.createdShowtimes!)
 
         const res = await req.get({
             url: '/tickets',
-            query: { movieId: movie.id, theaterId: theater.id }
+            query: { movieId: movie.id, theaterId: theaters[0].id }
         })
         expectOk(res)
 

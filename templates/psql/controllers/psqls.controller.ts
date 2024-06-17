@@ -37,7 +37,7 @@ export class PsqlsController {
 
     @UseGuards(PsqlExistsGuard)
     @Delete(':psqlId')
-    async removePsql(@Param('psqlId') psqlId: string) {
-        return this.psqlsService.removePsql(psqlId)
+    async deletePsql(@Param('psqlId') psqlId: string) {
+        return this.psqlsService.deletePsql(psqlId)
     }
 }

@@ -37,7 +37,7 @@ export class MongolsController {
 
     @UseGuards(MongolExistsGuard)
     @Delete(':mongolId')
-    async removeMongol(@Param('mongolId') mongolId: string) {
-        return this.mongolsService.removeMongol(mongolId)
+    async deleteMongol(@Param('mongolId') mongolId: string) {
+        return this.mongolsService.deleteMongol(mongolId)
     }
 }

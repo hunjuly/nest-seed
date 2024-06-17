@@ -87,17 +87,17 @@ describe('TypeormRepository', () => {
         })
     })
 
-    describe('remove', () => {
+    describe('delete', () => {
         it('Delete an entity', async () => {
-            await repository.remove(sample.id)
+            await repository.delete(sample.id)
 
-            const removedSample = await repository.findById(sample.id)
+            const deletedSample = await repository.findById(sample.id)
 
-            expect(removedSample).toBeNull()
+            expect(deletedSample).toBeNull()
         })
 
         it('should throw an exception when deleting a non-existent ID', async () => {
-            const promise = repository.remove(nullUUID)
+            const promise = repository.delete(nullUUID)
 
             await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
         })

@@ -12,7 +12,7 @@ describe('Path', () => {
     })
 
     afterEach(async () => {
-        await Path.remove(tempDir)
+        await Path.delete(tempDir)
         jest.restoreAllMocks()
     })
 
@@ -52,9 +52,9 @@ describe('Path', () => {
         const exists = await Path.exists(dirPath)
         expect(exists).toBeTruthy()
 
-        await Path.remove(dirPath)
-        const existsAfterRemove = await Path.exists(dirPath)
-        expect(existsAfterRemove).toBeFalsy()
+        await Path.delete(dirPath)
+        const existsAfterDelete = await Path.exists(dirPath)
+        expect(existsAfterDelete).toBeFalsy()
     })
 
     it('should correctly list subdirectories', async () => {

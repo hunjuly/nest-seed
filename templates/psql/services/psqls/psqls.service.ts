@@ -60,8 +60,8 @@ export class PsqlsService {
         return new PsqlDto(savedPsql)
     }
 
-    async removePsql(psqlId: string) {
-        await this.psqlsRepository.remove(psqlId)
+    async deletePsql(psqlId: string) {
+        await this.psqlsRepository.delete(psqlId)
     }
 
     private async getPsqlEntity(psqlId: string) {

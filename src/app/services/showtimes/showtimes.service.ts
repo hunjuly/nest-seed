@@ -13,6 +13,12 @@ export class ShowtimesService {
         private showtimesRepository: ShowtimesRepository
     ) {}
 
+    async emitShowtimesCreatedEvent(batchId: string) {
+        const event: ShowtimesCreatedEvent = { batchId }
+
+        await this.eventEmitter.emitAsync('showtimes.created', event)
+    }
+
     async createShowtimes(createShowtimesRequest: CreateShowtimesRequest): Promise<CreateShowtimesResponse> {
         const createShowtimesService = new CreateShowtimesService(this.showtimesRepository)
 
@@ -20,9 +26,7 @@ export class ShowtimesService {
 
         if (result.createdShowtimes && result.batchId) {
             try {
-                const event: ShowtimesCreatedEvent = { batchId: result.batchId }
-
-                await this.eventEmitter.emitAsync('showtimes.created', event)
+                await this.emitShowtimesCreatedEvent(result.batchId)
             } catch (error) {
                 Logger.error(`이벤트 생성 실패`)
 
@@ -51,8 +55,8 @@ export class ShowtimesService {
     }
 
     async getShowtimesByBatchId(batchId: string): Promise<ShowtimeDto[]> {
-        const showtimes = await this.showtimesRepository.findAllByQuery({ batchId })
+        const result = await this.showtimesRepository.findByQuery({ batchId })
 
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+        return result.items.map((showtime) => new ShowtimeDto(showtime))
     }
 }

@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { MongooseRepository, ObjectId, PaginationResult } from 'common'
 import { Model } from 'mongoose'
-import { Showtime } from './schemas'
 import { ShowtimesQueryDto } from './dto'
+import { Showtime } from './schemas'
 
 @Injectable()
 export class ShowtimesRepository extends MongooseRepository<Showtime> {
@@ -30,23 +30,6 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return showtimes
     }
 
-    async findAllByQuery(queryDto: ShowtimesQueryDto): Promise<Showtime[]> {
-        const { take, skip, orderby, ...args } = queryDto
-
-        const query: Record<string, any> = args
-
-        if (args.theaterId) {
-            query['theaterId'] = new ObjectId(args.theaterId)
-        }
-        if (args.batchId) {
-            query['batchId'] = new ObjectId(args.batchId)
-        }
-
-        const showtimes = await this.model.find(query).lean()
-
-        return showtimes
-    }
-
     async findByQuery(queryDto: ShowtimesQueryDto): Promise<PaginationResult<Showtime>> {
         const { take, skip, orderby, ...args } = queryDto
 
@@ -65,9 +48,9 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     }
 
     async deleteByBatchId(batchId: string) {
-        const result = await this.model.deleteMany({ batchId })
+        const result = await this.model.deleteMany({ batchId: new ObjectId(batchId) })
 
-        console.log(`Deleted count: ${result.deletedCount}`)
+        Logger.log(`Deleted count: ${result.deletedCount}`)
 
         return result.deletedCount
     }

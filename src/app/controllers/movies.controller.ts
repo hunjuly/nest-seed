@@ -36,8 +36,8 @@ export class MoviesController {
 
     @UseGuards(MovieExistsGuard)
     @Delete(':movieId')
-    async removeMovie(@Param('movieId') movieId: string) {
-        return this.moviesService.removeMovie(movieId)
+    async deleteMovie(@Param('movieId') movieId: string) {
+        return this.moviesService.deleteMovie(movieId)
     }
 
     // 파일업로드 구현하자

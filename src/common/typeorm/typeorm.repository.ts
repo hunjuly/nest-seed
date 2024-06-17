@@ -34,12 +34,12 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         throw new EntityNotFoundTypeormException(`Failed to update entity with id: ${id}. Entity not found.`)
     }
 
-    async remove(id: string): Promise<void> {
+    async delete(id: string): Promise<void> {
         const result = await this.repo.delete(id)
 
         if (result.affected === 0) {
             throw new EntityNotFoundTypeormException(
-                `Failed to remove entity with id: ${id}. Entity not found.`
+                `Failed to delete entity with id: ${id}. Entity not found.`
             )
         }
 
