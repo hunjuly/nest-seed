@@ -1,8 +1,8 @@
 import { Body, ConflictException, Controller, Get, NotFoundException, Post, Query } from '@nestjs/common'
 import { MoviesService } from 'app/services/movies'
 import {
-    CreateShowtimesRequest,
-    CreateShowtimesStatus,
+    ShowtimesCreationRequest,
+    ShowtimesCreationStatus,
     ShowtimesQueryDto,
     ShowtimesService
 } from 'app/services/showtimes'
@@ -17,7 +17,7 @@ export class ShowtimesController {
     ) {}
 
     @Post()
-    async createShowtimes(@Body() request: CreateShowtimesRequest) {
+    async createShowtimes(@Body() request: ShowtimesCreationRequest) {
         const movieExists = await this.moviesService.doesMovieExist(request.movieId)
 
         if (!movieExists) {
@@ -32,7 +32,7 @@ export class ShowtimesController {
 
         const response = await this.showtimesService.createShowtimes(request)
 
-        if (CreateShowtimesStatus.conflict === response.status) {
+        if (ShowtimesCreationStatus.conflict === response.status) {
             throw new ConflictException(response)
         }
 

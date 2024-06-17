@@ -2,7 +2,7 @@ import * as supertest from 'supertest'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { MovieDto } from 'app/services/movies'
-import { CreateShowtimesResponse, ShowtimeDto, ShowtimesCreatedEvent } from 'app/services/showtimes'
+import { ShowtimesCreationResult, ShowtimeDto, ShowtimesCreatedEvent } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest } from 'common/test'
 
@@ -28,7 +28,7 @@ export async function createShowtimes(
     req: HttpRequest,
     movie: MovieDto,
     theaters: TheaterDto[]
-): Promise<CreateShowtimesResponse> {
+): Promise<ShowtimesCreationResult> {
     const res = await req.post({
         url: '/showtimes',
         body: {
@@ -55,7 +55,7 @@ export async function createShowtimesSimultaneously(
     req: HttpRequest,
     movie: MovieDto,
     theaters: TheaterDto[]
-): Promise<CreateShowtimesResponse[]> {
+): Promise<ShowtimesCreationResult[]> {
     const promises: Promise<supertest.Response>[] = []
 
     for (let i = 0; i < 100; i++) {

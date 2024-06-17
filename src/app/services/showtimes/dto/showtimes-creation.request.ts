@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer'
 import { ArrayNotEmpty, IsArray, IsDate, IsNotEmpty, IsPositive, IsString } from 'class-validator'
 
-export class CreateShowtimesRequest {
+export class ShowtimesCreationRequest {
     @IsString()
     @IsNotEmpty()
     movieId: string

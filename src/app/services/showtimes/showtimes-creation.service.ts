@@ -1,13 +1,7 @@
 import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate } from 'common'
-import { CreateShowtimesRequest } from './dto'
+import { ShowtimesCreationRequest, ShowtimesCreationResult } from './dto'
 import { Showtime } from './schemas'
 import { ShowtimesRepository } from './showtimes.repository'
-
-export class CreateShowtimesResult {
-    conflictShowtimes?: Showtime[]
-    createdShowtimes?: Showtime[]
-    batchId?: string
-}
 
 type Timeslot = Map<number, Showtime>
 
@@ -19,23 +13,23 @@ function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => 
     }
 }
 
-export class CreateShowtimesService {
+export class ShowtimesCreationService {
     constructor(private showtimesRepository: ShowtimesRepository) {}
 
-    async create(request: CreateShowtimesRequest): Promise<CreateShowtimesResult> {
+    async create(request: ShowtimesCreationRequest): Promise<ShowtimesCreationResult> {
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            return { conflictShowtimes }
+            return ShowtimesCreationResult.create({ conflictShowtimes })
         }
 
         const batchId = new ObjectId()
         const createdShowtimes = await this.saveShowtimes(request, batchId)
 
-        return { createdShowtimes, batchId: batchId.toString() }
+        return ShowtimesCreationResult.create({ createdShowtimes, batchId: batchId.toString() })
     }
 
-    private async saveShowtimes(request: CreateShowtimesRequest, batchId: ObjectId) {
+    private async saveShowtimes(request: ShowtimesCreationRequest, batchId: ObjectId) {
         const { movieId, theaterIds, durationMinutes, startTimes } = request
 
         const showtimeEntries: Partial<Showtime>[] = []
@@ -59,7 +53,7 @@ export class CreateShowtimesService {
         return createdShowtimes
     }
 
-    async checkForTimeConflicts(request: CreateShowtimesRequest): Promise<Showtime[]> {
+    async checkForTimeConflicts(request: ShowtimesCreationRequest): Promise<Showtime[]> {
         const { durationMinutes, startTimes, theaterIds } = request
 
         const timeslotsByTheater = await this.createTimeslotsByTheater(request)
@@ -88,7 +82,9 @@ export class CreateShowtimesService {
         return conflictShowtimes
     }
 
-    private async createTimeslotsByTheater(request: CreateShowtimesRequest): Promise<Map<string, Timeslot>> {
+    private async createTimeslotsByTheater(
+        request: ShowtimesCreationRequest
+    ): Promise<Map<string, Timeslot>> {
         const { theaterIds, durationMinutes, startTimes } = request
 
         const startDate = findMinDate(startTimes)

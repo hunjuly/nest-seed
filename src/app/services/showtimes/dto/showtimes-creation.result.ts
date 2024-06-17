@@ -1,26 +1,30 @@
-import { CreateShowtimesResult } from '../showtimes-creation.service'
+import { Showtime } from '../schemas'
 import { ShowtimeDto } from './showtime.dto'
 
-export enum CreateShowtimesStatus {
+export enum ShowtimesCreationStatus {
     success = 'success',
     conflict = 'conflict'
 }
 
-export class CreateShowtimesResponse {
+export class ShowtimesCreationResult {
     conflictShowtimes?: ShowtimeDto[]
     createdShowtimes?: ShowtimeDto[]
     batchId?: string
-    status: CreateShowtimesStatus
+    status: ShowtimesCreationStatus
 
-    static create(result: CreateShowtimesResult) {
-        const response = new CreateShowtimesResponse()
+    static create(result: {
+        conflictShowtimes?: Showtime[]
+        createdShowtimes?: Showtime[]
+        batchId?: string
+    }) {
+        const response = new ShowtimesCreationResult()
 
         if (result.conflictShowtimes) {
             response.conflictShowtimes = result.conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            response.status = CreateShowtimesStatus.conflict
+            response.status = ShowtimesCreationStatus.conflict
         } else if (result.createdShowtimes) {
             response.createdShowtimes = result.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            response.status = CreateShowtimesStatus.success
+            response.status = ShowtimesCreationStatus.success
             response.batchId = result.batchId
         }
 
