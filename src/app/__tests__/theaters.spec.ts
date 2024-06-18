@@ -1,29 +1,35 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { AppModule } from 'app/app.module'
-import { TheaterDto } from 'app/services/theaters'
+import { TheatersController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createTheaters, seatmap, sortByName, sortByNameDescending } from './theaters.fixture'
 
 describe('/theaters', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let theaters: TheaterDto[] = []
     let theater: TheaterDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({
+            imports: [GlobalModule, TheatersModule],
+            controllers: [TheatersController]
+        })
+        req = testContext.request
 
-        theaters = await createTheaters(req, 100)
+        const theatersService = testContext.module.get(TheatersService)
+
+        theaters = await createTheaters(theatersService, 100)
         theater = theaters[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /theaters', () => {

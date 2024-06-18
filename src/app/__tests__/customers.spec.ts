@@ -1,29 +1,35 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { AppModule } from 'app/app.module'
-import { CustomerDto } from 'app/services/customers'
+import { CustomersController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers, sortByName, sortByNameDescending } from './customers.fixture'
 
 describe('CustomersController', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let customers: CustomerDto[] = []
     let customer: CustomerDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({
+            imports: [GlobalModule, CustomersModule],
+            controllers: [CustomersController]
+        })
+        req = testContext.request
 
-        customers = await createCustomers(req, 100)
+        const customersService = testContext.module.get(CustomersService)
+
+        customers = await createCustomers(customersService, 100)
         customer = customers[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /customers', () => {

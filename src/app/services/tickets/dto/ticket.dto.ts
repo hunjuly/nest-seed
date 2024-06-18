@@ -7,10 +7,10 @@ export class TicketDto {
     status: string
 
     constructor(ticket: Ticket) {
-        const { _id: id, showtimeId, seat, status } = ticket
+        const { _id, showtimeId, seat, status } = ticket
 
         Object.assign(this, {
-            id,
+            id: _id.toString(),
             showtimeId,
             seat,
             status

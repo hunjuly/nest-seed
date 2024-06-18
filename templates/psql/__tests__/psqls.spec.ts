@@ -3,27 +3,27 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { PsqlDto } from 'app/services/psqls'
 import { nullUUID } from 'common'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createPsqls, createPsqlDto, sortByName, sortByNameDescending } from './psqls.fixture'
 
 describe('PsqlsController', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let psqls: PsqlDto[] = []
     let psql: PsqlDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({ imports: [AppModule] })
+        req = testContext.request
 
         psqls = await createPsqls(req)
         psql = psqls[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /psqls', () => {

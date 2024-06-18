@@ -3,27 +3,27 @@ import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { MongolDto } from 'app/services/mongols'
 import { nullObjectId } from 'common'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMongols, sortByName, sortByNameDescending } from './mongols.fixture'
 
 describe('MongolsController', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let mongols: MongolDto[] = []
     let mongol: MongolDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({ imports: [AppModule] })
+        req = testContext.request
 
         mongols = await createMongols(req)
         mongol = mongols[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /mongols', () => {

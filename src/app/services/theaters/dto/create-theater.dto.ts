@@ -24,5 +24,5 @@ export class CreateTheaterDto {
     coordinates: CoordinatesDto
 
     @IsNotEmpty()
-    seatmap: any
+    seatmap: Seatmap
 }

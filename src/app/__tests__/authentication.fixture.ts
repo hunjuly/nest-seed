@@ -1,22 +1,21 @@
+import { UsersService } from 'app/services/users'
+
 export interface UserCredentials {
     email: string
     password: string
 }
 
-export async function createUser(req: any) {
+export async function createUser(usersService: UsersService) {
     const createUserDto = {
         email: 'user@mail.com',
-        username: 'testuser',
-        firstName: 'Test',
-        lastName: 'User',
-        birthdate: new Date('2020-12-12'),
-        password: 'password'
+        password: 'password',
+        username: '.',
+        firstName: '.',
+        lastName: '.',
+        birthdate: new Date()
     }
 
-    await req.post({
-        url: '/users',
-        body: createUserDto
-    })
+    await usersService.createUser(createUserDto)
 
     const { email, password } = createUserDto
 

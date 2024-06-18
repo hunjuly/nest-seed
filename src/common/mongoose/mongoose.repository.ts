@@ -5,14 +5,14 @@ import { MongooseException } from './exceptions'
 export abstract class MongooseRepository<Doc> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(creationData: Partial<Doc>): Promise<Doc> {
-        const savedDocument = await this.model.create(creationData)
+    async create(documentData: Partial<Doc>): Promise<Doc> {
+        const savedDocument = await this.model.create(documentData)
 
         return savedDocument.toObject()
     }
 
-    async createMany(creationData: Partial<Doc>[]): Promise<Doc[]> {
-        const savedDocuments = (await this.model.insertMany(creationData)) as HydratedDocument<Doc>[]
+    async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
+        const savedDocuments = (await this.model.insertMany(documentDatas)) as HydratedDocument<Doc>[]
 
         return savedDocuments.map((doc) => doc.toObject())
     }

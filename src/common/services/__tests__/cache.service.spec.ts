@@ -13,7 +13,7 @@ describe('CacheService', () => {
             providers: [CacheService]
         }).compile()
 
-        cacheService = module.get<CacheService>(CacheService)
+        cacheService = module.get(CacheService)
     })
 
     afterEach(async () => {

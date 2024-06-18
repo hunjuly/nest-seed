@@ -1,6 +1,5 @@
-import { MovieDto } from 'app/services/movies'
+import { MovieDto, MovieGenre, MovieRated, MoviesService } from 'app/services/movies'
 import { padNumber } from 'common'
-import { HttpRequest } from 'common/test'
 
 export function sortByTitle(movies: MovieDto[]) {
     return movies.sort((a, b) => a.title.localeCompare(b.title))
@@ -10,14 +9,17 @@ export function sortByTitleDescending(movies: MovieDto[]) {
     return movies.sort((a, b) => b.title.localeCompare(a.title))
 }
 
-export async function createMovies(req: HttpRequest, count: number): Promise<MovieDto[]> {
+export async function createMovies(moviesService: MoviesService, count: number): Promise<MovieDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
-        const genre = i % 2 ? ['Action', 'Comedy', 'Drama'] : ['Romance', 'Thriller', 'Western']
+        const genre =
+            i % 2
+                ? [MovieGenre.Action, MovieGenre.Comedy, MovieGenre.Drama]
+                : [MovieGenre.Romance, MovieGenre.Thriller, MovieGenre.Western]
         const director = i % 2 ? 'James Cameron' : 'Steven Spielberg'
-        const rated = i % 2 ? 'PG' : 'NC17'
+        const rated = i % 2 ? MovieRated.PG : MovieRated.NC17
 
         const body = {
             title: `MovieTitle-${tag}`,
@@ -29,16 +31,12 @@ export async function createMovies(req: HttpRequest, count: number): Promise<Mov
             rated
         }
 
-        const promise = req.post({ url: '/movies', body })
+        const promise = moviesService.createMovie(body)
 
         promises.push(promise)
     }
 
-    const responses = await Promise.all(promises)
+    const movies = await Promise.all(promises)
 
-    if (201 !== responses[0].statusCode) {
-        throw new Error(JSON.stringify(responses[0].body))
-    }
-
-    return responses.map((res) => res.body)
+    return movies
 }

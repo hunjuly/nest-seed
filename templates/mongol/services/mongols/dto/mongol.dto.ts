@@ -10,10 +10,10 @@ export class MongolDto {
     integer: number
 
     constructor(mongol: Mongol) {
-        const { _id: id, name, email, desc, date, enums, integer } = mongol
+        const { _id, name, email, desc, date, enums, integer } = mongol
 
         Object.assign(this, {
-            id,
+            id: _id.toString(),
             name,
             email,
             desc,

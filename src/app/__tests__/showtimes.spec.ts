@@ -1,13 +1,13 @@
-import { HttpStatus } from '@nestjs/common'
-import { MoviesController, ShowtimesController, TheatersController } from 'app/controllers'
+import { TestingModule } from '@nestjs/testing'
+import { ShowtimesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
-import { MovieDto, MoviesModule } from 'app/services/movies'
-import { ShowtimeDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule } from 'app/services/theaters'
-import { nullObjectId } from 'common'
+import { MoviesModule, MoviesService } from 'app/services/movies'
+import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { TheatersModule, TheatersService } from 'app/services/theaters'
+import { addMinutes, nullObjectId } from 'common'
 import {
-    HttpTestingContext,
-    createHttpTestingContext,
+    HttpTestContext,
+    createHttpTestContext,
     expectConflict,
     expectCreated,
     expectInternalServerError,
@@ -18,74 +18,62 @@ import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
 import {
     ShowtimesEventListener,
+    createDuplicateShowtimes,
     createShowtimes,
-    createShowtimesSimultaneously,
-    repeatCreateShowtimes,
+    createShowtimesInParallel,
     sortShowtimes
 } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
 describe('/showtimes', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
-
-    let movie: MovieDto
-    let theaters: TheaterDto[]
-    let createdShowtimes: ShowtimeDto[]
-    let batchId: string
-    let eventListener: ShowtimesEventListener
+    let module: TestingModule
     let showtimesService: ShowtimesService
 
+    let movieId: string
+    let theaterId: string
+    let theaterIds: string[]
+
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({
+        testContext = await createHttpTestContext({
             imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule],
-            controllers: [ShowtimesController, MoviesController, TheatersController],
+            controllers: [ShowtimesController],
             providers: [ShowtimesEventListener]
         })
-        req = testingContext.request
+        req = testContext.request
+        module = testContext.module
 
-        eventListener = testingContext.module.get(ShowtimesEventListener)
-        showtimesService = testingContext.module.get(ShowtimesService)
+        const moviesService = module.get(MoviesService)
+        const movies = await createMovies(moviesService, 1)
+        movieId = movies[0].id
 
-        movie = (await createMovies(req, 1))[0]
-        theaters = await createTheaters(req, 2)
+        const theatersService = module.get(TheatersService)
+        const theaters = await createTheaters(theatersService, 2)
+        theaterIds = theaters.map((theater) => theater.id)
+        theaterId = theaterIds[0]
 
-        const response = await createShowtimes(req, movie, theaters)
-        createdShowtimes = response.createdShowtimes!
-        batchId = response.batchId!
+        showtimesService = module.get(ShowtimesService)
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
-    it('should return CREATED(201) when showtimes are successfully created', async () => {
+    it('상영 시간 생성에 성공하면 CREATED(201)을 반환해야 한다', async () => {
+        const durationMinutes = 90
+        const startTimes = [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
+
         const res = await req.post({
             url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: [theaters[0].id],
-                durationMinutes: 90,
-                startTimes: [new Date('1900-01-31T14:00'), new Date('1900-01-31T16:00')]
-            }
+            body: { movieId, theaterIds: [theaterId], durationMinutes, startTimes }
         })
         expectCreated(res)
 
+        const common = { id: expect.anything(), movieId, theaterId }
         const expectedShowtimes = [
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[0].id,
-                startTime: new Date('1900-01-31T14:00'),
-                endTime: new Date('1900-01-31T15:30')
-            },
-            {
-                id: expect.anything(),
-                movieId: movie.id,
-                theaterId: theaters[0].id,
-                startTime: new Date('1900-01-31T16:00'),
-                endTime: new Date('1900-01-31T17:30')
-            }
+            { ...common, startTime: startTimes[0], endTime: addMinutes(startTimes[0], durationMinutes) },
+            { ...common, startTime: startTimes[1], endTime: addMinutes(startTimes[1], durationMinutes) }
         ]
 
         sortShowtimes(res.body.createdShowtimes)
@@ -98,72 +86,66 @@ describe('/showtimes', () => {
         })
     })
 
-    it('batchId로 조회', async () => {
-        const res = await req.get({ url: '/showtimes', query: { batchId } })
-        expectOk(res)
+    it('상영 시간 생성에 성공하면 showtimes.created 이벤트가 발생해야 한다', async () => {
+        const eventListener = module.get(ShowtimesEventListener)
+        jest.spyOn(eventListener, 'handleShowtimesCreatedEvent')
 
-        sortShowtimes(res.body.items)
-        sortShowtimes(createdShowtimes)
-
-        expect(res.body.items).toEqual(createdShowtimes)
+        const res = await req.post({
+            url: '/showtimes',
+            body: { movieId, theaterIds: [theaterId], durationMinutes: 1, startTimes: [new Date()] }
+        })
+        expectCreated(res)
+        expect(eventListener.handleShowtimesCreatedEvent).toHaveBeenCalledTimes(1)
     })
 
-    it('theaterId로 조회', async () => {
-        const res = await req.get({ url: '/showtimes', query: { theaterId: theaters[0].id } })
-        expectOk(res)
+    it('showtimes.created 이벤트 발생에 실패하면 생성된 showtiems가 없어야 한다', async () => {
+        const { total: beforeTotal } = await showtimesService.findByQuery({})
+        expect(beforeTotal).toEqual(0)
 
-        const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaters[0].id)
-        sortShowtimes(res.body.items)
-        sortShowtimes(expectedShowtimes)
-
-        expect(res.body.items).toEqual(expectedShowtimes)
-    })
-
-    it('이벤트 생성 실패하면 생성된 showtiems를 삭제해야 한다.', async () => {
         jest.spyOn(showtimesService, 'emitShowtimesCreatedEvent').mockRejectedValue(
             new Error('the emit failed')
         )
 
         const res = await req.post({
             url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: [theaters[0].id],
-                durationMinutes: 90,
-                startTimes: [new Date('1900-01-31T14:00')]
-            }
+            body: { movieId, theaterIds: [theaterId], durationMinutes: 1, startTimes: [new Date()] }
         })
         expectInternalServerError(res)
+
+        const { total: afterTotal } = await showtimesService.findByQuery({})
+        expect(beforeTotal).toEqual(afterTotal)
     })
 
-    it('동시에 생성 요청을 해도 잘 처리해야 한다', async () => {
-        const createShowtimesResponse = await createShowtimesSimultaneously(req, movie, theaters)
-        expect(createShowtimesResponse).toHaveLength(100)
+    it('동시에 생성 요청을 해도 성공해야 한다', async () => {
+        const count = 100
+        const results = await createShowtimesInParallel(showtimesService, movieId, theaterIds, count)
+        expect(results).toHaveLength(count)
 
         const allShowtimes = []
-        for (const response of createShowtimesResponse) {
-            const showtimes = await showtimesService.getShowtimesByBatchId(response.batchId!)
+
+        for (const result of results) {
+            const showtimes = await showtimesService.getShowtimesByBatchId(result.batchId!)
             allShowtimes.push(...showtimes)
         }
 
-        expect(allShowtimes).toHaveLength(8 * 100)
+        expect(allShowtimes).toHaveLength(theaterIds.length * count)
     })
 
-    it('같은 요청을 동시에 해도 충돌 체크가 되어야 한다. 서버 인스턴스가 증가하면 테스트 실패할 것이다.', async () => {
+    it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다.(현재는 서버 인스턴스가 증가하면 테스트 실패할 것이다.)', async () => {
         const count = 100
-        const supertestResponses = await repeatCreateShowtimes(req, movie, theaters, count)
-        expect(supertestResponses).toHaveLength(count)
+        const results = await createDuplicateShowtimes(showtimesService, movieId, theaterIds, count)
+        expect(results).toHaveLength(count)
 
         const createdResponse = []
         const conflictResponse = []
         const etcResponse = []
 
-        for (const response of supertestResponses) {
-            if (response.statusCode === HttpStatus.CREATED) {
-                createdResponse.push(response)
-            } else if (response.statusCode === HttpStatus.CONFLICT) {
-                conflictResponse.push(response)
-            } else etcResponse.push(response)
+        for (const result of results) {
+            if (result.status === 'success') {
+                createdResponse.push(result)
+            } else if (result.status === 'conflict') {
+                conflictResponse.push(result)
+            } else etcResponse.push(result)
         }
 
         expect(createdResponse).toHaveLength(1)
@@ -171,43 +153,55 @@ describe('/showtimes', () => {
         expect(etcResponse).toHaveLength(0)
     })
 
-    it('should handle asynchronous event listeners', async () => {
-        jest.spyOn(eventListener, 'handleShowtimesCreatedEvent')
+    it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+        const { createdShowtimes, batchId } = await createShowtimes(showtimesService, movieId, theaterIds)
 
-        const res = await req.post({
-            url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: [theaters[0].id],
-                durationMinutes: 90,
-                startTimes: [new Date('1900-01-31T14:00')]
-            }
-        })
-        expectCreated(res)
-        expect(eventListener.handleShowtimesCreatedEvent).toHaveBeenCalled()
+        const res = await req.get({ url: '/showtimes', query: { batchId: batchId! } })
+        expectOk(res)
+
+        sortShowtimes(res.body.items)
+        sortShowtimes(createdShowtimes!)
+
+        expect(res.body.items).toEqual(createdShowtimes)
+    })
+
+    it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+        const { createdShowtimes } = await createShowtimes(showtimesService, movieId, theaterIds)
+
+        const res = await req.get({ url: '/showtimes', query: { theaterId } })
+        expectOk(res)
+
+        const expectedShowtimes = createdShowtimes!.filter((showtime) => showtime.theaterId === theaterId)
+
+        sortShowtimes(res.body.items)
+        sortShowtimes(expectedShowtimes)
+
+        expect(res.body.items).toEqual(expectedShowtimes)
     })
 
     it('CONFLICT(409) when attempting to create overlapping showtimes', async () => {
+        const { createdShowtimes } = await createShowtimes(showtimesService, movieId, theaterIds)
+
         const res = await req.post({
             url: '/showtimes',
             body: {
-                movieId: movie.id,
-                theaterIds: theaters.map((theater) => theater.id),
+                movieId,
+                theaterIds,
                 durationMinutes: 30,
                 startTimes: [
-                    new Date('2020-01-31T12:00'),
-                    new Date('2020-01-31T16:00'),
-                    new Date('2020-01-31T20:00')
+                    new Date('2013-01-31T12:00'),
+                    new Date('2013-01-31T16:00'),
+                    new Date('2013-01-31T20:00')
                 ]
             }
         })
         expectConflict(res)
 
-        const conflictShowtimes = createdShowtimes.filter((showtime) => {
+        const conflictShowtimes = createdShowtimes!.filter((showtime) => {
             const conflictTimes = [
-                new Date('2020-01-31T12:00').getTime(),
-                new Date('2020-01-31T16:30').getTime(),
-                new Date('2020-01-31T18:30').getTime()
+                new Date('2013-01-31T12:00').getTime(),
+                new Date('2013-01-31T16:30').getTime(),
+                new Date('2013-01-31T18:30').getTime()
             ]
 
             return conflictTimes.includes(showtime.startTime.getTime())
@@ -222,7 +216,7 @@ describe('/showtimes', () => {
     it('NOT_FOUND(404) when movieId is not found', async () => {
         const createShowtimesDto = {
             movieId: nullObjectId,
-            theaterIds: [theaters[0].id],
+            theaterIds: [theaterId],
             durationMinutes: 1,
             startTimes: [new Date()]
         }
@@ -233,7 +227,7 @@ describe('/showtimes', () => {
 
     it('NOT_FOUND(404) when theaterId is not found', async () => {
         const createShowtimesDto = {
-            movieId: movie.id,
+            movieId,
             theaterIds: [nullObjectId],
             durationMinutes: 1,
             startTimes: [new Date()]
@@ -245,8 +239,8 @@ describe('/showtimes', () => {
 
     it('NOT_FOUND(404) when any theaterId in the list is not found', async () => {
         const createShowtimesDto = {
-            movieId: movie.id,
-            theaterIds: [theaters[0].id, nullObjectId],
+            movieId,
+            theaterIds: [theaterId, nullObjectId],
             durationMinutes: 1,
             startTimes: [new Date()]
         }

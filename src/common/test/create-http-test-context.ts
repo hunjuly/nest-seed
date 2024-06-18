@@ -2,10 +2,10 @@ import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
 import * as express from 'express'
-import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { ModuleMetadataEx, createTestingModule } from './create-test-module'
 import { HttpRequest } from './http.request'
 
-export interface HttpTestingContext {
+export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
@@ -13,7 +13,7 @@ export interface HttpTestingContext {
     close: () => Promise<void>
 }
 
-export async function createHttpTestingContext(metadata: ModuleMetadataEx): Promise<HttpTestingContext> {
+export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise<HttpTestContext> {
     const module = await createTestingModule(metadata)
 
     const app = module.createNestApplication()

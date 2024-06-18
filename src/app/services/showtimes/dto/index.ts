@@ -1,4 +1,4 @@
 export * from './showtime.dto'
-export * from './showtimes-creation.request'
-export * from './showtimes-creation.result'
+export * from './create-showtimes.dto'
+export * from './create-showtimes.result'
 export * from './showtimes-query.dto'

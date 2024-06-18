@@ -1,5 +1,5 @@
 import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate } from 'common'
-import { ShowtimesCreationRequest, ShowtimesCreationResult } from './dto'
+import { CreateShowtimesDto, CreateShowtimesResult } from './dto'
 import { Showtime } from './schemas'
 import { ShowtimesRepository } from './showtimes.repository'
 
@@ -16,20 +16,20 @@ function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => 
 export class ShowtimesCreationService {
     constructor(private showtimesRepository: ShowtimesRepository) {}
 
-    async create(request: ShowtimesCreationRequest): Promise<ShowtimesCreationResult> {
+    async create(request: CreateShowtimesDto): Promise<CreateShowtimesResult> {
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            return ShowtimesCreationResult.create({ conflictShowtimes })
+            return CreateShowtimesResult.create({ conflictShowtimes })
         }
 
         const batchId = new ObjectId()
         const createdShowtimes = await this.saveShowtimes(request, batchId)
 
-        return ShowtimesCreationResult.create({ createdShowtimes, batchId: batchId.toString() })
+        return CreateShowtimesResult.create({ createdShowtimes, batchId: batchId.toString() })
     }
 
-    private async saveShowtimes(request: ShowtimesCreationRequest, batchId: ObjectId) {
+    private async saveShowtimes(request: CreateShowtimesDto, batchId: ObjectId) {
         const { movieId, theaterIds, durationMinutes, startTimes } = request
 
         const showtimeEntries: Partial<Showtime>[] = []
@@ -53,7 +53,7 @@ export class ShowtimesCreationService {
         return createdShowtimes
     }
 
-    async checkForTimeConflicts(request: ShowtimesCreationRequest): Promise<Showtime[]> {
+    async checkForTimeConflicts(request: CreateShowtimesDto): Promise<Showtime[]> {
         const { durationMinutes, startTimes, theaterIds } = request
 
         const timeslotsByTheater = await this.createTimeslotsByTheater(request)
@@ -82,9 +82,7 @@ export class ShowtimesCreationService {
         return conflictShowtimes
     }
 
-    private async createTimeslotsByTheater(
-        request: ShowtimesCreationRequest
-    ): Promise<Map<string, Timeslot>> {
+    private async createTimeslotsByTheater(request: CreateShowtimesDto): Promise<Map<string, Timeslot>> {
         const { theaterIds, durationMinutes, startTimes } = request
 
         const startDate = findMinDate(startTimes)

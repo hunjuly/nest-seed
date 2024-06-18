@@ -1,49 +1,62 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
-import { MovieDto } from 'app/services/movies'
-import { TheaterDto } from 'app/services/theaters'
+import { TicketsController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
+import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
+import { TicketsModule, TicketsService } from 'app/services/tickets'
 import { sleep } from 'common'
-import { HttpTestingContext, createHttpTestingContext, expectCreated, expectOk } from 'common/test'
+import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
-import { createShowtimes } from './showtimes.fixture'
+import { ShowtimesEventListener, createShowtimes } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 import { makeExpectedTickets, sortTickets } from './tickets.fixture'
-import { TicketsService } from 'app/services/tickets'
 
 describe('/tickets', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let movie: MovieDto
     let theaters: TheaterDto[]
 
     let ticketsService: TicketsService
+    let showtimesService: ShowtimesService
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({
+            imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
+            controllers: [TicketsController],
+            providers: [ShowtimesEventListener]
+        })
+        req = testContext.request
 
-        movie = (await createMovies(req, 1))[0]
-        theaters = await createTheaters(req, 1)
+        showtimesService = testContext.module.get(ShowtimesService)
+        const moviesService = testContext.module.get(MoviesService)
+        const theatersService = testContext.module.get(TheatersService)
+        ticketsService = testContext.module.get(TicketsService)
 
-        ticketsService = testingContext.module.get<TicketsService>(TicketsService)
+        movie = (await createMovies(moviesService, 1))[0]
+        theaters = await createTheaters(theatersService, 1)
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     it('should handle asynchronous event listeners', async () => {
         jest.spyOn(ticketsService, 'createTickets')
 
-        const result = await createShowtimes(req, movie, theaters)
+        const result = await createShowtimes(showtimesService, movie, theaters)
+
+        await sleep(1000)
+
         expect(result.batchId).toBeDefined()
         expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
     })
 
     it('create and find tickets', async () => {
-        const result = await createShowtimes(req, movie, theaters)
+        const result = await createShowtimes(showtimesService, movie, theaters)
 
         await sleep(1000)
 

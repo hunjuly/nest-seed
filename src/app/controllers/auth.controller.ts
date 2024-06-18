@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } fr
 import { AccessTokenPayload, AuthService } from 'app/services/auth'
 import { UserDto } from 'app/services/users'
 import { Assert } from 'common'
-import { JwtAuthGuard, LocalAuthGuard } from './guards'
+import { JwtAuthGuard, LocalAuthGuard, Public } from './guards'
 
 @Controller('auth')
 export class AuthController {
@@ -33,4 +33,9 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get('jwt-testing')
     async jwtTestring(@Req() _req: { user: AccessTokenPayload }) {}
+
+    @UseGuards(JwtAuthGuard)
+    @Public()
+    @Get('public-testing')
+    async publicTesting() {}
 }

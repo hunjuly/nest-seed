@@ -1,10 +1,11 @@
-import * as supertest from 'supertest'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { MovieDto } from 'app/services/movies'
-import { ShowtimesCreationResult, ShowtimeDto, ShowtimesCreatedEvent } from 'app/services/showtimes'
-import { TheaterDto } from 'app/services/theaters'
-import { HttpRequest } from 'common/test'
+import {
+    CreateShowtimesResult,
+    ShowtimeDto,
+    ShowtimesCreatedEvent,
+    ShowtimesService
+} from 'app/services/showtimes'
 
 @Injectable()
 export class ShowtimesEventListener {
@@ -22,100 +23,69 @@ export async function sortShowtimes(showtimes: ShowtimeDto[]) {
     })
 }
 
-export const durationMinutes = 90
+const durationMinutes = 90
 
 export async function createShowtimes(
-    req: HttpRequest,
-    movie: MovieDto,
-    theaters: TheaterDto[]
-): Promise<ShowtimesCreationResult> {
-    const res = await req.post({
-        url: '/showtimes',
-        body: {
-            movieId: movie.id,
-            theaterIds: theaters.map((theater) => theater.id),
-            durationMinutes,
-            startTimes: [
-                new Date('2020-01-31T12:00'),
-                new Date('2020-01-31T14:00'),
-                new Date('2020-01-31T16:30'),
-                new Date('2020-01-31T18:30')
-            ]
-        }
+    showtimesService: ShowtimesService,
+    movieId: string,
+    theaterIds: string[]
+): Promise<CreateShowtimesResult> {
+    const ressult = await showtimesService.createShowtimes({
+        movieId,
+        theaterIds,
+        durationMinutes,
+        startTimes: [
+            new Date('2013-01-31T12:00'),
+            new Date('2013-01-31T14:00'),
+            new Date('2013-01-31T16:30'),
+            new Date('2013-01-31T18:30')
+        ]
     })
 
-    if (201 !== res.statusCode) {
-        throw new Error(JSON.stringify(res.body))
-    }
-
-    return res.body
+    return ressult
 }
 
-export async function createShowtimesSimultaneously(
-    req: HttpRequest,
-    movie: MovieDto,
-    theaters: TheaterDto[]
-): Promise<ShowtimesCreationResult[]> {
-    const promises: Promise<supertest.Response>[] = []
-
-    for (let i = 0; i < 100; i++) {
-        const promise = req.post({
-            url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: theaters.map((theater) => theater.id),
-                durationMinutes,
-                startTimes: [
-                    new Date(1900, i, 31, 12, 0),
-                    new Date(1900, i, 31, 14, 0),
-                    new Date(1900, i, 31, 16, 30),
-                    new Date(1900, i, 31, 18, 30)
-                ]
-            }
-        })
-
-        promises.push(promise)
-    }
-
-    const responses = await Promise.all(promises)
-
-    for (const response of responses) {
-        if (201 !== response.statusCode) {
-            throw new Error(JSON.stringify(response.body))
-        }
-    }
-
-    return responses.map((res) => res.body)
-}
-
-export async function repeatCreateShowtimes(
-    req: HttpRequest,
-    movie: MovieDto,
-    theaters: TheaterDto[],
+export async function createShowtimesInParallel(
+    showtimesService: ShowtimesService,
+    movieId: string,
+    theaterIds: string[],
     count: number
-): Promise<supertest.Response[]> {
-    const promises: Promise<supertest.Response>[] = []
+): Promise<CreateShowtimesResult[]> {
+    const promises: Promise<CreateShowtimesResult>[] = []
 
     for (let i = 0; i < count; i++) {
-        const promise = req.post({
-            url: '/showtimes',
-            body: {
-                movieId: movie.id,
-                theaterIds: theaters.map((theater) => theater.id),
-                durationMinutes,
-                startTimes: [
-                    new Date(1900, 0, 31, 12, 0),
-                    new Date(1900, 0, 31, 14, 0),
-                    new Date(1900, 0, 31, 16, 30),
-                    new Date(1900, 0, 31, 18, 30)
-                ]
-            }
+        const promise = showtimesService.createShowtimes({
+            movieId,
+            theaterIds,
+            durationMinutes,
+            startTimes: [new Date(1900, i, 31, 12, 0)]
         })
 
         promises.push(promise)
     }
 
-    const responses = await Promise.all(promises)
+    const results = await Promise.all(promises)
 
-    return responses
+    return results
+}
+
+export async function createDuplicateShowtimes(
+    showtimesService: ShowtimesService,
+    movieId: string,
+    theaterIds: string[],
+    count: number
+): Promise<CreateShowtimesResult[]> {
+    const promises: Promise<CreateShowtimesResult>[] = []
+
+    const startTimes = [new Date('2013-01-31T14:00')]
+
+    for (let i = 0; i < count; i++) {
+        const promise = showtimesService.createShowtimes({ movieId, theaterIds, durationMinutes, startTimes })
+
+        promises.push(promise)
+    }
+
+    const results = await Promise.all(promises)
+
+    return results
 }

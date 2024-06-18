@@ -1,6 +1,5 @@
-import { TheaterDto } from 'app/services/theaters'
+import { TheaterDto, TheatersService } from 'app/services/theaters'
 import { padNumber } from 'common'
-import { HttpRequest } from 'common/test'
 
 export const seatmap = {
     blocks: [
@@ -11,30 +10,24 @@ export const seatmap = {
     ]
 }
 
-export async function createTheaters(req: HttpRequest, count: number): Promise<TheaterDto[]> {
+export async function createTheaters(theatersSerivce: TheatersService, count: number): Promise<TheaterDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
         const tag = padNumber(i, 3)
 
-        const body = {
+        const promise = theatersSerivce.createTheater({
             name: `Theater-${tag}`,
             coordinates: { latitude: 38.123, longitude: 138.678 },
             seatmap
-        }
-
-        const promise = req.post({ url: '/theaters', body })
+        })
 
         promises.push(promise)
     }
 
-    const responses = await Promise.all(promises)
+    const movies = await Promise.all(promises)
 
-    if (201 !== responses[0].statusCode) {
-        throw new Error(JSON.stringify(responses[0].body))
-    }
-
-    return responses.map((res) => res.body)
+    return movies
 }
 
 export function sortByName(theaters: TheaterDto[]) {

@@ -1,14 +1,14 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { SamplesModule } from './pagination.fixture'
 
 describe('Pagination', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: any
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({
+        testContext = await createHttpTestContext({
             imports: [SamplesModule],
             providers: [
                 {
@@ -22,11 +22,11 @@ describe('Pagination', () => {
             ]
         })
 
-        req = testingContext.request
+        req = testContext.request
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     it('should apply pagination options correctly', async () => {

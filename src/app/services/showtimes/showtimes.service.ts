@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { PaginationResult } from 'common'
-import { ShowtimesCreationRequest, ShowtimesCreationResult, ShowtimeDto, ShowtimesQueryDto } from './dto'
+import { CreateShowtimesDto, CreateShowtimesResult, ShowtimeDto, ShowtimesQueryDto } from './dto'
 import { ShowtimesCreationService } from './showtimes-creation.service'
 import { ShowtimesRepository } from './showtimes.repository'
 import { ShowtimesCreatedEvent } from './events'
@@ -19,12 +19,10 @@ export class ShowtimesService {
         await this.eventEmitter.emitAsync('showtimes.created', event)
     }
 
-    async createShowtimes(
-        showtimesCreationRequest: ShowtimesCreationRequest
-    ): Promise<ShowtimesCreationResult> {
+    async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResult> {
         const showtimesCreationService = new ShowtimesCreationService(this.showtimesRepository)
 
-        const result = await showtimesCreationService.create(showtimesCreationRequest)
+        const result = await showtimesCreationService.create(createShowtimesRequest)
 
         if (result.createdShowtimes && result.batchId) {
             try {

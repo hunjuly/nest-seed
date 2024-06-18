@@ -2,32 +2,33 @@ import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
 import { AppModule } from 'app/app.module'
 import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers'
-import { UserDto } from 'app/services/users'
+import { UserDto, UsersService } from 'app/services/users'
 import { nullUUID } from 'common'
-import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createUsers, createUserDto } from './users.fixture'
 
 describe('UsersController', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let users: UserDto[] = []
     let user: UserDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({
+        testContext = await createHttpTestContext({
             imports: [AppModule],
             ignoreGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 
-        req = testingContext.request
+        req = testContext.request
 
-        users = await createUsers(req, 100)
+        const usersService = testContext.module.get(UsersService)
+        users = await createUsers(usersService, 100)
         user = users[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /users', () => {

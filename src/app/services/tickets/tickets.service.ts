@@ -23,11 +23,11 @@ export class TicketsService {
 
     @OnEvent('showtimes.created', { async: true })
     async handleShowtimesCreatedEvent(event: ShowtimesCreatedEvent) {
-        const ticketCreation = this.createTickets(event.batchId)
+        const promise = this.createTickets(event.batchId)
 
-        this.promises.push(ticketCreation)
+        this.promises.push(promise)
 
-        await ticketCreation
+        await promise
     }
 
     async createTickets(showtimesBatchId: string): Promise<void> {

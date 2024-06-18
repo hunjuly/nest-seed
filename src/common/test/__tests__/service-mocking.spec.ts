@@ -1,8 +1,8 @@
-import { HttpTestingContext, createHttpTestingContext, expectOk } from 'common/test'
+import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { FixtureModule, FixtureService } from './service-mocking.fixture'
 
 describe('Service Mocking', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: any
 
     const fixtureServiceMock = {
@@ -10,7 +10,7 @@ describe('Service Mocking', () => {
     }
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({
+        testContext = await createHttpTestContext({
             imports: [FixtureModule],
             overrideProviders: [
                 {
@@ -20,11 +20,11 @@ describe('Service Mocking', () => {
             ]
         })
 
-        req = testingContext.request
+        req = testContext.request
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     it('should return mock message', async () => {

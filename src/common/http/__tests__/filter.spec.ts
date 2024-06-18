@@ -1,23 +1,23 @@
 import { HttpStatus } from '@nestjs/common'
-import { HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: any
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({
+        testContext = await createHttpTestContext({
             imports: [TestModule]
         })
 
-        req = testingContext.request
+        req = testContext.request
         // Disable outputting errors to the console
-        testingContext.app.useLogger(false)
+        testContext.app.useLogger(false)
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     it('ErrorFilter', async () => {

@@ -1,28 +1,34 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { AppModule } from 'app/app.module'
-import { MovieDto, MovieGenre } from 'app/services/movies'
+import { MoviesController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestingContext, createHttpTestingContext } from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createMovies, sortByTitle, sortByTitleDescending } from './movies.fixture'
 
 describe('MoviesController', () => {
-    let testingContext: HttpTestingContext
+    let testContext: HttpTestContext
     let req: HttpRequest
 
     let movies: MovieDto[] = []
     let movie: MovieDto
 
     beforeEach(async () => {
-        testingContext = await createHttpTestingContext({ imports: [AppModule] })
-        req = testingContext.request
+        testContext = await createHttpTestContext({
+            imports: [GlobalModule, MoviesModule],
+            controllers: [MoviesController]
+        })
+        req = testContext.request
 
-        movies = await createMovies(req, 100)
+        const moviesService = testContext.module.get(MoviesService)
+
+        movies = await createMovies(moviesService, 100)
         movie = movies[0]
     })
 
     afterEach(async () => {
-        if (testingContext) await testingContext.close()
+        if (testContext) await testContext.close()
     })
 
     describe('POST /movies', () => {
