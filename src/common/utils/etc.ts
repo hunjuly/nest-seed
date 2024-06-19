@@ -1,4 +1,6 @@
+import { Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
+import { Queue } from 'bull'
 import { Coordinates } from 'common'
 import { randomUUID } from 'crypto'
 
@@ -88,4 +90,21 @@ export function transformObjectStrings(obj: any) {
             transformObjectStrings(obj[key])
         }
     }
+}
+
+export async function waitForQueueToEmpty(queue: Queue, count: number = 60): Promise<boolean> {
+    for (let i = 0; i < count * 10; i++) {
+        const [activeCount, waitingCount] = await Promise.all([
+            queue.getActiveCount(),
+            queue.getWaitingCount()
+        ])
+
+        if (activeCount === 0 && waitingCount === 0) {
+            return true
+        }
+
+        await sleep(100)
+    }
+
+    return false
 }

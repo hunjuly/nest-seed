@@ -68,6 +68,36 @@ describe('MongooseRepository', () => {
         })
     })
 
+    describe('createMany', () => {
+        it('Create documents', async () => {
+            const createData: Partial<Document>[] = [
+                { name: 'document-1 name' },
+                { name: 'document-2 name' },
+                { name: 'document-3 name' }
+            ]
+
+            const document = await repository.createMany(createData)
+
+            const common = {
+                _id: expect.anything(),
+                createdAt: expect.anything(),
+                updatedAt: expect.anything(),
+                version: expect.anything()
+            }
+            expect(document).toEqual([
+                { ...common, ...createData[0] },
+                { ...common, ...createData[1] },
+                { ...common, ...createData[2] }
+            ])
+        })
+
+        it('should throw an exception when required fields are missing', async () => {
+            const promise = repository.createMany([{}])
+
+            await expect(promise).rejects.toThrowError()
+        })
+    })
+
     describe('update', () => {
         it('Update a document', async () => {
             const updateData = { name: 'new name' }
@@ -119,6 +149,13 @@ describe('MongooseRepository', () => {
     describe('doesIdExist', () => {
         it('should confirm the existence of a document', async () => {
             const exists = await repository.doesIdExist(document._id)
+
+            expect(exists).toBeTruthy()
+        })
+
+        it('should confirm the existence of documents', async () => {
+            const ids = documents.map((doc) => doc._id)
+            const exists = await repository.doesIdExist(ids)
 
             expect(exists).toBeTruthy()
         })

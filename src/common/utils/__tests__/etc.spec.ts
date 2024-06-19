@@ -1,3 +1,4 @@
+import * as bull from 'bull'
 import { Coordinates } from 'common'
 import {
     Password,
@@ -7,8 +8,32 @@ import {
     equalsIgnoreCase,
     generateUUID,
     notUsed,
-    sleep
+    sleep,
+    transformObjectStrings,
+    waitForQueueToEmpty
 } from '..'
+
+jest.mock('bull')
+
+describe('waitForQueueToEmpty', () => {
+    it('should complete when the queue is empty', async () => {
+        const mockQueue = new bull('') as any
+        mockQueue.getActiveCount = jest.fn().mockResolvedValue(0)
+        mockQueue.getWaitingCount = jest.fn().mockResolvedValue(0)
+
+        const result = await waitForQueueToEmpty(mockQueue)
+        expect(result).toBeTruthy()
+    })
+
+    it('should time out if the queue is not empty within the time limit', async () => {
+        const mockQueue = new bull('') as any
+        mockQueue.getActiveCount = jest.fn().mockResolvedValue(1)
+        mockQueue.getWaitingCount = jest.fn().mockResolvedValue(1)
+
+        const result = await waitForQueueToEmpty(mockQueue, 1)
+        expect(result).toBeFalsy()
+    })
+})
 
 describe('common/utils/etc', () => {
     describe('sleep', () => {
@@ -135,6 +160,51 @@ describe('common/utils/etc', () => {
             const isEqual = equalsIgnoreCase(undefined, undefined)
 
             expect(isEqual).toBeFalsy()
+        })
+    })
+
+    describe('transformObjectStrings', () => {
+        it('converts ISO 8601 date strings to Date objects', () => {
+            const obj = {
+                date: '2023-06-18T12:00:00.000Z'
+            }
+            transformObjectStrings(obj)
+            expect(obj.date).toBeInstanceOf(Date)
+            expect((obj.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
+        })
+
+        it('recursively converts date strings in nested objects', () => {
+            const obj = {
+                level1: {
+                    date: '2023-06-18T12:00:00.000Z',
+                    level2: {
+                        date: '2023-06-19T12:00:00.000Z'
+                    }
+                }
+            }
+            transformObjectStrings(obj)
+            expect(obj.level1.date).toBeInstanceOf(Date)
+            expect((obj.level1.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
+            expect(obj.level1.level2.date).toBeInstanceOf(Date)
+            expect((obj.level1.level2.date as any).toISOString()).toEqual('2023-06-19T12:00:00.000Z')
+        })
+
+        it('ignores non-date string formats', () => {
+            const obj = {
+                text: 'Hello, world!'
+            }
+            transformObjectStrings(obj)
+            expect(obj.text).toEqual('Hello, world!')
+        })
+
+        it('ignores non-string types', () => {
+            const obj = {
+                number: 123,
+                boolean: true
+            }
+            transformObjectStrings(obj)
+            expect(obj.number).toEqual(123)
+            expect(obj.boolean).toBe(true)
         })
     })
 

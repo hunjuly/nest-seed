@@ -1,61 +1,32 @@
+import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { ObjectId, PaginationResult } from 'common'
-import { ShowtimesCreatedEvent, ShowtimesService } from '../showtimes'
-import { TheatersService, forEachSeat } from '../theaters'
+import { Queue } from 'bull'
+import { PaginationResult, waitForQueueToEmpty } from 'common'
+import { ShowtimesCreatedEvent } from '../showtimes'
 import { TicketDto, TicketsQueryDto } from './dto'
-import { Ticket, TicketStatus } from './schemas'
 import { TicketsRepository } from './tickets.repository'
 
 @Injectable()
 export class TicketsService {
-    private promises: Promise<void>[] = []
-
     constructor(
-        private ticketsRepository: TicketsRepository,
-        private theatersService: TheatersService,
-        private showtimesService: ShowtimesService
+        @InjectQueue('tickets') private ticketsQueue: Queue,
+        private ticketsRepository: TicketsRepository
     ) {}
 
     async onModuleDestroy() {
-        await Promise.all(this.promises)
+        await waitForQueueToEmpty(this.ticketsQueue)
     }
 
     @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreatedEvent(event: ShowtimesCreatedEvent) {
-        const promise = this.createTickets(event.batchId)
-
-        this.promises.push(promise)
-
-        await promise
+    async handleShowtimesCreated(event: ShowtimesCreatedEvent) {
+        await this.createTickets(event.batchId)
     }
 
-    async createTickets(showtimesBatchId: string): Promise<void> {
-        const showtimes = await this.showtimesService.getShowtimesByBatchId(showtimesBatchId)
+    async createTickets(showtimesBatchId: string) {
+        await this.ticketsQueue.add('createTickets', { showtimesBatchId })
 
-        Logger.log('Starting the ticket creation process for multiple showtimes.')
-
-        const ticketEntries: Partial<Ticket>[] = []
-
-        for (const showtime of showtimes) {
-            const theater = await this.theatersService.getTheater(showtime.theaterId)
-
-            forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
-                ticketEntries.push({
-                    showtimeId: new ObjectId(showtime.id),
-                    theaterId: new ObjectId(showtime.theaterId),
-                    movieId: new ObjectId(showtime.movieId),
-                    status: TicketStatus.open,
-                    seat: { block, row, seatnum }
-                })
-            })
-
-            Logger.log(`Tickets created for showtime ID: ${showtime.id} at theater ID: ${showtime.theaterId}`)
-        }
-
-        const tickets = await this.ticketsRepository.createMany(ticketEntries)
-
-        Logger.log(`${tickets.length} tickets have been successfully created and saved.`)
+        Logger.log(`Tickets 생성 요청. showtimesBatchId=${showtimesBatchId}`)
     }
 
     async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {

@@ -29,6 +29,9 @@ export class Ticket extends MongooseSchema {
 
     @Prop({ type: Object, required: true })
     seat: TicketSeat
+
+    @Prop({ type: ObjectId, required: true })
+    showtimesBatchId: ObjectId
 }
 
 export const TicketSchema = createMongooseSchema(Ticket)

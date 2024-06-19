@@ -2,7 +2,7 @@ import { OnQueueCompleted, OnQueueFailed, Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import {
-    CreateShowtimesResult,
+    ShowtimesCreationResult,
     ShowtimeDto,
     ShowtimesCreatedEvent,
     ShowtimesService
@@ -21,9 +21,9 @@ export class ShowtimesEventListener {
     }
 
     @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreatedEvent(_: ShowtimesCreatedEvent) {}
+    async handleShowtimesCreated(_: ShowtimesCreatedEvent) {}
 
-    waitForEventResult(batchId: string): Promise<CreateShowtimesResult> {
+    waitForEventResult(batchId: string): Promise<ShowtimesCreationResult> {
         return new Promise((resolve, rejected) => {
             this.promises.set(batchId, { resolve, rejected })
         })
@@ -56,10 +56,10 @@ const durationMinutes = 90
 
 export async function createShowtimes(
     showtimesService: ShowtimesService,
-    eventListener: ShowtimesEventListener,
+    showtimesEventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[]
-): Promise<CreateShowtimesResult> {
+): Promise<ShowtimesCreationResult> {
     const { batchId } = await showtimesService.createShowtimes({
         movieId,
         theaterIds,
@@ -72,19 +72,20 @@ export async function createShowtimes(
         ]
     })
 
-    const promise = eventListener.waitForEventResult(batchId)
+    const promise = showtimesEventListener.waitForEventResult(batchId)
 
     return await promise
 }
 
 export async function createShowtimesInParallel(
     showtimesService: ShowtimesService,
-    eventListener: ShowtimesEventListener,
+    showtimesEventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[],
-    count: number
-): Promise<CreateShowtimesResult[]> {
-    const promises: Promise<CreateShowtimesResult>[] = []
+    count: number,
+    callback?: (batchId: string) => void
+): Promise<ShowtimesCreationResult[]> {
+    const promises: Promise<ShowtimesCreationResult>[] = []
 
     for (let i = 0; i < count; i++) {
         const { batchId } = await showtimesService.createShowtimes({
@@ -94,7 +95,9 @@ export async function createShowtimesInParallel(
             startTimes: [new Date(1900, i, 31, 12, 0)]
         })
 
-        const promise = eventListener.waitForEventResult(batchId)
+        callback && callback(batchId)
+
+        const promise = showtimesEventListener.waitForEventResult(batchId)
 
         promises.push(promise)
     }
@@ -106,12 +109,12 @@ export async function createShowtimesInParallel(
 
 export async function createDuplicateShowtimes(
     showtimesService: ShowtimesService,
-    eventListener: ShowtimesEventListener,
+    showtimesEventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[],
     count: number
-): Promise<CreateShowtimesResult[]> {
-    const promises: Promise<CreateShowtimesResult>[] = []
+): Promise<ShowtimesCreationResult[]> {
+    const promises: Promise<ShowtimesCreationResult>[] = []
 
     const startTimes = [new Date('2013-01-31T14:00')]
 
@@ -123,7 +126,7 @@ export async function createDuplicateShowtimes(
             startTimes
         })
 
-        const promise = eventListener.waitForEventResult(batchId)
+        const promise = showtimesEventListener.waitForEventResult(batchId)
 
         promises.push(promise)
     }

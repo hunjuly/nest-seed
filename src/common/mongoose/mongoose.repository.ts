@@ -12,13 +12,16 @@ export abstract class MongooseRepository<Doc> {
     }
 
     async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
-        const savedDocuments = (await this.model.insertMany(documentDatas)) as HydratedDocument<Doc>[]
+        const savedDocuments = (await this.model.insertMany(
+            documentDatas
+            // , {lean: true}
+        )) as HydratedDocument<Doc>[]
 
         return savedDocuments.map((doc) => doc.toObject())
     }
 
     async deleteById(id: string): Promise<void> {
-        const deletedDocument = await this.model.findByIdAndDelete(id).exec()
+        const deletedDocument = await this.model.findByIdAndDelete(id, { lean: true }).exec()
 
         if (!deletedDocument) {
             throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
@@ -26,7 +29,7 @@ export abstract class MongooseRepository<Doc> {
     }
 
     async deleteByIds(ids: string[]) {
-        const result = await this.model.deleteMany({ _id: { $in: ids } as any })
+        const result = await this.model.deleteMany({ _id: { $in: ids } as any }, { lean: true })
 
         return result.deletedCount
     }

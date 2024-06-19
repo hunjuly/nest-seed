@@ -1,66 +1,77 @@
-import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate } from 'common'
-import { CreateShowtimesDto } from './dto'
-import { Showtime } from './schemas'
-import { ShowtimeDto } from './dto'
-import { ShowtimesRepository } from './showtimes.repository'
+import { Process, Processor } from '@nestjs/bull'
+import { Injectable, Logger } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Job } from 'bull'
+import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate, transformObjectStrings } from 'common'
+import { CreateShowtimesDto, ShowtimeDto, ShowtimesCreationResult, ShowtimesCreationStatus } from '../dto'
+import { ShowtimesCreatedEvent } from '../events'
+import { Showtime } from '../schemas'
+import { ShowtimesRepository } from '../showtimes.repository'
 
-export type ShowtimesCreationData = CreateShowtimesDto & { batchId: string }
+type ShowtimesCreationData = CreateShowtimesDto & { batchId: string }
+type Timeslot = Map<number, Showtime>
 
-export enum CreateShowtimesStatus {
-    success = 'success',
-    conflict = 'conflict'
-}
+@Injectable()
+@Processor('showtimes')
+export class ShowtimesCreationService {
+    constructor(
+        private showtimesRepository: ShowtimesRepository,
+        private eventEmitter: EventEmitter2
+    ) {}
 
-export class CreateShowtimesResult {
-    conflictShowtimes?: ShowtimeDto[]
-    createdShowtimes?: ShowtimeDto[]
-    batchId: string
-    status: CreateShowtimesStatus
+    async emitShowtimesCreated(batchId: string) {
+        const event: ShowtimesCreatedEvent = { batchId }
 
-    static create(initData: {
-        conflictShowtimes?: Showtime[]
-        createdShowtimes?: Showtime[]
-        batchId: string
-    }) {
-        const result = new CreateShowtimesResult()
-        result.batchId = initData.batchId
+        await this.eventEmitter.emitAsync('showtimes.created', event)
+    }
 
-        if (initData.conflictShowtimes) {
-            result.conflictShowtimes = initData.conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            result.status = CreateShowtimesStatus.conflict
-        } else if (initData.createdShowtimes) {
-            result.createdShowtimes = initData.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            result.status = CreateShowtimesStatus.success
+    @Process('createShowtimes')
+    async handleCreateShowtimes(job: Job<ShowtimesCreationData>): Promise<ShowtimesCreationResult> {
+        transformObjectStrings(job.data)
+
+        const result = await this.create(job.data)
+
+        if (result.createdShowtimes) {
+            try {
+                await this.emitShowtimesCreated(result.batchId)
+            } catch (error) {
+                Logger.error(`이벤트 생성 실패`)
+
+                const deletedCount = await this.showtimesRepository.deleteByBatchId(result.batchId)
+
+                /* istanbul ignore else */
+                if (result.createdShowtimes.length === deletedCount) {
+                    Logger.warn(`생성한 ${deletedCount}개의 showtimes 삭제`)
+                } else {
+                    Logger.error(`생성한 showtimes 삭제 실패`)
+                }
+
+                throw error
+            }
         }
 
         return result
     }
-}
 
-type Timeslot = Map<number, Showtime>
-
-function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => boolean | void) {
-    for (let time = start.getTime(); time <= end.getTime(); time = time + 10 * 60 * 1000) {
-        if (false === callback(time)) {
-            break
-        }
-    }
-}
-
-export class ShowtimesCreationService {
-    constructor(private showtimesRepository: ShowtimesRepository) {}
-
-    async create(request: ShowtimesCreationData): Promise<CreateShowtimesResult> {
+    async create(request: ShowtimesCreationData): Promise<ShowtimesCreationResult> {
         const { batchId } = request
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            return CreateShowtimesResult.create({ conflictShowtimes, batchId })
+            return {
+                status: ShowtimesCreationStatus.conflict,
+                conflictShowtimes: conflictShowtimes.map((showtime) => new ShowtimeDto(showtime)),
+                batchId
+            }
         }
 
         const createdShowtimes = await this.saveShowtimes(request)
 
-        return CreateShowtimesResult.create({ createdShowtimes, batchId })
+        return {
+            status: ShowtimesCreationStatus.success,
+            createdShowtimes: createdShowtimes.map((showtime) => new ShowtimeDto(showtime)),
+            batchId
+        }
     }
 
     private async saveShowtimes(request: ShowtimesCreationData) {
@@ -88,6 +99,8 @@ export class ShowtimesCreationService {
     }
 
     async checkForTimeConflicts(request: CreateShowtimesDto): Promise<Showtime[]> {
+        Logger.log(`충돌 검사 시작: 극장 ID ${request.theaterIds.join(', ')}`)
+
         const { durationMinutes, startTimes, theaterIds } = request
 
         const timeslotsByTheater = await this.createTimeslotsByTheater(request)
@@ -107,12 +120,14 @@ export class ShowtimesCreationService {
 
                     if (showtime) {
                         conflictShowtimes.push(showtime)
+                        Logger.debug(`충돌 발견: 상영 시간 ID ${showtime._id}`)
                         return false
                     }
                 })
             }
         }
 
+        Logger.log(`충돌 검사 완료: 충돌 발생한 상영 시간 ${conflictShowtimes.length}개`)
         return conflictShowtimes
     }
 
@@ -144,5 +159,13 @@ export class ShowtimesCreationService {
         }
 
         return timeslotsByTheater
+    }
+}
+
+function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => boolean | void) {
+    for (let time = start.getTime(); time <= end.getTime(); time = time + 10 * 60 * 1000) {
+        if (false === callback(time)) {
+            break
+        }
     }
 }

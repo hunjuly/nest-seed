@@ -8,10 +8,9 @@ import { TicketsModule, TicketsService } from 'app/services/tickets'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
-import { ShowtimesEventListener, createShowtimes } from './showtimes.fixture'
+import { ShowtimesEventListener, createShowtimes, createShowtimesInParallel } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
-import { makeExpectedTickets, sortTickets } from './tickets.fixture'
-import { sleep } from 'common'
+import { TicketsEventListener, makeExpectedTickets, sortTickets } from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
@@ -22,22 +21,24 @@ describe('/tickets', () => {
     let theater: TheaterDto
 
     let ticketsService: TicketsService
+    let ticketsEventListener: TicketsEventListener
     let showtimesService: ShowtimesService
-    let eventListener: ShowtimesEventListener
+    let showtimesEventListener: ShowtimesEventListener
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
             imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
             controllers: [TicketsController],
-            providers: [ShowtimesEventListener]
+            providers: [ShowtimesEventListener, TicketsEventListener]
         })
         req = testContext.request
 
         const module = testContext.module
 
         showtimesService = module.get(ShowtimesService)
-        eventListener = module.get(ShowtimesEventListener)
+        showtimesEventListener = module.get(ShowtimesEventListener)
         ticketsService = module.get(TicketsService)
+        ticketsEventListener = module.get(TicketsEventListener)
 
         const moviesService = module.get(MoviesService)
         const movies = await createMovies(moviesService, 1)
@@ -56,15 +57,18 @@ describe('/tickets', () => {
     it('should handle asynchronous event listeners', async () => {
         jest.spyOn(ticketsService, 'createTickets')
 
-        const result = await createShowtimes(showtimesService, eventListener, movieId, theaterIds)
+        const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
+
+        await ticketsEventListener.waitForEventResult(result.batchId)
 
         expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
     })
 
     it('create and find tickets', async () => {
-        const result = await createShowtimes(showtimesService, eventListener, movieId, theaterIds)
+        const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
 
-        await sleep(1000)
+        await ticketsEventListener.waitForEventResult(result.batchId)
+
         const expectedTickets = makeExpectedTickets(theater, result.createdShowtimes!)
 
         const res = await req.get({
@@ -76,5 +80,38 @@ describe('/tickets', () => {
         sortTickets(res.body.items)
         sortTickets(expectedTickets)
         expect(res.body.items).toEqual(expectedTickets)
+    })
+
+    it('티켓 생성에 성공하면 tickets.created 이벤트가 발생해야 한다', async () => {
+        jest.spyOn(ticketsEventListener, 'handleTicketsCreated')
+
+        const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
+
+        await ticketsEventListener.waitForEventResult(result.batchId)
+
+        expect(ticketsEventListener.handleTicketsCreated).toHaveBeenCalledTimes(1)
+    })
+
+    it('동시에 생성 요청을 해도 성공해야 한다', async () => {
+        const promises: Promise<void>[] = []
+        const callback = (batchId: string) => {
+            const promise = ticketsEventListener.waitForEventResult(batchId)
+            promises.push(promise)
+        }
+
+        const count = 100
+        const results = await createShowtimesInParallel(
+            showtimesService,
+            showtimesEventListener,
+            movieId,
+            theaterIds,
+            count,
+            callback
+        )
+        expect(results).toHaveLength(count)
+
+        const responses = await Promise.all(promises)
+
+        expect(responses.length).toBeGreaterThan(0)
     })
 })

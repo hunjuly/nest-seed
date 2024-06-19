@@ -18,17 +18,17 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const app = module.createNestApplication()
 
-    const loggingDuringTesting = process.env.DEV_LOGGING_DURING_TESTING === 'true'
+    const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
 
-    if (loggingDuringTesting) {
+    if (ignoreLogging) {
+        app.useLogger(false)
+    } else {
         try {
             const logger = app.get(AppLoggerService)
             app.useLogger(logger)
         } catch (error) {
             app.useLogger(console)
         }
-    } else {
-        app.useLogger(false)
     }
 
     if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
