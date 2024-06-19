@@ -1,11 +1,6 @@
-import { Body, ConflictException, Controller, Get, NotFoundException, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, NotFoundException, Post, Query } from '@nestjs/common'
 import { MoviesService } from 'app/services/movies'
-import {
-    CreateShowtimesDto,
-    CreateShowtimesStatus,
-    ShowtimesQueryDto,
-    ShowtimesService
-} from 'app/services/showtimes'
+import { CreateShowtimesDto, ShowtimesQueryDto, ShowtimesService } from 'app/services/showtimes'
 import { TheatersService } from 'app/services/theaters'
 
 @Controller('showtimes')
@@ -31,10 +26,6 @@ export class ShowtimesController {
         }
 
         const result = await this.showtimesService.createShowtimes(request)
-
-        if (CreateShowtimesStatus.conflict === result.status) {
-            throw new ConflictException(result)
-        }
 
         return result
     }

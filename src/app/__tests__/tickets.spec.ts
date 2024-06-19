@@ -1,27 +1,29 @@
 import { expect } from '@jest/globals'
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
-import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
+import { MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { TicketsModule, TicketsService } from 'app/services/tickets'
-import { sleep } from 'common'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
 import { ShowtimesEventListener, createShowtimes } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 import { makeExpectedTickets, sortTickets } from './tickets.fixture'
+import { sleep } from 'common'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 
-    let movie: MovieDto
-    let theaters: TheaterDto[]
+    let movieId: string
+    let theaterIds: string[]
+    let theater: TheaterDto
 
     let ticketsService: TicketsService
     let showtimesService: ShowtimesService
+    let eventListener: ShowtimesEventListener
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -31,13 +33,20 @@ describe('/tickets', () => {
         })
         req = testContext.request
 
-        showtimesService = testContext.module.get(ShowtimesService)
-        const moviesService = testContext.module.get(MoviesService)
-        const theatersService = testContext.module.get(TheatersService)
-        ticketsService = testContext.module.get(TicketsService)
+        const module = testContext.module
 
-        movie = (await createMovies(moviesService, 1))[0]
-        theaters = await createTheaters(theatersService, 1)
+        showtimesService = module.get(ShowtimesService)
+        eventListener = module.get(ShowtimesEventListener)
+        ticketsService = module.get(TicketsService)
+
+        const moviesService = module.get(MoviesService)
+        const movies = await createMovies(moviesService, 1)
+        movieId = movies[0].id
+
+        const theatersService = module.get(TheatersService)
+        const theaters = await createTheaters(theatersService, 1)
+        theaterIds = theaters.map((theater) => theater.id)
+        theater = theaters[0]
     })
 
     afterEach(async () => {
@@ -47,24 +56,20 @@ describe('/tickets', () => {
     it('should handle asynchronous event listeners', async () => {
         jest.spyOn(ticketsService, 'createTickets')
 
-        const result = await createShowtimes(showtimesService, movie, theaters)
+        const result = await createShowtimes(showtimesService, eventListener, movieId, theaterIds)
 
-        await sleep(1000)
-
-        expect(result.batchId).toBeDefined()
         expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
     })
 
     it('create and find tickets', async () => {
-        const result = await createShowtimes(showtimesService, movie, theaters)
+        const result = await createShowtimes(showtimesService, eventListener, movieId, theaterIds)
 
         await sleep(1000)
-
-        const expectedTickets = makeExpectedTickets(theaters[0], result.createdShowtimes!)
+        const expectedTickets = makeExpectedTickets(theater, result.createdShowtimes!)
 
         const res = await req.get({
             url: '/tickets',
-            query: { movieId: movie.id, theaterId: theaters[0].id }
+            query: { movieId, theaterId: theater.id }
         })
         expectOk(res)
 

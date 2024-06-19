@@ -1,14 +1,22 @@
+import { InjectQueue, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { PaginationResult } from 'common'
-import { CreateShowtimesDto, CreateShowtimesResult, ShowtimeDto, ShowtimesQueryDto } from './dto'
-import { ShowtimesCreationService } from './showtimes-creation.service'
-import { ShowtimesRepository } from './showtimes.repository'
+import { Job, Queue } from 'bull'
+import { ObjectId, PaginationResult, transformObjectStrings } from 'common'
+import { CreateShowtimesDto, CreateShowtimesResponse, ShowtimeDto, ShowtimesQueryDto } from './dto'
 import { ShowtimesCreatedEvent } from './events'
+import {
+    CreateShowtimesResult,
+    ShowtimesCreationData,
+    ShowtimesCreationService
+} from './showtimes-creation.service'
+import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
+@Processor('showtimes')
 export class ShowtimesService {
     constructor(
+        @InjectQueue('showtimes') private showtimesQueue: Queue,
         private eventEmitter: EventEmitter2,
         private showtimesRepository: ShowtimesRepository
     ) {}
@@ -19,12 +27,22 @@ export class ShowtimesService {
         await this.eventEmitter.emitAsync('showtimes.created', event)
     }
 
-    async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResult> {
+    async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResponse> {
+        const batchId = new ObjectId().toString()
+
+        await this.showtimesQueue.add('createShowtimes', { ...createShowtimesRequest, batchId })
+
+        return { batchId }
+    }
+
+    @Process('createShowtimes')
+    async handleCreateShowtimes(job: Job<ShowtimesCreationData>): Promise<CreateShowtimesResult> {
+        transformObjectStrings(job.data)
+
         const showtimesCreationService = new ShowtimesCreationService(this.showtimesRepository)
+        const result = await showtimesCreationService.create(job.data)
 
-        const result = await showtimesCreationService.create(createShowtimesRequest)
-
-        if (result.createdShowtimes && result.batchId) {
+        if (result.createdShowtimes) {
             try {
                 await this.emitShowtimesCreatedEvent(result.batchId)
             } catch (error) {

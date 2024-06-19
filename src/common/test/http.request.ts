@@ -1,26 +1,13 @@
 import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
 import { LogicException } from '../exceptions'
+import { transformObjectStrings } from '../utils'
 
 interface RequestContext {
     url: string
     headers?: any
     body?: any
     query?: any
-}
-
-/**
- * When received as JSON, Date is a string. Convert it to a Date automatically.
- * Add any other types to this function that need to be converted automatically besides Date.
- */
-function transformObjectStrings(obj: any) {
-    for (const key in obj) {
-        if (typeof obj[key] === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj[key])) {
-            obj[key] = new Date(obj[key])
-        } else if (typeof obj[key] === 'object') {
-            transformObjectStrings(obj[key])
-        }
-    }
 }
 
 export class HttpRequest {

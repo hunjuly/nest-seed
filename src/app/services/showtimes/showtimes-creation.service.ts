@@ -1,7 +1,41 @@
 import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate } from 'common'
-import { CreateShowtimesDto, CreateShowtimesResult } from './dto'
+import { CreateShowtimesDto } from './dto'
 import { Showtime } from './schemas'
+import { ShowtimeDto } from './dto'
 import { ShowtimesRepository } from './showtimes.repository'
+
+export type ShowtimesCreationData = CreateShowtimesDto & { batchId: string }
+
+export enum CreateShowtimesStatus {
+    success = 'success',
+    conflict = 'conflict'
+}
+
+export class CreateShowtimesResult {
+    conflictShowtimes?: ShowtimeDto[]
+    createdShowtimes?: ShowtimeDto[]
+    batchId: string
+    status: CreateShowtimesStatus
+
+    static create(initData: {
+        conflictShowtimes?: Showtime[]
+        createdShowtimes?: Showtime[]
+        batchId: string
+    }) {
+        const result = new CreateShowtimesResult()
+        result.batchId = initData.batchId
+
+        if (initData.conflictShowtimes) {
+            result.conflictShowtimes = initData.conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
+            result.status = CreateShowtimesStatus.conflict
+        } else if (initData.createdShowtimes) {
+            result.createdShowtimes = initData.createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
+            result.status = CreateShowtimesStatus.success
+        }
+
+        return result
+    }
+}
 
 type Timeslot = Map<number, Showtime>
 
@@ -16,21 +50,21 @@ function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => 
 export class ShowtimesCreationService {
     constructor(private showtimesRepository: ShowtimesRepository) {}
 
-    async create(request: CreateShowtimesDto): Promise<CreateShowtimesResult> {
+    async create(request: ShowtimesCreationData): Promise<CreateShowtimesResult> {
+        const { batchId } = request
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            return CreateShowtimesResult.create({ conflictShowtimes })
+            return CreateShowtimesResult.create({ conflictShowtimes, batchId })
         }
 
-        const batchId = new ObjectId()
-        const createdShowtimes = await this.saveShowtimes(request, batchId)
+        const createdShowtimes = await this.saveShowtimes(request)
 
-        return CreateShowtimesResult.create({ createdShowtimes, batchId: batchId.toString() })
+        return CreateShowtimesResult.create({ createdShowtimes, batchId })
     }
 
-    private async saveShowtimes(request: CreateShowtimesDto, batchId: ObjectId) {
-        const { movieId, theaterIds, durationMinutes, startTimes } = request
+    private async saveShowtimes(request: ShowtimesCreationData) {
+        const { movieId, theaterIds, durationMinutes, startTimes, batchId } = request
 
         const showtimeEntries: Partial<Showtime>[] = []
 
@@ -43,7 +77,7 @@ export class ShowtimesCreationService {
                     theaterId: new ObjectId(theaterId),
                     startTime,
                     endTime,
-                    batchId
+                    batchId: new ObjectId(batchId)
                 })
             }
         }

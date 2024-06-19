@@ -1,3 +1,4 @@
+import { OnQueueCompleted, OnQueueFailed, Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import {
@@ -6,11 +7,39 @@ import {
     ShowtimesCreatedEvent,
     ShowtimesService
 } from 'app/services/showtimes'
+import { Job } from 'bull'
+
+type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
 
 @Injectable()
+@Processor('showtimes')
 export class ShowtimesEventListener {
+    promises: Map<string, PromiseCallback>
+
+    constructor() {
+        this.promises = new Map<string, PromiseCallback>()
+    }
+
     @OnEvent('showtimes.created', { async: true })
     async handleShowtimesCreatedEvent(_: ShowtimesCreatedEvent) {}
+
+    waitForEventResult(batchId: string): Promise<CreateShowtimesResult> {
+        return new Promise((resolve, rejected) => {
+            this.promises.set(batchId, { resolve, rejected })
+        })
+    }
+
+    @OnQueueCompleted()
+    onCompleted(job: Job) {
+        const promise = this.promises.get(job.data.batchId)
+        promise?.resolve(job.returnvalue)
+    }
+
+    @OnQueueFailed()
+    onFailed(job: Job) {
+        const promise = this.promises.get(job.data.batchId)
+        promise?.rejected(new Error(job.failedReason))
+    }
 }
 
 export async function sortShowtimes(showtimes: ShowtimeDto[]) {
@@ -27,10 +56,11 @@ const durationMinutes = 90
 
 export async function createShowtimes(
     showtimesService: ShowtimesService,
+    eventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[]
 ): Promise<CreateShowtimesResult> {
-    const ressult = await showtimesService.createShowtimes({
+    const { batchId } = await showtimesService.createShowtimes({
         movieId,
         theaterIds,
         durationMinutes,
@@ -42,11 +72,14 @@ export async function createShowtimes(
         ]
     })
 
-    return ressult
+    const promise = eventListener.waitForEventResult(batchId)
+
+    return await promise
 }
 
 export async function createShowtimesInParallel(
     showtimesService: ShowtimesService,
+    eventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[],
     count: number
@@ -54,12 +87,14 @@ export async function createShowtimesInParallel(
     const promises: Promise<CreateShowtimesResult>[] = []
 
     for (let i = 0; i < count; i++) {
-        const promise = showtimesService.createShowtimes({
+        const { batchId } = await showtimesService.createShowtimes({
             movieId,
             theaterIds,
             durationMinutes,
             startTimes: [new Date(1900, i, 31, 12, 0)]
         })
+
+        const promise = eventListener.waitForEventResult(batchId)
 
         promises.push(promise)
     }
@@ -71,6 +106,7 @@ export async function createShowtimesInParallel(
 
 export async function createDuplicateShowtimes(
     showtimesService: ShowtimesService,
+    eventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[],
     count: number
@@ -80,7 +116,14 @@ export async function createDuplicateShowtimes(
     const startTimes = [new Date('2013-01-31T14:00')]
 
     for (let i = 0; i < count; i++) {
-        const promise = showtimesService.createShowtimes({ movieId, theaterIds, durationMinutes, startTimes })
+        const { batchId } = await showtimesService.createShowtimes({
+            movieId,
+            theaterIds,
+            durationMinutes,
+            startTimes
+        })
+
+        const promise = eventListener.waitForEventResult(batchId)
 
         promises.push(promise)
     }

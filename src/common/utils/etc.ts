@@ -75,3 +75,17 @@ export function padNumber(num: number, length: number): string {
 
     return paddedNumber
 }
+
+/**
+ * When received as JSON, Date is a string. Convert it to a Date automatically.
+ * Add any other types to this function that need to be converted automatically besides Date.
+ */
+export function transformObjectStrings(obj: any) {
+    for (const key in obj) {
+        if (typeof obj[key] === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj[key])) {
+            obj[key] = new Date(obj[key])
+        } else if (typeof obj[key] === 'object') {
+            transformObjectStrings(obj[key])
+        }
+    }
+}

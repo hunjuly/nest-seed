@@ -1,19 +1,10 @@
-import { TestingModule } from '@nestjs/testing'
 import { ShowtimesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
 import { addMinutes, nullObjectId } from 'common'
-import {
-    HttpTestContext,
-    createHttpTestContext,
-    expectConflict,
-    expectCreated,
-    expectInternalServerError,
-    expectNotFound,
-    expectOk
-} from 'common/test'
+import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovies } from './movies.fixture'
 import {
@@ -28,8 +19,8 @@ import { createTheaters } from './theaters.fixture'
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
-    let module: TestingModule
     let showtimesService: ShowtimesService
+    let eventListener: ShowtimesEventListener
 
     let movieId: string
     let theaterId: string
@@ -42,7 +33,8 @@ describe('/showtimes', () => {
             providers: [ShowtimesEventListener]
         })
         req = testContext.request
-        module = testContext.module
+
+        const module = testContext.module
 
         const moviesService = module.get(MoviesService)
         const movies = await createMovies(moviesService, 1)
@@ -54,6 +46,7 @@ describe('/showtimes', () => {
         theaterId = theaterIds[0]
 
         showtimesService = module.get(ShowtimesService)
+        eventListener = module.get(ShowtimesEventListener)
     })
 
     afterEach(async () => {
@@ -63,31 +56,41 @@ describe('/showtimes', () => {
     it('상영 시간 생성에 성공하면 CREATED(201)을 반환해야 한다', async () => {
         const durationMinutes = 90
         const startTimes = [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
-
         const res = await req.post({
             url: '/showtimes',
             body: { movieId, theaterIds: [theaterId], durationMinutes, startTimes }
         })
         expectCreated(res)
 
-        const common = { id: expect.anything(), movieId, theaterId }
-        const expectedShowtimes = [
-            { ...common, startTime: startTimes[0], endTime: addMinutes(startTimes[0], durationMinutes) },
-            { ...common, startTime: startTimes[1], endTime: addMinutes(startTimes[1], durationMinutes) }
-        ]
-
-        sortShowtimes(res.body.createdShowtimes)
-        sortShowtimes(expectedShowtimes)
-
-        expect(res.body).toEqual({
+        const actual = await eventListener.waitForEventResult(res.body.batchId)
+        const expected = {
             status: 'success',
             batchId: expect.anything(),
-            createdShowtimes: expectedShowtimes
-        })
+            createdShowtimes: [
+                {
+                    id: expect.anything(),
+                    movieId,
+                    theaterId,
+                    startTime: startTimes[0],
+                    endTime: addMinutes(startTimes[0], durationMinutes)
+                },
+                {
+                    id: expect.anything(),
+                    movieId,
+                    theaterId,
+                    startTime: startTimes[1],
+                    endTime: addMinutes(startTimes[1], durationMinutes)
+                }
+            ]
+        }
+
+        sortShowtimes(actual.createdShowtimes!)
+        sortShowtimes(expected.createdShowtimes)
+
+        expect(actual).toEqual(expected)
     })
 
     it('상영 시간 생성에 성공하면 showtimes.created 이벤트가 발생해야 한다', async () => {
-        const eventListener = module.get(ShowtimesEventListener)
         jest.spyOn(eventListener, 'handleShowtimesCreatedEvent')
 
         const res = await req.post({
@@ -95,6 +98,9 @@ describe('/showtimes', () => {
             body: { movieId, theaterIds: [theaterId], durationMinutes: 1, startTimes: [new Date()] }
         })
         expectCreated(res)
+
+        await eventListener.waitForEventResult(res.body.batchId)
+
         expect(eventListener.handleShowtimesCreatedEvent).toHaveBeenCalledTimes(1)
     })
 
@@ -110,7 +116,11 @@ describe('/showtimes', () => {
             url: '/showtimes',
             body: { movieId, theaterIds: [theaterId], durationMinutes: 1, startTimes: [new Date()] }
         })
-        expectInternalServerError(res)
+        expectCreated(res)
+
+        const promise = eventListener.waitForEventResult(res.body.batchId)
+
+        await expect(promise).rejects.toThrow()
 
         const { total: afterTotal } = await showtimesService.findByQuery({})
         expect(beforeTotal).toEqual(afterTotal)
@@ -118,7 +128,13 @@ describe('/showtimes', () => {
 
     it('동시에 생성 요청을 해도 성공해야 한다', async () => {
         const count = 100
-        const results = await createShowtimesInParallel(showtimesService, movieId, theaterIds, count)
+        const results = await createShowtimesInParallel(
+            showtimesService,
+            eventListener,
+            movieId,
+            theaterIds,
+            count
+        )
         expect(results).toHaveLength(count)
 
         const allShowtimes = []
@@ -133,7 +149,13 @@ describe('/showtimes', () => {
 
     it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다.(현재는 서버 인스턴스가 증가하면 테스트 실패할 것이다.)', async () => {
         const count = 100
-        const results = await createDuplicateShowtimes(showtimesService, movieId, theaterIds, count)
+        const results = await createDuplicateShowtimes(
+            showtimesService,
+            eventListener,
+            movieId,
+            theaterIds,
+            count
+        )
         expect(results).toHaveLength(count)
 
         const createdResponse = []
@@ -154,7 +176,12 @@ describe('/showtimes', () => {
     })
 
     it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-        const { createdShowtimes, batchId } = await createShowtimes(showtimesService, movieId, theaterIds)
+        const { createdShowtimes, batchId } = await createShowtimes(
+            showtimesService,
+            eventListener,
+            movieId,
+            theaterIds
+        )
 
         const res = await req.get({ url: '/showtimes', query: { batchId: batchId! } })
         expectOk(res)
@@ -166,7 +193,12 @@ describe('/showtimes', () => {
     })
 
     it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-        const { createdShowtimes } = await createShowtimes(showtimesService, movieId, theaterIds)
+        const { createdShowtimes } = await createShowtimes(
+            showtimesService,
+            eventListener,
+            movieId,
+            theaterIds
+        )
 
         const res = await req.get({ url: '/showtimes', query: { theaterId } })
         expectOk(res)
@@ -180,7 +212,12 @@ describe('/showtimes', () => {
     })
 
     it('CONFLICT(409) when attempting to create overlapping showtimes', async () => {
-        const { createdShowtimes } = await createShowtimes(showtimesService, movieId, theaterIds)
+        const { createdShowtimes } = await createShowtimes(
+            showtimesService,
+            eventListener,
+            movieId,
+            theaterIds
+        )
 
         const res = await req.post({
             url: '/showtimes',
@@ -195,22 +232,28 @@ describe('/showtimes', () => {
                 ]
             }
         })
-        expectConflict(res)
+        expectCreated(res)
 
-        const conflictShowtimes = createdShowtimes!.filter((showtime) => {
-            const conflictTimes = [
-                new Date('2013-01-31T12:00').getTime(),
-                new Date('2013-01-31T16:30').getTime(),
-                new Date('2013-01-31T18:30').getTime()
-            ]
+        const actual = await eventListener.waitForEventResult(res.body.batchId)
 
-            return conflictTimes.includes(showtime.startTime.getTime())
-        })
+        const expected = {
+            status: 'conflict',
+            batchId: res.body.batchId,
+            conflictShowtimes: createdShowtimes!.filter((showtime) => {
+                const conflictTimes = [
+                    new Date('2013-01-31T12:00').getTime(),
+                    new Date('2013-01-31T16:30').getTime(),
+                    new Date('2013-01-31T18:30').getTime()
+                ]
 
-        sortShowtimes(res.body.conflictShowtimes)
-        sortShowtimes(conflictShowtimes)
+                return conflictTimes.includes(showtime.startTime.getTime())
+            })
+        }
 
-        expect(res.body).toEqual({ status: 'conflict', conflictShowtimes })
+        sortShowtimes(actual.conflictShowtimes!)
+        sortShowtimes(expected.conflictShowtimes)
+
+        expect(actual).toEqual(expected)
     })
 
     it('NOT_FOUND(404) when movieId is not found', async () => {
