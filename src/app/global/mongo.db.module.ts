@@ -4,8 +4,8 @@ import { isDevelopment } from 'config'
 import { mongoDatasource } from 'databases/mongo'
 
 const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
-    const connectionFactory = (connection: any) => {
-        if (isDevelopment()) connection.dropDatabase()
+    const connectionFactory = async (connection: any) => {
+        if (isDevelopment()) await connection.dropDatabase()
 
         return connection
     }
