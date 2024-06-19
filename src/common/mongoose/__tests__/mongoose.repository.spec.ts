@@ -20,17 +20,24 @@ describe('MongooseRepository', () => {
     let documents: Document[]
     let document: Document
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         mongoServer = await MongoMemoryServer.create()
+    })
+    afterAll(async () => {
+        if (mongoServer) await mongoServer.stop()
+    })
 
-        /**
-         * By using dropDatabase() as shown below, you only need to call MongoMemoryServer.create() once,
-         * and the performance improves by about 70%.
-         * However, if you don't call repository.create() after calling dropDatabase(),
-         * an error occurs when you call module.close().
-         */
+    beforeEach(async () => {
         module = await createTestingModule({
-            imports: [MongooseModule.forRoot(mongoServer.getUri()), DocumentsModule]
+            imports: [
+                MongooseModule.forRoot(mongoServer.getUri(), {
+                    connectionFactory: async (connection: any) => {
+                        await connection.dropDatabase()
+                        return connection
+                    }
+                }),
+                DocumentsModule
+            ]
         })
 
         repository = module.get(DocumentsRepository)
@@ -41,7 +48,6 @@ describe('MongooseRepository', () => {
 
     afterEach(async () => {
         if (module) await module.close()
-        if (mongoServer) await mongoServer.stop()
     })
 
     describe('create', () => {
@@ -301,6 +307,8 @@ describe('MongooseRepository', () => {
                     helpers.sort({ name: 'asc' })
                 }
             })
+
+            sortByName(documents)
 
             expect(paginatedResult.items).toEqual(documents.slice(skip, skip + take))
         })

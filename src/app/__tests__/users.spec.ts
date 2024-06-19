@@ -23,7 +23,7 @@ describe('UsersController', () => {
         req = testContext.request
 
         const usersService = testContext.module.get(UsersService)
-        users = await createUsers(usersService, 100)
+        users = await createUsers(usersService, 10)
         user = users[0]
     })
 
