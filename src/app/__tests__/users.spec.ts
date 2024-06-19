@@ -1,11 +1,11 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { AppModule } from 'app/app.module'
-import { JwtAuthGuard, LocalAuthGuard } from 'app/controllers'
-import { UserDto, UsersService } from 'app/services/users'
+import { JwtAuthGuard, LocalAuthGuard, UsersController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { UserDto, UsersModule, UsersService } from 'app/services/users'
 import { nullUUID } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
-import { createUsers, createUserDto } from './users.fixture'
+import { createUserDto, createUsers } from './users.fixture'
 
 describe('UsersController', () => {
     let testContext: HttpTestContext
@@ -16,7 +16,8 @@ describe('UsersController', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [AppModule],
+            imports: [GlobalModule, UsersModule],
+            controllers: [UsersController],
             ignoreGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 
