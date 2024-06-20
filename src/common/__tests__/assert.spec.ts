@@ -1,6 +1,22 @@
 import { Assert, LogicException } from '..'
 
 describe('Assert', () => {
+    describe('sameLength', () => {
+        it('The two arrays are the same length', () => {
+            const a = [1, 2, 3]
+            const b = [4, 5, 6]
+
+            expect(() => Assert.sameLength(a, b, 'error messages')).not.toThrow()
+        })
+
+        it('If the two arrays are different, throw a LogicException', () => {
+            const a = [1, 2]
+            const b = [1]
+
+            expect(() => Assert.sameLength(a, b, 'error message')).toThrow(LogicException)
+        })
+    })
+
     describe('equals', () => {
         it('The two values are the same', () => {
             const a = 10

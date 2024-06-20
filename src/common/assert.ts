@@ -6,6 +6,12 @@ import { LogicException } from './exceptions'
  * These should stop the system immediately.
  */
 export class Assert {
+    static sameLength<T>(a: T[], b: T[], message: string) {
+        if (a.length !== b.length) {
+            throw new LogicException(message)
+        }
+    }
+
     static equals<T>(a: T, b: T, message: string) {
         if (!isEqual(a, b)) {
             throw new LogicException(`${JSON.stringify(a)} !== ${JSON.stringify(b)}, ${message}`)

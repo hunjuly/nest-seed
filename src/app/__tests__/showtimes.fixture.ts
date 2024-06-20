@@ -1,15 +1,20 @@
-import { OnQueueCompleted, OnQueueFailed, Processor } from '@nestjs/bull'
+import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import {
-    ShowtimesCreationResult,
     ShowtimeDto,
-    ShowtimesCreatedEvent,
+    ShowtimesCreateCompletedEvent,
+    ShowtimesCreateFailedEvent,
     ShowtimesService
 } from 'app/services/showtimes'
-import { Job } from 'bull'
+import { addMinutes } from 'common'
 
 type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
+type ShowtimesCreationResult = {
+    conflictShowtimes?: ShowtimeDto[]
+    createdShowtimes?: ShowtimeDto[]
+    batchId: string
+}
 
 @Injectable()
 @Processor('showtimes')
@@ -20,39 +25,38 @@ export class ShowtimesEventListener {
         this.promises = new Map<string, PromiseCallback>()
     }
 
-    @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreated(_: ShowtimesCreatedEvent) {}
+    @OnEvent('showtimes.create.completed', { async: true })
+    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
+        const promise = this.promises.get(event.batchId)
+        promise?.resolve(event)
+    }
 
-    waitForEventResult(batchId: string): Promise<ShowtimesCreationResult> {
+    @OnEvent('showtimes.create.failed', { async: true })
+    async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent) {
+        const promise = this.promises.get(event.batchId)
+        promise?.resolve(event)
+    }
+
+    fetchCreateResult(batchId: string): Promise<ShowtimesCreationResult> {
         return new Promise((resolve, rejected) => {
             this.promises.set(batchId, { resolve, rejected })
         })
     }
+}
 
-    @OnQueueCompleted()
-    onCompleted(job: Job) {
-        const promise = this.promises.get(job.data.batchId)
-        promise?.resolve(job.returnvalue)
-    }
+export async function sortShowtimes(showtimes: ShowtimeDto[] | undefined) {
+    if (showtimes) {
+        showtimes.sort((a, b) => {
+            if (a.theaterId !== b.theaterId) {
+                return a.theaterId.localeCompare(b.theaterId)
+            }
 
-    @OnQueueFailed()
-    onFailed(job: Job) {
-        const promise = this.promises.get(job.data.batchId)
-        promise?.rejected(new Error(job.failedReason))
+            return a.startTime.getTime() - b.startTime.getTime()
+        })
     }
 }
 
-export async function sortShowtimes(showtimes: ShowtimeDto[]) {
-    return showtimes.sort((a, b) => {
-        if (a.theaterId !== b.theaterId) {
-            return a.theaterId.localeCompare(b.theaterId)
-        }
-
-        return a.startTime.getTime() - b.startTime.getTime()
-    })
-}
-
-const durationMinutes = 90
+export const durationMinutes = 90
 
 export async function createShowtimes(
     showtimesService: ShowtimesService,
@@ -72,7 +76,7 @@ export async function createShowtimes(
         ]
     })
 
-    const promise = showtimesEventListener.waitForEventResult(batchId)
+    const promise = showtimesEventListener.fetchCreateResult(batchId)
 
     return await promise
 }
@@ -97,7 +101,7 @@ export async function createShowtimesInParallel(
 
         callback && callback(batchId)
 
-        const promise = showtimesEventListener.waitForEventResult(batchId)
+        const promise = showtimesEventListener.fetchCreateResult(batchId)
 
         promises.push(promise)
     }
@@ -105,6 +109,20 @@ export async function createShowtimesInParallel(
     const results = await Promise.all(promises)
 
     return results
+}
+
+export function areShowtimesUnique(showtimes: ShowtimeDto[]) {
+    const set = new Set<string>()
+
+    for (const showtime of showtimes) {
+        const key = JSON.stringify(showtime)
+
+        if (set.has(key)) return false
+
+        set.add(key)
+    }
+
+    return true
 }
 
 export async function createDuplicateShowtimes(
@@ -126,7 +144,7 @@ export async function createDuplicateShowtimes(
             startTimes
         })
 
-        const promise = showtimesEventListener.waitForEventResult(batchId)
+        const promise = showtimesEventListener.fetchCreateResult(batchId)
 
         promises.push(promise)
     }
@@ -134,4 +152,14 @@ export async function createDuplicateShowtimes(
     const results = await Promise.all(promises)
 
     return results
+}
+
+export function makeShowtime(movieId: string, theaterId: string, startTime: Date, durationMinutes: number) {
+    return {
+        id: expect.anything(),
+        movieId,
+        theaterId,
+        startTime,
+        endTime: addMinutes(startTime, durationMinutes)
+    }
 }

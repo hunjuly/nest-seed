@@ -19,7 +19,7 @@ export class ShowtimesService {
     async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResponse> {
         const batchId = new ObjectId().toString()
 
-        await this.showtimesQueue.add('createShowtimes', { ...createShowtimesRequest, batchId })
+        await this.showtimesQueue.add('showtimes.create', { ...createShowtimesRequest, batchId })
 
         Logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 

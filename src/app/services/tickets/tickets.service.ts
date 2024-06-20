@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
 import { PaginationResult, waitForQueueToEmpty } from 'common'
-import { ShowtimesCreatedEvent } from '../showtimes'
+import { ShowtimesCreateCompletedEvent } from '../showtimes'
 import { TicketDto, TicketsQueryDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
 
@@ -19,7 +19,7 @@ export class TicketsService {
     }
 
     @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreated(event: ShowtimesCreatedEvent) {
+    async handleShowtimesCreated(event: ShowtimesCreateCompletedEvent) {
         await this.createTickets(event.batchId)
     }
 

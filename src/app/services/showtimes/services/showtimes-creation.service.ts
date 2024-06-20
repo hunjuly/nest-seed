@@ -1,11 +1,11 @@
-import { Process, Processor } from '@nestjs/bull'
+import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
 import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate, transformObjectStrings } from 'common'
-import { CreateShowtimesDto, ShowtimeDto, ShowtimesCreationResult, ShowtimesCreationStatus } from '../dto'
-import { ShowtimesCreatedEvent } from '../events'
+import { CreateShowtimesDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
+import { ShowtimesCreateCompletedEvent, ShowtimesCreateFailedEvent } from '../showtimes.events'
 import { ShowtimesRepository } from '../showtimes.repository'
 
 type ShowtimesCreationData = CreateShowtimesDto & { batchId: string }
@@ -19,63 +19,45 @@ export class ShowtimesCreationService {
         private eventEmitter: EventEmitter2
     ) {}
 
-    async emitShowtimesCreated(batchId: string) {
-        const event: ShowtimesCreatedEvent = { batchId }
-
-        await this.eventEmitter.emitAsync('showtimes.created', event)
+    async emitShowtimesCreated(event: ShowtimesCreateCompletedEvent) {
+        await this.eventEmitter.emitAsync('showtimes.create.completed', event)
     }
 
-    @Process('createShowtimes')
-    async handleCreateShowtimes(job: Job<ShowtimesCreationData>): Promise<ShowtimesCreationResult> {
-        transformObjectStrings(job.data)
-
-        const result = await this.create(job.data)
-
-        if (result.createdShowtimes) {
-            try {
-                await this.emitShowtimesCreated(result.batchId)
-            } catch (error) {
-                Logger.error(`이벤트 생성 실패`)
-
-                const deletedCount = await this.showtimesRepository.deleteByBatchId(result.batchId)
-
-                /* istanbul ignore else */
-                if (result.createdShowtimes.length === deletedCount) {
-                    Logger.warn(`생성한 ${deletedCount}개의 showtimes 삭제`)
-                } else {
-                    Logger.error(`생성한 showtimes 삭제 실패`)
-                }
-
-                throw error
-            }
-        }
-
-        return result
+    async emitShowtimesFailed(event: ShowtimesCreateFailedEvent) {
+        await this.eventEmitter.emitAsync('showtimes.create.failed', event)
     }
 
-    async create(request: ShowtimesCreationData): Promise<ShowtimesCreationResult> {
-        const { batchId } = request
+    @OnQueueFailed()
+    onFailed(job: Job) {
+        Logger.error(job.failedReason, job.data)
+    }
+
+    @Process('showtimes.create')
+    async createShowtimes(job: Job<ShowtimesCreationData>) {
+        const request = { ...job.data }
+        transformObjectStrings(request)
+
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            return {
-                status: ShowtimesCreationStatus.conflict,
-                conflictShowtimes: conflictShowtimes.map((showtime) => new ShowtimeDto(showtime)),
-                batchId
-            }
-        }
+            await this.emitShowtimesFailed({
+                batchId: request.batchId,
+                conflictShowtimes: conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
+            })
+        } else {
+            const createdShowtimes = await this.saveShowtimes(request)
 
-        const createdShowtimes = await this.saveShowtimes(request)
-
-        return {
-            status: ShowtimesCreationStatus.success,
-            createdShowtimes: createdShowtimes.map((showtime) => new ShowtimeDto(showtime)),
-            batchId
+            await this.emitShowtimesCreated({
+                batchId: request.batchId,
+                createdShowtimes: createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
+            })
         }
     }
 
     private async saveShowtimes(request: ShowtimesCreationData) {
         const { movieId, theaterIds, durationMinutes, startTimes, batchId } = request
+
+        Logger.log('showtime 저장 요청', JSON.stringify(request))
 
         const showtimeEntries: Partial<Showtime>[] = []
 
@@ -93,7 +75,13 @@ export class ShowtimesCreationService {
             }
         }
 
+        Logger.log(`${showtimeEntries.length}개의 showtime을 저장 시작`)
+
         const createdShowtimes = await this.showtimesRepository.createMany(showtimeEntries)
+
+        Assert.sameLength(showtimeEntries, createdShowtimes, '요청과 저장된 showtimes의 수는 같아야 한다')
+
+        Logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
 
         return createdShowtimes
     }
