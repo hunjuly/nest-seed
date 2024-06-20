@@ -1,7 +1,7 @@
 import { ShowtimesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { ShowtimeDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
@@ -151,40 +151,6 @@ describe('/showtimes', () => {
         expect(conflictResponse).toHaveLength(count - 1)
     })
 
-    it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-        const { createdShowtimes, batchId } = await createShowtimes(
-            showtimesService,
-            showtimesEventListener,
-            movieId,
-            theaterIds
-        )
-
-        const res = await req.get({ url: '/showtimes', query: { batchId } })
-        expectOk(res)
-
-        sortShowtimes(res.body.items)
-        sortShowtimes(createdShowtimes)
-
-        expect(res.body.items).toEqual(createdShowtimes)
-    })
-
-    it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-        const { createdShowtimes } = await createShowtimes(
-            showtimesService,
-            showtimesEventListener,
-            movieId,
-            [theaterId]
-        )
-
-        const res = await req.get({ url: '/showtimes', query: { theaterId } })
-        expectOk(res)
-
-        sortShowtimes(res.body.items)
-        sortShowtimes(createdShowtimes)
-
-        expect(res.body.items).toEqual(createdShowtimes)
-    })
-
     it('NOT_FOUND(404) when movieId is not found', async () => {
         const createShowtimesDto = {
             movieId: nullObjectId,
@@ -271,6 +237,45 @@ describe('/showtimes', () => {
             sortShowtimes(expected.conflictShowtimes)
 
             expect(actual).toEqual(expected)
+        })
+    })
+
+    describe('Find showtimes', () => {
+        let createdShowtimes: ShowtimeDto[]
+        let batchId: string
+
+        beforeEach(async () => {
+            const result = await createShowtimes(
+                showtimesService,
+                showtimesEventListener,
+                movieId,
+                theaterIds
+            )
+
+            createdShowtimes = result.createdShowtimes!
+            batchId = result.batchId
+        })
+
+        it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/showtimes', query: { batchId } })
+            expectOk(res)
+
+            sortShowtimes(res.body.items)
+            sortShowtimes(createdShowtimes)
+
+            expect(res.body.items).toEqual(createdShowtimes)
+        })
+
+        it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/showtimes', query: { theaterId } })
+            expectOk(res)
+
+            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
+
+            sortShowtimes(res.body.items)
+            sortShowtimes(expectedShowtimes)
+
+            expect(res.body.items).toEqual(expectedShowtimes)
         })
     })
 })

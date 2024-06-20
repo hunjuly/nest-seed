@@ -56,6 +56,30 @@ export async function sortShowtimes(showtimes: ShowtimeDto[] | undefined) {
     }
 }
 
+export function areShowtimesUnique(showtimes: ShowtimeDto[]) {
+    const set = new Set<string>()
+
+    for (const showtime of showtimes) {
+        const key = JSON.stringify(showtime)
+
+        if (set.has(key)) return false
+
+        set.add(key)
+    }
+
+    return true
+}
+
+export function makeShowtime(movieId: string, theaterId: string, startTime: Date, durationMinutes: number) {
+    return {
+        id: expect.anything(),
+        movieId,
+        theaterId,
+        startTime,
+        endTime: addMinutes(startTime, durationMinutes)
+    }
+}
+
 export const durationMinutes = 90
 
 export async function createShowtimes(
@@ -76,9 +100,7 @@ export async function createShowtimes(
         ]
     })
 
-    const promise = showtimesEventListener.fetchCreateResult(batchId)
-
-    return await promise
+    return await showtimesEventListener.fetchCreateResult(batchId)
 }
 
 export async function createShowtimesInParallel(
@@ -111,20 +133,6 @@ export async function createShowtimesInParallel(
     return results
 }
 
-export function areShowtimesUnique(showtimes: ShowtimeDto[]) {
-    const set = new Set<string>()
-
-    for (const showtime of showtimes) {
-        const key = JSON.stringify(showtime)
-
-        if (set.has(key)) return false
-
-        set.add(key)
-    }
-
-    return true
-}
-
 export async function createDuplicateShowtimes(
     showtimesService: ShowtimesService,
     showtimesEventListener: ShowtimesEventListener,
@@ -152,14 +160,4 @@ export async function createDuplicateShowtimes(
     const results = await Promise.all(promises)
 
     return results
-}
-
-export function makeShowtime(movieId: string, theaterId: string, startTime: Date, durationMinutes: number) {
-    return {
-        id: expect.anything(),
-        movieId,
-        theaterId,
-        startTime,
-        endTime: addMinutes(startTime, durationMinutes)
-    }
 }
