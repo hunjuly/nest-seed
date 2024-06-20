@@ -9,7 +9,7 @@ import {
     generateUUID,
     notUsed,
     sleep,
-    transformObjectStrings,
+    parseObjectTypes,
     waitForQueueToEmpty
 } from '..'
 
@@ -163,12 +163,12 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('transformObjectStrings', () => {
+    describe('parseObjectTypes', () => {
         it('converts ISO 8601 date strings to Date objects', () => {
             const obj = {
                 date: '2023-06-18T12:00:00.000Z'
             }
-            transformObjectStrings(obj)
+            parseObjectTypes(obj)
             expect(obj.date).toBeInstanceOf(Date)
             expect((obj.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
         })
@@ -182,7 +182,7 @@ describe('common/utils/etc', () => {
                     }
                 }
             }
-            transformObjectStrings(obj)
+            parseObjectTypes(obj)
             expect(obj.level1.date).toBeInstanceOf(Date)
             expect((obj.level1.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
             expect(obj.level1.level2.date).toBeInstanceOf(Date)
@@ -193,7 +193,7 @@ describe('common/utils/etc', () => {
             const obj = {
                 text: 'Hello, world!'
             }
-            transformObjectStrings(obj)
+            parseObjectTypes(obj)
             expect(obj.text).toEqual('Hello, world!')
         })
 
@@ -202,7 +202,7 @@ describe('common/utils/etc', () => {
                 number: 123,
                 boolean: true
             }
-            transformObjectStrings(obj)
+            parseObjectTypes(obj)
             expect(obj.number).toEqual(123)
             expect(obj.boolean).toBe(true)
         })

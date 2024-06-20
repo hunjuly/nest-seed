@@ -31,7 +31,7 @@ export class ShowtimesController {
     }
 
     @Get()
-    async findByQuery(@Query() query: ShowtimesQueryDto) {
-        return this.showtimesService.findByQuery(query)
+    async findShowtimes(@Query() query: ShowtimesQueryDto) {
+        return this.showtimesService.findShowtimes(query)
     }
 }

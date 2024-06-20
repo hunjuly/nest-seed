@@ -9,6 +9,8 @@ import { TicketsRepository } from './tickets.repository'
 
 @Injectable()
 export class TicketsService {
+    private readonly logger = new Logger(this.constructor.name)
+
     constructor(
         @InjectQueue('tickets') private ticketsQueue: Queue,
         private ticketsRepository: TicketsRepository
@@ -18,23 +20,25 @@ export class TicketsService {
         await waitForQueueToEmpty(this.ticketsQueue)
     }
 
-    @OnEvent('showtimes.created', { async: true })
-    async handleShowtimesCreated(event: ShowtimesCreateCompletedEvent) {
+    @OnEvent('showtimes.create.completed', { async: true })
+    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
+        this.logger.log(`showtimes.create.completed 수신. batchId=${event.batchId}`)
+
         await this.createTickets(event.batchId)
     }
 
-    async createTickets(showtimesBatchId: string) {
-        await this.ticketsQueue.add('createTickets', { showtimesBatchId })
+    async createTickets(batchId: string) {
+        await this.ticketsQueue.add('tickets.create', { batchId })
 
-        Logger.log(`Tickets 생성 요청. showtimesBatchId=${showtimesBatchId}`)
+        this.logger.log(`Tickets 생성 요청. batchId=${batchId}`)
     }
 
     async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {
-        Logger.log('Searching for tickets with the provided query parameters.', queryDto)
+        this.logger.log('Searching for tickets with the provided query parameters.', queryDto)
 
         const paginatedTickets = await this.ticketsRepository.findByQuery(queryDto)
 
-        Logger.log(`Search completed. Found ${paginatedTickets.total} tickets.`)
+        this.logger.log(`Search completed. Found ${paginatedTickets.total} tickets.`)
 
         const items = paginatedTickets.items.map((ticket) => new TicketDto(ticket))
 

@@ -1,3 +1,3 @@
 export class TicketsCreatedEvent {
-    showtimesBatchId: string
+    batchId: string
 }

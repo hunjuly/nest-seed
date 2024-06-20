@@ -7,6 +7,8 @@ import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
 export class ShowtimesService {
+    private readonly logger = new Logger(this.constructor.name)
+
     constructor(
         @InjectQueue('showtimes') private showtimesQueue: Queue,
         private showtimesRepository: ShowtimesRepository
@@ -21,12 +23,12 @@ export class ShowtimesService {
 
         await this.showtimesQueue.add('showtimes.create', { ...createShowtimesRequest, batchId })
 
-        Logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
+        this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 
         return { batchId }
     }
 
-    async findByQuery(queryDto: ShowtimesQueryDto): Promise<PaginationResult<ShowtimeDto>> {
+    async findShowtimes(queryDto: ShowtimesQueryDto): Promise<PaginationResult<ShowtimeDto>> {
         const paginatedShowtimes = await this.showtimesRepository.findByQuery(queryDto)
 
         const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
@@ -34,8 +36,9 @@ export class ShowtimesService {
         return { ...paginatedShowtimes, items }
     }
 
-    async getShowtimesByBatchId(batchId: string): Promise<ShowtimeDto[]> {
-        const result = await this.showtimesRepository.findByQuery({ batchId })
+    // TODO page 무시하는 경우 어쩔?
+    async findAllShowtimes(queryDto: ShowtimesQueryDto): Promise<ShowtimeDto[]> {
+        const result = await this.showtimesRepository.findByQuery(queryDto)
 
         return result.items.map((showtime) => new ShowtimeDto(showtime))
     }

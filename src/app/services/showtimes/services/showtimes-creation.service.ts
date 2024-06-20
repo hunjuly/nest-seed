@@ -2,7 +2,7 @@ import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
-import { Assert, ObjectId, addMinutes, findMaxDate, findMinDate, transformObjectStrings } from 'common'
+import { Assert, addMinutes, findMaxDate, findMinDate, parseObjectTypes } from 'common'
 import { CreateShowtimesDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import { ShowtimesCreateCompletedEvent, ShowtimesCreateFailedEvent } from '../showtimes.events'
@@ -14,6 +14,8 @@ type Timeslot = Map<number, Showtime>
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesCreationService {
+    private readonly logger = new Logger(this.constructor.name)
+
     constructor(
         private showtimesRepository: ShowtimesRepository,
         private eventEmitter: EventEmitter2
@@ -29,13 +31,13 @@ export class ShowtimesCreationService {
 
     @OnQueueFailed()
     onFailed(job: Job) {
-        Logger.error(job.failedReason, job.data)
+        this.logger.error(job.failedReason, job.data)
     }
 
     @Process('showtimes.create')
     async createShowtimes(job: Job<ShowtimesCreationData>) {
         const request = { ...job.data }
-        transformObjectStrings(request)
+        parseObjectTypes(request)
 
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
@@ -57,7 +59,7 @@ export class ShowtimesCreationService {
     private async saveShowtimes(request: ShowtimesCreationData) {
         const { movieId, theaterIds, durationMinutes, startTimes, batchId } = request
 
-        Logger.log('showtime 저장 요청', JSON.stringify(request))
+        this.logger.log('showtime 저장 요청', JSON.stringify(request))
 
         const showtimeEntries: Partial<Showtime>[] = []
 
@@ -65,29 +67,23 @@ export class ShowtimesCreationService {
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
 
-                showtimeEntries.push({
-                    movieId: new ObjectId(movieId),
-                    theaterId: new ObjectId(theaterId),
-                    startTime,
-                    endTime,
-                    batchId: new ObjectId(batchId)
-                })
+                showtimeEntries.push({ movieId, theaterId, startTime, endTime, batchId })
             }
         }
 
-        Logger.log(`${showtimeEntries.length}개의 showtime을 저장 시작`)
+        this.logger.log(`${showtimeEntries.length}개의 showtime을 저장 시작`)
 
         const createdShowtimes = await this.showtimesRepository.createMany(showtimeEntries)
 
         Assert.sameLength(showtimeEntries, createdShowtimes, '요청과 저장된 showtimes의 수는 같아야 한다')
 
-        Logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
+        this.logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
 
         return createdShowtimes
     }
 
     async checkForTimeConflicts(request: CreateShowtimesDto): Promise<Showtime[]> {
-        Logger.log(`충돌 검사 시작: 극장 ID ${request.theaterIds.join(', ')}`)
+        this.logger.log(`충돌 검사 시작: 극장 ID ${request.theaterIds.join(', ')}`)
 
         const { durationMinutes, startTimes, theaterIds } = request
 
@@ -108,14 +104,14 @@ export class ShowtimesCreationService {
 
                     if (showtime) {
                         conflictShowtimes.push(showtime)
-                        Logger.debug(`충돌 발견: 상영 시간 ID ${showtime._id}`)
+                        this.logger.debug(`충돌 발견: 상영 시간 ID ${showtime._id}`)
                         return false
                     }
                 })
             }
         }
 
-        Logger.log(`충돌 검사 완료: 충돌 발생한 상영 시간 ${conflictShowtimes.length}개`)
+        this.logger.log(`충돌 검사 완료: 충돌 발생한 상영 시간 ${conflictShowtimes.length}개`)
         return conflictShowtimes
     }
 
@@ -130,7 +126,7 @@ export class ShowtimesCreationService {
 
         for (const theaterId of theaterIds) {
             const fetchedShowtimes = await this.showtimesRepository.findShowtimesWithinDateRange({
-                theaterId: new ObjectId(theaterId),
+                theaterId,
                 startTime: startDate,
                 endTime: endDate
             })

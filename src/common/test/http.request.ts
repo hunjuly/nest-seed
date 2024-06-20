@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
 import { LogicException } from '../exceptions'
-import { transformObjectStrings } from '../utils'
+import { parseObjectTypes } from '../utils'
 
 interface RequestContext {
     url: string
@@ -21,7 +21,7 @@ export class HttpRequest {
         }
 
         const res = await req
-        transformObjectStrings(res.body)
+        parseObjectTypes(res.body)
 
         return res
     }
