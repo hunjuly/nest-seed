@@ -201,7 +201,7 @@ describe('MongooseRepository', () => {
 
     describe('find', () => {
         it('Search for all documents', async () => {
-            const paginatedResult = await repository.find({ query: {} })
+            const paginatedResult = await repository.findByQuery({})
 
             expect(paginatedResult.items.length).toEqual(documents.length)
         })
@@ -209,11 +209,10 @@ describe('MongooseRepository', () => {
         it('Pagination', async () => {
             const skip = 10
             const take = 50
-            const paginatedResult = await repository.find({
+            const paginatedResult = await repository.findByQuery({
                 skip,
                 take,
-                orderby: { name: 'name', direction: OrderDirection.asc },
-                query: {}
+                orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
             sortByName(documents)
@@ -230,17 +229,16 @@ describe('MongooseRepository', () => {
         it('should return empty results when skip exceeds the limit', async () => {
             const skip = documents.length
             const take = 5
-            const paginatedResult = await repository.find({ skip, take, query: {} })
+            const paginatedResult = await repository.findByQuery({ skip, take })
 
             expect(paginatedResult.items).toEqual([])
         })
 
         it('Sort in ascending (asc) order', async () => {
             const take = documents.length
-            const paginatedResult = await repository.find({
+            const paginatedResult = await repository.findByQuery({
                 take,
-                orderby: { name: 'name', direction: OrderDirection.asc },
-                query: {}
+                orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
             sortByName(documents)
@@ -250,10 +248,9 @@ describe('MongooseRepository', () => {
 
         it('Sort in descending (desc) order', async () => {
             const take = documents.length
-            const paginatedResult = await repository.find({
+            const paginatedResult = await repository.findByQuery({
                 take,
-                orderby: { name: 'name', direction: OrderDirection.desc },
-                query: {}
+                orderby: { name: 'name', direction: OrderDirection.desc }
             })
 
             sortByNameDescending(documents)
@@ -262,7 +259,7 @@ describe('MongooseRepository', () => {
         })
 
         it('Search using regular expression pattern', async () => {
-            const paginatedResult = await repository.find({ query: { name: /Document-00/i } })
+            const paginatedResult = await repository.findByQuery({ name: /Document-00/i })
 
             sortByName(documents)
             sortByName(paginatedResult.items)

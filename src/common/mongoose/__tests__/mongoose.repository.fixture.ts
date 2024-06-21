@@ -1,6 +1,13 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { Exception, MongooseRepository, MongooseSchema, createMongooseSchema, padNumber } from 'common'
+import {
+    Exception,
+    MongooseRepository,
+    MongooseSchema,
+    ObjectId,
+    createMongooseSchema,
+    padNumber
+} from 'common'
 import { Model } from 'mongoose'
 
 @Schema()
@@ -17,7 +24,7 @@ export class DocumentsRepository extends MongooseRepository<Document> {
         super(model)
     }
 
-    async update(id: string, updateDto: Partial<Document>): Promise<Document> {
+    async update(id: ObjectId | string, updateDto: Partial<Document>): Promise<Document> {
         const document = await this.model.findById(id).exec()
 
         if (!document) {

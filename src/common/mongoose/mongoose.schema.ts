@@ -17,7 +17,7 @@ import { Types } from 'mongoose'
     versionKey: 'version'
 })
 export class MongooseSchema {
-    readonly _id: string
+    readonly _id: ObjectId | string
 
     @Prop()
     createdAt?: Date
