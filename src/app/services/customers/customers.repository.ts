@@ -26,7 +26,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         return customer.toObject()
     }
 
-    async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<Customer>> {
+    async findByFilter(queryDto: CustomersQueryDto): Promise<PaginationResult<Customer>> {
         const { take, skip, orderby, ...args } = queryDto
 
         const query: Record<string, any> = args

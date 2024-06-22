@@ -1,9 +1,6 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common'
 import { Transform } from 'class-transformer'
 import { IsInt, IsOptional, IsString, Min } from 'class-validator'
-// TODO
-// BadRequestException는 HttpException이다.
-// 일단 http에 포함시키지만 grpc 작업 시 이동 가능성 있다.
 
 export enum OrderDirection {
     asc = 'asc',
@@ -18,7 +15,7 @@ export class OrderOption {
     direction: OrderDirection
 }
 
-export class PaginationOptions {
+export class PaginationOption {
     @IsOptional()
     @IsInt()
     @Min(0)
@@ -27,7 +24,7 @@ export class PaginationOptions {
     @IsOptional()
     @IsInt()
     @Min(0)
-    skip?: number
+    skip: number = 0
 
     @IsOptional()
     @Transform(({ value }) => {

@@ -5,9 +5,10 @@ import { Exception, MongooseException, OrderDirection, nullObjectId } from 'comm
 import { createTestingModule } from 'common/test'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import {
-    Document,
-    DocumentsModule,
-    DocumentsRepository,
+    Sample,
+    SampleModule,
+    SamplesRepository,
+    baseFields,
     createDocuments,
     sortByName,
     sortByNameDescending
@@ -16,13 +17,12 @@ import {
 describe('MongooseRepository', () => {
     let mongoServer: MongoMemoryServer
     let module: TestingModule
-    let repository: DocumentsRepository
-    let documents: Document[]
-    let document: Document
+    let repository: SamplesRepository
 
     beforeAll(async () => {
         mongoServer = await MongoMemoryServer.create()
     })
+
     afterAll(async () => {
         if (mongoServer) await mongoServer.stop()
     })
@@ -36,14 +36,11 @@ describe('MongooseRepository', () => {
                         return connection
                     }
                 }),
-                DocumentsModule
+                SampleModule
             ]
         })
 
-        repository = module.get(DocumentsRepository)
-
-        documents = await createDocuments(repository)
-        document = documents[0]
+        repository = module.get(SamplesRepository)
     })
 
     afterEach(async () => {
@@ -51,23 +48,18 @@ describe('MongooseRepository', () => {
     })
 
     describe('create', () => {
-        it('Create a document', async () => {
-            const createData: Partial<Document> = {
+        it('문서를 생성한다', async () => {
+            const doc = await repository.create({
                 name: 'document name'
-            }
+            })
 
-            const document = await repository.create(createData)
-
-            expect(document).toEqual({
-                _id: expect.anything(),
-                createdAt: expect.anything(),
-                updatedAt: expect.anything(),
-                version: expect.anything(),
-                ...createData
+            expect(doc).toEqual({
+                ...baseFields,
+                name: 'document name'
             })
         })
 
-        it('should throw an exception when required fields are missing', async () => {
+        it('필수 항목이 누락되면 예외 발생', async () => {
             const promise = repository.create({})
 
             await expect(promise).rejects.toThrowError()
@@ -75,29 +67,19 @@ describe('MongooseRepository', () => {
     })
 
     describe('createMany', () => {
-        it('Create documents', async () => {
-            const createData: Partial<Document>[] = [
+        it('다수의 문서를 생성한다', async () => {
+            const doc = await repository.createMany([
                 { name: 'document-1 name' },
-                { name: 'document-2 name' },
-                { name: 'document-3 name' }
-            ]
+                { name: 'document-2 name' }
+            ])
 
-            const document = await repository.createMany(createData)
-
-            const common = {
-                _id: expect.anything(),
-                createdAt: expect.anything(),
-                updatedAt: expect.anything(),
-                version: expect.anything()
-            }
-            expect(document).toEqual([
-                { ...common, ...createData[0] },
-                { ...common, ...createData[1] },
-                { ...common, ...createData[2] }
+            expect(doc).toEqual([
+                { ...baseFields, name: 'document-1 name' },
+                { ...baseFields, name: 'document-2 name' }
             ])
         })
 
-        it('should throw an exception when required fields are missing', async () => {
+        it('필수 항목이 누락되면 예외 발생', async () => {
             const promise = repository.createMany([{}])
 
             await expect(promise).rejects.toThrowError()
@@ -105,20 +87,20 @@ describe('MongooseRepository', () => {
     })
 
     describe('update', () => {
-        it('Update a document', async () => {
-            const updateData = { name: 'new name' }
-            const updatedDocument = await repository.update(document._id, updateData)
+        let sample: Sample
 
-            expect(updatedDocument).toEqual({
-                _id: expect.anything(),
-                createdAt: expect.anything(),
-                updatedAt: expect.anything(),
-                version: expect.anything(),
-                ...updateData
-            })
+        beforeEach(async () => {
+            const samples = await createDocuments(repository, 1)
+            sample = samples[0]
         })
 
-        it('should throw an exception when updating with a non-existent ID', async () => {
+        it('문서를 업데이트 한다', async () => {
+            const doc = await repository.update(sample._id, { name: 'new name' })
+
+            expect(doc).toEqual({ ...baseFields, name: 'new name' })
+        })
+
+        it('id가 존재하지 않으면 예외 발생', async () => {
             const promise = repository.update(nullObjectId, {})
 
             await expect(promise).rejects.toThrow(Exception)
@@ -126,15 +108,22 @@ describe('MongooseRepository', () => {
     })
 
     describe('deleteById', () => {
-        it('Delete a document', async () => {
-            await repository.deleteById(document._id)
+        let sample: Sample
 
-            const deletedDocument = await repository.findById(document._id)
-
-            expect(deletedDocument).toBeNull()
+        beforeEach(async () => {
+            const samples = await createDocuments(repository, 1)
+            sample = samples[0]
         })
 
-        it('should throw an exception when deleting a non-existent ID', async () => {
+        it('문서를 삭제한다', async () => {
+            await repository.deleteById(sample._id)
+
+            const doc = await repository.findById(sample._id)
+
+            expect(doc).toBeNull()
+        })
+
+        it('id가 존재하지 않으면 예외 발생', async () => {
             const promise = repository.deleteById(nullObjectId)
 
             await expect(promise).rejects.toThrow(MongooseException)
@@ -142,172 +131,266 @@ describe('MongooseRepository', () => {
     })
 
     describe('deleteByIds', () => {
-        it('Delete documents', async () => {
-            const ids = documents.map((doc) => doc._id)
-            await repository.deleteByIds(ids)
+        let samples: Sample[]
 
-            const deletedDocuments = await repository.findByIds(ids)
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 10)
+        })
 
-            expect(deletedDocuments).toHaveLength(0)
+        it('다수의 문서를 삭제한다', async () => {
+            const ids = samples.map((doc) => doc._id)
+
+            const deletedCount = await repository.deleteByIds(ids)
+            expect(deletedCount).toEqual(10)
+
+            const docs = await repository.findByIds(ids)
+
+            expect(docs).toHaveLength(0)
+        })
+
+        it('id가 존재하지 않으면 무시한다', async () => {
+            const deletedCount = await repository.deleteByIds([nullObjectId])
+
+            expect(deletedCount).toEqual(0)
         })
     })
 
-    describe('doesIdExist', () => {
-        it('should confirm the existence of a document', async () => {
-            const exists = await repository.doesIdExist(document._id)
+    describe('deleteByFilter', () => {
+        let sample: Sample
+
+        beforeEach(async () => {
+            const samples = await createDocuments(repository, 1)
+            sample = samples[0]
+        })
+
+        it('문서를 삭제한다', async () => {
+            await repository.deleteByFilter({ _id: sample._id })
+
+            const doc = await repository.findById(sample._id)
+
+            expect(doc).toBeNull()
+        })
+
+        it('빈 필터를 사용하면 예외 발생', async () => {
+            const promise = repository.deleteByFilter({})
+
+            await expect(promise).rejects.toThrow(MongooseException)
+        })
+    })
+
+    describe('existsById', () => {
+        let sample: Sample
+
+        beforeEach(async () => {
+            const samples = await createDocuments(repository, 1)
+            sample = samples[0]
+        })
+
+        it('문서가 존재하는지 확인한다', async () => {
+            const exists = await repository.existsById(sample._id)
 
             expect(exists).toBeTruthy()
         })
 
-        it('should confirm the existence of documents', async () => {
-            const ids = documents.map((doc) => doc._id)
-            const exists = await repository.doesIdExist(ids)
+        it('id가 존재하지 않으면 false를 반환한다', async () => {
+            const exists = await repository.existsById(nullObjectId)
+
+            expect(exists).toBeFalsy()
+        })
+    })
+
+    describe('existsByIds', () => {
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 10)
+        })
+
+        it('다수의 문서가 존재하는지 확인한다', async () => {
+            const ids = samples.map((doc) => doc._id)
+
+            const exists = await repository.existsByIds(ids)
 
             expect(exists).toBeTruthy()
         })
 
-        it('should confirm the non-existence of a document', async () => {
-            const exists = await repository.doesIdExist(nullObjectId)
+        it('존재하지 않는 id가 있으면 false를 반환한다', async () => {
+            const exists = await repository.existsByIds([nullObjectId])
 
             expect(exists).toBeFalsy()
         })
     })
 
     describe('findById', () => {
-        it('Find a document by ID', async () => {
-            const foundDocument = await repository.findById(document._id)
+        let sample: Sample
 
-            expect(foundDocument).toEqual(document)
+        beforeEach(async () => {
+            const samples = await createDocuments(repository, 1)
+            sample = samples[0]
         })
 
-        it('should return null when querying with a non-existent ID', async () => {
-            const notFoundDocument = await repository.findById(nullObjectId)
+        it('id로 문서를 조회한다', async () => {
+            const doc = await repository.findById(sample._id)
 
-            expect(notFoundDocument).toBeNull()
+            expect(doc).toEqual(sample)
+        })
+
+        it('id가 존재하지 않으면 null을 반환한다', async () => {
+            const doc = await repository.findById(nullObjectId)
+
+            expect(doc).toBeNull()
         })
     })
 
     describe('findByIds', () => {
-        it('Find documents by multiple IDs', async () => {
-            const ids = documents.map((document) => document._id)
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 10)
+        })
+
+        it('다수의 id로 문서를 조회한다', async () => {
+            const ids = samples.map((document) => document._id)
+
             const foundDocuments = await repository.findByIds(ids)
 
-            sortByName(documents)
+            sortByName(samples)
             sortByName(foundDocuments)
 
-            expect(foundDocuments).toEqual(documents)
+            expect(foundDocuments).toEqual(samples)
+        })
+
+        it('존재하지 않는 id는 무시한다', async () => {
+            const docs = await repository.findByIds([nullObjectId])
+
+            expect(docs).toHaveLength(0)
         })
     })
 
-    describe('find', () => {
-        it('Search for all documents', async () => {
-            const paginatedResult = await repository.findByQuery({})
+    describe('findByFilter', () => {
+        let samples: Sample[]
 
-            expect(paginatedResult.items.length).toEqual(documents.length)
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 20)
         })
 
-        it('Pagination', async () => {
+        it('필터를 지정하지 않으면 모든 문서를 반환한다', async () => {
+            const docs = await repository.findByFilter({})
+
+            sortByName(samples)
+            sortByName(docs)
+
+            expect(docs).toEqual(samples)
+        })
+
+        it('정규표현식으로 조회한다', async () => {
+            const docs = await repository.findByFilter({ name: /Document-00/i })
+
+            sortByName(samples)
+            sortByName(docs)
+
+            expect(docs).toEqual(samples.slice(0, 10))
+        })
+    })
+
+    describe('findWithPagination', () => {
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 20)
+        })
+
+        it('페이지를 설정한다', async () => {
             const skip = 10
             const take = 50
-            const paginatedResult = await repository.findByQuery({
-                skip,
-                take,
-                orderby: { name: 'name', direction: OrderDirection.asc }
-            })
+            const paginated = await repository.findWithPagination(
+                { skip, take, orderby: { name: 'name', direction: OrderDirection.asc } },
+                {}
+            )
 
-            sortByName(documents)
-            sortByName(paginatedResult.items)
+            sortByName(samples)
 
-            expect(paginatedResult).toEqual({
-                items: documents.slice(skip, skip + take),
-                total: documents.length,
+            expect(paginated).toEqual({
+                items: samples.slice(skip, skip + take),
+                total: samples.length,
                 skip,
                 take
             })
         })
 
-        it('should return empty results when skip exceeds the limit', async () => {
-            const skip = documents.length
-            const take = 5
-            const paginatedResult = await repository.findByQuery({ skip, take })
+        it('오름차순 정렬', async () => {
+            const paginated = await repository.findWithPagination(
+                { skip: 0, take: samples.length, orderby: { name: 'name', direction: OrderDirection.asc } },
+                {}
+            )
 
-            expect(paginatedResult.items).toEqual([])
+            sortByName(samples)
+
+            expect(paginated.items).toEqual(samples)
         })
 
-        it('Sort in ascending (asc) order', async () => {
-            const take = documents.length
-            const paginatedResult = await repository.findByQuery({
-                take,
-                orderby: { name: 'name', direction: OrderDirection.asc }
-            })
+        it('내림차순 정렬', async () => {
+            const paginated = await repository.findWithPagination(
+                {
+                    skip: 0,
+                    take: samples.length,
+                    orderby: { name: 'name', direction: OrderDirection.desc }
+                },
+                {}
+            )
 
-            sortByName(documents)
+            sortByNameDescending(samples)
 
-            expect(paginatedResult.items).toEqual(documents)
+            expect(paginated.items).toEqual(samples)
         })
 
-        it('Sort in descending (desc) order', async () => {
-            const take = documents.length
-            const paginatedResult = await repository.findByQuery({
-                take,
-                orderby: { name: 'name', direction: OrderDirection.desc }
-            })
+        it('take가 없거나 0이면 에외 발생', async () => {
+            const promise = repository.findWithPagination({ skip: 0, take: 0 }, {})
 
-            sortByNameDescending(documents)
-
-            expect(paginatedResult.items).toEqual(documents)
-        })
-
-        it('Search using regular expression pattern', async () => {
-            const paginatedResult = await repository.findByQuery({ name: /Document-00/i })
-
-            sortByName(documents)
-            sortByName(paginatedResult.items)
-
-            expect(paginatedResult.items).toEqual(documents.slice(0, 10))
+            await expect(promise).rejects.toThrow(MongooseException)
         })
     })
 
-    describe('findByMiddleware', () => {
+    describe('findWithCustomizer', () => {
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createDocuments(repository, 20)
+        })
+
         it('Set orderby', async () => {
-            const paginatedResult = await repository.findByMiddleware({
-                middleware: (helpers) => {
-                    helpers.sort({ name: 'desc' })
-                }
+            const docs = await repository.findWithCustomizer((helpers) => {
+                helpers.sort({ name: 'desc' })
             })
 
-            sortByNameDescending(documents)
+            sortByNameDescending(samples)
 
-            expect(paginatedResult.items).toEqual(documents)
+            expect(docs).toEqual(samples)
         })
 
         it('Set query', async () => {
-            const paginatedResult = await repository.findByMiddleware({
-                middleware: (helpers) => {
-                    helpers.setQuery({ name: /Document-00/i })
-                }
+            const docs = await repository.findWithCustomizer((helpers) => {
+                helpers.setQuery({ name: /Document-00/i })
             })
 
-            sortByName(documents)
-            sortByName(paginatedResult.items)
+            sortByName(samples)
+            sortByName(docs)
 
-            expect(paginatedResult.items).toEqual(documents.slice(0, 10))
+            expect(docs).toEqual(samples.slice(0, 10))
         })
 
         it('Set pagination', async () => {
             const skip = 10
             const take = 5
-            const paginatedResult = await repository.findByMiddleware({
-                middleware: (helpers) => {
-                    helpers.skip(skip)
-                    helpers.limit(take)
-                    helpers.sort({ name: 'asc' })
-                }
+            const docs = await repository.findWithCustomizer((helpers) => {
+                helpers.skip(skip)
+                helpers.limit(take)
+                helpers.sort({ name: 'asc' })
             })
 
-            sortByName(documents)
+            sortByName(samples)
 
-            expect(paginatedResult.items).toEqual(documents.slice(skip, skip + take))
+            expect(docs).toEqual(samples.slice(skip, skip + take))
         })
     })
 })

@@ -97,6 +97,6 @@ describe('Pagination', () => {
             query: {}
         })
         expectOk(res)
-        expect(res.body).toEqual({ take: 50 })
+        expect(res.body).toEqual({ skip: 0, take: 50 })
     })
 })

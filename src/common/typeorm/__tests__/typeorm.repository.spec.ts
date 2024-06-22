@@ -1,7 +1,13 @@
 import { expect } from '@jest/globals'
 import { TestingModule } from '@nestjs/testing'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { EntityNotFoundTypeormException, OrderDirection, ParameterTypeormException, nullUUID } from 'common'
+import {
+    EntityNotFoundTypeormException,
+    OrderDirection,
+    PaginationOption,
+    ParameterTypeormException,
+    nullUUID
+} from 'common'
 import { createTestingModule } from 'common/test'
 import {
     Sample,
@@ -105,13 +111,13 @@ describe('TypeormRepository', () => {
 
     describe('doesIdExist', () => {
         it('should confirm the existence of an entity', async () => {
-            const exists = await repository.doesIdExist(sample.id)
+            const exists = await repository.exists(sample.id)
 
             expect(exists).toBeTruthy()
         })
 
         it('should confirm the non-existence of an entity', async () => {
-            const exists = await repository.doesIdExist(nullUUID)
+            const exists = await repository.exists(nullUUID)
 
             expect(exists).toBeFalsy()
         })
@@ -145,13 +151,13 @@ describe('TypeormRepository', () => {
 
     describe('find', () => {
         it('should throw an exception when required fields are missing', async () => {
-            const promise = repository.find({})
+            const promise = repository.find({} as PaginationOption)
 
             await expect(promise).rejects.toThrow(ParameterTypeormException)
         })
 
         it('Search for all samples', async () => {
-            const paginatedResult = await repository.find({ take: samples.length })
+            const paginatedResult = await repository.find({ skip: 0, take: samples.length })
 
             expect(paginatedResult.items.length).toEqual(samples.length)
         })
@@ -187,6 +193,7 @@ describe('TypeormRepository', () => {
         it('Sort in ascending (asc) order', async () => {
             const take = samples.length
             const paginatedResult = await repository.find({
+                skip: 0,
                 take,
                 orderby: { name: 'name', direction: OrderDirection.asc }
             })
@@ -199,6 +206,7 @@ describe('TypeormRepository', () => {
         it('Sort in descending (desc) order', async () => {
             const take = samples.length
             const paginatedResult = await repository.find({
+                skip: 0,
                 take,
                 orderby: { name: 'name', direction: OrderDirection.desc }
             })
@@ -209,85 +217,11 @@ describe('TypeormRepository', () => {
         })
     })
 
-    // describe('find', () => {
-    //     it('오름차순(asc) 정렬', async () => {
-    //         const take = samples.length
-    //         const paginatedResult = await repository.find({
-    //             take,
-    //             orderby: {
-    //                 name: 'name',
-    //                 direction: OrderDirection.asc
-    //             }
-    //         })
-
-    //         expect(paginatedResult).toEqual({
-    //             items: sortSamples(samples, 'asc'),
-    //             total: samples.length,
-    //             skip: 0,
-    //             take
-    //         })
-    //     })
-
-    //     it('내림차순(desc) 정렬', async () => {
-    //         const take = samples.length
-    //         const paginatedResult = await repository.find({
-    //             take,
-    //             orderby: {
-    //                 name: 'name',
-    //                 direction: OrderDirection.desc
-    //             }
-    //         })
-
-    //         expect(paginatedResult).toEqual({
-    //             items: sortSamples(samples, 'desc'),
-    //             total: samples.length,
-    //             skip: 0,
-    //             take
-    //         })
-    //     })
-
-    //     it('pagination 적용 조회', async () => {
-    //         const skip = 10
-    //         const take = 50
-    //         const paginatedResult = await repository.find({
-    //             skip,
-    //             take,
-    //             orderby: {
-    //                 name: 'name',
-    //                 direction: OrderDirection.asc
-    //             }
-    //         })
-
-    //         expect(paginatedResult).toEqual({
-    //             items: samples.slice(skip, skip + take),
-    //             total: samples.length,
-    //             skip,
-    //             take
-    //         })
-    //     })
-
-    //     it('조회 조건 없을 시 예외 처리', async () => {
-    //         const promise = repository.find({})
-
-    //         await expect(promise).rejects.toThrow(ParameterTypeormException)
-    //     })
-
-    //     it('skip 한계 초과 시 빈 결과 반환', async () => {
-    //         const skip = samples.length
-    //         const take = 5
-    //         const paginatedResult = await repository.find({ skip, take })
-
-    //         expect(paginatedResult).toEqual({
-    //             items: [],
-    //             total: samples.length,
-    //             skip,
-    //             take
-    //         })
-    //     })
-
     describe('using middleware', () => {
         it('Set orderby', async () => {
             const paginatedResult = await repository.find({
+                skip: 0,
+                take: 100,
                 middleware: (qb) => {
                     qb.orderBy('entity.name', 'DESC')
                 }
@@ -300,6 +234,8 @@ describe('TypeormRepository', () => {
 
         it('Set query', async () => {
             const paginatedResult = await repository.find({
+                skip: 0,
+                take: 100,
                 middleware: (qb) => {
                     qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
                     qb.orderBy('entity.name', 'ASC')
@@ -316,6 +252,8 @@ describe('TypeormRepository', () => {
             const skip = 10
             const take = 5
             const paginatedResult = await repository.find({
+                skip: 0,
+                take: 100,
                 middleware: (qb) => {
                     qb.skip(skip)
                     qb.take(take)

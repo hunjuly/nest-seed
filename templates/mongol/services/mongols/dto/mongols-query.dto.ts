@@ -1,7 +1,7 @@
 import { IsOptional } from 'class-validator'
-import { PaginationOptions } from 'common'
+import { PaginationOption } from 'common'
 
-export class MongolsQueryDto extends PaginationOptions {
+export class MongolsQueryDto extends PaginationOption {
     @IsOptional()
     name?: string
 

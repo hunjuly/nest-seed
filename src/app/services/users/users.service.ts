@@ -50,7 +50,7 @@ export class UsersService {
     }
 
     async doesUserExist(userId: string) {
-        const userExists = await this.usersRepository.doesIdExist(userId)
+        const userExists = await this.usersRepository.exists(userId)
 
         return userExists
     }

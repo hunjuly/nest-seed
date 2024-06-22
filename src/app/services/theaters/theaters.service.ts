@@ -16,7 +16,7 @@ export class TheatersService {
     }
 
     async doesTheaterExist(theaterId: string | string[]): Promise<boolean> {
-        const theaterExists = await this.theatersRepository.doesIdExist(theaterId)
+        const theaterExists = await this.theatersRepository.exists(theaterId)
 
         return theaterExists
     }
@@ -30,7 +30,7 @@ export class TheatersService {
     }
 
     async findTheaters(queryDto: TheatersQueryDto): Promise<PaginationResult<TheaterDto>> {
-        const paginatedTheaters = await this.theatersRepository.findByQuery(queryDto)
+        const paginatedTheaters = await this.theatersRepository.findByFilter(queryDto)
 
         const items = paginatedTheaters.items.map((theater) => new TheaterDto(theater))
 

@@ -16,7 +16,7 @@ export class MoviesService {
     }
 
     async doesMovieExist(movieId: string): Promise<boolean> {
-        const movieExists = await this.moviesRepository.doesIdExist(movieId)
+        const movieExists = await this.moviesRepository.exists(movieId)
 
         return movieExists
     }
@@ -30,7 +30,7 @@ export class MoviesService {
     }
 
     async findByQuery(queryDto: MoviesQueryDto): Promise<PaginationResult<MovieDto>> {
-        const paginatedMovies = await this.moviesRepository.findByQuery(queryDto)
+        const paginatedMovies = await this.moviesRepository.findByFilter(queryDto)
 
         const items = paginatedMovies.items.map((movie) => new MovieDto(movie))
 

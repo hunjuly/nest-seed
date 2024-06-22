@@ -1,4 +1,4 @@
-import { Assert, PaginationOptions, PaginationResult } from 'common'
+import { Assert, PaginationOption, PaginationResult } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository, SelectQueryBuilder } from 'typeorm'
 import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException, ParameterTypeormException } from './exceptions'
@@ -59,11 +59,12 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
     }
 
     async find(
-        option: { middleware?: (qb: SelectQueryBuilder<Entity>) => void } & PaginationOptions
+        pagination: PaginationOption,
+        queryCustomizer?: (qb: SelectQueryBuilder<Entity>) => void
     ): Promise<PaginationResult<Entity>> {
-        const { take, skip, orderby, middleware } = option
+        const { take, skip, orderby } = pagination
 
-        if (!take && !middleware) {
+        if (!take && !queryCustomizer) {
             throw new ParameterTypeormException(
                 'At least one of the following options is required: [take, middleware].'
             )
@@ -71,7 +72,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
 
         const qb = this.repo.createQueryBuilder('entity')
 
-        qb.skip(skip ?? 0)
+        skip && qb.skip(skip)
         take && qb.take(take)
 
         if (orderby) {
@@ -80,7 +81,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
             qb.orderBy(`entity.${orderby.name}`, order)
         }
 
-        middleware?.(qb)
+        queryCustomizer && queryCustomizer(qb)
 
         const [items, total] = await qb.getManyAndCount()
 
@@ -92,7 +93,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         }
     }
 
-    async doesIdExist(id: string): Promise<boolean> {
+    async exists(id: string): Promise<boolean> {
         return this.repo.exists({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })

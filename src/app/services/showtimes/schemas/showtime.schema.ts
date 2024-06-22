@@ -4,10 +4,10 @@ import { MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 @Schema()
 export class Showtime extends MongooseSchema {
     @Prop({ type: ObjectId, required: true })
-    theaterId: ObjectId | string
+    theaterId: DocumentId
 
     @Prop({ type: ObjectId, required: true })
-    movieId: ObjectId | string
+    movieId: DocumentId
 
     @Prop({ required: true })
     startTime: Date
@@ -16,7 +16,7 @@ export class Showtime extends MongooseSchema {
     endTime: Date
 
     @Prop({ type: ObjectId, required: true })
-    batchId: ObjectId | string
+    batchId: DocumentId
 }
 
 export const ShowtimeSchema = createMongooseSchema(Showtime)

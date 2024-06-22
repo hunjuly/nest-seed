@@ -26,7 +26,7 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         return theater.toObject()
     }
 
-    async findByQuery(queryDto: TheatersQueryDto): Promise<PaginationResult<Theater>> {
+    async findByFilter(queryDto: TheatersQueryDto): Promise<PaginationResult<Theater>> {
         const { take, skip, orderby, ...args } = queryDto
 
         const query: Record<string, any> = args

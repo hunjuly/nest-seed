@@ -29,7 +29,7 @@ export class ShowtimesService {
     }
 
     async findShowtimes(queryDto: ShowtimesQueryDto): Promise<PaginationResult<ShowtimeDto>> {
-        const paginatedShowtimes = await this.showtimesRepository.findByQuery(queryDto)
+        const paginatedShowtimes = await this.showtimesRepository.findByFilter(queryDto)
 
         const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
 
@@ -38,7 +38,7 @@ export class ShowtimesService {
 
     // TODO page 무시하는 경우 어쩔?
     async findAllShowtimes(queryDto: ShowtimesQueryDto): Promise<ShowtimeDto[]> {
-        const result = await this.showtimesRepository.findByQuery(queryDto)
+        const result = await this.showtimesRepository.findByFilter(queryDto)
 
         return result.items.map((showtime) => new ShowtimeDto(showtime))
     }

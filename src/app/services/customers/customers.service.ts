@@ -16,7 +16,7 @@ export class CustomersService {
     }
 
     async doesCustomerExist(customerId: string): Promise<boolean> {
-        const customerExists = await this.customersRepository.doesIdExist(customerId)
+        const customerExists = await this.customersRepository.exists(customerId)
 
         return customerExists
     }
@@ -30,7 +30,7 @@ export class CustomersService {
     }
 
     async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDto>> {
-        const paginatedCustomers = await this.customersRepository.findByQuery(queryDto)
+        const paginatedCustomers = await this.customersRepository.findByFilter(queryDto)
 
         const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
 
@@ -38,7 +38,7 @@ export class CustomersService {
     }
 
     async findByEmail(email: string): Promise<CustomerDto | null> {
-        const result = await this.customersRepository.findByQuery({ email })
+        const result = await this.customersRepository.findByFilter({ email })
 
         if (1 === result.items.length) {
             return new CustomerDto(result.items[0])

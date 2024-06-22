@@ -11,7 +11,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         super(model)
     }
 
-    async findByQuery(queryDto: TicketsQueryDto): Promise<PaginationResult<Ticket>> {
+    async findByFilter(queryDto: TicketsQueryDto): Promise<PaginationResult<Ticket>> {
         const { take, skip, orderby, ...args } = queryDto
 
         const query: Record<string, any> = args

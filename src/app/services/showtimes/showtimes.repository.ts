@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository, fixObjectIdToString, fixStringToObjectId } from 'common'
+import { MongooseRepository, objectIdToString, stringToObjectId } from 'common'
 import { Model } from 'mongoose'
 import { Showtime } from './schemas'
 
@@ -16,7 +16,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         endTime: Date
     }): Promise<Showtime[]> {
         const converted = query
-        fixStringToObjectId(converted)
+        stringToObjectId(converted)
         /**
          * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
          * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
@@ -28,7 +28,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             })
             .lean()
 
-        fixObjectIdToString(showtimes)
+        objectIdToString(showtimes)
 
         return showtimes
     }

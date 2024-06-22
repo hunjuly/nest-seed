@@ -17,7 +17,7 @@ import { Types } from 'mongoose'
     versionKey: 'version'
 })
 export class MongooseSchema {
-    readonly _id: ObjectId | string
+    readonly _id: DocumentId
 
     @Prop()
     createdAt?: Date
@@ -39,3 +39,4 @@ export function createMongooseSchema<T extends Type<any>>(cls: T) {
 }
 
 export class ObjectId extends Types.ObjectId {}
+export type DocumentId = ObjectId | string

@@ -30,7 +30,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         return movie.toObject()
     }
 
-    async findByQuery(queryDto: MoviesQueryDto): Promise<PaginationResult<Movie>> {
+    async findByFilter(queryDto: MoviesQueryDto): Promise<PaginationResult<Movie>> {
         const { take, skip, orderby, ...args } = queryDto
 
         const query: Record<string, any> = args

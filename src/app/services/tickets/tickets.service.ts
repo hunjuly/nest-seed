@@ -36,7 +36,7 @@ export class TicketsService {
     async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {
         this.logger.log('Searching for tickets with the provided query parameters.', queryDto)
 
-        const paginatedTickets = await this.ticketsRepository.findByQuery(queryDto)
+        const paginatedTickets = await this.ticketsRepository.findByFilter(queryDto)
 
         this.logger.log(`Search completed. Found ${paginatedTickets.total} tickets.`)
 
