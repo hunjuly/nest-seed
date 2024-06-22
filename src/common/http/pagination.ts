@@ -21,8 +21,8 @@ export class OrderOption {
 export class PaginationOptions {
     @IsOptional()
     @IsInt()
-    @Min(1)
-    take?: number
+    @Min(0)
+    take: number = 0
 
     @IsOptional()
     @IsInt()
@@ -63,26 +63,21 @@ export class PaginationResult<E> {
 
 @Injectable()
 export class PaginationPipe implements PipeTransform {
-    constructor(private defaultMaxSize: number) {}
+    constructor(private takeLimit: number) {}
 
     transform(value: any, metadata: ArgumentMetadata) {
         if (metadata.type === 'query') {
-            if (value.take) {
-                if (this.defaultMaxSize < value.take)
+            if (0 < value.take) {
+                if (this.takeLimit < value.take) {
                     throw new BadRequestException(
-                        `The 'take' parameter exceeds the maximum allowed limit of ${this.defaultMaxSize}.`
+                        `The 'take' parameter exceeds the maximum allowed limit of ${this.takeLimit}.`
                     )
-            } else {
-                value.take = this.defaultMaxSize
+                }
+            } else if (0 === value.take) {
+                value.take = this.takeLimit
             }
         }
 
         return value
     }
 }
-
-// @Get()
-// @UsePipes(new PaginationPipe(50))
-// async findAll(@Query() query2: TitleOptions) {
-//     return query2
-// }

@@ -88,7 +88,15 @@ describe('Pagination', () => {
             url: '/samples/maxsize',
             query: { take }
         })
-
         expectBadRequest(res)
+    })
+
+    it('If ‘take’ is not specified, a default value is used.', async () => {
+        const res = await req.get({
+            url: '/samples/maxsize',
+            query: {}
+        })
+        expectOk(res)
+        expect(res.body).toEqual({ take: 50 })
     })
 })

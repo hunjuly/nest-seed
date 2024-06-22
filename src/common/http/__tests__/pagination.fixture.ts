@@ -15,6 +15,7 @@ class SamplesController {
     }
 
     @Get('multiple')
+    @UsePipes(new PaginationPipe(50))
     async handleMultiple(@Query() pagination: PaginationOptions, @Query() user: UserDto) {
         return { pagination, user }
     }
