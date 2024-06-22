@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common'
+import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common'
 import { Transform } from 'class-transformer'
 import { IsInt, IsOptional, IsString, Min } from 'class-validator'
 // TODO
@@ -60,3 +60,29 @@ export class PaginationResult<E> {
 
     items: E[]
 }
+
+@Injectable()
+export class PaginationPipe implements PipeTransform {
+    constructor(private defaultMaxSize: number) {}
+
+    transform(value: any, metadata: ArgumentMetadata) {
+        if (metadata.type === 'query') {
+            if (value.take) {
+                if (this.defaultMaxSize < value.take)
+                    throw new BadRequestException(
+                        `The 'take' parameter exceeds the maximum allowed limit of ${this.defaultMaxSize}.`
+                    )
+            } else {
+                value.take = this.defaultMaxSize
+            }
+        }
+
+        return value
+    }
+}
+
+// @Get()
+// @UsePipes(new PaginationPipe(50))
+// async findAll(@Query() query2: TitleOptions) {
+//     return query2
+// }

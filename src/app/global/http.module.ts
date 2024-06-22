@@ -20,7 +20,6 @@ import { HttpErrorFilter, HttpExceptionFilter } from 'common'
                     disableErrorMessages: false,
                     whitelist: true, // Properties without decorators will be removed.
                     skipMissingProperties: false, // If set to true, the validator will skip validation of all properties that are null or undefined in the validation object.
-                    forbidNonWhitelisted: true, // Instead of removing non-whitelisted properties, the validator will throw an exception.
                     forbidUnknownValues: true, // Default value, any attempt to validate an unknown object will fail immediately.
                     transform: true,
                     transformOptions: {

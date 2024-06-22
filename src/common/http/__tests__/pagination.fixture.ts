@@ -1,11 +1,28 @@
-import { Controller, Get, Module, Query } from '@nestjs/common'
-import { PaginationOptions } from 'common'
+import { UsePipes, Controller, Get, Module, Query } from '@nestjs/common'
+import { IsNotEmpty } from 'class-validator'
+import { PaginationOptions, PaginationPipe } from '../pagination'
+
+export class UserDto {
+    @IsNotEmpty()
+    name: string
+}
 
 @Controller('samples')
 class SamplesController {
     @Get()
-    async findAll(@Query() query: PaginationOptions) {
+    async handleQuery(@Query() query: PaginationOptions) {
         return query
+    }
+
+    @Get('multiple')
+    async handleMultiple(@Query() pagination: PaginationOptions, @Query() user: UserDto) {
+        return { pagination, user }
+    }
+
+    @Get('maxsize')
+    @UsePipes(new PaginationPipe(50))
+    async handleMaxsize(@Query() pagination: PaginationOptions) {
+        return pagination
     }
 }
 

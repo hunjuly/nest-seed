@@ -1,6 +1,6 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext, expectBadRequest, expectOk } from 'common/test'
 import { SamplesModule } from './pagination.fixture'
 
 describe('Pagination', () => {
@@ -15,6 +15,7 @@ describe('Pagination', () => {
                     provide: APP_PIPE,
                     useFactory: () =>
                         new ValidationPipe({
+                            whitelist: true,
                             transform: true,
                             transformOptions: { enableImplicitConversion: true }
                         })
@@ -62,5 +63,32 @@ describe('Pagination', () => {
         })
 
         expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
+    })
+
+    it('Multiple @Query() usage is possible', async () => {
+        const skip = 2
+        const take = 3
+
+        const res = await req.get({
+            url: '/samples/multiple',
+            query: { skip, take, name: 'abcd' }
+        })
+
+        expectOk(res)
+        expect(res.body).toEqual({
+            user: { name: 'abcd' },
+            pagination: { skip, take }
+        })
+    })
+
+    it("Should return Bad Request when 'take' exceeds the specified limit", async () => {
+        const take = 51
+
+        const res = await req.get({
+            url: '/samples/maxsize',
+            query: { take }
+        })
+
+        expectBadRequest(res)
     })
 })
