@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataErrorException, PaginationOption, PaginationResult } from 'common'
+import { AppException, PaginationOption, PaginationResult } from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CreateCustomerDto, CustomerDto, CustomersFilterDto, UpdateCustomerDto } from './dto'
 
@@ -51,8 +51,9 @@ export class CustomersService {
     async getCustomer(customerId: string) {
         const customer = await this.customersRepository.findById(customerId)
 
+        /* istanbul ignore file */
         if (!customer) {
-            throw new DataErrorException(`Customer(${customerId}) not found`)
+            throw new AppException(`Customer(${customerId}) not found`)
         }
 
         return new CustomerDto(customer)

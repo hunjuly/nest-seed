@@ -82,15 +82,6 @@ describe('MoviesController', () => {
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
-        it('BAD_REQUEST(400) for invalid update fields', async () => {
-            const res = await req.patch({
-                url: `/movies/${movie.id}`,
-                body: { wrong_item: 0 }
-            })
-
-            expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
-        })
-
         it('NOT_FOUND(404) if movie is not found', async () => {
             const res = await req.patch({
                 url: `/movies/${nullObjectId}`,

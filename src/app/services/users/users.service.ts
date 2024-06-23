@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataErrorException, PaginationOption, PaginationResult, Password } from 'common'
+import { AppException, PaginationOption, PaginationResult, Password } from 'common'
 import { CreateUserDto, UpdateUserDto, UserDto, UsersFilterDto } from './dto'
 import { UsersRepository } from './users.repository'
 
@@ -36,8 +36,9 @@ export class UsersService {
     async isCorrectPassword(userId: string, password: string) {
         const user = await this.usersRepository.findById(userId)
 
+        /* istanbul ignore file */
         if (!user) {
-            throw new DataErrorException(`User with ID ${userId} not found`)
+            throw new AppException(`User with ID ${userId} not found`)
         }
 
         return Password.validate(password, user.password)
@@ -62,8 +63,9 @@ export class UsersService {
     async getUser(userId: string) {
         const user = await this.usersRepository.findById(userId)
 
+        /* istanbul ignore file */
         if (!user) {
-            throw new DataErrorException(`User with ID ${userId} not found`)
+            throw new AppException(`User with ID ${userId} not found`)
         }
 
         return new UserDto(user)

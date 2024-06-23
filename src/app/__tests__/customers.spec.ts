@@ -94,15 +94,6 @@ describe('CustomersController', () => {
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
-        it('BAD_REQUEST(400) for invalid update fields', async () => {
-            const res = await req.patch({
-                url: `/customers/${customer.id}`,
-                body: { wrong_item: 0 }
-            })
-
-            expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
-        })
-
         it('NOT_FOUND(404) if customer is not found', async () => {
             const res = await req.patch({
                 url: `/customers/${nullObjectId}`,

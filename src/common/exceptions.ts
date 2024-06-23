@@ -28,8 +28,4 @@ export class UserException extends Exception {}
  */
 export class EnvironmentException extends Exception {}
 
-/**
- * An exception that occurs when no data matches the provided ID or the data does not match expectations.
- * This may be due to a programming error or imprecise data synchronization.
- */
-export class DataErrorException extends Exception {}
+export class AppException extends Exception {}

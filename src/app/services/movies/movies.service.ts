@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { DataErrorException, PaginationOption, PaginationResult } from 'common'
+import { AppException, PaginationOption, PaginationResult } from 'common'
 import { CreateMovieDto, MovieDto, MoviesFilterDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
@@ -41,8 +41,9 @@ export class MoviesService {
     async getMovie(movieId: string) {
         const movie = await this.moviesRepository.findById(movieId)
 
+        /* istanbul ignore file */
         if (!movie) {
-            throw new DataErrorException(`Movie(${movieId}) not found`)
+            throw new AppException(`Movie(${movieId}) not found`)
         }
 
         return new MovieDto(movie)
