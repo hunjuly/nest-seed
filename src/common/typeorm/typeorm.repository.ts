@@ -66,7 +66,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
 
     async findWithPagination(
         pagination: PaginationOption,
-        filter: Record<string, any>
+        queryCustomizer?: (qb: SelectQueryBuilder<Entity>) => void
     ): Promise<PaginationResult<Entity>> {
         const { take, skip, orderby } = pagination
 
@@ -74,33 +74,21 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
             throw new ParameterTypeormException('The ‘take’ parameter is required for pagination.')
         }
 
-        const [items, total] = await this.findWithCustomizer((qb) => {
-            qb.skip(skip)
-            qb.take(take)
-
-            if (orderby) {
-                const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
-
-                qb.orderBy(`entity.${orderby.name}`, order)
-            }
-
-            Object.entries(filter).forEach(([key, value]) => {
-                qb.andWhere(`user.${key} = :${key}`, { [key]: value })
-            })
-        })
-
-        return { skip, take, total, items }
-    }
-
-    async findWithCustomizer(
-        queryCustomizer: (qb: SelectQueryBuilder<Entity>) => void
-    ): Promise<[Entity[], number]> {
         const qb = this.repo.createQueryBuilder('entity')
 
-        queryCustomizer(qb)
+        qb.skip(skip)
+        qb.take(take)
+
+        if (orderby) {
+            const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+
+            qb.orderBy(`entity.${orderby.name}`, order)
+        }
+
+        queryCustomizer && queryCustomizer(qb)
 
         const [items, total] = await qb.getManyAndCount()
 
-        return [items, total]
+        return { skip, take, total, items }
     }
 }

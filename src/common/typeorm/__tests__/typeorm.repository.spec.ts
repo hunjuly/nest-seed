@@ -177,10 +177,11 @@ describe('TypeormRepository', () => {
         it('should set the pagination correctly', async () => {
             const skip = 10
             const take = 10
-            const paginated = await repository.findWithPagination(
-                { skip, take, orderby: { name: 'name', direction: OrderDirection.asc } },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip,
+                take,
+                orderby: { name: 'name', direction: OrderDirection.asc }
+            })
 
             sortByName(samples)
 
@@ -193,10 +194,11 @@ describe('TypeormRepository', () => {
         })
 
         it('should sort in ascending order', async () => {
-            const paginated = await repository.findWithPagination(
-                { skip: 0, take: samples.length, orderby: { name: 'name', direction: OrderDirection.asc } },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
+                orderby: { name: 'name', direction: OrderDirection.asc }
+            })
 
             sortByName(samples)
 
@@ -204,14 +206,11 @@ describe('TypeormRepository', () => {
         })
 
         it('should sort in descending order', async () => {
-            const paginated = await repository.findWithPagination(
-                {
-                    skip: 0,
-                    take: samples.length,
-                    orderby: { name: 'name', direction: OrderDirection.desc }
-                },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
+                orderby: { name: 'name', direction: OrderDirection.desc }
+            })
 
             sortByNameDescending(samples)
 
@@ -219,50 +218,27 @@ describe('TypeormRepository', () => {
         })
 
         it('should throw an exception if ‘take’ is absent or zero', async () => {
-            const promise = repository.findWithPagination({ skip: 0, take: 0 }, {})
+            const promise = repository.findWithPagination({ skip: 0, take: 0 })
 
             await expect(promise).rejects.toThrow(TypeormException)
         })
-    })
 
-    describe('findWithCustomizer', () => {
-        let samples: Sample[]
-
-        beforeEach(async () => {
-            samples = await createSamples(repository, 20)
-        })
-
-        it('should set orderby correctly', async () => {
-            const [entities] = await repository.findWithCustomizer((qb) => {
-                qb.orderBy('entity.name', 'DESC')
-            })
-
-            sortByNameDescending(samples)
-
-            expect(entities).toEqual(samples)
-        })
-
-        it('should set query parameters correctly', async () => {
-            const [entities] = await repository.findWithCustomizer((qb) => {
-                qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
-            })
+        it('Should set conditions using the QueryBuilder', async () => {
+            const paginated = await repository.findWithPagination(
+                {
+                    skip: 0,
+                    take: samples.length,
+                    orderby: { name: 'name', direction: OrderDirection.asc }
+                },
+                (qb) => {
+                    qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
+                }
+            )
 
             sortByName(samples)
-            sortByName(entities)
+            sortByName(paginated.items)
 
-            expect(entities).toEqual(samples.slice(0, 10))
-        })
-
-        it('Set pagination', async () => {
-            const skip = 10
-            const take = 5
-            const [entities] = await repository.findWithCustomizer((qb) => {
-                qb.skip(skip)
-                qb.take(take)
-                qb.orderBy('entity.name', 'ASC')
-            })
-
-            expect(entities).toEqual(samples.slice(skip, skip + take))
+            expect(paginated.items).toEqual(samples.slice(0, 10))
         })
     })
 })
