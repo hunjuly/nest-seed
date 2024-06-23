@@ -1,2 +1,2 @@
 export * from './ticket.dto'
-export * from './tickets-query.dto'
+export * from './tickets-filter.dto'

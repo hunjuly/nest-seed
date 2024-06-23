@@ -1,4 +1,4 @@
-import { TicketSeat, Ticket } from '../schemas'
+import { Ticket, TicketSeat } from '../schemas'
 
 export class TicketDto {
     id: string

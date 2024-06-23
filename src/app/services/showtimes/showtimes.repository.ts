@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MongooseRepository, objectIdToString, stringToObjectId } from 'common'
+import {
+    MongooseRepository,
+    PaginationOption,
+    PaginationResult,
+    objectIdToString,
+    stringToObjectId
+} from 'common'
 import { Model } from 'mongoose'
+import { ShowtimesFilterDto } from './dto'
 import { Showtime } from './schemas'
 
 @Injectable()
@@ -29,6 +36,25 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             .lean()
 
         objectIdToString(showtimes)
+
+        return showtimes
+    }
+
+    async findPagedShowtimes(
+        filterDto: ShowtimesFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Showtime>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            stringToObjectId(filterDto)
+
+            helpers.setQuery(filterDto)
+        })
+
+        return paginated
+    }
+
+    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
+        const showtimes = await this.findByFilter(filterDto)
 
         return showtimes
     }

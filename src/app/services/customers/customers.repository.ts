@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assert, MongooseRepository, PaginationResult } from 'common'
+import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { CustomersQueryDto, UpdateCustomerDto } from './dto'
+import { CustomersFilterDto, UpdateCustomerDto } from './dto'
 import { Customer } from './schemas'
 
 @Injectable()
@@ -26,17 +26,26 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         return customer.toObject()
     }
 
-    async findByFilter(queryDto: CustomersQueryDto): Promise<PaginationResult<Customer>> {
-        const { take, skip, orderby, ...args } = queryDto
+    async findPagedCustomers(
+        filterDto: CustomersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Customer>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query: Record<string, any> = filterDto
 
-        const query: Record<string, any> = args
+            if (query.name) {
+                query['name'] = new RegExp(escapeRegExp(query.name), 'i')
+            }
 
-        if (args.name) {
-            query['name'] = new RegExp(escapeRegExp(args.name), 'i')
-        }
+            helpers.setQuery(query)
+        })
 
-        const result = await super.find({ take, skip, orderby, query })
+        return paginated
+    }
 
-        return result
+    async findByEmail(email: string): Promise<Customer | null> {
+        const customers = await this.findByFilter({ email })
+
+        return customers.length === 1 ? customers[0] : null
     }
 }

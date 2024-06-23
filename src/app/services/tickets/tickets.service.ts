@@ -2,9 +2,9 @@ import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
-import { PaginationResult, waitForQueueToEmpty } from 'common'
+import { PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimesCreateCompletedEvent } from '../showtimes'
-import { TicketDto, TicketsQueryDto } from './dto'
+import { TicketDto, TicketsFilterDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
 
 @Injectable()
@@ -33,15 +33,18 @@ export class TicketsService {
         this.logger.log(`Tickets 생성 요청. batchId=${batchId}`)
     }
 
-    async findTickets(queryDto: TicketsQueryDto): Promise<PaginationResult<TicketDto>> {
-        this.logger.log('Searching for tickets with the provided query parameters.', queryDto)
+    async findPagedTickets(
+        filterDto: TicketsFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<TicketDto>> {
+        this.logger.log('Searching for tickets with the provided query parameters.', filterDto)
 
-        const paginatedTickets = await this.ticketsRepository.findByFilter(queryDto)
+        const paginated = await this.ticketsRepository.findPagedTickets(filterDto, pagination)
 
-        this.logger.log(`Search completed. Found ${paginatedTickets.total} tickets.`)
+        this.logger.log(`Search completed. Found ${paginated.total} tickets.`)
 
-        const items = paginatedTickets.items.map((ticket) => new TicketDto(ticket))
+        const items = paginated.items.map((ticket) => new TicketDto(ticket))
 
-        return { ...paginatedTickets, items }
+        return { ...paginated, items }
     }
 }

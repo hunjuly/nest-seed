@@ -64,6 +64,20 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         } as unknown as FindOptionsWhere<Entity>)
     }
 
+    async findByFilter(filter: Record<string, any>): Promise<Entity[]> {
+        const qb = this.repo.createQueryBuilder('entity')
+
+        Object.entries(filter).forEach(([key, value]) => {
+            if (value !== undefined) {
+                qb.andWhere(`entity.${key} = :${key}`, { [key]: value })
+            }
+        })
+
+        const entities = await qb.getMany()
+
+        return entities
+    }
+
     async findWithPagination(
         pagination: PaginationOption,
         queryCustomizer?: (qb: SelectQueryBuilder<Entity>) => void

@@ -167,6 +167,32 @@ describe('TypeormRepository', () => {
         })
     })
 
+    describe('findByFilter', () => {
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createSamples(repository, 20)
+        })
+
+        it('should return all documents if no filter is specified', async () => {
+            const entities = await repository.findByFilter({})
+
+            sortByName(samples)
+            sortByName(entities)
+
+            expect(entities).toEqual(samples)
+        })
+
+        it('should return entities matching the specified filter', async () => {
+            const entities = await repository.findByFilter({ name: 'Sample-001' })
+
+            sortByName(samples)
+            sortByName(entities)
+
+            expect(entities).toEqual(samples.slice(1, 2))
+        })
+    })
+
     describe('findWithPagination', () => {
         let samples: Sample[]
 

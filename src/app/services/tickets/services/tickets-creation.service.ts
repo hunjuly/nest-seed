@@ -36,7 +36,7 @@ export class TicketsCreationService {
     async createTickets(job: Job<TicketsCreationData>): Promise<void> {
         const { batchId } = job.data
 
-        const showtimes = await this.showtimesService.findAllShowtimes({ batchId })
+        const showtimes = await this.showtimesService.findShowtimes({ batchId })
 
         this.logger.log('Starting the ticket creation process for multiple showtimes.')
 

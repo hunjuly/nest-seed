@@ -1,25 +1,39 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import {
+    UsePipes,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards
+} from '@nestjs/common'
 import {
     CreateCustomerDto,
-    CustomersQueryDto,
+    CustomersFilterDto as CustomersFilterDto,
     CustomersService,
     UpdateCustomerDto
 } from 'app/services/customers'
 import { CustomerEmailNotExistsGuard, CustomerExistsGuard } from './guards'
+import { PaginationOption, PaginationPipe } from 'common'
 
 @Controller('customers')
 export class CustomersController {
     constructor(private readonly customersService: CustomersService) {}
 
-    @UseGuards(CustomerEmailNotExistsGuard)
     @Post()
+    @UseGuards(CustomerEmailNotExistsGuard)
     async createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
         return this.customersService.createCustomer(createCustomerDto)
     }
 
     @Get()
-    async findByQuery(@Query() query: CustomersQueryDto) {
-        return this.customersService.findByQuery(query)
+    @UsePipes(new PaginationPipe(50))
+    async findPagedCustomers(@Query() filter: CustomersFilterDto, @Query() pagination: PaginationOption) {
+        return this.customersService.findPagedCustomers(filter, pagination)
     }
 
     @Post('/findByIds')
@@ -28,14 +42,14 @@ export class CustomersController {
         return this.customersService.findByIds(customerIds)
     }
 
-    @UseGuards(CustomerExistsGuard)
     @Get(':customerId')
+    @UseGuards(CustomerExistsGuard)
     async getCustomer(@Param('customerId') customerId: string) {
         return this.customersService.getCustomer(customerId)
     }
 
-    @UseGuards(CustomerExistsGuard)
     @Patch(':customerId')
+    @UseGuards(CustomerExistsGuard)
     async updateCustomer(
         @Param('customerId') customerId: string,
         @Body() updateCustomerDto: UpdateCustomerDto
@@ -43,8 +57,8 @@ export class CustomersController {
         return this.customersService.updateCustomer(customerId, updateCustomerDto)
     }
 
-    @UseGuards(CustomerExistsGuard)
     @Delete(':customerId')
+    @UseGuards(CustomerExistsGuard)
     async deleteCustomer(@Param('customerId') customerId: string) {
         return this.customersService.deleteCustomer(customerId)
     }

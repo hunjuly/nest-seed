@@ -20,7 +20,7 @@ class SamplesController {
         return { pagination, user }
     }
 
-    @Get('maxsize')
+    @Get('takeLimit')
     @UsePipes(new PaginationPipe(50))
     async handleMaxsize(@Query() pagination: PaginationOption) {
         return pagination

@@ -1,5 +1,18 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { CreateMovieDto, MoviesQueryDto, MoviesService, UpdateMovieDto } from 'app/services/movies'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+    UsePipes
+} from '@nestjs/common'
+import { CreateMovieDto, MoviesFilterDto, MoviesService, UpdateMovieDto } from 'app/services/movies'
+import { PaginationOption, PaginationPipe } from 'common'
 import { MovieExistsGuard } from './guards'
 
 @Controller('movies')
@@ -12,11 +25,12 @@ export class MoviesController {
     }
 
     @Get()
-    async findByQuery(@Query() query: MoviesQueryDto) {
-        return this.moviesService.findByQuery(query)
+    @UsePipes(new PaginationPipe(50))
+    async findPagedCustomers(@Query() filter: MoviesFilterDto, @Query() pagination: PaginationOption) {
+        return this.moviesService.findPagedMovies(filter, pagination)
     }
 
-    @Post('findByIds')
+    @Post('/findByIds')
     @HttpCode(200)
     async findByIds(@Body() movieIds: string[]) {
         return this.moviesService.findByIds(movieIds)
@@ -39,6 +53,4 @@ export class MoviesController {
     async deleteMovie(@Param('movieId') movieId: string) {
         return this.moviesService.deleteMovie(movieId)
     }
-
-    // 파일업로드 구현하자
 }

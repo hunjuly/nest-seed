@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult } from 'common'
-import { HydratedDocument } from 'mongoose'
-import { CreateCustomerDto, CustomerDto, CustomersQueryDto, UpdateCustomerDto } from './dto'
+import { DataErrorException, PaginationOption, PaginationResult } from 'common'
 import { CustomersRepository } from './customers.repository'
-import { Customer } from './schemas'
+import { CreateCustomerDto, CustomerDto, CustomersFilterDto, UpdateCustomerDto } from './dto'
 
 @Injectable()
 export class CustomersService {
@@ -15,8 +13,8 @@ export class CustomersService {
         return new CustomerDto(savedCustomer)
     }
 
-    async doesCustomerExist(customerId: string): Promise<boolean> {
-        const customerExists = await this.customersRepository.exists(customerId)
+    async customerExists(customerId: string): Promise<boolean> {
+        const customerExists = await this.customersRepository.existsById(customerId)
 
         return customerExists
     }
@@ -29,8 +27,11 @@ export class CustomersService {
         return customerDtos
     }
 
-    async findByQuery(queryDto: CustomersQueryDto): Promise<PaginationResult<CustomerDto>> {
-        const paginatedCustomers = await this.customersRepository.findByFilter(queryDto)
+    async findPagedCustomers(
+        filterDto: CustomersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<CustomerDto>> {
+        const paginatedCustomers = await this.customersRepository.findPagedCustomers(filterDto, pagination)
 
         const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
 
@@ -38,29 +39,23 @@ export class CustomersService {
     }
 
     async findByEmail(email: string): Promise<CustomerDto | null> {
-        const result = await this.customersRepository.findByFilter({ email })
+        const customer = await this.customersRepository.findByEmail(email)
 
-        if (1 === result.items.length) {
-            return new CustomerDto(result.items[0])
+        if (customer) {
+            return new CustomerDto(customer)
         }
-
-        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
 
         return null
     }
 
     async getCustomer(customerId: string) {
-        const customer = await this.getCustomerDocument(customerId)
-
-        return new CustomerDto(customer)
-    }
-
-    private async getCustomerDocument(customerId: string) {
         const customer = await this.customersRepository.findById(customerId)
 
-        Assert.defined(customer, `Customer(${customerId}) not found`)
+        if (!customer) {
+            throw new DataErrorException(`Customer(${customerId}) not found`)
+        }
 
-        return customer as HydratedDocument<Customer>
+        return new CustomerDto(customer)
     }
 
     async updateCustomer(customerId: string, updateCustomerDto: UpdateCustomerDto) {

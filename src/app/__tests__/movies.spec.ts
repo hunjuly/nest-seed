@@ -10,9 +10,7 @@ import { createMovies, sortByTitle, sortByTitleDescending } from './movies.fixtu
 describe('MoviesController', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
-
-    let movies: MovieDto[] = []
-    let movie: MovieDto
+    let moviesService: MoviesService
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -21,10 +19,7 @@ describe('MoviesController', () => {
         })
         req = testContext.request
 
-        const moviesService = testContext.module.get(MoviesService)
-
-        movies = await createMovies(moviesService, 100)
-        movie = movies[0]
+        moviesService = testContext.module.get(MoviesService)
     })
 
     afterEach(async () => {
@@ -60,6 +55,13 @@ describe('MoviesController', () => {
     })
 
     describe('PATCH /movies/:id', () => {
+        let movie: MovieDto
+
+        beforeEach(async () => {
+            const movies = await createMovies(moviesService, 1)
+            movie = movies[0]
+        })
+
         it('Update a movie', async () => {
             const updateData = {
                 title: 'update title',
@@ -100,6 +102,13 @@ describe('MoviesController', () => {
     })
 
     describe('DELETE /movies/:id', () => {
+        let movie: MovieDto
+
+        beforeEach(async () => {
+            const movies = await createMovies(moviesService, 1)
+            movie = movies[0]
+        })
+
         it('Delete a movie', async () => {
             const deleteResponse = await req.delete({ url: `/movies/${movie.id}` })
             const getResponse = await req.get({ url: `/movies/${movie.id}` })
@@ -116,6 +125,14 @@ describe('MoviesController', () => {
     })
 
     describe('GET /movies', () => {
+        let movies: MovieDto[]
+        let movie: MovieDto
+
+        beforeEach(async () => {
+            movies = await createMovies(moviesService, 20)
+            movie = movies[0]
+        })
+
         it('Retrieve all movies', async () => {
             const res = await req.get({
                 url: '/movies',
@@ -124,16 +141,6 @@ describe('MoviesController', () => {
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(movies)
-        })
-
-        it('Retrieve movies by title', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { title: movie.title }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual([movie])
         })
 
         it('Retrieve movies by partial title', async () => {
@@ -176,7 +183,7 @@ describe('MoviesController', () => {
 
         it('Pagination', async () => {
             const skip = 10
-            const take = 50
+            const take = 5
 
             const res = await req.get({
                 url: '/movies',

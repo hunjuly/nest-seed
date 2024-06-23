@@ -9,7 +9,7 @@ export class TheaterExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const theaterId = request.query.theaterId || request.params.theaterId
 
-        const theaterExists = await this.theatersService.doesTheaterExist(theaterId)
+        const theaterExists = await this.theatersService.theaterExists(theaterId)
 
         if (!theaterExists) {
             throw new NotFoundException(`Theater with ID ${theaterId} not found`)

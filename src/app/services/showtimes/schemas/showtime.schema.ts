@@ -1,5 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { MongooseSchema, ObjectId, createMongooseSchema } from 'common'
+import { DocumentId, MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 
 @Schema()
 export class Showtime extends MongooseSchema {

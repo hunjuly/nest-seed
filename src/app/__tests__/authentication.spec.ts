@@ -87,10 +87,7 @@ describe('Authentication', () => {
         let refreshToken: string
 
         beforeEach(async () => {
-            const res = await req.post({
-                url: '/auth/login',
-                body: user
-            })
+            const res = await req.post({ url: '/auth/login', body: user })
 
             accessToken = res.body.accessToken
             refreshToken = res.body.refreshToken

@@ -1,8 +1,8 @@
 import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { Queue } from 'bull'
-import { ObjectId, PaginationResult, waitForQueueToEmpty } from 'common'
-import { CreateShowtimesDto, CreateShowtimesResponse, ShowtimeDto, ShowtimesQueryDto } from './dto'
+import { ObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
+import { CreateShowtimesDto, CreateShowtimesResponse, ShowtimeDto, ShowtimesFilterDto } from './dto'
 import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
@@ -28,18 +28,20 @@ export class ShowtimesService {
         return { batchId }
     }
 
-    async findShowtimes(queryDto: ShowtimesQueryDto): Promise<PaginationResult<ShowtimeDto>> {
-        const paginatedShowtimes = await this.showtimesRepository.findByFilter(queryDto)
+    async findPagedShowtimes(
+        filterDto: ShowtimesFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<ShowtimeDto>> {
+        const paginatedShowtimes = await this.showtimesRepository.findPagedShowtimes(filterDto, pagination)
 
         const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
 
         return { ...paginatedShowtimes, items }
     }
 
-    // TODO page 무시하는 경우 어쩔?
-    async findAllShowtimes(queryDto: ShowtimesQueryDto): Promise<ShowtimeDto[]> {
-        const result = await this.showtimesRepository.findByFilter(queryDto)
+    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<ShowtimeDto[]> {
+        const showtimes = await this.showtimesRepository.findShowtimes(filterDto)
 
-        return result.items.map((showtime) => new ShowtimeDto(showtime))
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 }

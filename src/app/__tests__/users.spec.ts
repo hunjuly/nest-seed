@@ -10,9 +10,7 @@ import { createUserDto, createUsers } from './users.fixture'
 describe('UsersController', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
-
-    let users: UserDto[] = []
-    let user: UserDto
+    let usersService: UsersService
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -23,9 +21,7 @@ describe('UsersController', () => {
 
         req = testContext.request
 
-        const usersService = testContext.module.get(UsersService)
-        users = await createUsers(usersService, 10)
-        user = users[0]
+        usersService = testContext.module.get(UsersService)
     })
 
     afterEach(async () => {
@@ -33,6 +29,13 @@ describe('UsersController', () => {
     })
 
     describe('POST /users', () => {
+        let user: UserDto
+
+        beforeEach(async () => {
+            const users = await createUsers(usersService, 1)
+            user = users[0]
+        })
+
         it('Create a user', async () => {
             const res = await req.post({
                 url: '/users',
@@ -68,6 +71,13 @@ describe('UsersController', () => {
     })
 
     describe('PATCH /users/:id', () => {
+        let user: UserDto
+
+        beforeEach(async () => {
+            const users = await createUsers(usersService, 1)
+            user = users[0]
+        })
+
         it('Update a user', async () => {
             const updateResponse = await req.patch({
                 url: `/users/${user.id}`,
@@ -101,6 +111,13 @@ describe('UsersController', () => {
     })
 
     describe('DELETE /users/:id', () => {
+        let user: UserDto
+
+        beforeEach(async () => {
+            const users = await createUsers(usersService, 1)
+            user = users[0]
+        })
+
         it('Delete a user', async () => {
             const deleteResponse = await req.delete({ url: `/users/${user.id}` })
             const getResponse = await req.get({ url: `/users/${user.id}` })
@@ -117,6 +134,14 @@ describe('UsersController', () => {
     })
 
     describe('GET /users', () => {
+        let users: UserDto[]
+        let user: UserDto
+
+        beforeEach(async () => {
+            users = await createUsers(usersService, 10)
+            user = users[0]
+        })
+
         it('Retrieve all users', async () => {
             const res = await req.get({
                 url: '/users',
@@ -139,6 +164,13 @@ describe('UsersController', () => {
     })
 
     describe('GET /users/:id', () => {
+        let user: UserDto
+
+        beforeEach(async () => {
+            const users = await createUsers(usersService, 1)
+            user = users[0]
+        })
+
         it('Retrieve a user by ID', async () => {
             const res = await req.get({ url: `/users/${user.id}` })
 

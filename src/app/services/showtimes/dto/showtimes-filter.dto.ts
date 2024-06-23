@@ -1,7 +1,6 @@
 import { IsOptional } from 'class-validator'
-import { PaginationOption } from 'common'
 
-export class ShowtimesQueryDto extends PaginationOption {
+export class ShowtimesFilterDto {
     @IsOptional()
     theaterId?: string
 

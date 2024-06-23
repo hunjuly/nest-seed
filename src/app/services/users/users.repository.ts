@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { PaginationResult, TypeormRepository } from 'common'
+import { PaginationOption, PaginationResult, TypeormRepository } from 'common'
 import { Repository } from 'typeorm'
-import { UsersQueryDto } from './dto'
+import { UsersFilterDto } from './dto'
 import { User } from './entities'
 
 @Injectable()
@@ -11,22 +11,24 @@ export class UsersRepository extends TypeormRepository<User> {
         super(typeorm)
     }
 
-    async findByQuery(queryDto: UsersQueryDto): Promise<PaginationResult<User>> {
-        const { take, skip, orderby, ...args } = queryDto
-
-        const result = await this.find({
-            take,
-            skip,
-            orderby,
-            middleware: (qb) => {
-                Object.entries(args).forEach(([key, value]) => {
-                    if (value !== undefined) {
-                        qb.andWhere(`entity.${key} = :${key}`, { [key]: value })
-                    }
-                })
-            }
+    async findPagedUsers(
+        filterDto: UsersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<User>> {
+        const result = await this.findWithPagination(pagination, (qb) => {
+            Object.entries(filterDto).forEach(([key, value]) => {
+                if (value !== undefined) {
+                    qb.andWhere(`entity.${key} = :${key}`, { [key]: value })
+                }
+            })
         })
 
         return result
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        const users = await this.findByFilter({ email })
+
+        return users.length === 1 ? users[0] : null
     }
 }

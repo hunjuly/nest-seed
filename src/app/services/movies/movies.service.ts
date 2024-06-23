@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult } from 'common'
-import { HydratedDocument } from 'mongoose'
-import { CreateMovieDto, MovieDto, MoviesQueryDto, UpdateMovieDto } from './dto'
+import { DataErrorException, PaginationOption, PaginationResult } from 'common'
+import { CreateMovieDto, MovieDto, MoviesFilterDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
-import { Movie } from './schemas'
 
 @Injectable()
 export class MoviesService {
@@ -15,8 +13,8 @@ export class MoviesService {
         return new MovieDto(savedMovie)
     }
 
-    async doesMovieExist(movieId: string): Promise<boolean> {
-        const movieExists = await this.moviesRepository.exists(movieId)
+    async movieExists(movieId: string): Promise<boolean> {
+        const movieExists = await this.moviesRepository.existsById(movieId)
 
         return movieExists
     }
@@ -29,8 +27,11 @@ export class MoviesService {
         return movieDtos
     }
 
-    async findByQuery(queryDto: MoviesQueryDto): Promise<PaginationResult<MovieDto>> {
-        const paginatedMovies = await this.moviesRepository.findByFilter(queryDto)
+    async findPagedMovies(
+        filterDto: MoviesFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<MovieDto>> {
+        const paginatedMovies = await this.moviesRepository.findPagedMovies(filterDto, pagination)
 
         const items = paginatedMovies.items.map((movie) => new MovieDto(movie))
 
@@ -38,17 +39,13 @@ export class MoviesService {
     }
 
     async getMovie(movieId: string) {
-        const movie = await this.getMovieDocument(movieId)
-
-        return new MovieDto(movie)
-    }
-
-    private async getMovieDocument(movieId: string) {
         const movie = await this.moviesRepository.findById(movieId)
 
-        Assert.defined(movie, `Movie(${movieId}) not found`)
+        if (!movie) {
+            throw new DataErrorException(`Movie(${movieId}) not found`)
+        }
 
-        return movie as HydratedDocument<Movie>
+        return new MovieDto(movie)
     }
 
     async updateMovie(movieId: string, updateMovieDto: UpdateMovieDto) {

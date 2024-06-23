@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assert, MongooseRepository, PaginationResult } from 'common'
+import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { TheatersQueryDto, UpdateTheaterDto } from './dto'
+import { TheatersFilterDto, UpdateTheaterDto } from './dto'
 import { Theater } from './schemas'
 
 @Injectable()
@@ -26,17 +26,20 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         return theater.toObject()
     }
 
-    async findByFilter(queryDto: TheatersQueryDto): Promise<PaginationResult<Theater>> {
-        const { take, skip, orderby, ...args } = queryDto
+    async findPagedTheaters(
+        filterDto: TheatersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Theater>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query: Record<string, any> = filterDto
 
-        const query: Record<string, any> = args
+            if (query.name) {
+                query['name'] = new RegExp(escapeRegExp(query.name), 'i')
+            }
 
-        if (args.name) {
-            query['name'] = new RegExp(escapeRegExp(args.name), 'i')
-        }
+            helpers.setQuery(query)
+        })
 
-        const result = await super.find({ take, skip, orderby, query })
-
-        return result
+        return paginated
     }
 }

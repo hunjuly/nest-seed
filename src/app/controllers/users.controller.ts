@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
+import { CreateUserDto, UpdateUserDto, UsersFilterDto, UsersService } from 'app/services/users'
+import { PaginationOption, PaginationPipe } from 'common'
 import { JwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
-import { UsersService, CreateUserDto, UsersQueryDto, UpdateUserDto } from 'app/services/users'
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -15,8 +16,9 @@ export class UsersController {
     }
 
     @Get()
-    async findUsers(@Query() query: UsersQueryDto) {
-        return this.usersService.findUsers(query)
+    @UsePipes(new PaginationPipe(50))
+    async findPagedUsers(@Query() filter: UsersFilterDto, @Query() pagination: PaginationOption) {
+        return this.usersService.findPagedUsers(filter, pagination)
     }
 
     @UseGuards(UserExistsGuard)

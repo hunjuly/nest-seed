@@ -1,6 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { CreateTheaterDto, TheatersQueryDto, TheatersService, UpdateTheaterDto } from 'app/services/theaters'
+import {
+    UsePipes,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards
+} from '@nestjs/common'
+import { CreateTheaterDto, TheatersFilterDto, TheatersService, UpdateTheaterDto } from 'app/services/theaters'
 import { TheaterExistsGuard } from './guards'
+import { PaginationPipe, PaginationOption } from 'common'
 
 @Controller('theaters')
 export class TheatersController {
@@ -12,8 +25,9 @@ export class TheatersController {
     }
 
     @Get()
-    async findTheaters(@Query() query: TheatersQueryDto) {
-        return this.theatersService.findTheaters(query)
+    @UsePipes(new PaginationPipe(50))
+    async findPagedTheaters(@Query() filter: TheatersFilterDto, @Query() pagination: PaginationOption) {
+        return this.theatersService.findPagedTheaters(filter, pagination)
     }
 
     @Post('findByIds')

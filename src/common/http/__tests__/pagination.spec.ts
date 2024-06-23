@@ -85,7 +85,7 @@ describe('Pagination', () => {
         const take = 51
 
         const res = await req.get({
-            url: '/samples/maxsize',
+            url: '/samples/takeLimit',
             query: { take }
         })
         expectBadRequest(res)
@@ -93,7 +93,7 @@ describe('Pagination', () => {
 
     it('If ‘take’ is not specified, a default value is used.', async () => {
         const res = await req.get({
-            url: '/samples/maxsize',
+            url: '/samples/takeLimit',
             query: {}
         })
         expectOk(res)

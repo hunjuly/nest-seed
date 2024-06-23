@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult, Password } from 'common'
-import { CreateUserDto, UpdateUserDto, UserDto, UsersQueryDto } from './dto'
-import { User } from './entities'
+import { DataErrorException, PaginationOption, PaginationResult, Password } from 'common'
+import { CreateUserDto, UpdateUserDto, UserDto, UsersFilterDto } from './dto'
 import { UsersRepository } from './users.repository'
 
 @Injectable()
@@ -23,8 +22,11 @@ export class UsersService {
         return new UserDto(user)
     }
 
-    async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
-        const users = await this.usersRepository.findByQuery(queryDto)
+    async findPagedUsers(
+        filterDto: UsersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<UserDto>> {
+        const users = await this.usersRepository.findPagedUsers(filterDto, pagination)
 
         const items = users.items.map((user) => new UserDto(user))
 
@@ -32,31 +34,37 @@ export class UsersService {
     }
 
     async isCorrectPassword(userId: string, password: string) {
-        const user = await this.getUserEntity(userId)
+        const user = await this.usersRepository.findById(userId)
+
+        if (!user) {
+            throw new DataErrorException(`User with ID ${userId} not found`)
+        }
 
         return Password.validate(password, user.password)
     }
 
     async findByEmail(email: string): Promise<UserDto | null> {
-        const result = await this.usersRepository.findByQuery({ email })
+        const user = await this.usersRepository.findByEmail(email)
 
-        if (1 === result.items.length) {
-            return new UserDto(result.items[0])
+        if (user) {
+            return new UserDto(user)
         }
-
-        Assert.unique(result.items, `Duplicate email found: '${email}'. Each email must be unique.`)
 
         return null
     }
 
-    async doesUserExist(userId: string) {
+    async userExists(userId: string) {
         const userExists = await this.usersRepository.existsById(userId)
 
         return userExists
     }
 
     async getUser(userId: string) {
-        const user = await this.getUserEntity(userId)
+        const user = await this.usersRepository.findById(userId)
+
+        if (!user) {
+            throw new DataErrorException(`User with ID ${userId} not found`)
+        }
 
         return new UserDto(user)
     }
@@ -69,13 +77,5 @@ export class UsersService {
 
     async deleteUser(userId: string) {
         await this.usersRepository.deleteById(userId)
-    }
-
-    private async getUserEntity(userId: string) {
-        const user = await this.usersRepository.findById(userId)
-
-        Assert.defined(user, `User with ID ${userId} not found`)
-
-        return user as User
     }
 }

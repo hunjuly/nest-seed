@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult } from 'common'
-import { HydratedDocument } from 'mongoose'
-import { CreateTheaterDto, TheaterDto, TheatersQueryDto, UpdateTheaterDto } from './dto'
+import { DataErrorException, PaginationOption, PaginationResult } from 'common'
+import { CreateTheaterDto, TheaterDto, TheatersFilterDto, UpdateTheaterDto } from './dto'
 import { TheatersRepository } from './theaters.repository'
-import { Theater } from './schemas'
 
 @Injectable()
 export class TheatersService {
@@ -15,8 +13,14 @@ export class TheatersService {
         return new TheaterDto(savedTheater)
     }
 
-    async doesTheaterExist(theaterId: string | string[]): Promise<boolean> {
-        const theaterExists = await this.theatersRepository.exists(theaterId)
+    async theaterExists(theaterId: string): Promise<boolean> {
+        const theaterExists = await this.theatersRepository.existsById(theaterId)
+
+        return theaterExists
+    }
+
+    async theatersExist(theaterIds: string[]): Promise<boolean> {
+        const theaterExists = await this.theatersRepository.existsByIds(theaterIds)
 
         return theaterExists
     }
@@ -29,8 +33,11 @@ export class TheatersService {
         return theaterDtos
     }
 
-    async findTheaters(queryDto: TheatersQueryDto): Promise<PaginationResult<TheaterDto>> {
-        const paginatedTheaters = await this.theatersRepository.findByFilter(queryDto)
+    async findPagedTheaters(
+        filterDto: TheatersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<TheaterDto>> {
+        const paginatedTheaters = await this.theatersRepository.findPagedTheaters(filterDto, pagination)
 
         const items = paginatedTheaters.items.map((theater) => new TheaterDto(theater))
 
@@ -38,17 +45,13 @@ export class TheatersService {
     }
 
     async getTheater(theaterId: string) {
-        const theater = await this.getTheaterDocument(theaterId)
-
-        return new TheaterDto(theater)
-    }
-
-    private async getTheaterDocument(theaterId: string) {
         const theater = await this.theatersRepository.findById(theaterId)
 
-        Assert.defined(theater, `Theater(${theaterId}) not found`)
+        if (!theater) {
+            throw new DataErrorException(`Theater(${theaterId}) not found`)
+        }
 
-        return theater as HydratedDocument<Theater>
+        return new TheaterDto(theater)
     }
 
     async updateTheater(theaterId: string, updateTheaterDto: UpdateTheaterDto) {
