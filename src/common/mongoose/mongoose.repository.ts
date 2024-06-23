@@ -97,45 +97,30 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
     async findWithPagination(
         pagination: PaginationOption,
-        filter: Record<string, any>
+        queryCustomizer?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
     ): Promise<PaginationResult<Doc>> {
-        stringToObjectId(filter)
-
         const { take, skip, orderby } = pagination
 
         if (!take) {
             throw new MongooseException('The ‘take’ parameter is required for pagination.')
         }
 
-        const items = await this.findWithCustomizer((helpers) => {
-            helpers.skip(skip)
-            helpers.limit(take)
+        const helpers = this.model.find({})
 
-            if (orderby) {
-                helpers.sort({ [orderby.name]: orderby.direction })
-            }
+        helpers.skip(skip)
+        helpers.limit(take)
+        if (orderby) {
+            helpers.sort({ [orderby.name]: orderby.direction })
+        }
 
-            helpers.setQuery(filter)
-        })
+        queryCustomizer && queryCustomizer(helpers)
+
+        const items: Doc[] = await helpers.lean()
+        const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
         objectIdToString(items)
 
-        const total = await this.model.countDocuments(filter).lean()
-
         return { skip, take, total, items }
-    }
-
-    async findWithCustomizer(
-        queryCustomizer: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
-    ): Promise<Doc[]> {
-        const helpers = this.model.find({})
-
-        queryCustomizer?.(helpers)
-
-        const docs: Doc[] = await helpers.lean()
-        objectIdToString(docs)
-
-        return docs
     }
 }
 

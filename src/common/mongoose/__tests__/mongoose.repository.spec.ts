@@ -303,10 +303,11 @@ describe('MongooseRepository', () => {
         it('should set the pagination correctly', async () => {
             const skip = 10
             const take = 50
-            const paginated = await repository.findWithPagination(
-                { skip, take, orderby: { name: 'name', direction: OrderDirection.asc } },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip,
+                take,
+                orderby: { name: 'name', direction: OrderDirection.asc }
+            })
 
             sortByName(samples)
 
@@ -319,10 +320,11 @@ describe('MongooseRepository', () => {
         })
 
         it('should sort in ascending order', async () => {
-            const paginated = await repository.findWithPagination(
-                { skip: 0, take: samples.length, orderby: { name: 'name', direction: OrderDirection.asc } },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
+                orderby: { name: 'name', direction: OrderDirection.asc }
+            })
 
             sortByName(samples)
 
@@ -330,14 +332,11 @@ describe('MongooseRepository', () => {
         })
 
         it('should sort in descending order', async () => {
-            const paginated = await repository.findWithPagination(
-                {
-                    skip: 0,
-                    take: samples.length,
-                    orderby: { name: 'name', direction: OrderDirection.desc }
-                },
-                {}
-            )
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
+                orderby: { name: 'name', direction: OrderDirection.desc }
+            })
 
             sortByNameDescending(samples)
 
@@ -345,52 +344,27 @@ describe('MongooseRepository', () => {
         })
 
         it('should throw an exception if ‘take’ is absent or zero', async () => {
-            const promise = repository.findWithPagination({ skip: 0, take: 0 }, {})
+            const promise = repository.findWithPagination({ skip: 0, take: 0 })
 
             await expect(promise).rejects.toThrow(MongooseException)
         })
-    })
 
-    describe('findWithCustomizer', () => {
-        let samples: Sample[]
-
-        beforeEach(async () => {
-            samples = await createSamples(repository, 20)
-        })
-
-        it('should set orderby correctly', async () => {
-            const docs = await repository.findWithCustomizer((helpers) => {
-                helpers.sort({ name: 'desc' })
-            })
-
-            sortByNameDescending(samples)
-
-            expect(docs).toEqual(samples)
-        })
-
-        it('should set query parameters correctly', async () => {
-            const docs = await repository.findWithCustomizer((helpers) => {
-                helpers.setQuery({ name: /Sample-00/i })
-            })
+        it('Should set conditions using the QueryHelper', async () => {
+            const paginated = await repository.findWithPagination(
+                {
+                    skip: 0,
+                    take: samples.length,
+                    orderby: { name: 'name', direction: OrderDirection.asc }
+                },
+                (helpers) => {
+                    helpers.setQuery({ name: /Sample-00/i })
+                }
+            )
 
             sortByName(samples)
-            sortByName(docs)
+            sortByName(paginated.items)
 
-            expect(docs).toEqual(samples.slice(0, 10))
-        })
-
-        it('should set pagination options correctly', async () => {
-            const skip = 10
-            const take = 5
-            const docs = await repository.findWithCustomizer((helpers) => {
-                helpers.skip(skip)
-                helpers.limit(take)
-                helpers.sort({ name: 'asc' })
-            })
-
-            sortByName(samples)
-
-            expect(docs).toEqual(samples.slice(skip, skip + take))
+            expect(paginated.items).toEqual(samples.slice(0, 10))
         })
     })
 })
