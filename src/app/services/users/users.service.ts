@@ -50,7 +50,7 @@ export class UsersService {
     }
 
     async doesUserExist(userId: string) {
-        const userExists = await this.usersRepository.exists(userId)
+        const userExists = await this.usersRepository.existsById(userId)
 
         return userExists
     }
@@ -68,7 +68,7 @@ export class UsersService {
     }
 
     async deleteUser(userId: string) {
-        await this.usersRepository.delete(userId)
+        await this.usersRepository.deleteById(userId)
     }
 
     private async getUserEntity(userId: string) {

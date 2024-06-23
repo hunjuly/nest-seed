@@ -1,18 +1,13 @@
 import { expect } from '@jest/globals'
 import { TestingModule } from '@nestjs/testing'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import {
-    EntityNotFoundTypeormException,
-    OrderDirection,
-    PaginationOption,
-    ParameterTypeormException,
-    nullUUID
-} from 'common'
+import { OrderDirection, TypeormException, nullUUID } from 'common'
 import { createTestingModule } from 'common/test'
 import {
     Sample,
     SamplesModule,
     SamplesRepository,
+    baseFields,
     createSamples,
     sortByName,
     sortByNameDescending
@@ -21,9 +16,6 @@ import {
 describe('TypeormRepository', () => {
     let module: TestingModule
     let repository: SamplesRepository
-
-    let samples: Sample[]
-    let sample: Sample
 
     beforeEach(async () => {
         module = await createTestingModule({
@@ -39,9 +31,6 @@ describe('TypeormRepository', () => {
         })
 
         repository = module.get(SamplesRepository)
-
-        samples = await createSamples(repository)
-        sample = samples[0]
     })
 
     afterEach(async () => {
@@ -49,23 +38,18 @@ describe('TypeormRepository', () => {
     })
 
     describe('create', () => {
-        it('Create a entity', async () => {
-            const createData: Partial<Sample> = {
-                name: 'sample name'
-            }
+        it('should successfully create a entity', async () => {
+            const entity = await repository.create({
+                name: 'entity name'
+            })
 
-            const sample = await repository.create(createData)
-
-            expect(sample).toEqual({
-                id: expect.anything(),
-                createdAt: expect.anything(),
-                updatedAt: expect.anything(),
-                version: expect.anything(),
-                ...createData
+            expect(entity).toEqual({
+                ...baseFields,
+                name: 'entity name'
             })
         })
 
-        it('should throw an exception when required fields are missing', async () => {
+        it('should throw an exception if required fields are missing', async () => {
             const promise = repository.create({})
 
             await expect(promise).rejects.toThrowError()
@@ -73,108 +57,134 @@ describe('TypeormRepository', () => {
     })
 
     describe('update', () => {
-        it('Update an entity', async () => {
-            const updateData = { name: 'new name' }
-            const updatedSample = await repository.update(sample.id, updateData)
+        let sample: Sample
 
-            expect(updatedSample).toEqual({
-                id: expect.anything(),
-                createdAt: expect.anything(),
-                updatedAt: expect.anything(),
-                version: expect.anything(),
-                ...updateData
-            })
+        beforeEach(async () => {
+            const samples = await createSamples(repository, 1)
+            sample = samples[0]
         })
 
-        it('should throw an exception when updating with a non-existent ID', async () => {
+        it('should successfully update a entity', async () => {
+            const entity = await repository.update(sample.id, { name: 'new name' })
+
+            expect(entity).toEqual({ ...baseFields, name: 'new name' })
+        })
+
+        it('should throw an exception if the ID does not exist', async () => {
             const promise = repository.update(nullUUID, {})
 
-            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+            await expect(promise).rejects.toThrow(TypeormException)
         })
     })
 
-    describe('delete', () => {
-        it('Delete an entity', async () => {
-            await repository.delete(sample.id)
+    describe('deleteById', () => {
+        let sample: Sample
 
-            const deletedSample = await repository.findById(sample.id)
-
-            expect(deletedSample).toBeNull()
+        beforeEach(async () => {
+            const samples = await createSamples(repository, 1)
+            sample = samples[0]
         })
 
-        it('should throw an exception when deleting a non-existent ID', async () => {
-            const promise = repository.delete(nullUUID)
+        it('should delete a entity successfully', async () => {
+            await repository.deleteById(sample.id)
 
-            await expect(promise).rejects.toThrow(EntityNotFoundTypeormException)
+            const entity = await repository.findById(sample.id)
+
+            expect(entity).toBeNull()
+        })
+
+        it('should throw an exception if the ID does not exist', async () => {
+            const promise = repository.deleteById(nullUUID)
+
+            await expect(promise).rejects.toThrow(TypeormException)
         })
     })
 
-    describe('doesIdExist', () => {
-        it('should confirm the existence of an entity', async () => {
-            const exists = await repository.exists(sample.id)
+    describe('existsById', () => {
+        let sample: Sample
+
+        beforeEach(async () => {
+            const samples = await createSamples(repository, 1)
+            sample = samples[0]
+        })
+
+        it('should return true if the ID does exist', async () => {
+            const exists = await repository.existsById(sample.id)
 
             expect(exists).toBeTruthy()
         })
 
-        it('should confirm the non-existence of an entity', async () => {
-            const exists = await repository.exists(nullUUID)
+        it('should return false if the ID does not exist', async () => {
+            const exists = await repository.existsById(nullUUID)
 
             expect(exists).toBeFalsy()
         })
     })
 
     describe('findById', () => {
-        it('Find an entity by ID', async () => {
-            const foundSample = await repository.findById(sample.id)
+        let sample: Sample
 
-            expect(foundSample).toEqual(sample)
+        beforeEach(async () => {
+            const samples = await createSamples(repository, 1)
+            sample = samples[0]
         })
 
-        it('should return null when querying with a non-existent ID', async () => {
-            const notFound = await repository.findById(nullUUID)
+        it('should find a entity by ID', async () => {
+            const entity = await repository.findById(sample.id)
 
-            expect(notFound).toBeNull()
+            expect(entity).toEqual(sample)
+        })
+
+        it('should return null if the ID does not exist', async () => {
+            const entity = await repository.findById(nullUUID)
+
+            expect(entity).toBeNull()
         })
     })
 
     describe('findByIds', () => {
-        it('Find entities by multiple IDs', async () => {
-            const ids = samples.map((sample) => sample.id)
-            const foundSamples = await repository.findByIds(ids)
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createSamples(repository, 10)
+        })
+
+        it('should find entitys by multiple IDs', async () => {
+            const ids = samples.map((entity) => entity.id)
+
+            const foundDocuments = await repository.findByIds(ids)
 
             sortByName(samples)
-            sortByName(foundSamples)
+            sortByName(foundDocuments)
 
-            expect(foundSamples).toEqual(samples)
+            expect(foundDocuments).toEqual(samples)
+        })
+
+        it('should ignore non-existent IDs', async () => {
+            const entities = await repository.findByIds([nullUUID])
+
+            expect(entities).toHaveLength(0)
         })
     })
 
-    describe('find', () => {
-        it('should throw an exception when required fields are missing', async () => {
-            const promise = repository.find({} as PaginationOption)
+    describe('findWithPagination', () => {
+        let samples: Sample[]
 
-            await expect(promise).rejects.toThrow(ParameterTypeormException)
+        beforeEach(async () => {
+            samples = await createSamples(repository, 20)
         })
 
-        it('Search for all samples', async () => {
-            const paginatedResult = await repository.find({ skip: 0, take: samples.length })
-
-            expect(paginatedResult.items.length).toEqual(samples.length)
-        })
-
-        it('Pagination', async () => {
+        it('should set the pagination correctly', async () => {
             const skip = 10
-            const take = 50
-            const paginatedResult = await repository.find({
-                skip,
-                take,
-                orderby: { name: 'name', direction: OrderDirection.asc }
-            })
+            const take = 10
+            const paginated = await repository.findWithPagination(
+                { skip, take, orderby: { name: 'name', direction: OrderDirection.asc } },
+                {}
+            )
 
             sortByName(samples)
-            sortByName(paginatedResult.items)
 
-            expect(paginatedResult).toEqual({
+            expect(paginated).toEqual({
                 items: samples.slice(skip, skip + take),
                 total: samples.length,
                 skip,
@@ -182,86 +192,77 @@ describe('TypeormRepository', () => {
             })
         })
 
-        it('should return empty results when skip exceeds the limit', async () => {
-            const skip = samples.length
-            const take = 5
-            const paginatedResult = await repository.find({ skip, take })
-
-            expect(paginatedResult.items).toEqual([])
-        })
-
-        it('Sort in ascending (asc) order', async () => {
-            const take = samples.length
-            const paginatedResult = await repository.find({
-                skip: 0,
-                take,
-                orderby: { name: 'name', direction: OrderDirection.asc }
-            })
+        it('should sort in ascending order', async () => {
+            const paginated = await repository.findWithPagination(
+                { skip: 0, take: samples.length, orderby: { name: 'name', direction: OrderDirection.asc } },
+                {}
+            )
 
             sortByName(samples)
 
-            expect(paginatedResult.items).toEqual(samples)
+            expect(paginated.items).toEqual(samples)
         })
 
-        it('Sort in descending (desc) order', async () => {
-            const take = samples.length
-            const paginatedResult = await repository.find({
-                skip: 0,
-                take,
-                orderby: { name: 'name', direction: OrderDirection.desc }
-            })
+        it('should sort in descending order', async () => {
+            const paginated = await repository.findWithPagination(
+                {
+                    skip: 0,
+                    take: samples.length,
+                    orderby: { name: 'name', direction: OrderDirection.desc }
+                },
+                {}
+            )
 
             sortByNameDescending(samples)
 
-            expect(paginatedResult.items).toEqual(samples)
+            expect(paginated.items).toEqual(samples)
+        })
+
+        it('should throw an exception if ‘take’ is absent or zero', async () => {
+            const promise = repository.findWithPagination({ skip: 0, take: 0 }, {})
+
+            await expect(promise).rejects.toThrow(TypeormException)
         })
     })
 
-    describe('using middleware', () => {
-        it('Set orderby', async () => {
-            const paginatedResult = await repository.find({
-                skip: 0,
-                take: 100,
-                middleware: (qb) => {
-                    qb.orderBy('entity.name', 'DESC')
-                }
+    describe('findWithCustomizer', () => {
+        let samples: Sample[]
+
+        beforeEach(async () => {
+            samples = await createSamples(repository, 20)
+        })
+
+        it('should set orderby correctly', async () => {
+            const [entities] = await repository.findWithCustomizer((qb) => {
+                qb.orderBy('entity.name', 'DESC')
             })
 
             sortByNameDescending(samples)
 
-            expect(paginatedResult.items).toEqual(samples)
+            expect(entities).toEqual(samples)
         })
 
-        it('Set query', async () => {
-            const paginatedResult = await repository.find({
-                skip: 0,
-                take: 100,
-                middleware: (qb) => {
-                    qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
-                    qb.orderBy('entity.name', 'ASC')
-                }
+        it('should set query parameters correctly', async () => {
+            const [entities] = await repository.findWithCustomizer((qb) => {
+                qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
             })
 
             sortByName(samples)
-            sortByName(paginatedResult.items)
+            sortByName(entities)
 
-            expect(paginatedResult.items).toEqual(samples.slice(0, 10))
+            expect(entities).toEqual(samples.slice(0, 10))
         })
 
         it('Set pagination', async () => {
             const skip = 10
             const take = 5
-            const paginatedResult = await repository.find({
-                skip: 0,
-                take: 100,
-                middleware: (qb) => {
-                    qb.skip(skip)
-                    qb.take(take)
-                    qb.orderBy('entity.name', 'ASC')
-                }
+            const [entities] = await repository.findWithCustomizer((qb) => {
+                qb.skip(skip)
+                qb.take(take)
+                qb.orderBy('entity.name', 'ASC')
             })
 
-            expect(paginatedResult.items).toEqual(samples.slice(skip, skip + take))
+            expect(entities).toEqual(samples.slice(skip, skip + take))
         })
     })
 })

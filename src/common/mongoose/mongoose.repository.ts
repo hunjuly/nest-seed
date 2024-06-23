@@ -1,15 +1,17 @@
 import { Logger } from '@nestjs/common'
-import { DocumentId, PaginationOption, PaginationResult } from 'common'
+import { Assert, DocumentId, MongooseSchema, PaginationOption, PaginationResult } from 'common'
 import { HydratedDocument, Model, QueryWithHelpers, Types } from 'mongoose'
 import { MongooseException } from './exceptions'
 
-export abstract class MongooseRepository<Doc> {
+export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(documentData: Partial<Doc>): Promise<Doc> {
-        stringToObjectId(documentData)
+    async create(docData: Partial<Doc>): Promise<Doc> {
+        Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
 
-        const savedDocument = await this.model.create(documentData)
+        stringToObjectId(docData)
+
+        const savedDocument = await this.model.create(docData)
         const obj = savedDocument.toObject()
         objectIdToString(obj)
 
@@ -107,8 +109,7 @@ export abstract class MongooseRepository<Doc> {
 
         const items = await this.findWithCustomizer((helpers) => {
             helpers.skip(skip)
-
-            take && helpers.limit(take)
+            helpers.limit(take)
 
             if (orderby) {
                 helpers.sort({ [orderby.name]: orderby.direction })

@@ -22,10 +22,10 @@ export class SamplesRepository extends TypeormRepository<Sample> {
 })
 export class SamplesModule {}
 
-export async function createSamples(repository: SamplesRepository): Promise<Sample[]> {
+export async function createSamples(repository: SamplesRepository, count: number): Promise<Sample[]> {
     const promises = []
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < count; i++) {
         const promise = repository.create({
             name: `Sample-${padNumber(i, 3)}`
         })
@@ -44,4 +44,11 @@ export function sortByName(samples: Sample[]) {
 
 export function sortByNameDescending(samples: Sample[]) {
     return samples.sort((a, b) => b.name.localeCompare(a.name))
+}
+
+export const baseFields = {
+    id: expect.anything(),
+    createdAt: expect.anything(),
+    updatedAt: expect.anything(),
+    version: expect.anything()
 }
