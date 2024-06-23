@@ -21,17 +21,23 @@ export class ShowtimesCreationService {
         private eventEmitter: EventEmitter2
     ) {}
 
-    async emitShowtimesCreated(event: ShowtimesCreateCompletedEvent) {
+    async emitCreateCompleted(event: ShowtimesCreateCompletedEvent) {
         await this.eventEmitter.emitAsync('showtimes.create.completed', event)
     }
 
-    async emitShowtimesFailed(event: ShowtimesCreateFailedEvent) {
+    async emitCreateFailed(event: ShowtimesCreateFailedEvent) {
         await this.eventEmitter.emitAsync('showtimes.create.failed', event)
     }
 
+    /* istanbul ignore next */
     @OnQueueFailed()
-    onFailed(job: Job) {
+    async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
+
+        await this.eventEmitter.emitAsync('showtimes.create.error', {
+            message: job.failedReason,
+            batchId: job.data.batchId
+        })
     }
 
     @Process('showtimes.create')
@@ -42,14 +48,14 @@ export class ShowtimesCreationService {
         const conflictShowtimes = await this.checkForTimeConflicts(request)
 
         if (0 < conflictShowtimes.length) {
-            await this.emitShowtimesFailed({
+            await this.emitCreateFailed({
                 batchId: request.batchId,
                 conflictShowtimes: conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
             })
         } else {
             const createdShowtimes = await this.saveShowtimes(request)
 
-            await this.emitShowtimesCreated({
+            await this.emitCreateCompleted({
                 batchId: request.batchId,
                 createdShowtimes: createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
             })

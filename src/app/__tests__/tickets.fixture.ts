@@ -1,10 +1,9 @@
-import { OnQueueCompleted, OnQueueFailed, Processor } from '@nestjs/bull'
+import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto, forEachSeat } from 'app/services/theaters'
-import { TicketDto, TicketsCreatedEvent } from 'app/services/tickets'
-import { Job } from 'bull'
+import { TicketDto, TicketsCreateCompleteEvent } from 'app/services/tickets'
 
 type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
 
@@ -17,31 +16,22 @@ export class TicketsEventListener {
         this.promises = new Map<string, PromiseCallback>()
     }
 
-    @OnEvent('tickets.created', { async: true })
-    async handleTicketsCreated(_: TicketsCreatedEvent) {}
+    @OnEvent('tickets.create.completed', { async: true })
+    async onTicketsCreateCompleted(event: TicketsCreateCompleteEvent) {
+        const promise = this.promises.get(event.batchId)
+        promise?.resolve(event)
+    }
 
-    waitForEventResult(batchId: string): Promise<void> {
+    @OnEvent('tickets.create.error', { async: true })
+    async onTicketsCreateError(event: { message: string; batchId: string }) {
+        const promise = this.promises.get(event.batchId)
+        promise?.rejected(event)
+    }
+
+    fetchCreateResult(batchId: string): Promise<void> {
         return new Promise((resolve, rejected) => {
             this.promises.set(batchId, { resolve, rejected })
         })
-    }
-
-    @OnQueueCompleted()
-    onCompleted(job: Job) {
-        const promise = this.promises.get(job.data.showtimesBatchId)
-
-        if (!promise) throw new Error('promise를 찾지 못함')
-
-        promise?.resolve(job.returnvalue)
-    }
-
-    @OnQueueFailed()
-    onFailed(job: Job) {
-        const promise = this.promises.get(job.data.showtimesBatchId)
-
-        if (!promise) throw new Error('promise를 찾지 못함')
-
-        promise?.rejected(new Error(job.failedReason))
     }
 }
 

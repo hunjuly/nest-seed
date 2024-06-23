@@ -12,7 +12,7 @@ import { ShowtimesEventListener, createShowtimes, createShowtimesInParallel } fr
 import { createTheaters } from './theaters.fixture'
 import { TicketsEventListener, makeExpectedTickets, sortTickets } from './tickets.fixture'
 
-describe.skip('/tickets', () => {
+describe('/tickets', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 
@@ -59,7 +59,7 @@ describe.skip('/tickets', () => {
 
         const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
 
-        await ticketsEventListener.waitForEventResult(result.batchId)
+        await ticketsEventListener.fetchCreateResult(result.batchId)
 
         expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
     })
@@ -67,7 +67,7 @@ describe.skip('/tickets', () => {
     it('create and find tickets', async () => {
         const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
 
-        await ticketsEventListener.waitForEventResult(result.batchId)
+        await ticketsEventListener.fetchCreateResult(result.batchId)
 
         const expectedTickets = makeExpectedTickets(theater, result.createdShowtimes!)
 
@@ -82,20 +82,20 @@ describe.skip('/tickets', () => {
         expect(res.body.items).toEqual(expectedTickets)
     })
 
-    it('티켓 생성에 성공하면 tickets.created 이벤트가 발생해야 한다', async () => {
-        jest.spyOn(ticketsEventListener, 'handleTicketsCreated')
+    it('티켓 생성에 성공하면 tickets.create.completed 이벤트가 발생해야 한다', async () => {
+        jest.spyOn(ticketsEventListener, 'onTicketsCreateCompleted')
 
         const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
 
-        await ticketsEventListener.waitForEventResult(result.batchId)
+        await ticketsEventListener.fetchCreateResult(result.batchId)
 
-        expect(ticketsEventListener.handleTicketsCreated).toHaveBeenCalledTimes(1)
+        expect(ticketsEventListener.onTicketsCreateCompleted).toHaveBeenCalledTimes(1)
     })
 
     it('동시에 생성 요청을 해도 성공해야 한다', async () => {
         const promises: Promise<void>[] = []
         const callback = (batchId: string) => {
-            const promise = ticketsEventListener.waitForEventResult(batchId)
+            const promise = ticketsEventListener.fetchCreateResult(batchId)
             promises.push(promise)
         }
 

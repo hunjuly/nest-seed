@@ -5,9 +5,9 @@ import { ShowtimesService } from 'app/services/showtimes'
 import { TheatersService, forEachSeat } from 'app/services/theaters'
 import { Job } from 'bull'
 import { ObjectId } from 'common'
-import { TicketsCreatedEvent } from '../events'
 import { Ticket, TicketStatus } from '../schemas'
 import { TicketsRepository } from '../tickets.repository'
+import { TicketsCreateCompleteEvent } from '../tickets.events'
 
 type TicketsCreationData = { batchId: string }
 
@@ -23,13 +23,19 @@ export class TicketsCreationService {
         private showtimesService: ShowtimesService
     ) {}
 
-    async emitTicketsCreated(event: TicketsCreatedEvent) {
-        await this.eventEmitter.emitAsync('tickets.created', event)
+    async emitCreateCompleted(event: TicketsCreateCompleteEvent) {
+        await this.eventEmitter.emitAsync('tickets.create.completed', event)
     }
 
+    /* istanbul ignore next */
     @OnQueueFailed()
-    onFailed(job: Job) {
+    async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
+
+        await this.eventEmitter.emitAsync('tickets.create.error', {
+            message: job.failedReason,
+            batchId: job.data.batchId
+        })
     }
 
     @Process('tickets.create')
@@ -65,6 +71,6 @@ export class TicketsCreationService {
 
         this.logger.log(`${tickets.length} tickets have been successfully created and saved.`)
 
-        await this.emitTicketsCreated({ batchId })
+        await this.emitCreateCompleted({ batchId })
     }
 }
