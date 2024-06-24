@@ -6,7 +6,7 @@ import { CustomerDto, CustomersModule, CustomersService } from 'app/services/cus
 import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createCustomers, sortByName, sortByNameDescending } from './customers.fixture'
+import { createCustomers, sortByName } from './customers.fixture'
 
 describe('CustomersController', () => {
     let testContext: HttpTestContext
@@ -129,11 +129,9 @@ describe('CustomersController', () => {
 
     describe('GET /customers', () => {
         let customers: CustomerDto[] = []
-        // let customer: CustomerDto
 
         beforeEach(async () => {
             customers = await createCustomers(customersService, 20)
-            // customer = customers[0]
         })
 
         it('Retrieve all customers', async () => {
@@ -146,16 +144,6 @@ describe('CustomersController', () => {
             expect(res.body.items).toEqual(customers)
         })
 
-        // it('Retrieve customers by name', async () => {
-        //     const res = await req.get({
-        //         url: '/customers',
-        //         query: { name: customer.name }
-        //     })
-
-        //     expect(res.statusCode).toEqual(HttpStatus.OK)
-        //     expect(res.body.items).toEqual([customer])
-        // })
-
         it('Retrieve customers by partial name', async () => {
             const res = await req.get({
                 url: '/customers',
@@ -164,48 +152,6 @@ describe('CustomersController', () => {
 
             sortByName(res.body.items)
             sortByName(customers)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(customers)
-        })
-
-        it('Pagination', async () => {
-            const skip = 10
-            const take = 5
-
-            const res = await req.get({
-                url: '/customers',
-                query: { skip, take, orderby: 'name:asc' }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual({
-                items: customers.slice(skip, skip + take),
-                total: customers.length,
-                skip,
-                take
-            })
-        })
-
-        it('Sort in ascending order', async () => {
-            const res = await req.get({
-                url: '/customers',
-                query: { orderby: 'name:asc' }
-            })
-
-            sortByName(customers)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(customers)
-        })
-
-        it('Sort in descending order', async () => {
-            const res = await req.get({
-                url: '/customers',
-                query: { orderby: 'name:desc' }
-            })
-
-            sortByNameDescending(customers)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(customers)

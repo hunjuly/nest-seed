@@ -5,10 +5,6 @@ export function sortByTitle(movies: MovieDto[]) {
     return movies.sort((a, b) => a.title.localeCompare(b.title))
 }
 
-export function sortByTitleDescending(movies: MovieDto[]) {
-    return movies.sort((a, b) => b.title.localeCompare(a.title))
-}
-
 export async function createMovies(moviesService: MoviesService, count: number): Promise<MovieDto[]> {
     const promises = []
 

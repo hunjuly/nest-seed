@@ -27,7 +27,3 @@ export async function createCustomers(
 export function sortByName(customers: CustomerDto[]) {
     return customers.sort((a, b) => a.name.localeCompare(b.name))
 }
-
-export function sortByNameDescending(customers: CustomerDto[]) {
-    return customers.sort((a, b) => b.name.localeCompare(a.name))
-}

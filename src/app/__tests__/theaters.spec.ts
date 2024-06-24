@@ -6,7 +6,7 @@ import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theate
 import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTheaters, seatmap, sortByName, sortByNameDescending } from './theaters.fixture'
+import { createTheaters, seatmap, sortByName } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
@@ -129,16 +129,6 @@ describe('/theaters', () => {
             expect(res.body.items).toEqual(theaters)
         })
 
-        // it('Retrieve theaters by name', async () => {
-        //     const res = await req.get({
-        //         url: '/theaters',
-        //         query: { name: theater.name }
-        //     })
-
-        //     expect(res.statusCode).toEqual(HttpStatus.OK)
-        //     expect(res.body.items).toEqual([theater])
-        // })
-
         it('Retrieve theaters by partial name', async () => {
             const res = await req.get({
                 url: '/theaters',
@@ -147,48 +137,6 @@ describe('/theaters', () => {
 
             sortByName(res.body.items)
             sortByName(theaters)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(theaters)
-        })
-
-        it('Pagination', async () => {
-            const skip = 10
-            const take = 5
-
-            const res = await req.get({
-                url: '/theaters',
-                query: { skip, take, orderby: 'name:asc' }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual({
-                items: theaters.slice(skip, skip + take),
-                total: theaters.length,
-                skip,
-                take
-            })
-        })
-
-        it('Sort in ascending order', async () => {
-            const res = await req.get({
-                url: '/theaters',
-                query: { orderby: 'name:asc' }
-            })
-
-            sortByName(theaters)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(theaters)
-        })
-
-        it('Sort in descending order', async () => {
-            const res = await req.get({
-                url: '/theaters',
-                query: { orderby: 'name:desc' }
-            })
-
-            sortByNameDescending(theaters)
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(theaters)

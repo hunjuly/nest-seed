@@ -33,7 +33,3 @@ export async function createTheaters(theatersSerivce: TheatersService, count: nu
 export function sortByName(theaters: TheaterDto[]) {
     return theaters.sort((a, b) => a.name.localeCompare(b.name))
 }
-
-export function sortByNameDescending(theaters: TheaterDto[]) {
-    return theaters.sort((a, b) => b.name.localeCompare(a.name))
-}

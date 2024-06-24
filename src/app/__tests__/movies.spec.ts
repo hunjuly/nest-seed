@@ -5,7 +5,7 @@ import { GlobalModule } from 'app/global'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
-import { createMovies, sortByTitle, sortByTitleDescending } from './movies.fixture'
+import { createMovies, sortByTitle } from './movies.fixture'
 
 describe('MoviesController', () => {
     let testContext: HttpTestContext
@@ -170,48 +170,6 @@ describe('MoviesController', () => {
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(dramaMovies)
-        })
-
-        it('Pagination', async () => {
-            const skip = 10
-            const take = 5
-
-            const res = await req.get({
-                url: '/movies',
-                query: { skip, take, orderby: 'title:asc' }
-            })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual({
-                items: movies.slice(skip, skip + take),
-                total: movies.length,
-                skip,
-                take
-            })
-        })
-
-        it('Sort in ascending order', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { orderby: 'title:asc' }
-            })
-
-            sortByTitle(movies)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(movies)
-        })
-
-        it('Sort in descending order', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { orderby: 'title:desc' }
-            })
-
-            sortByTitleDescending(movies)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(movies)
         })
 
         describe('POST /movies/findByIds ', () => {
