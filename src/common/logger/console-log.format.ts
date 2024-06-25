@@ -57,7 +57,7 @@ const formatHttpLog = (
     const requestBody = etc.body ? chalk.blueBright(JSON.stringify(etc.body)) : ''
     const runningTime = chalk.magenta(etc.runningTime ?? '')
 
-    return `${formattedTimestamp} HTTP ${formattedLevel} ${httpStatus} ${httpMethod} ${url} ${requestBody} ${formattedMessage}  ${runningTime}`
+    return `${formattedTimestamp} ${formattedLevel} HTTP ${httpStatus} ${httpMethod} ${url} ${requestBody} ${formattedMessage}  ${runningTime}`
 }
 
 interface DatabaseLogInfo {
@@ -76,7 +76,7 @@ const formatDatabaseLog = (
     const parameters = chalk.blueBright(etc.parameters ?? '')
     const runningTime = chalk.magenta(etc.runningTime ?? '')
 
-    return `${formattedTimestamp} ORM ${formattedLevel} ${formattedMessage} ${query} ${parameters} ${runningTime}`
+    return `${formattedTimestamp} ${formattedLevel} TYPEORM ${formattedMessage} ${query} ${parameters} ${runningTime}`
 }
 
 const formatGenericLog = (
@@ -99,9 +99,9 @@ export const consoleLogFormat = winston.format.combine(
         const formattedLevel = colorLevels(level)
         const formattedTimestamp = chalk.gray(timestamp)
 
-        if (info[0] === 'HTTP') {
+        if (etc[0] === 'HTTP') {
             return formatHttpLog(formattedMessage, formattedLevel, formattedTimestamp, etc[1] ?? {})
-        } else if (info[0] === 'DB') {
+        } else if (etc[0] === 'DB') {
             return formatDatabaseLog(formattedMessage, formattedLevel, formattedTimestamp, etc[1] ?? {})
         } else {
             return formatGenericLog(formattedMessage, formattedLevel, formattedTimestamp, etc ?? {})
