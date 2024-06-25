@@ -1,14 +1,12 @@
-import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto, forEachSeat } from 'app/services/theaters'
-import { TicketDto, TicketsCreateCompleteEvent } from 'app/services/tickets'
+import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
 
 type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
 
 @Injectable()
-@Processor('tickets')
 export class TicketsEventListener {
     promises: Map<string, PromiseCallback>
 
@@ -16,13 +14,13 @@ export class TicketsEventListener {
         this.promises = new Map<string, PromiseCallback>()
     }
 
-    @OnEvent('tickets.create.completed', { async: true })
+    @OnEvent(TicketsCreateCompleteEvent.eventName, { async: true })
     async onTicketsCreateCompleted(event: TicketsCreateCompleteEvent) {
         const promise = this.promises.get(event.batchId)
         promise?.resolve(event)
     }
 
-    @OnEvent('tickets.create.error', { async: true })
+    @OnEvent(TicketsCreateErrorEvent.eventName, { async: true })
     async onTicketsCreateError(event: { message: string; batchId: string }) {
         const promise = this.promises.get(event.batchId)
         promise?.rejected(event)

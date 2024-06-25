@@ -54,14 +54,18 @@ describe('/tickets', () => {
         if (testContext) await testContext.close()
     })
 
-    it('should handle asynchronous event listeners', async () => {
-        jest.spyOn(ticketsService, 'createTickets')
+    it('ShowtimesCreateCompletedEvent 이벤트를 수신해야 한다', async () => {
+        jest.spyOn(ticketsService, 'onShowtimesCreateCompleted')
 
         const result = await createShowtimes(showtimesService, showtimesEventListener, movieId, theaterIds)
 
         await ticketsEventListener.fetchCreateResult(result.batchId)
 
-        expect(ticketsService.createTickets).toHaveBeenCalledWith(result.batchId)
+        expect(ticketsService.onShowtimesCreateCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({
+                batchId: result.batchId
+            })
+        )
     })
 
     it('create and find tickets', async () => {

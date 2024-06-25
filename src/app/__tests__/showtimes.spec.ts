@@ -10,7 +10,7 @@ import { createMovies } from './movies.fixture'
 import {
     ShowtimesEventListener,
     areShowtimesUnique,
-    createDuplicateShowtimes,
+    attemptDuplicateShowtimes,
     createShowtimes,
     createShowtimesInParallel,
     durationMinutes,
@@ -130,7 +130,7 @@ describe('/showtimes', () => {
 
     it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다.(현재는 서버 인스턴스가 증가하면 테스트 실패할 것이다.)', async () => {
         const count = 100
-        const results = await createDuplicateShowtimes(
+        const results = await attemptDuplicateShowtimes(
             showtimesService,
             showtimesEventListener,
             movieId,

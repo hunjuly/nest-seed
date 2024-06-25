@@ -4,6 +4,7 @@ import { Queue } from 'bull'
 import { ObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { CreateShowtimesDto, CreateShowtimesResponse, ShowtimeDto, ShowtimesFilterDto } from './dto'
 import { ShowtimesRepository } from './showtimes.repository'
+import { ShowtimesCreateEvent } from './showtimes.events'
 
 @Injectable()
 export class ShowtimesService {
@@ -21,7 +22,7 @@ export class ShowtimesService {
     async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResponse> {
         const batchId = new ObjectId().toString()
 
-        await this.showtimesQueue.add('showtimes.create', { ...createShowtimesRequest, batchId })
+        await this.showtimesQueue.add(ShowtimesCreateEvent.eventName, { ...createShowtimesRequest, batchId })
 
         this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 

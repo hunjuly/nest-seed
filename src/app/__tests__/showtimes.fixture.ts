@@ -25,13 +25,13 @@ export class ShowtimesEventListener {
         this.promises = new Map<string, PromiseCallback>()
     }
 
-    @OnEvent('showtimes.create.completed', { async: true })
+    @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
     async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
         const promise = this.promises.get(event.batchId)
         promise?.resolve(event)
     }
 
-    @OnEvent('showtimes.create.failed', { async: true })
+    @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
     async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent) {
         const promise = this.promises.get(event.batchId)
         promise?.resolve(event)
@@ -133,7 +133,7 @@ export async function createShowtimesInParallel(
     return results
 }
 
-export async function createDuplicateShowtimes(
+export async function attemptDuplicateShowtimes(
     showtimesService: ShowtimesService,
     showtimesEventListener: ShowtimesEventListener,
     movieId: string,
@@ -142,14 +142,12 @@ export async function createDuplicateShowtimes(
 ): Promise<ShowtimesCreationResult[]> {
     const promises: Promise<ShowtimesCreationResult>[] = []
 
-    const startTimes = [new Date('2013-01-31T14:00')]
-
     for (let i = 0; i < count; i++) {
         const { batchId } = await showtimesService.createShowtimes({
             movieId,
             theaterIds,
             durationMinutes,
-            startTimes
+            startTimes: [new Date('2013-01-31T14:00')]
         })
 
         const promise = showtimesEventListener.fetchCreateResult(batchId)

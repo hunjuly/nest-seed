@@ -5,10 +5,14 @@ import { Job } from 'bull'
 import { Assert, addMinutes, findMaxDate, findMinDate, parseObjectTypes } from 'common'
 import { CreateShowtimesDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
-import { ShowtimesCreateCompletedEvent, ShowtimesCreateFailedEvent } from '../showtimes.events'
+import {
+    ShowtimesCreateCompletedEvent,
+    ShowtimesCreateErrorEvent,
+    ShowtimesCreateEvent,
+    ShowtimesCreateFailedEvent
+} from '../showtimes.events'
 import { ShowtimesRepository } from '../showtimes.repository'
 
-type ShowtimesCreationData = CreateShowtimesDto & { batchId: string }
 type Timeslot = Map<number, Showtime>
 
 @Injectable()
@@ -22,11 +26,11 @@ export class ShowtimesCreationService {
     ) {}
 
     async emitCreateCompleted(event: ShowtimesCreateCompletedEvent) {
-        await this.eventEmitter.emitAsync('showtimes.create.completed', event)
+        await this.eventEmitter.emitAsync(ShowtimesCreateCompletedEvent.eventName, event)
     }
 
     async emitCreateFailed(event: ShowtimesCreateFailedEvent) {
-        await this.eventEmitter.emitAsync('showtimes.create.failed', event)
+        await this.eventEmitter.emitAsync(ShowtimesCreateFailedEvent.eventName, event)
     }
 
     /* istanbul ignore next */
@@ -34,14 +38,14 @@ export class ShowtimesCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.eventEmitter.emitAsync('showtimes.create.error', {
+        await this.eventEmitter.emitAsync(ShowtimesCreateErrorEvent.name, {
             message: job.failedReason,
             batchId: job.data.batchId
         })
     }
 
-    @Process('showtimes.create')
-    async createShowtimes(job: Job<ShowtimesCreationData>) {
+    @Process(ShowtimesCreateEvent.eventName)
+    async createShowtimes(job: Job<ShowtimesCreateEvent>) {
         const request = { ...job.data }
         parseObjectTypes(request)
 
@@ -62,10 +66,10 @@ export class ShowtimesCreationService {
         }
     }
 
-    private async saveShowtimes(request: ShowtimesCreationData) {
-        const { movieId, theaterIds, durationMinutes, startTimes, batchId } = request
+    private async saveShowtimes(event: ShowtimesCreateEvent) {
+        const { movieId, theaterIds, durationMinutes, startTimes, batchId } = event
 
-        this.logger.log('showtime 저장 요청', JSON.stringify(request))
+        this.logger.log('showtime 저장 요청', JSON.stringify(event))
 
         const showtimeEntries: Partial<Showtime>[] = []
 

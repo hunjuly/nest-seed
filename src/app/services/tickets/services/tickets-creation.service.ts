@@ -7,7 +7,7 @@ import { Job } from 'bull'
 import { ObjectId } from 'common'
 import { Ticket, TicketStatus } from '../schemas'
 import { TicketsRepository } from '../tickets.repository'
-import { TicketsCreateCompleteEvent } from '../tickets.events'
+import { TicketsCreateCompleteEvent, TicketsCreateErrorEvent, TicketsCreateEvent } from '../tickets.events'
 
 type TicketsCreationData = { batchId: string }
 
@@ -24,7 +24,7 @@ export class TicketsCreationService {
     ) {}
 
     async emitCreateCompleted(event: TicketsCreateCompleteEvent) {
-        await this.eventEmitter.emitAsync('tickets.create.completed', event)
+        await this.eventEmitter.emitAsync(TicketsCreateCompleteEvent.eventName, event)
     }
 
     /* istanbul ignore next */
@@ -32,13 +32,13 @@ export class TicketsCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.eventEmitter.emitAsync('tickets.create.error', {
+        await this.eventEmitter.emitAsync(TicketsCreateErrorEvent.eventName, {
             message: job.failedReason,
             batchId: job.data.batchId
         })
     }
 
-    @Process('tickets.create')
+    @Process(TicketsCreateEvent.eventName)
     async createTickets(job: Job<TicketsCreationData>): Promise<void> {
         const { batchId } = job.data
 

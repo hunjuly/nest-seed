@@ -6,6 +6,7 @@ import { PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimesCreateCompletedEvent } from '../showtimes'
 import { TicketDto, TicketsFilterDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
+import { TicketsCreateEvent } from './tickets.events'
 
 @Injectable()
 export class TicketsService {
@@ -20,15 +21,13 @@ export class TicketsService {
         await waitForQueueToEmpty(this.ticketsQueue)
     }
 
-    @OnEvent('showtimes.create.completed', { async: true })
+    @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
     async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
         this.logger.log(`showtimes.create.completed 수신. batchId=${event.batchId}`)
 
-        await this.createTickets(event.batchId)
-    }
+        const { batchId } = event
 
-    async createTickets(batchId: string) {
-        await this.ticketsQueue.add('tickets.create', { batchId })
+        await this.ticketsQueue.add(TicketsCreateEvent.eventName, { batchId })
 
         this.logger.log(`Tickets 생성 요청. batchId=${batchId}`)
     }
