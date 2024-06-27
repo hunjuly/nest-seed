@@ -7,7 +7,7 @@ import { nullUUID } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createUserDto, createUsers } from './users.fixture'
 
-describe('UsersController', () => {
+describe('/users', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let usersService: UsersService

@@ -1,9 +1,5 @@
 /**
- * Jest's fake timer mocks JavaScript's timer functions such as setTimeout, setInterval, setImmediate,
- * allowing for immediate execution or manipulation of execution times without waiting for real time.
- *
- * However, this does not work for all asynchronous operations in Node.js,
- * and especially asynchronous operations provided by external libraries may not function as expected.
+ * AVOID USING IT IF POSSIBLE. useFakeTimers() CAUSES A LOT OF UNEXPECTED PROBLEMS.
  */
 
 describe('Timer', () => {
@@ -26,5 +22,14 @@ describe('Timer', () => {
         jest.advanceTimersByTime(1000)
 
         expect(mockCallback).toHaveBeenCalledWith('Real value')
+    })
+
+    it('should mock system time to a specific date', () => {
+        const mockDate = new Date('1999-02-31T14:30')
+        jest.setSystemTime(mockDate)
+
+        const currentDate = new Date()
+
+        expect(mockDate.toISOString()).toEqual(currentDate.toISOString())
     })
 })

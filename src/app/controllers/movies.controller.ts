@@ -30,12 +30,6 @@ export class MoviesController {
         return this.moviesService.findPagedMovies(filter, pagination)
     }
 
-    @Post('/findByIds')
-    @HttpCode(200)
-    async findByIds(@Body() movieIds: string[]) {
-        return this.moviesService.findByIds(movieIds)
-    }
-
     @UseGuards(MovieExistsGuard)
     @Get(':movieId')
     async getMovie(@Param('movieId') movieId: string) {

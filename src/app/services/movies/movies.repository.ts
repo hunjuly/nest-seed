@@ -15,7 +15,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     async update(id: string, updateDto: UpdateMovieDto): Promise<Movie> {
         const movie = (await this.model.findById(id).exec())!
 
-        Assert.defined(movie, `Failed to update movie with id: ${id}. Movie not found.`)
+        Assert.defined(movie, `Movie with id ${id} must exist`)
 
         if (updateDto.title) movie.title = updateDto.title
         if (updateDto.genre) movie.genre = updateDto.genre

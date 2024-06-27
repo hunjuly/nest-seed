@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common'
-import { AppException, PaginationOption, PaginationResult } from 'common'
+import { Injectable, Logger } from '@nestjs/common'
+import { Assert, PaginationOption, PaginationResult } from 'common'
 import { CreateMovieDto, MovieDto, MoviesFilterDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
 @Injectable()
 export class MoviesService {
+    private readonly logger = new Logger(this.constructor.name)
+
     constructor(private moviesRepository: MoviesRepository) {}
 
     async createMovie(createMovieDto: CreateMovieDto) {
@@ -19,10 +21,14 @@ export class MoviesService {
         return movieExists
     }
 
-    async findByIds(movieIds: string[]) {
-        const foundMovies = await this.moviesRepository.findByIds(movieIds)
+    async getMoviesByIds(movieIds: string[]) {
+        this.logger.debug('영화 ID로 검색 시작:', movieIds)
 
-        const movieDtos = foundMovies.map((movie) => new MovieDto(movie))
+        const movies = await this.moviesRepository.findByIds(movieIds)
+
+        const movieDtos = movies.map((movie) => new MovieDto(movie))
+
+        Assert.sameLength(movies, movieIds, '모든 요청된 영화 ID에 대한 영화가 존재해야 합니다')
 
         return movieDtos
     }
@@ -41,12 +47,9 @@ export class MoviesService {
     async getMovie(movieId: string) {
         const movie = await this.moviesRepository.findById(movieId)
 
-        /* istanbul ignore file */
-        if (!movie) {
-            throw new AppException(`Movie(${movieId}) not found`)
-        }
+        Assert.defined(movie, `Movie with id ${movieId} must exist`)
 
-        return new MovieDto(movie)
+        return new MovieDto(movie!)
     }
 
     async updateMovie(movieId: string, updateMovieDto: UpdateMovieDto) {

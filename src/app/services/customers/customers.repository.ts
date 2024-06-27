@@ -15,7 +15,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     async update(id: string, updateDto: UpdateCustomerDto): Promise<Customer> {
         const customer = (await this.model.findById(id).exec())!
 
-        Assert.defined(customer, `Failed to update customer with id: ${id}. Customer not found.`)
+        Assert.defined(customer, `Customer with id ${id} must exist`)
 
         if (updateDto.name) customer.name = updateDto.name
         if (updateDto.email) customer.email = updateDto.email

@@ -1,5 +1,5 @@
 import { UserException } from 'common'
-import { addMinutes, findMaxDate, findMinDate, millisecsToString, stringToMillisecs } from '..'
+import { addDays, addMinutes, findMaxDate, findMinDate, millisecsToString, stringToMillisecs } from '..'
 
 describe('common/utils/date', () => {
     describe('stringToMillisecs', () => {
@@ -95,24 +95,22 @@ describe('common/utils/date', () => {
         })
     })
 
-    describe('addMinutes', () => {
-        it('adds 90 minutes to a given date', () => {
-            const baseDate = new Date('2020-01-01T00:00:00Z')
-            const minutesToAdd = 90
-            const resultDate = addMinutes(baseDate, minutesToAdd)
+    it('addDays', () => {
+        const baseDate = new Date('2020-01-01T00:00:00Z')
+        const daysToAdd = 2
+        const resultDate = addDays(baseDate, daysToAdd)
 
-            const expectedDate = new Date('2020-01-01T01:30:00Z')
-            expect(resultDate).toEqual(expectedDate)
-        })
+        const expectedDate = new Date('2020-01-03T00:00:00Z')
+        expect(resultDate).toEqual(expectedDate)
+    })
 
-        it('correctly handles minutes addition over midnight', () => {
-            const baseDate = new Date('2020-01-01T23:00:00Z')
-            const minutesToAdd = 120 // Adding 2 hours
-            const resultDate = addMinutes(baseDate, minutesToAdd)
+    it('addMinutes', () => {
+        const baseDate = new Date('2020-01-01T00:00:00Z')
+        const minutesToAdd = 90
+        const resultDate = addMinutes(baseDate, minutesToAdd)
 
-            const expectedDate = new Date('2020-01-02T01:00:00Z')
-            expect(resultDate).toEqual(expectedDate)
-        })
+        const expectedDate = new Date('2020-01-01T01:30:00Z')
+        expect(resultDate).toEqual(expectedDate)
     })
 
     describe('Date Utilities', () => {

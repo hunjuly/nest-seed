@@ -28,7 +28,7 @@ jest.mock('config', () => {
     }
 })
 
-describe('Authentication', () => {
+describe('/auth', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 
@@ -42,9 +42,11 @@ describe('Authentication', () => {
         })
         req = testContext.request
 
-        jwtService = testContext.module.get(JwtService)
+        const module = testContext.module
 
-        const usersService = testContext.module.get(UsersService)
+        jwtService = module.get(JwtService)
+
+        const usersService = module.get(UsersService)
         user = await createUser(usersService)
     })
 

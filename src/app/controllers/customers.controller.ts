@@ -36,12 +36,6 @@ export class CustomersController {
         return this.customersService.findPagedCustomers(filter, pagination)
     }
 
-    @Post('/findByIds')
-    @HttpCode(200)
-    async findByIds(@Body() customerIds: string[]) {
-        return this.customersService.findByIds(customerIds)
-    }
-
     @Get(':customerId')
     @UseGuards(CustomerExistsGuard)
     async getCustomer(@Param('customerId') customerId: string) {

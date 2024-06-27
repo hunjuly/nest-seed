@@ -143,29 +143,6 @@ describe('/theaters', () => {
         })
     })
 
-    describe('POST /theaters/findByIds', () => {
-        let theaters: TheaterDto[]
-
-        beforeEach(async () => {
-            theaters = await createTheaters(theatersService, 20)
-        })
-
-        it('Retrieve theaters by multiple IDs', async () => {
-            const theaterIds = theaters.map((theater) => theater.id)
-
-            const res = await req.post({
-                url: '/theaters/findByIds',
-                body: theaterIds
-            })
-
-            sortByName(res.body)
-            sortByName(theaters)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual(theaters)
-        })
-    })
-
     describe('GET /theaters/:id', () => {
         let theater: TheaterDto
 

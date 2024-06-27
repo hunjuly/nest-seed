@@ -10,7 +10,7 @@ import {
 import { addMinutes } from 'common'
 
 type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
-type ShowtimesCreationResult = {
+export type ShowtimesCreationResult = {
     conflictShowtimes?: ShowtimeDto[]
     createdShowtimes?: ShowtimeDto[]
     batchId: string

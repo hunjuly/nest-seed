@@ -8,7 +8,7 @@ import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers, sortByName } from './customers.fixture'
 
-describe('CustomersController', () => {
+describe('/customers', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let customersService: CustomersService
@@ -155,29 +155,6 @@ describe('CustomersController', () => {
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(customers)
-        })
-    })
-
-    describe('POST /customers/findByIds', () => {
-        let customers: CustomerDto[] = []
-
-        beforeEach(async () => {
-            customers = await createCustomers(customersService, 20)
-        })
-
-        it('Retrieve customers by multiple IDs', async () => {
-            const customerIds = customers.map((customer) => customer.id)
-
-            const res = await req.post({
-                url: '/customers/findByIds',
-                body: customerIds
-            })
-
-            sortByName(res.body)
-            sortByName(customers)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body).toEqual(customers)
         })
     })
 

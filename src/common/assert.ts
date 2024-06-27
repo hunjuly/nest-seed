@@ -6,7 +6,7 @@ import { LogicException } from './exceptions'
  * These should stop the system immediately.
  */
 export class Assert {
-    static sameLength<T>(a: T[], b: T[], message: string) {
+    static sameLength(a: any[], b: any[], message: string) {
         if (a.length !== b.length) {
             throw new LogicException(message)
         }

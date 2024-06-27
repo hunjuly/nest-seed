@@ -12,7 +12,7 @@ export class AuthController {
     @Post('login')
     async login(@Req() req: { user: UserDto }) {
         // req.user is the return value from LocalStrategy.validate
-        Assert.defined(req.user, 'login failed. req.user is null.')
+        Assert.defined(req.user, 'req.user must be defined')
 
         const tokenPair = await this.authService.login(req.user)
 

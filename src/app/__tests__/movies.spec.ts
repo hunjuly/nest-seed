@@ -7,7 +7,7 @@ import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createMovies, sortByTitle } from './movies.fixture'
 
-describe('MoviesController', () => {
+describe('/movies', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let moviesService: MoviesService
@@ -170,23 +170,6 @@ describe('MoviesController', () => {
 
             expect(res.statusCode).toEqual(HttpStatus.OK)
             expect(res.body.items).toEqual(dramaMovies)
-        })
-
-        describe('POST /movies/findByIds ', () => {
-            it('Retrieve movies by multiple IDs', async () => {
-                const movieIds = movies.map((movie) => movie.id)
-
-                const res = await req.post({
-                    url: '/movies/findByIds',
-                    body: movieIds
-                })
-
-                sortByTitle(res.body)
-                sortByTitle(movies)
-
-                expect(res.statusCode).toEqual(HttpStatus.OK)
-                expect(res.body).toEqual(movies)
-            })
         })
 
         describe('GET /movies/:id', () => {

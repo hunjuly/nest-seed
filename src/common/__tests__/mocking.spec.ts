@@ -28,24 +28,35 @@ jest.mock('@nestjs/common', () => {
 })
 
 describe('mocking examples', () => {
-    it('should ensure that the class is properly instantiated and the method is called', () => {
-        const instance = new HelloClass()
+    afterEach(() => {
+        // This method resets all calls and instances of the mock function.
+        // It also deletes any implementations set on the mock function.
+        // jest.resetAllMocks()
 
+        // This method only initialises the call count and instance information
+        // for all mock functions.
+        jest.clearAllMocks()
+    })
+
+    it('Verifies class instantiation and method call', () => {
+        const instance = new HelloClass()
         expect(instance.getHello()).toEqual('Mocked getHello')
         expect(HelloClass).toHaveBeenCalledTimes(1)
     })
 
-    it('should ensure that the function is called', () => {
+    it('Ensures proper mocking and calling of an independent function', () => {
         ;(getGreeting as jest.Mock).mockReturnValue('Mocked getGreeting')
-
         expect(getGreeting()).toEqual('Mocked getGreeting')
         expect(getGreeting).toHaveBeenCalled()
     })
 
-    it('mocking a module', () => {
+    it('Validates mocking of an external module functionality', () => {
         const value = Logger.verbose('arg1', 'arg2')
-
         expect(Logger.verbose).toHaveBeenCalledWith('arg1', 'arg2')
         expect(value).toEqual('Mocked verbose')
+    })
+
+    it('Verifies that jest.clearAllMocks correctly resets mock call history', () => {
+        expect(Logger.verbose).not.toHaveBeenCalledWith('arg1', 'arg2')
     })
 })

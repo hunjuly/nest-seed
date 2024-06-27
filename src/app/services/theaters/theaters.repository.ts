@@ -15,7 +15,7 @@ export class TheatersRepository extends MongooseRepository<Theater> {
     async update(id: string, updateDto: UpdateTheaterDto): Promise<Theater> {
         const theater = (await this.model.findById(id).exec())!
 
-        Assert.defined(theater, `Failed to update theater with id: ${id}. Theater not found.`)
+        Assert.defined(theater, `Theater with id ${id} must exist`)
 
         if (updateDto.name) theater.name = updateDto.name
         if (updateDto.coordinates) theater.coordinates = updateDto.coordinates

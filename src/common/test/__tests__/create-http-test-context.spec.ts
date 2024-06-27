@@ -1,5 +1,5 @@
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
-import { FixtureModule, FixtureService } from './service-mocking.fixture'
+import { FixtureModule, FixtureService } from './create-http-test-context.fixture'
 
 describe('Service Mocking', () => {
     let testContext: HttpTestContext

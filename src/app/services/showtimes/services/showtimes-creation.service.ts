@@ -104,7 +104,7 @@ export class ShowtimesCreationService {
         for (const theaterId of theaterIds) {
             const timeslots = timeslotsByTheater.get(theaterId)!
 
-            Assert.defined(timeslots, `The timeslotsByTheater does not contain theaterId (${theaterId}).`)
+            Assert.defined(timeslots, `Timeslots must be defined for theater ID: ${theaterId}`)
 
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
