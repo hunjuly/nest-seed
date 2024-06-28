@@ -18,7 +18,7 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         Assert.defined(theater, `Theater with id ${id} must exist`)
 
         if (updateDto.name) theater.name = updateDto.name
-        if (updateDto.coordinates) theater.coordinates = updateDto.coordinates
+        if (updateDto.latlong) theater.latlong = updateDto.latlong
         if (updateDto.seatmap) theater.seatmap = updateDto.seatmap
 
         await theater.save()

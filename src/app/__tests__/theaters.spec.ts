@@ -30,7 +30,7 @@ describe('/theaters', () => {
     describe('POST /theaters', () => {
         const createData = {
             name: `Theater-Name`,
-            coordinates: { latitude: 38.123, longitude: 138.678 },
+            latlong: { latitude: 38.123, longitude: 138.678 },
             seatmap
         }
 
@@ -65,7 +65,7 @@ describe('/theaters', () => {
         it('Update a theater', async () => {
             const updateData = {
                 name: `Update-Name`,
-                coordinates: { latitude: 30.0, longitude: 120.0 },
+                latlong: { latitude: 30.0, longitude: 120.0 },
                 seatmap: []
             }
 

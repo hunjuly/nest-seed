@@ -1,10 +1,10 @@
 import * as bull from 'bull'
-import { Coordinates } from 'common'
+import { LatLong } from 'common'
 import {
     Password,
     addQuotesToNumbers,
     comment,
-    coordinatesDistanceInMeters,
+    latlongDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
     notUsed,
@@ -95,26 +95,26 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('coordinatesDistanceInMeters', () => {
-        it('calculates the distance between two coordinates in meters', () => {
-            // coordinates for Seoul, South Korea
-            const seoul: Coordinates = {
+    describe('latlongDistanceInMeters', () => {
+        it('calculates the distance between two latlong in meters', () => {
+            // latlong for Seoul, South Korea
+            const seoul: LatLong = {
                 latitude: 37.5665,
                 longitude: 126.978
             }
 
-            // coordinates for Busan, South Korea
-            const busan: Coordinates = {
+            // latlong for Busan, South Korea
+            const busan: LatLong = {
                 latitude: 35.1796,
                 longitude: 129.0756
             }
 
             // approximate distance in meters between Seoul and Busan
-            // it's about 325 km, but the actual value can vary based on the exact coordinates
+            // it's about 325 km, but the actual value can vary based on the exact latlong
             const expectedDistance = 325000
 
             // get the result from our function
-            const actualDistance = coordinatesDistanceInMeters(seoul, busan)
+            const actualDistance = latlongDistanceInMeters(seoul, busan)
 
             // define our tolerance (5% in this case)
             const tolerance = 0.05 * expectedDistance

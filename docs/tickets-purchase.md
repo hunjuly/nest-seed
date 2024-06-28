@@ -95,13 +95,13 @@ Customer <-- Frontend : 영화 목록 제공
 actor Customer
 
 Customer -> Frontend : 영화 선택
-    Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?coords=37.123,128.678
-        Backend -> Showing: findShowingTheaters({movieId, coords})
+    Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?latlongs=37.123,128.678
+        Backend -> Showing: findShowingTheaters({movieId, latlongs})
             Showing -> Showtimes: findShowingTheaterIds({movieId})
             Showing <-- Showtimes: theaterIds[]
             Showing -> Theaters: getTheaters({theaterIds})
             Showing <-- Theaters: theaters[]
-            Showing -> Showing: sortTheatersByDistance({theaters, coords})
+            Showing -> Showing: sortTheatersByDistance({theaters, latlongs})
         Backend <-- Showing: showingTheaters[]
     Frontend <-- Backend : showingTheaters[]
 Customer <-- Frontend : 상영 극장 목록 제공

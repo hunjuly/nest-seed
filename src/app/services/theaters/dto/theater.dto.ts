@@ -1,15 +1,15 @@
-import { Coordinates } from 'common'
+import { LatLong } from 'common'
 import { Seatmap, Theater } from '../schemas'
 
 export class TheaterDto {
     id: string
     name: string
-    coordinates: Coordinates
+    latlong: LatLong
     seatmap: Seatmap
 
     constructor(theater: Theater) {
-        const { _id, name, coordinates, seatmap } = theater
+        const { _id, name, latlong, seatmap } = theater
 
-        Object.assign(this, { id: _id.toString(), name, coordinates, seatmap })
+        Object.assign(this, { id: _id.toString(), name, latlong, seatmap })
     }
 }

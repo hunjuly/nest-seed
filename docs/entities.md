@@ -39,7 +39,7 @@ class Movie {
 class Theater{
     id:string
     name:string
-    coordinates: Coordinates
+    latlong: LatLong
     seatmap:Seatmap
 }
 note left

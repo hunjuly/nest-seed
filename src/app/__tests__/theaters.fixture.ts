@@ -18,7 +18,7 @@ export async function createTheaters(theatersSerivce: TheatersService, count: nu
 
         const promise = theatersSerivce.createTheater({
             name: `Theater-${tag}`,
-            coordinates: { latitude: 38.123, longitude: 138.678 },
+            latlong: { latitude: 38.123, longitude: 138.678 },
             seatmap
         })
 

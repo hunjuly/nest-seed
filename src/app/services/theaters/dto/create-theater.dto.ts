@@ -2,7 +2,7 @@ import { Type } from 'class-transformer'
 import { IsNotEmpty, IsNumber, IsString, Max, Min, ValidateNested } from 'class-validator'
 import { Seatmap } from '../schemas'
 
-export class CoordinatesDto {
+export class LatLongDto {
     @IsNumber()
     @Min(-90)
     @Max(90)
@@ -20,8 +20,8 @@ export class CreateTheaterDto {
     name: string
 
     @ValidateNested()
-    @Type(() => CoordinatesDto)
-    coordinates: CoordinatesDto
+    @Type(() => LatLongDto)
+    latlong: LatLongDto
 
     @IsNotEmpty()
     seatmap: Seatmap

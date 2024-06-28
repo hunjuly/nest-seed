@@ -1,5 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { Coordinates, MongooseSchema, createMongooseSchema } from 'common'
+import { LatLong, MongooseSchema, createMongooseSchema } from 'common'
 
 export class SeatRow {
     name: string
@@ -42,7 +42,7 @@ export class Theater extends MongooseSchema {
         required: true,
         _id: false
     })
-    coordinates: Coordinates
+    latlong: LatLong
 
     @Prop({ type: Object, required: true })
     seatmap: Seatmap

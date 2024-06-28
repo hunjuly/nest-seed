@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt'
 import { Queue } from 'bull'
-import { Coordinates } from 'common'
+import { LatLong } from 'common'
 import { randomUUID } from 'crypto'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
@@ -26,14 +26,14 @@ export function addQuotesToNumbers(text: string) {
     return text.replace(/:(\s*)(\d+)(\s*[,\}])/g, ':"$2"$3')
 }
 
-export function coordinatesDistanceInMeters(coord1: Coordinates, coord2: Coordinates) {
+export function latlongDistanceInMeters(latlong1: LatLong, latlong2: LatLong) {
     const toRad = (degree: number) => degree * (Math.PI / 180)
     const R = 6371000 // earth radius in meters
 
-    const lat1 = toRad(coord1.latitude)
-    const lon1 = toRad(coord1.longitude)
-    const lat2 = toRad(coord2.latitude)
-    const lon2 = toRad(coord2.longitude)
+    const lat1 = toRad(latlong1.latitude)
+    const lon1 = toRad(latlong1.longitude)
+    const lat2 = toRad(latlong2.latitude)
+    const lon2 = toRad(latlong2.longitude)
 
     const dLat = lat2 - lat1
     const dLon = lon2 - lon1
