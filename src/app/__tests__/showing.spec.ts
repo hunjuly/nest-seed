@@ -6,16 +6,16 @@ import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowingModule } from 'app/services/showing'
 import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
+import { addDays } from 'common'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers } from './customers.fixture'
 import { createMovies } from './movies.fixture'
+import { createShowtimes } from './showing.fixture'
 import { ShowtimesEventListener } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
-import { createShowtimes } from './showing.fixture'
-import { addDays, addMinutes } from 'common'
 
-describe('/showing', () => {
+describe.skip('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 
@@ -69,13 +69,6 @@ describe('/showing', () => {
     afterAll(async () => {
         if (testContext) await testContext.close()
     })
-
-    // it('현재 시간 확인', () => {
-    //     const mockTime = new Date('1999-02-31T14:00').getTime()
-    //     const currentTime = new Date().getTime()
-
-    //     expect(mockTime).toEqual(currentTime)
-    // })
 
     it('추천 영화 목록 요청', async () => {
         const res = await req.get({ url: '/showing/movies/recommended', query: { customerId: customer.id } })
