@@ -24,4 +24,30 @@ describe('jest examples', () => {
         expect(arr1).toEqual(arr2)
         expect(arr1).not.toBe(arr2)
     })
+
+    test('Comparing arrays of objects', () => {
+        const array1 = [
+            { id: 1, name: 'A' },
+            { id: 2, name: 'B' }
+        ]
+        const array2 = [
+            { id: 2, name: 'B' },
+            { id: 1, name: 'A' }
+        ]
+
+        expect(array1).toEqual(expect.arrayContaining(array2))
+    })
+
+    test('Comparing partial objects', () => {
+        const array1 = [
+            { id: 1, name: 'A', extra: 'info' },
+            { id: 2, name: 'B', extra: 'data' }
+        ]
+        const array2 = [
+            { id: 2, name: 'B' },
+            { id: 1, name: 'A' }
+        ]
+
+        expect(array1).toEqual(expect.arrayContaining(array2.map((obj) => expect.objectContaining(obj))))
+    })
 })
