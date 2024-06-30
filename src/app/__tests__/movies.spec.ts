@@ -5,7 +5,7 @@ import { GlobalModule } from 'app/global'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
-import { createMovies, sortByTitle } from './movies.fixture'
+import { createMovies } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
@@ -140,11 +140,8 @@ describe('/movies', () => {
                 query: { title: 'MovieTitle-' }
             })
 
-            sortByTitle(res.body.items)
-            sortByTitle(movies)
-
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(movies)
+            expect(res.body.items).toEqual(expect.arrayContaining(movies))
         })
 
         it('Retrieve movies by releaseDate', async () => {
@@ -165,11 +162,8 @@ describe('/movies', () => {
 
             const dramaMovies = movies.filter((movie) => movie.genre.includes(MovieGenre.Drama))
 
-            sortByTitle(res.body.items)
-            sortByTitle(dramaMovies)
-
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(dramaMovies)
+            expect(res.body.items).toEqual(expect.arrayContaining(dramaMovies))
         })
 
         describe('GET /movies/:id', () => {

@@ -23,7 +23,3 @@ export async function createCustomers(
 
     return customers
 }
-
-export function sortByName(customers: CustomerDto[]) {
-    return customers.sort((a, b) => a.name.localeCompare(b.name))
-}

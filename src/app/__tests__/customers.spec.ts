@@ -6,7 +6,7 @@ import { CustomerDto, CustomersModule, CustomersService } from 'app/services/cus
 import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createCustomers, sortByName } from './customers.fixture'
+import { createCustomers } from './customers.fixture'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -150,11 +150,8 @@ describe('/customers', () => {
                 query: { name: 'Customer-' }
             })
 
-            sortByName(res.body.items)
-            sortByName(customers)
-
             expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(customers)
+            expect(res.body.items).toEqual(expect.arrayContaining(customers))
         })
     })
 

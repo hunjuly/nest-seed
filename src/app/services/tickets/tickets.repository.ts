@@ -15,12 +15,32 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         filterDto: TicketsFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Ticket>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            stringToObjectId(filterDto)
+        stringToObjectId(filterDto)
 
-            helpers.setQuery(filterDto)
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const { theaterIds, ...rest } = filterDto
+
+            const query: Record<string, any> = rest
+
+            if (theaterIds) {
+                query['theaterId'] = { $in: theaterIds }
+            }
+
+            helpers.setQuery(query)
         })
 
         return paginated
+    }
+
+    async findTickets(filterDto: TicketsFilterDto): Promise<Ticket[]> {
+        const { theaterIds, ...rest } = filterDto
+
+        const query: Record<string, any> = rest
+
+        if (theaterIds) {
+            query['theaterId'] = { $in: theaterIds }
+        }
+
+        return await super.findByFilter(query)
     }
 }

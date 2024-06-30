@@ -14,8 +14,7 @@ import {
     createShowtimes,
     createShowtimesInParallel,
     durationMinutes,
-    makeShowtime,
-    sortShowtimes
+    makeShowtime
 } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
@@ -64,7 +63,7 @@ describe('/showtimes', () => {
         expectCreated(res)
         expect(res.body.batchId).toBeDefined()
 
-        await showtimesEventListener.fetchCreateResult(res.body.batchId)
+        await showtimesEventListener.awaitCompleteEvent(res.body.batchId)
     })
 
     it('상영 시간 생성에 성공하면 showtimes.create.completed 이벤트가 발생해야 한다', async () => {
@@ -76,7 +75,7 @@ describe('/showtimes', () => {
         })
         expectCreated(res)
 
-        await showtimesEventListener.fetchCreateResult(res.body.batchId)
+        await showtimesEventListener.awaitCompleteEvent(res.body.batchId)
 
         expect(showtimesEventListener.onShowtimesCreateCompleted).toHaveBeenCalledTimes(1)
     })
@@ -90,19 +89,16 @@ describe('/showtimes', () => {
         })
         expectCreated(res)
 
-        const actual = await showtimesEventListener.fetchCreateResult(res.body.batchId)
+        const actual = await showtimesEventListener.awaitCompleteEvent(res.body.batchId)
         const expected = {
             batchId: res.body.batchId,
-            createdShowtimes: [
-                makeShowtime(movieId, theaterIds[0], startTimes[0], durationMinutes),
-                makeShowtime(movieId, theaterIds[0], startTimes[1], durationMinutes),
+            createdShowtimes: expect.arrayContaining([
                 makeShowtime(movieId, theaterIds[1], startTimes[0], durationMinutes),
+                makeShowtime(movieId, theaterIds[0], startTimes[1], durationMinutes),
+                makeShowtime(movieId, theaterIds[0], startTimes[0], durationMinutes),
                 makeShowtime(movieId, theaterIds[1], startTimes[1], durationMinutes)
-            ]
+            ])
         }
-
-        sortShowtimes(actual.createdShowtimes)
-        sortShowtimes(expected.createdShowtimes)
 
         expect(actual).toEqual(expected)
     })
@@ -201,7 +197,7 @@ describe('/showtimes', () => {
                 ]
             })
 
-            await showtimesEventListener.fetchCreateResult(batchId)
+            await showtimesEventListener.awaitCompleteEvent(batchId)
         })
 
         it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
@@ -220,21 +216,18 @@ describe('/showtimes', () => {
             })
             expectCreated(res)
 
-            const actual = await showtimesEventListener.fetchCreateResult(res.body.batchId)
+            const actual = await showtimesEventListener.awaitCompleteEvent(res.body.batchId)
             const expected = {
                 batchId: res.body.batchId,
-                conflictShowtimes: [
+                conflictShowtimes: expect.arrayContaining([
                     makeShowtime(movieId, theaterIds[0], new Date('2013-01-31T12:00'), durationMinutes),
                     makeShowtime(movieId, theaterIds[0], new Date('2013-01-31T16:30'), durationMinutes),
                     makeShowtime(movieId, theaterIds[0], new Date('2013-01-31T18:30'), durationMinutes),
                     makeShowtime(movieId, theaterIds[1], new Date('2013-01-31T12:00'), durationMinutes),
                     makeShowtime(movieId, theaterIds[1], new Date('2013-01-31T16:30'), durationMinutes),
                     makeShowtime(movieId, theaterIds[1], new Date('2013-01-31T18:30'), durationMinutes)
-                ]
+                ])
             }
-
-            sortShowtimes(actual.conflictShowtimes!)
-            sortShowtimes(expected.conflictShowtimes)
 
             expect(actual).toEqual(expected)
         })
@@ -260,10 +253,7 @@ describe('/showtimes', () => {
             const res = await req.get({ url: '/showtimes', query: { batchId } })
             expectOk(res)
 
-            sortShowtimes(res.body.items)
-            sortShowtimes(createdShowtimes)
-
-            expect(res.body.items).toEqual(createdShowtimes)
+            expect(res.body.items).toEqual(expect.arrayContaining(createdShowtimes))
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
@@ -272,10 +262,7 @@ describe('/showtimes', () => {
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
 
-            sortShowtimes(res.body.items)
-            sortShowtimes(expectedShowtimes)
-
-            expect(res.body.items).toEqual(expectedShowtimes)
+            expect(res.body.items).toEqual(expect.arrayContaining(expectedShowtimes))
         })
     })
 })

@@ -1,9 +1,10 @@
-import { Ticket, TicketSeat } from '../schemas'
+import { Seat } from 'app/services/theaters'
+import { Ticket } from '../schemas'
 
 export class TicketDto {
     id: string
     showtimeId: string
-    seat: TicketSeat
+    seat: Seat
     status: string
 
     constructor(ticket: Ticket) {

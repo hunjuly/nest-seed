@@ -29,7 +29,3 @@ export async function createTheaters(theatersSerivce: TheatersService, count: nu
 
     return movies
 }
-
-export function sortByName(theaters: TheaterDto[]) {
-    return theaters.sort((a, b) => a.name.localeCompare(b.name))
-}

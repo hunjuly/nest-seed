@@ -1,16 +1,11 @@
 import { Prop, Schema } from '@nestjs/mongoose'
+import { Seat } from 'app/services/theaters'
 import { MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 
 export enum TicketStatus {
     open = 'open',
     reserved = 'reserved',
     sold = 'sold'
-}
-
-export class TicketSeat {
-    block: string
-    row: string
-    seatnum: number
 }
 
 @Schema()
@@ -28,7 +23,7 @@ export class Ticket extends MongooseSchema {
     status: TicketStatus
 
     @Prop({ type: Object, required: true })
-    seat: TicketSeat
+    seat: Seat
 
     @Prop({ type: ObjectId, required: true })
     showtimesBatchId: ObjectId

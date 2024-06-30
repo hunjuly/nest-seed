@@ -9,7 +9,7 @@ import {
 } from 'app/services/showtimes'
 import { addMinutes } from 'common'
 
-type PromiseCallback = { resolve: (value: unknown) => void; rejected: (value: any) => void }
+type PromiseCallback = { resolve: (value: unknown) => void; reject: (value: any) => void }
 export type ShowtimesCreationResult = {
     conflictShowtimes?: ShowtimeDto[]
     createdShowtimes?: ShowtimeDto[]
@@ -34,24 +34,12 @@ export class ShowtimesEventListener {
     @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
     async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent) {
         const promise = this.promises.get(event.batchId)
-        promise?.resolve(event)
+        promise?.reject(event)
     }
 
-    fetchCreateResult(batchId: string): Promise<ShowtimesCreationResult> {
-        return new Promise((resolve, rejected) => {
-            this.promises.set(batchId, { resolve, rejected })
-        })
-    }
-}
-
-export async function sortShowtimes(showtimes: ShowtimeDto[] | undefined) {
-    if (showtimes) {
-        showtimes.sort((a, b) => {
-            if (a.theaterId !== b.theaterId) {
-                return a.theaterId.localeCompare(b.theaterId)
-            }
-
-            return a.startTime.getTime() - b.startTime.getTime()
+    awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { resolve, reject })
         })
     }
 }
@@ -100,7 +88,7 @@ export async function createShowtimes(
         ]
     })
 
-    return await showtimesEventListener.fetchCreateResult(batchId)
+    return await showtimesEventListener.awaitCompleteEvent(batchId)
 }
 
 export async function createShowtimesInParallel(
@@ -108,8 +96,7 @@ export async function createShowtimesInParallel(
     showtimesEventListener: ShowtimesEventListener,
     movieId: string,
     theaterIds: string[],
-    count: number,
-    callback?: (batchId: string) => void
+    count: number
 ): Promise<ShowtimesCreationResult[]> {
     const promises: Promise<ShowtimesCreationResult>[] = []
 
@@ -121,9 +108,7 @@ export async function createShowtimesInParallel(
             startTimes: [new Date(1900, i, 31, 12, 0)]
         })
 
-        callback && callback(batchId)
-
-        const promise = showtimesEventListener.fetchCreateResult(batchId)
+        const promise = showtimesEventListener.awaitCompleteEvent(batchId)
 
         promises.push(promise)
     }
@@ -150,7 +135,7 @@ export async function attemptDuplicateShowtimes(
             startTimes: [new Date('2013-01-31T14:00')]
         })
 
-        const promise = showtimesEventListener.fetchCreateResult(batchId)
+        const promise = showtimesEventListener.awaitCompleteEvent(batchId)
 
         promises.push(promise)
     }

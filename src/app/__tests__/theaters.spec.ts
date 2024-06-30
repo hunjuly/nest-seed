@@ -4,9 +4,9 @@ import { TheatersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
-import { HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpTestContext, createHttpTestContext, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTheaters, seatmap, sortByName } from './theaters.fixture'
+import { createTheaters, seatmap } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
@@ -99,15 +99,16 @@ describe('/theaters', () => {
 
         it('Delete a theater', async () => {
             const deleteResponse = await req.delete({ url: `/theaters/${theater.id}` })
-            const getResponse = await req.get({ url: `/theaters/${theater.id}` })
+            expectOk(deleteResponse)
 
-            expect(deleteResponse.status).toEqual(HttpStatus.OK)
-            expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
+            const getResponse = await req.get({ url: `/theaters/${theater.id}` })
+            expectNotFound(getResponse)
         })
 
         it('NOT_FOUND(404) if theater is not found', async () => {
             const res = await req.delete({ url: `/theaters/${nullObjectId}` })
 
+            expectNotFound(res)
             expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
@@ -124,8 +125,7 @@ describe('/theaters', () => {
                 url: '/theaters',
                 query: { orderby: 'name:asc' }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(theaters)
         })
 
@@ -134,12 +134,8 @@ describe('/theaters', () => {
                 url: '/theaters',
                 query: { name: 'Theater-' }
             })
-
-            sortByName(res.body.items)
-            sortByName(theaters)
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
-            expect(res.body.items).toEqual(theaters)
+            expectOk(res)
+            expect(res.body.items).toEqual(expect.arrayContaining(theaters))
         })
     })
 

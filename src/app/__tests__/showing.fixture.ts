@@ -18,7 +18,7 @@ export async function createShowtimes(
             startTimes
         })
 
-        const promise = showtimesEventListener.fetchCreateResult(batchId)
+        const promise = showtimesEventListener.awaitCompleteEvent(batchId)
 
         promises.push(promise)
     }

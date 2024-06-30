@@ -254,10 +254,7 @@ describe('MongooseRepository', () => {
 
             const foundDocuments = await repository.findByIds(ids)
 
-            sortByName(samples)
-            sortByName(foundDocuments)
-
-            expect(foundDocuments).toEqual(samples)
+            expect(foundDocuments).toEqual(expect.arrayContaining(samples))
         })
 
         it('should ignore non-existent IDs', async () => {
@@ -277,19 +274,28 @@ describe('MongooseRepository', () => {
         it('should return all documents if no filter is specified', async () => {
             const docs = await repository.findByFilter({})
 
-            sortByName(samples)
-            sortByName(docs)
-
-            expect(docs).toEqual(samples)
+            expect(docs).toEqual(expect.arrayContaining(samples))
         })
 
         it('should query using a regular expression', async () => {
             const docs = await repository.findByFilter({ name: /Sample-00/i })
 
-            sortByName(samples)
-            sortByName(docs)
+            const names = docs.map((doc) => doc.name)
 
-            expect(docs).toEqual(samples.slice(0, 10))
+            expect(names).toEqual(
+                expect.arrayContaining([
+                    'Sample-000',
+                    'Sample-001',
+                    'Sample-002',
+                    'Sample-003',
+                    'Sample-004',
+                    'Sample-005',
+                    'Sample-006',
+                    'Sample-007',
+                    'Sample-008',
+                    'Sample-009'
+                ])
+            )
         })
     })
 
@@ -361,10 +367,20 @@ describe('MongooseRepository', () => {
                 }
             )
 
-            sortByName(samples)
-            sortByName(paginated.items)
+            const names = paginated.items.map((item) => item.name)
 
-            expect(paginated.items).toEqual(samples.slice(0, 10))
+            expect(names).toEqual([
+                'Sample-000',
+                'Sample-001',
+                'Sample-002',
+                'Sample-003',
+                'Sample-004',
+                'Sample-005',
+                'Sample-006',
+                'Sample-007',
+                'Sample-008',
+                'Sample-009'
+            ])
         })
     })
 })

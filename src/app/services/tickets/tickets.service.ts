@@ -46,4 +46,14 @@ export class TicketsService {
 
         return { ...paginated, items }
     }
+
+    async findTickets(filterDto: TicketsFilterDto): Promise<TicketDto[]> {
+        this.logger.log('Searching for tickets with the provided query parameters.', filterDto)
+
+        const tickets = await this.ticketsRepository.findTickets(filterDto)
+
+        this.logger.log(`Search completed. Found ${tickets.length} tickets.`)
+
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
 }

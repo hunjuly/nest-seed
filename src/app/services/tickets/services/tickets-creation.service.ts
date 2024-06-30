@@ -2,12 +2,12 @@ import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ShowtimesService } from 'app/services/showtimes'
-import { TheatersService, forEachSeat } from 'app/services/theaters'
+import { Seat, TheatersService, forEachSeat } from 'app/services/theaters'
 import { Job } from 'bull'
 import { ObjectId } from 'common'
 import { Ticket, TicketStatus } from '../schemas'
-import { TicketsRepository } from '../tickets.repository'
 import { TicketsCreateCompleteEvent, TicketsCreateErrorEvent, TicketsCreateEvent } from '../tickets.events'
+import { TicketsRepository } from '../tickets.repository'
 
 type TicketsCreationData = { batchId: string }
 
@@ -51,13 +51,13 @@ export class TicketsCreationService {
         for (const showtime of showtimes) {
             const theater = await this.theatersService.getTheater(showtime.theaterId)
 
-            forEachSeat(theater.seatmap, (block: string, row: string, seatnum: number) => {
+            forEachSeat(theater.seatmap, (seat: Seat) => {
                 ticketEntries.push({
                     showtimeId: new ObjectId(showtime.id),
                     theaterId: new ObjectId(showtime.theaterId),
                     movieId: new ObjectId(showtime.movieId),
                     status: TicketStatus.open,
-                    seat: { block, row, seatnum },
+                    seat,
                     showtimesBatchId: new ObjectId(batchId)
                 })
             })

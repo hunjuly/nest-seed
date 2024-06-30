@@ -1,10 +1,6 @@
 import { MovieDto, MovieGenre, MovieRated, MoviesService } from 'app/services/movies'
 import { padNumber } from 'common'
 
-export function sortByTitle(movies: MovieDto[]) {
-    return movies.sort((a, b) => a.title.localeCompare(b.title))
-}
-
 export async function createMovies(moviesService: MoviesService, count: number): Promise<MovieDto[]> {
     const promises = []
 

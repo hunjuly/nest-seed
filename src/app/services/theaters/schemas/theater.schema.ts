@@ -1,9 +1,8 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { LatLong, MongooseSchema, createMongooseSchema } from 'common'
 
-export class SeatRow {
-    name: string
-    seats: string
+export class Seatmap {
+    blocks: SeatBlock[]
 }
 
 export class SeatBlock {
@@ -11,21 +10,29 @@ export class SeatBlock {
     rows: SeatRow[]
 }
 
-export class Seatmap {
-    blocks: SeatBlock[]
+export class SeatRow {
+    name: string
+    seats: string
 }
 
-export function forEachSeat(
-    seatmap: Seatmap,
-    callback: (block: string, row: string, seatnum: number) => void
-) {
+export class Seat {
+    block: string
+    row: string
+    seatnum: number
+}
+
+export function forEachSeat(seatmap: Seatmap, callback: (seat: Seat) => void) {
     for (const block of seatmap.blocks) {
         for (const row of block.rows) {
             for (let i = 0; i < row.seats.length; i++) {
                 const seat = row.seats[i]
 
                 if (seat !== 'X') {
-                    callback(block.name, row.name, i + 1)
+                    callback({
+                        block: block.name,
+                        row: row.name,
+                        seatnum: i + 1
+                    })
                 }
             }
         }

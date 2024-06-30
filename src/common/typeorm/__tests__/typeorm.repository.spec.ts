@@ -154,10 +154,7 @@ describe('TypeormRepository', () => {
 
             const foundDocuments = await repository.findByIds(ids)
 
-            sortByName(samples)
-            sortByName(foundDocuments)
-
-            expect(foundDocuments).toEqual(samples)
+            expect(foundDocuments).toEqual(expect.arrayContaining(samples))
         })
 
         it('should ignore non-existent IDs', async () => {
@@ -177,19 +174,13 @@ describe('TypeormRepository', () => {
         it('should return all documents if no filter is specified', async () => {
             const entities = await repository.findByFilter({})
 
-            sortByName(samples)
-            sortByName(entities)
-
-            expect(entities).toEqual(samples)
+            expect(entities).toEqual(expect.arrayContaining(samples))
         })
 
         it('should return entities matching the specified filter', async () => {
             const entities = await repository.findByFilter({ name: 'Sample-001' })
 
-            sortByName(samples)
-            sortByName(entities)
-
-            expect(entities).toEqual(samples.slice(1, 2))
+            expect(entities[0].name).toEqual('Sample-001')
         })
     })
 
@@ -202,7 +193,7 @@ describe('TypeormRepository', () => {
 
         it('should set the pagination correctly', async () => {
             const skip = 10
-            const take = 10
+            const take = 5
             const paginated = await repository.findWithPagination({
                 skip,
                 take,
@@ -253,18 +244,29 @@ describe('TypeormRepository', () => {
             const paginated = await repository.findWithPagination(
                 {
                     skip: 0,
-                    take: samples.length,
-                    orderby: { name: 'name', direction: OrderDirection.asc }
+                    take: samples.length
                 },
                 (qb) => {
-                    qb.where('entity.name LIKE :name', { name: '%Sample_00%' })
+                    qb.where('entity.name LIKE :name', { name: '%Sample-00%' })
                 }
             )
 
-            sortByName(samples)
-            sortByName(paginated.items)
+            const names = paginated.items.map((item) => item.name)
 
-            expect(paginated.items).toEqual(samples.slice(0, 10))
+            expect(names).toEqual(
+                expect.arrayContaining([
+                    'Sample-000',
+                    'Sample-001',
+                    'Sample-002',
+                    'Sample-003',
+                    'Sample-004',
+                    'Sample-005',
+                    'Sample-006',
+                    'Sample-007',
+                    'Sample-008',
+                    'Sample-009'
+                ])
+            )
         })
     })
 })

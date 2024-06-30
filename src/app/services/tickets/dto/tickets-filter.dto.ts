@@ -2,8 +2,11 @@ import { IsOptional } from 'class-validator'
 
 export class TicketsFilterDto {
     @IsOptional()
+    movieId?: string
+
+    @IsOptional()
     theaterId?: string
 
     @IsOptional()
-    movieId?: string
+    theaterIds?: string[]
 }
