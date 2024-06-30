@@ -4,7 +4,6 @@ import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
 import { durationMinutes } from './showtimes.fixture'
-import { MovieDto } from 'app/services/movies'
 
 type PromiseCallback = { resolve: (value: unknown) => void; reject: (value: any) => void }
 
@@ -38,12 +37,12 @@ export class TicketsEventListener {
 export async function createTickets(
     showtimesService: ShowtimesService,
     ticketsEventListener: TicketsEventListener,
-    movie: MovieDto,
-    theaters: TheaterDto[]
+    movieId: string,
+    theaterIds: string[]
 ): Promise<{ batchId: string }> {
     const { batchId } = await showtimesService.createShowtimes({
-        movieId: movie.id,
-        theaterIds: theaters.map((theater) => theater.id),
+        movieId,
+        theaterIds,
         durationMinutes,
         startTimes: [
             new Date('2013-01-31T12:00'),
@@ -61,8 +60,8 @@ export async function createTickets(
 export async function createTicketsInParallel(
     showtimesService: ShowtimesService,
     ticketsEventListener: TicketsEventListener,
-    movie: MovieDto,
-    theaters: TheaterDto[],
+    movieId: string,
+    theaterIds: string[],
     count: number
 ): Promise<string[]> {
     const batchIds: string[] = []
@@ -71,8 +70,8 @@ export async function createTicketsInParallel(
 
     for (let i = 0; i < count; i++) {
         const { batchId } = await showtimesService.createShowtimes({
-            movieId: movie.id,
-            theaterIds: theaters.map((theater) => theater.id),
+            movieId,
+            theaterIds,
             durationMinutes,
             startTimes: [new Date(1900, i, 31, 12, 0)]
         })

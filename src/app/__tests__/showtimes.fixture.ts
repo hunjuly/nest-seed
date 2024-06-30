@@ -9,8 +9,10 @@ import {
 } from 'app/services/showtimes'
 import { addMinutes } from 'common'
 
-type PromiseCallback = { resolve: (value: unknown) => void; reject: (value: any) => void }
-export type ShowtimesCreationResult = {
+type PromiseResolver = (value: ShowtimesCreationResult | PromiseLike<ShowtimesCreationResult>) => void
+type PromiseRejector = (reason?: any) => void
+
+export interface ShowtimesCreationResult {
     conflictShowtimes?: ShowtimeDto[]
     createdShowtimes?: ShowtimeDto[]
     batchId: string
@@ -19,22 +21,16 @@ export type ShowtimesCreationResult = {
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesEventListener {
-    promises: Map<string, PromiseCallback>
-
-    constructor() {
-        this.promises = new Map<string, PromiseCallback>()
-    }
+    private promises: Map<string, { resolve: PromiseResolver; reject: PromiseRejector }> = new Map()
 
     @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
-    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
-        const promise = this.promises.get(event.batchId)
-        promise?.resolve(event)
+    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent): Promise<void> {
+        this.resolvePromise(event.batchId, event)
     }
 
     @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
-    async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent) {
-        const promise = this.promises.get(event.batchId)
-        promise?.reject(event)
+    async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent): Promise<void> {
+        this.resolvePromise(event.batchId, event)
     }
 
     awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
@@ -42,105 +38,69 @@ export class ShowtimesEventListener {
             this.promises.set(batchId, { resolve, reject })
         })
     }
-}
 
-export function areShowtimesUnique(showtimes: ShowtimeDto[]) {
-    const set = new Set<string>()
-
-    for (const showtime of showtimes) {
-        const key = JSON.stringify(showtime)
-
-        if (set.has(key)) return false
-
-        set.add(key)
-    }
-
-    return true
-}
-
-export function makeShowtime(movieId: string, theaterId: string, startTime: Date, durationMinutes: number) {
-    return {
-        id: expect.anything(),
-        movieId,
-        theaterId,
-        startTime,
-        endTime: addMinutes(startTime, durationMinutes)
+    private resolvePromise(batchId: string, result: ShowtimesCreationResult): void {
+        const promise = this.promises.get(batchId)
+        if (promise) {
+            promise.resolve(result)
+            this.promises.delete(batchId)
+        }
     }
 }
 
-export const durationMinutes = 90
+export function areShowtimesUnique(showtimes: ShowtimeDto[]): boolean {
+    const set = new Set(
+        showtimes.map((showtime) => {
+            const { id: _, ...rest } = showtime
 
-export async function createShowtimes(
-    showtimesService: ShowtimesService,
-    showtimesEventListener: ShowtimesEventListener,
-    movieId: string,
-    theaterIds: string[]
-): Promise<ShowtimesCreationResult> {
-    const { batchId } = await showtimesService.createShowtimes({
-        movieId,
-        theaterIds,
-        durationMinutes,
-        startTimes: [
-            new Date('2013-01-31T12:00'),
-            new Date('2013-01-31T14:00'),
-            new Date('2013-01-31T16:30'),
-            new Date('2013-01-31T18:30')
-        ]
-    })
-
-    return await showtimesEventListener.awaitCompleteEvent(batchId)
-}
-
-export async function createShowtimesInParallel(
-    showtimesService: ShowtimesService,
-    showtimesEventListener: ShowtimesEventListener,
-    movieId: string,
-    theaterIds: string[],
-    count: number
-): Promise<ShowtimesCreationResult[]> {
-    const promises: Promise<ShowtimesCreationResult>[] = []
-
-    for (let i = 0; i < count; i++) {
-        const { batchId } = await showtimesService.createShowtimes({
-            movieId,
-            theaterIds,
-            durationMinutes,
-            startTimes: [new Date(1900, i, 31, 12, 0)]
+            return JSON.stringify(rest)
         })
-
-        const promise = showtimesEventListener.awaitCompleteEvent(batchId)
-
-        promises.push(promise)
-    }
-
-    const results = await Promise.all(promises)
-
-    return results
+    )
+    return set.size === showtimes.length
 }
 
-export async function attemptDuplicateShowtimes(
-    showtimesService: ShowtimesService,
-    showtimesEventListener: ShowtimesEventListener,
-    movieId: string,
-    theaterIds: string[],
-    count: number
-): Promise<ShowtimesCreationResult[]> {
-    const promises: Promise<ShowtimesCreationResult>[] = []
+export class ShowtimesFactory {
+    constructor(
+        private readonly showtimesService: ShowtimesService,
+        private readonly showtimesEventListener: ShowtimesEventListener,
+        private readonly movieId: string,
+        private readonly theaterIds: string[]
+    ) {}
 
-    for (let i = 0; i < count; i++) {
-        const { batchId } = await showtimesService.createShowtimes({
-            movieId,
-            theaterIds,
+    async createShowtimes(startTimes: Date[], durationMinutes: number): Promise<ShowtimesCreationResult> {
+        const { batchId } = await this.showtimesService.createShowtimes({
+            movieId: this.movieId,
+            theaterIds: this.theaterIds,
             durationMinutes,
-            startTimes: [new Date('2013-01-31T14:00')]
+            startTimes
         })
-
-        const promise = showtimesEventListener.awaitCompleteEvent(batchId)
-
-        promises.push(promise)
+        return this.showtimesEventListener.awaitCompleteEvent(batchId)
     }
 
-    const results = await Promise.all(promises)
+    private async createMultipleShowtimes(startTimesSet: Date[][]): Promise<ShowtimesCreationResult[]> {
+        const creationPromises = startTimesSet.map((startTimes) => this.createShowtimes(startTimes, 1))
+        return Promise.all(creationPromises)
+    }
 
-    return results
+    async createShowtimesInParallel(length: number): Promise<ShowtimesCreationResult[]> {
+        const startTimesSet = Array.from({ length }, (_, i) => [new Date(1900, i, 31, 12, 0)])
+        return this.createMultipleShowtimes(startTimesSet)
+    }
+
+    async attemptDuplicateShowtimes(length: number): Promise<ShowtimesCreationResult[]> {
+        const startTimesSet = Array(length).fill([new Date('2013-01-31T14:00')])
+        return this.createMultipleShowtimes(startTimesSet)
+    }
+
+    makeExpectedShowtime(startTimes: Date[], durationMinutes: number): ShowtimeDto[] {
+        return this.theaterIds.flatMap((theaterId) =>
+            startTimes.map((startTime) => ({
+                id: expect.anything(),
+                movieId: this.movieId,
+                theaterId,
+                startTime,
+                endTime: addMinutes(startTime, durationMinutes)
+            }))
+        )
+    }
 }

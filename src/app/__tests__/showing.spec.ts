@@ -5,22 +5,23 @@ import { CustomerDto, CustomersModule, CustomersService } from 'app/services/cus
 import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowingModule } from 'app/services/showing'
 import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { TheatersModule, TheatersService } from 'app/services/theaters'
+import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { addDays } from 'common'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers } from './customers.fixture'
-import { createMovies } from './movies.fixture'
-import { createShowtimes } from './showing.fixture'
+import { createMovies, createShowtimes } from './showing.fixture'
 import { ShowtimesEventListener } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
+import { TicketsModule } from 'app/services/tickets'
 
 describe.skip('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 
     let customer: CustomerDto
-    let movie: MovieDto
+    let movies: MovieDto[]
+    let theaters: TheaterDto[]
 
     beforeAll(async () => {
         testContext = await createHttpTestContext({
@@ -30,7 +31,8 @@ describe.skip('/showing', () => {
                 CustomersModule,
                 MoviesModule,
                 ShowtimesModule,
-                TheatersModule
+                TheatersModule,
+                TicketsModule
             ],
             controllers: [ShowingController],
             providers: [ShowtimesEventListener]
@@ -44,12 +46,10 @@ describe.skip('/showing', () => {
         customer = customers[0]
 
         const moviesService = module.get(MoviesService)
-        const movies = await createMovies(moviesService, 5)
-        const movieIds = movies.map((movie) => movie.id)
+        movies = await createMovies(moviesService)
 
         const theatersService = module.get(TheatersService)
-        const theaters = await createTheaters(theatersService, 1)
-        const theaterIds = theaters.map((theater) => theater.id)
+        theaters = await createTheaters(theatersService, 1)
 
         const showtimesService = module.get(ShowtimesService)
         const showtimesEventListener = module.get(ShowtimesEventListener)
@@ -63,7 +63,7 @@ describe.skip('/showing', () => {
             addDays(currentTime, 2)
         ]
 
-        await createShowtimes(showtimesService, showtimesEventListener, movieIds, theaterIds, startTimes)
+        // await createShowtimes(showtimesService, showtimesEventListener, movieIds, theaterIds, startTimes)
     })
 
     afterAll(async () => {
@@ -76,6 +76,6 @@ describe.skip('/showing', () => {
         expectOk(res)
         expect(res.body.movies.length).toBeGreaterThan(0)
 
-        movie = res.body.movies[0]
+        // movie = res.body.movies[0]
     })
 })

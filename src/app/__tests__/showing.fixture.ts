@@ -1,5 +1,46 @@
 import { ShowtimesService } from 'app/services/showtimes'
 import { ShowtimesCreationResult, ShowtimesEventListener } from './showtimes.fixture'
+import { MovieDto, MovieGenre, MovieRated, MoviesService } from 'app/services/movies'
+
+export async function createMovies(moviesService: MoviesService): Promise<MovieDto[]> {
+    const common = {
+        releaseDate: new Date(1900, 1, 1),
+        plot: `.`,
+        durationMinutes: 1,
+        director: '.',
+        rated: MovieRated.PG
+    }
+
+    const movies = await Promise.all([
+        moviesService.createMovie({
+            ...common,
+            title: `MovieTitle-0`,
+            genre: [MovieGenre.Action, MovieGenre.Comedy]
+        }),
+        moviesService.createMovie({
+            ...common,
+            title: `MovieTitle-1`,
+            genre: [MovieGenre.Comedy, MovieGenre.Drama]
+        }),
+        moviesService.createMovie({
+            ...common,
+            title: `MovieTitle-2`,
+            genre: [MovieGenre.Drama, MovieGenre.Romance]
+        }),
+        moviesService.createMovie({
+            ...common,
+            title: `MovieTitle-3`,
+            genre: [MovieGenre.Romance, MovieGenre.Thriller]
+        }),
+        moviesService.createMovie({
+            ...common,
+            title: `MovieTitle-4`,
+            genre: [MovieGenre.Thriller, MovieGenre.Western]
+        })
+    ])
+
+    return movies
+}
 
 export async function createShowtimes(
     showtimesService: ShowtimesService,
