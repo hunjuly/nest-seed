@@ -4,13 +4,11 @@ import { OnEvent } from '@nestjs/event-emitter'
 import {
     ShowtimeDto,
     ShowtimesCreateCompletedEvent,
+    ShowtimesCreateErrorEvent,
     ShowtimesCreateFailedEvent,
     ShowtimesService
 } from 'app/services/showtimes'
 import { addMinutes } from 'common'
-
-type PromiseResolver = (value: ShowtimesCreationResult | PromiseLike<ShowtimesCreationResult>) => void
-type PromiseRejector = (reason?: any) => void
 
 export interface ShowtimesCreationResult {
     conflictShowtimes?: ShowtimeDto[]
@@ -18,19 +16,26 @@ export interface ShowtimesCreationResult {
     batchId: string
 }
 
+type PromiseHandlers = { resolve: (value: unknown) => void; reject: (value: any) => void }
+
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesEventListener {
-    private promises: Map<string, { resolve: PromiseResolver; reject: PromiseRejector }> = new Map()
+    private promises = new Map<string, PromiseHandlers>()
 
     @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
-    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent): Promise<void> {
-        this.resolvePromise(event.batchId, event)
+    onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent): void {
+        this.handleEvent(event)
     }
 
     @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
-    async onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent): Promise<void> {
-        this.resolvePromise(event.batchId, event)
+    onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent): void {
+        this.handleEvent(event)
+    }
+
+    @OnEvent(ShowtimesCreateErrorEvent.eventName, { async: true })
+    onShowtimesCreateError(event: ShowtimesCreateErrorEvent): void {
+        this.handleEvent(event, true)
     }
 
     awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
@@ -39,24 +44,14 @@ export class ShowtimesEventListener {
         })
     }
 
-    private resolvePromise(batchId: string, result: ShowtimesCreationResult): void {
-        const promise = this.promises.get(batchId)
-        if (promise) {
-            promise.resolve(result)
-            this.promises.delete(batchId)
-        }
+    private handleEvent(event: ShowtimesCreationResult, isError = false): void {
+        const promise = this.promises.get(event.batchId)
+        if (!promise) return
+
+        const handler = isError ? promise.reject : promise.resolve
+        handler(event)
+        this.promises.delete(event.batchId)
     }
-}
-
-export function areShowtimesUnique(showtimes: ShowtimeDto[]): boolean {
-    const set = new Set(
-        showtimes.map((showtime) => {
-            const { id: _, ...rest } = showtime
-
-            return JSON.stringify(rest)
-        })
-    )
-    return set.size === showtimes.length
 }
 
 export class ShowtimesFactory {
@@ -103,4 +98,15 @@ export class ShowtimesFactory {
             }))
         )
     }
+}
+
+export function areShowtimesUnique(showtimes: ShowtimeDto[]): boolean {
+    const set = new Set(
+        showtimes.map((showtime) => {
+            const { id: _, ...rest } = showtime
+
+            return JSON.stringify(rest)
+        })
+    )
+    return set.size === showtimes.length
 }

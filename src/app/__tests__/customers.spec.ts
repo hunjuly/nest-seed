@@ -4,7 +4,15 @@ import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
-import { HttpTestContext, createHttpTestContext } from 'common/test'
+import {
+    HttpTestContext,
+    createHttpTestContext,
+    expectBadRequest,
+    expectConflict,
+    expectCreated,
+    expectNotFound,
+    expectOk
+} from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers } from './customers.fixture'
 
@@ -43,12 +51,8 @@ describe('/customers', () => {
 
         it('should create a customer and return CREATED status', async () => {
             const res = await req.post({ url: '/customers', body: createCustomerDto })
-
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual({
-                id: expect.anything(),
-                ...createCustomerDto
-            })
+            expectCreated(res)
+            expect(res.body).toEqual({ id: expect.anything(), ...createCustomerDto })
         })
 
         it('CONFLICT(409) if email already exists', async () => {
@@ -56,8 +60,7 @@ describe('/customers', () => {
                 url: '/customers',
                 body: { ...createCustomerDto, email: customer.email }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
+            expectConflict(res)
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
@@ -65,8 +68,7 @@ describe('/customers', () => {
                 url: '/customers',
                 body: {}
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expectBadRequest(res)
         })
     })
 
@@ -86,21 +88,18 @@ describe('/customers', () => {
             }
 
             const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateData })
+            expectOk(updateResponse)
 
             const getResponse = await req.get({ url: `/customers/${customer.id}` })
+            expectOk(getResponse)
 
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
             expect(updateResponse.body).toEqual({ ...customer, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('NOT_FOUND(404) if customer is not found', async () => {
-            const res = await req.patch({
-                url: `/customers/${nullObjectId}`,
-                body: {}
-            })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            const res = await req.patch({ url: `/customers/${nullObjectId}`, body: {} })
+            expectNotFound(res)
         })
     })
 
@@ -114,16 +113,15 @@ describe('/customers', () => {
 
         it('Delete a customer', async () => {
             const deleteResponse = await req.delete({ url: `/customers/${customer.id}` })
-            const getResponse = await req.get({ url: `/customers/${customer.id}` })
-
             expect(deleteResponse.status).toEqual(HttpStatus.OK)
+
+            const getResponse = await req.get({ url: `/customers/${customer.id}` })
             expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
         })
 
         it('NOT_FOUND(404) if customer is not found', async () => {
             const res = await req.delete({ url: `/customers/${nullObjectId}` })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -139,8 +137,7 @@ describe('/customers', () => {
                 url: '/customers',
                 query: { orderby: 'name:asc' }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(customers)
         })
 
@@ -149,8 +146,7 @@ describe('/customers', () => {
                 url: '/customers',
                 query: { name: 'Customer-' }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(expect.arrayContaining(customers))
         })
     })
@@ -165,15 +161,13 @@ describe('/customers', () => {
 
         it('Retrieve a customer by ID', async () => {
             const res = await req.get({ url: `/customers/${customer.id}` })
-
-            expect(res.status).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(customer)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
             const res = await req.get({ url: `/customers/${nullObjectId}` })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 })

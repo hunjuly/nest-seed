@@ -13,8 +13,10 @@ import { createTheaters } from './theaters.fixture'
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
+
     let factory: ShowtimesFactory
     let showtimesEventListener: ShowtimesEventListener
+
     let movieId: string
     let theaterId: string
     let theaterIds: string[]
@@ -39,6 +41,7 @@ describe('/showtimes', () => {
 
         const showtimesService = module.get(ShowtimesService)
         showtimesEventListener = module.get(ShowtimesEventListener)
+
         factory = new ShowtimesFactory(showtimesService, showtimesEventListener, movieId, theaterIds)
     })
 
@@ -65,7 +68,7 @@ describe('/showtimes', () => {
             await showtimesEventListener.awaitCompleteEvent(res.body.batchId)
         })
 
-        it('상영 시간 생성에 성공하면 showtimes.create.completed 이벤트가 발생해야 한다', async () => {
+        it('상영 시간 생성에 성공하면 ShowtimesCreateCompletedEvent 이벤트가 발생해야 한다', async () => {
             jest.spyOn(showtimesEventListener, 'onShowtimesCreateCompleted')
             const res = await req.post(createShowtimeRequest())
             expectCreated(res)

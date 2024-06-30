@@ -3,28 +3,24 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
-import { durationMinutes } from './showtimes.fixture'
 
-type PromiseCallback = { resolve: (value: unknown) => void; reject: (value: any) => void }
+type PromiseHandlers = {
+    resolve: (value: unknown) => void
+    reject: (reason?: any) => void
+}
 
 @Injectable()
 export class TicketsEventListener {
-    promises: Map<string, PromiseCallback>
+    private promises = new Map<string, PromiseHandlers>()
 
-    constructor() {
-        this.promises = new Map<string, PromiseCallback>()
+    @OnEvent(TicketsCreateCompleteEvent.eventName)
+    onTicketsCreateCompleted(event: TicketsCreateCompleteEvent): void {
+        this.handleEvent(event)
     }
 
-    @OnEvent(TicketsCreateCompleteEvent.eventName, { async: true })
-    async onTicketsCreateCompleted(event: TicketsCreateCompleteEvent) {
-        const promise = this.promises.get(event.batchId)
-        promise?.resolve(event)
-    }
-
-    @OnEvent(TicketsCreateErrorEvent.eventName, { async: true })
-    async onTicketsCreateError(event: { message: string; batchId: string }) {
-        const promise = this.promises.get(event.batchId)
-        promise?.reject(event)
+    @OnEvent(TicketsCreateErrorEvent.eventName)
+    onTicketsCreateError(event: TicketsCreateErrorEvent): void {
+        this.handleEvent(event, true)
     }
 
     awaitCompleteEvent(batchId: string): Promise<void> {
@@ -32,80 +28,74 @@ export class TicketsEventListener {
             this.promises.set(batchId, { resolve, reject })
         })
     }
+
+    private handleEvent(event: TicketsCreateErrorEvent | TicketsCreateCompleteEvent, isError = false): void {
+        const promise = this.promises.get(event.batchId)
+        if (!promise) return
+
+        const handler = isError ? promise.reject : promise.resolve
+        handler(event)
+        this.promises.delete(event.batchId)
+    }
 }
 
-export async function createTickets(
-    showtimesService: ShowtimesService,
-    ticketsEventListener: TicketsEventListener,
-    movieId: string,
-    theaterIds: string[]
-): Promise<{ batchId: string }> {
-    const { batchId } = await showtimesService.createShowtimes({
-        movieId,
-        theaterIds,
-        durationMinutes,
-        startTimes: [
-            new Date('2013-01-31T12:00'),
-            new Date('2013-01-31T14:00'),
-            new Date('2013-01-31T16:30'),
-            new Date('2013-01-31T18:30')
-        ]
-    })
+export class TicketsFactory {
+    constructor(
+        private showtimesService: ShowtimesService,
+        private ticketsEventListener: TicketsEventListener,
+        private readonly movieId: string,
+        private readonly theaterIds: string[]
+    ) {}
 
-    await ticketsEventListener.awaitCompleteEvent(batchId)
-
-    return { batchId }
-}
-
-export async function createTicketsInParallel(
-    showtimesService: ShowtimesService,
-    ticketsEventListener: TicketsEventListener,
-    movieId: string,
-    theaterIds: string[],
-    count: number
-): Promise<string[]> {
-    const batchIds: string[] = []
-
-    const promises: Promise<void>[] = []
-
-    for (let i = 0; i < count; i++) {
-        const { batchId } = await showtimesService.createShowtimes({
-            movieId,
-            theaterIds,
-            durationMinutes,
-            startTimes: [new Date(1900, i, 31, 12, 0)]
+    async createTickets(): Promise<{ batchId: string }> {
+        const { batchId } = await this.showtimesService.createShowtimes({
+            movieId: this.movieId,
+            theaterIds: this.theaterIds,
+            durationMinutes: 1,
+            startTimes: [
+                new Date('2013-01-31T12:00'),
+                new Date('2013-01-31T14:00'),
+                new Date('2013-01-31T16:30'),
+                new Date('2013-01-31T18:30')
+            ]
         })
-
-        batchIds.push(batchId)
-
-        const promise = ticketsEventListener.awaitCompleteEvent(batchId)
-        promises.push(promise)
+        await this.ticketsEventListener.awaitCompleteEvent(batchId)
+        return { batchId }
     }
 
-    await Promise.all(promises)
-
-    return batchIds
-}
-
-export function sortTickets(tickets: TicketDto[]) {
-    return tickets.sort((a, b) => {
-        if (a.showtimeId === b.showtimeId) {
-            const aStr = JSON.stringify(a.seat)
-            const bStr = JSON.stringify(b.seat)
-
-            return aStr.localeCompare(bStr)
+    async createTicketsInParallel(length: number): Promise<string[]> {
+        const createShowtime = async (index: number) => {
+            const { batchId } = await this.showtimesService.createShowtimes({
+                movieId: this.movieId,
+                theaterIds: this.theaterIds,
+                durationMinutes: 1,
+                startTimes: [new Date(1900, index, 31, 12, 0)]
+            })
+            await this.ticketsEventListener.awaitCompleteEvent(batchId)
+            return batchId
         }
 
-        return a.showtimeId.localeCompare(b.showtimeId)
+        return Promise.all(Array.from({ length }, (_, i) => createShowtime(i)))
+    }
+}
+
+export function sortTickets(tickets: TicketDto[]): TicketDto[] {
+    return tickets.sort((a, b) => {
+        const comparison = a.showtimeId.localeCompare(b.showtimeId)
+
+        if (comparison !== 0) return comparison
+
+        return JSON.stringify(a.seat).localeCompare(JSON.stringify(b.seat))
     })
 }
 
 export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeDto[]) {
     const tickets: TicketDto[] = []
 
-    for (const theater of theaters) {
-        for (const showtime of showtimes) {
-            if (showtime.theaterId === theater.id) {
+    theaters.flatMap((theater) => {
+        showtimes
+            .filter((showtime) => showtime.theaterId === theater.id)
+            .flatMap((showtime) => {
                 forEachSeat(theater.seatmap, (seat: Seat) => {
                     tickets.push({
                         id: expect.anything(),
@@ -114,9 +104,8 @@ export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeD
                         status: 'open'
                     })
                 })
-            }
-        }
-    }
+            })
+    })
 
     return tickets
 }

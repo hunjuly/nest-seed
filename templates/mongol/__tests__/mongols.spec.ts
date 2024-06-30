@@ -39,7 +39,7 @@ describe('MongolsController', () => {
         it('Create a mongol', async () => {
             const res = await req.post({ url: '/mongols', body: createMongolDto })
 
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
+            expectCreated(res)
             expect(res.body).toEqual({
                 id: expect.anything(),
                 ...createMongolDto
@@ -52,7 +52,7 @@ describe('MongolsController', () => {
                 body: { ...createMongolDto, email: mongol.email }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
+            expectConflict(res)
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
@@ -61,7 +61,7 @@ describe('MongolsController', () => {
                 body: {}
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expectBadRequest(res)
         })
     })
 
@@ -77,7 +77,7 @@ describe('MongolsController', () => {
             }
 
             const updateResponse = await req.patch({ url: `/mongols/${mongol.id}`, body: updateData })
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
+            expectOk(updateResponse)
 
             const getResponse = await req.get({ url: `/mongols/${mongol.id}` })
 
@@ -100,7 +100,7 @@ describe('MongolsController', () => {
                 body: {}
             })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -116,7 +116,7 @@ describe('MongolsController', () => {
         it('NOT_FOUND(404) if mongol is not found', async () => {
             const res = await req.delete({ url: `/mongols/${nullObjectId}` })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -127,7 +127,7 @@ describe('MongolsController', () => {
                 query: { orderby: 'name:asc' }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(mongols)
         })
 
@@ -137,7 +137,7 @@ describe('MongolsController', () => {
                 query: { name: mongol.name }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual([mongol])
         })
 
@@ -150,7 +150,7 @@ describe('MongolsController', () => {
             sortByName(res.body.items)
             sortByName(mongols)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(mongols)
         })
 
@@ -163,7 +163,7 @@ describe('MongolsController', () => {
                 query: { skip, take, orderby: 'name:asc' }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual({
                 items: mongols.slice(skip, skip + take),
                 total: mongols.length,
@@ -180,7 +180,7 @@ describe('MongolsController', () => {
 
             sortByName(mongols)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(mongols)
         })
 
@@ -192,7 +192,7 @@ describe('MongolsController', () => {
 
             sortByNameDescending(mongols)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(mongols)
         })
     })
@@ -209,7 +209,7 @@ describe('MongolsController', () => {
             sortByName(res.body)
             sortByName(mongols)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(mongols)
         })
     })
@@ -218,14 +218,14 @@ describe('MongolsController', () => {
         it('Retrieve a mongol by ID', async () => {
             const res = await req.get({ url: `/mongols/${mongol.id}` })
 
-            expect(res.status).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(mongol)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
             const res = await req.get({ url: `/mongols/${nullObjectId}` })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 })

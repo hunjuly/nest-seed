@@ -39,7 +39,7 @@ describe('Pagination', () => {
             query: { skip, take, orderby: 'name:asc' }
         })
 
-        expect(res.status).toEqual(HttpStatus.OK)
+        expectOk(res)
         expect(res.body).toEqual({
             orderby: { direction: 'asc', name: 'name' },
             skip,

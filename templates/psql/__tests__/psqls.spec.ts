@@ -33,7 +33,7 @@ describe('PsqlsController', () => {
                 body: createPsqlDto
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
+            expectCreated(res)
             expect(res.body).toEqual({
                 id: expect.anything(),
                 ...createPsqlDto
@@ -46,7 +46,7 @@ describe('PsqlsController', () => {
                 body: { ...createPsqlDto, email: psql.email }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.CONFLICT)
+            expectConflict(res)
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
@@ -55,7 +55,7 @@ describe('PsqlsController', () => {
                 body: {}
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expectBadRequest(res)
         })
     })
 
@@ -68,7 +68,7 @@ describe('PsqlsController', () => {
 
             const getResponse = await req.get({ url: `/psqls/${psql.id}` })
 
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
+            expectOk(updateResponse)
             expect(updateResponse.body).toEqual({ ...psql, name: 'Updated Psql' })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
@@ -88,7 +88,7 @@ describe('PsqlsController', () => {
                 body: {}
             })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -104,7 +104,7 @@ describe('PsqlsController', () => {
         it('NOT_FOUND(404) if psql is not found', async () => {
             const res = await req.delete({ url: `/psqls/${nullUUID}` })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -115,7 +115,7 @@ describe('PsqlsController', () => {
                 query: { orderby: 'name:asc' }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(psqls)
         })
 
@@ -125,7 +125,7 @@ describe('PsqlsController', () => {
                 query: { name: psql.name }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual([psql])
         })
 
@@ -138,7 +138,7 @@ describe('PsqlsController', () => {
             sortByName(res.body.items)
             sortByName(psqls)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(psqls)
         })
 
@@ -151,7 +151,7 @@ describe('PsqlsController', () => {
                 query: { skip, take, orderby: 'name:asc' }
             })
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual({
                 items: psqls.slice(skip, skip + take),
                 total: psqls.length,
@@ -168,7 +168,7 @@ describe('PsqlsController', () => {
 
             sortByName(psqls)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(psqls)
         })
 
@@ -180,7 +180,7 @@ describe('PsqlsController', () => {
 
             sortByNameDescending(psqls)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(psqls)
         })
     })
@@ -197,7 +197,7 @@ describe('PsqlsController', () => {
             sortByName(res.body)
             sortByName(psqls)
 
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(psqls)
         })
     })
@@ -206,14 +206,14 @@ describe('PsqlsController', () => {
         it('Retrieve a psql by ID', async () => {
             const res = await req.get({ url: `/psqls/${psql.id}` })
 
-            expect(res.status).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(psql)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
             const res = await req.get({ url: `/psqls/${nullUUID}` })
 
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 })

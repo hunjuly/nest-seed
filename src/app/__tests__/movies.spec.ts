@@ -1,10 +1,17 @@
 import { expect } from '@jest/globals'
-import { HttpStatus } from '@nestjs/common'
 import { MoviesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import {
+    HttpRequest,
+    HttpTestContext,
+    createHttpTestContext,
+    expectBadRequest,
+    expectCreated,
+    expectNotFound,
+    expectOk
+} from 'common/test'
 import { createMovies } from './movies.fixture'
 
 describe('/movies', () => {
@@ -39,18 +46,14 @@ describe('/movies', () => {
             }
 
             const res = await req.post({ url: '/movies', body: createMovieDto })
-
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
-            expect(res.body).toEqual({
-                id: expect.anything(),
-                ...createMovieDto
-            })
+            expectCreated(res)
+            expect(res.body).toEqual({ id: expect.anything(), ...createMovieDto })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
             const res = await req.post({ url: '/movies', body: {} })
 
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expectBadRequest(res)
         })
     })
 
@@ -74,10 +77,11 @@ describe('/movies', () => {
             }
 
             const updateResponse = await req.patch({ url: `/movies/${movie.id}`, body: updateData })
+            expectOk(updateResponse)
 
             const getResponse = await req.get({ url: `/movies/${movie.id}` })
+            expectOk(getResponse)
 
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
             expect(updateResponse.body).toEqual({ ...movie, ...updateData })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
@@ -87,8 +91,7 @@ describe('/movies', () => {
                 url: `/movies/${nullObjectId}`,
                 body: {}
             })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -102,16 +105,15 @@ describe('/movies', () => {
 
         it('Delete a movie', async () => {
             const deleteResponse = await req.delete({ url: `/movies/${movie.id}` })
-            const getResponse = await req.get({ url: `/movies/${movie.id}` })
+            expectOk(deleteResponse)
 
-            expect(deleteResponse.status).toEqual(HttpStatus.OK)
-            expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
+            const getResponse = await req.get({ url: `/movies/${movie.id}` })
+            expectNotFound(getResponse)
         })
 
         it('NOT_FOUND(404) if movie is not found', async () => {
             const res = await req.delete({ url: `/movies/${nullObjectId}` })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -129,8 +131,7 @@ describe('/movies', () => {
                 url: '/movies',
                 query: { orderby: 'title:asc' }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(movies)
         })
 
@@ -139,8 +140,7 @@ describe('/movies', () => {
                 url: '/movies',
                 query: { title: 'MovieTitle-' }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(expect.arrayContaining(movies))
         })
 
@@ -149,35 +149,31 @@ describe('/movies', () => {
                 url: '/movies',
                 query: { releaseDate: movie.releaseDate }
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual([movie])
         })
 
         it('Retrieve movies by genre', async () => {
+            const dramaMovies = movies.filter((movie) => movie.genre.includes(MovieGenre.Drama))
+
             const res = await req.get({
                 url: '/movies',
                 query: { genre: 'Drama' }
             })
-
-            const dramaMovies = movies.filter((movie) => movie.genre.includes(MovieGenre.Drama))
-
-            expect(res.statusCode).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body.items).toEqual(expect.arrayContaining(dramaMovies))
         })
 
         describe('GET /movies/:id', () => {
             it('Retrieve a movie by ID', async () => {
                 const res = await req.get({ url: `/movies/${movie.id}` })
-
-                expect(res.status).toEqual(HttpStatus.OK)
+                expectOk(res)
                 expect(res.body).toEqual(movie)
             })
 
             it('NOT_FOUND(404) if ID does not exist', async () => {
                 const res = await req.get({ url: `/movies/${nullObjectId}` })
-
-                expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+                expectNotFound(res)
             })
         })
     })

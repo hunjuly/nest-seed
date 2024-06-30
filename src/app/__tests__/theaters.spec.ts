@@ -1,10 +1,16 @@
 import { expect } from '@jest/globals'
-import { HttpStatus } from '@nestjs/common'
 import { TheatersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
-import { HttpTestContext, createHttpTestContext, expectNotFound, expectOk } from 'common/test'
+import {
+    HttpTestContext,
+    createHttpTestContext,
+    expectBadRequest,
+    expectCreated,
+    expectNotFound,
+    expectOk
+} from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createTheaters, seatmap } from './theaters.fixture'
 
@@ -36,8 +42,7 @@ describe('/theaters', () => {
 
         it('Create a theater', async () => {
             const res = await req.post({ url: '/theaters', body: createData })
-
-            expect(res.statusCode).toEqual(HttpStatus.CREATED)
+            expectCreated(res)
             expect(res.body).toEqual({
                 id: expect.anything(),
                 ...createData
@@ -49,8 +54,7 @@ describe('/theaters', () => {
                 url: '/theaters',
                 body: {}
             })
-
-            expect(res.statusCode).toEqual(HttpStatus.BAD_REQUEST)
+            expectBadRequest(res)
         })
     })
 
@@ -70,9 +74,10 @@ describe('/theaters', () => {
             }
 
             const updateResponse = await req.patch({ url: `/theaters/${theater.id}`, body: updateData })
-            expect(updateResponse.status).toEqual(HttpStatus.OK)
+            expectOk(updateResponse)
 
             const getResponse = await req.get({ url: `/theaters/${theater.id}` })
+            expectOk(getResponse)
 
             const expected = { ...theater, ...updateData }
             expect(updateResponse.body).toEqual(expected)
@@ -84,8 +89,7 @@ describe('/theaters', () => {
                 url: `/theaters/${nullObjectId}`,
                 body: {}
             })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 
@@ -107,9 +111,7 @@ describe('/theaters', () => {
 
         it('NOT_FOUND(404) if theater is not found', async () => {
             const res = await req.delete({ url: `/theaters/${nullObjectId}` })
-
             expectNotFound(res)
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
         })
     })
 
@@ -149,15 +151,13 @@ describe('/theaters', () => {
 
         it('Retrieve a theater by ID', async () => {
             const res = await req.get({ url: `/theaters/${theater.id}` })
-
-            expect(res.status).toEqual(HttpStatus.OK)
+            expectOk(res)
             expect(res.body).toEqual(theater)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
             const res = await req.get({ url: `/theaters/${nullObjectId}` })
-
-            expect(res.status).toEqual(HttpStatus.NOT_FOUND)
+            expectNotFound(res)
         })
     })
 })

@@ -1,5 +1,10 @@
-import { HttpStatus } from '@nestjs/common'
-import { HttpTestContext, createHttpTestContext } from 'common/test'
+import {
+    HttpTestContext,
+    createHttpTestContext,
+    expectBadRequest,
+    expectInternalServerError,
+    expectOk
+} from 'common/test'
 import { TestModule } from './filter.fixture'
 
 describe('common/filters', () => {
@@ -22,19 +27,16 @@ describe('common/filters', () => {
 
     it('ErrorFilter', async () => {
         const res = await req.get({ url: '/error' })
-
-        expect(res.status).toEqual(HttpStatus.INTERNAL_SERVER_ERROR)
+        expectInternalServerError(res)
     })
 
     it('HttpExceptionFilter', async () => {
         const res = await req.get({ url: '/http-exception' })
-
-        expect(res.status).toEqual(HttpStatus.BAD_REQUEST)
+        expectBadRequest(res)
     })
 
     it('HttpSuccessInterceptor', async () => {
         const res = await req.get({ url: '/http-success' })
-
-        expect(res.status).toEqual(HttpStatus.OK)
+        expectOk(res)
     })
 })
