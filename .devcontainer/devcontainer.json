@@ -15,7 +15,7 @@
         "NODE_ENV": "development"
     },
     // 이 프로젝트에서 실행하는 모든 컨테이너는 같은 network에 있어야 한다
-    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} || true",
+    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} >/dev/null 2>&1 || true",
     "runArgs": [
         "--network",
         "${containerWorkspaceFolderBasename}",
