@@ -6,7 +6,7 @@ import { TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createMovies } from './movies.fixture'
+import { createMovie } from './movies.fixture'
 import { ShowtimesEventListener, ShowtimesFactory, areShowtimesUnique } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
@@ -31,8 +31,8 @@ describe('/showtimes', () => {
         const module = testContext.module
 
         const moviesService = module.get(MoviesService)
-        const movies = await createMovies(moviesService, 1)
-        movieId = movies[0].id
+        const movie = await createMovie(moviesService)
+        movieId = movie.id
 
         const theatersService = module.get(TheatersService)
         const theaters = await createTheaters(theatersService, 3)
