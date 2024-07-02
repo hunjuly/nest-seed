@@ -1,4 +1,4 @@
-# Create Tickets
+# Showtimes Registration
 ```
 Showtime과 Ticket을 한 번에 생성하려는 시행착오가 있었다.
 ShowtimesService에서 createTickets를 호출했다.
