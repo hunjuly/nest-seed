@@ -13,7 +13,7 @@ export enum MovieGenre {
     Western = 'Western'
 }
 
-export enum MovieRated {
+export enum MovieRating {
     G = 'G',
     PG = 'PG',
     PG13 = 'PG13',
@@ -41,8 +41,8 @@ export class Movie extends MongooseSchema {
     @Prop({ default: 'John Doe' })
     director: string
 
-    @Prop({ type: String, enum: MovieRated })
-    rated: MovieRated
+    @Prop({ type: String, enum: MovieRating })
+    rating: MovieRating
 }
 
 export const MovieSchema = createMongooseSchema(Movie)

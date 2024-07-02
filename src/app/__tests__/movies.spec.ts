@@ -12,7 +12,7 @@ import {
     expectNotFound,
     expectOk
 } from 'common/test'
-import { createMovies } from './movies.fixture'
+import { createMovie, createMovies } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
@@ -42,7 +42,7 @@ describe('/movies', () => {
                 plot: 'movie plot',
                 durationMinutes: 90,
                 director: 'James Cameron',
-                rated: 'PG'
+                rating: 'PG'
             }
 
             const res = await req.post({ url: '/movies', body: createMovieDto })
@@ -61,8 +61,7 @@ describe('/movies', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
-            const movies = await createMovies(moviesService, 1)
-            movie = movies[0]
+            movie = await createMovie(moviesService)
         })
 
         it('Update a movie', async () => {
@@ -73,7 +72,7 @@ describe('/movies', () => {
                 plot: 'update plot',
                 durationMinutes: 50,
                 director: 'Steven Spielberg',
-                rated: 'NC17'
+                rating: 'NC17'
             }
 
             const updateResponse = await req.patch({ url: `/movies/${movie.id}`, body: updateData })
@@ -99,8 +98,7 @@ describe('/movies', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
-            const movies = await createMovies(moviesService, 1)
-            movie = movies[0]
+            movie = await createMovie(moviesService)
         })
 
         it('Delete a movie', async () => {
@@ -117,64 +115,74 @@ describe('/movies', () => {
         })
     })
 
-    describe('GET /movies', () => {
-        let movies: MovieDto[]
+    describe('GET /movies/:id', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
-            movies = await createMovies(moviesService, 20)
-            movie = movies[0]
+            movie = await createMovie(moviesService)
         })
 
-        it('Retrieve all movies', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { orderby: 'title:asc' }
-            })
+        it('Retrieve a movie by ID', async () => {
+            const res = await req.get({ url: `/movies/${movie.id}` })
             expectOk(res)
-            expect(res.body.items).toEqual(movies)
+            expect(res.body).toEqual(movie)
         })
 
-        it('Retrieve movies by partial title', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { title: 'MovieTitle-' }
-            })
+        it('NOT_FOUND(404) if ID does not exist', async () => {
+            const res = await req.get({ url: `/movies/${nullObjectId}` })
+            expectNotFound(res)
+        })
+    })
+
+    describe('GET /movies', () => {
+        let movies: MovieDto[]
+
+        beforeEach(async () => {
+            movies = await createMovies(moviesService)
+        })
+
+        const getMovies = async (query: Record<string, any> = {}) => {
+            const res = await req.get({ url: '/movies', query })
             expectOk(res)
-            expect(res.body.items).toEqual(expect.arrayContaining(movies))
+            return res.body
+        }
+
+        it('should retrieve all movies', async () => {
+            const result = await getMovies()
+
+            expect(result).toEqual({
+                skip: 0,
+                take: expect.any(Number),
+                total: movies.length,
+                items: expect.arrayContaining(movies)
+            })
         })
 
-        it('Retrieve movies by releaseDate', async () => {
-            const res = await req.get({
-                url: '/movies',
-                query: { releaseDate: movie.releaseDate }
-            })
-            expectOk(res)
-            expect(res.body.items).toEqual([movie])
+        it('should retrieve movies by partial title', async () => {
+            const partialTitle = 'title-01'
+            const result = await getMovies({ title: partialTitle })
+
+            const expected = movies.filter((movie) => movie.title.startsWith(partialTitle))
+            expect(result.items).toEqual(expect.arrayContaining(expected))
+            expect(result.items.length).toBe(expected.length)
         })
 
-        it('Retrieve movies by genre', async () => {
-            const dramaMovies = movies.filter((movie) => movie.genre.includes(MovieGenre.Drama))
+        it('should retrieve movies by releaseDate', async () => {
+            const targetDate = movies[0].releaseDate
+            const result = await getMovies({ releaseDate: targetDate })
 
-            const res = await req.get({
-                url: '/movies',
-                query: { genre: 'Drama' }
-            })
-            expectOk(res)
-            expect(res.body.items).toEqual(expect.arrayContaining(dramaMovies))
+            const expected = movies.filter((movie) => movie.releaseDate.getTime() === targetDate.getTime())
+            expect(result.items).toEqual(expect.arrayContaining(expected))
+            expect(result.items.length).toBe(expected.length)
         })
 
-        describe('GET /movies/:id', () => {
-            it('Retrieve a movie by ID', async () => {
-                const res = await req.get({ url: `/movies/${movie.id}` })
-                expectOk(res)
-                expect(res.body).toEqual(movie)
-            })
+        it('should retrieve movies by genre', async () => {
+            const targetGenre = MovieGenre.Drama
+            const result = await getMovies({ genre: targetGenre })
 
-            it('NOT_FOUND(404) if ID does not exist', async () => {
-                const res = await req.get({ url: `/movies/${nullObjectId}` })
-                expectNotFound(res)
-            })
+            const expected = movies.filter((movie) => movie.genre.includes(targetGenre))
+            expect(result.items).toEqual(expect.arrayContaining(expected))
+            expect(result.items.length).toBe(expected.length)
         })
     })
 })

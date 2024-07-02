@@ -23,7 +23,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         if (updateDto.plot) movie.plot = updateDto.plot
         if (updateDto.durationMinutes) movie.durationMinutes = updateDto.durationMinutes
         if (updateDto.director) movie.director = updateDto.director
-        if (updateDto.rated) movie.rated = updateDto.rated
+        if (updateDto.rating) movie.rating = updateDto.rating
 
         await movie.save()
 

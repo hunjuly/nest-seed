@@ -1,16 +1,4 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards,
-    UsePipes
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
 import { CreateMovieDto, MoviesFilterDto, MoviesService, UpdateMovieDto } from 'app/services/movies'
 import { PaginationOption, PaginationPipe } from 'common'
 import { MovieExistsGuard } from './guards'
@@ -25,7 +13,7 @@ export class MoviesController {
     }
 
     @Get()
-    @UsePipes(new PaginationPipe(50))
+    @UsePipes(new PaginationPipe(100))
     async findPagedCustomers(@Query() filter: MoviesFilterDto, @Query() pagination: PaginationOption) {
         return this.moviesService.findPagedMovies(filter, pagination)
     }

@@ -1,6 +1,6 @@
 import { ShowtimesService } from 'app/services/showtimes'
 import { ShowtimesCreationResult, ShowtimesEventListener } from './showtimes.fixture'
-import { MovieDto, MovieGenre, MovieRated, MoviesService } from 'app/services/movies'
+import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'app/services/movies'
 
 export async function createMovies(moviesService: MoviesService): Promise<MovieDto[]> {
     const common = {
@@ -8,7 +8,7 @@ export async function createMovies(moviesService: MoviesService): Promise<MovieD
         plot: `.`,
         durationMinutes: 1,
         director: '.',
-        rated: MovieRated.PG
+        rating: MovieRating.PG
     }
 
     const movies = await Promise.all([

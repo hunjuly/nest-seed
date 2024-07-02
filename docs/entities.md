@@ -33,7 +33,7 @@ class Movie {
     plot: string
     durationMinutes : number
     director: string
-    rated: string
+    rating: string
 }
 
 class Theater{

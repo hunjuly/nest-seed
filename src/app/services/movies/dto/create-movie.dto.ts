@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer'
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator'
-import { MovieGenre, MovieRated } from '../schemas'
+import { MovieGenre, MovieRating } from '../schemas'
 
 export class CreateMovieDto {
     @IsString()
@@ -25,6 +25,6 @@ export class CreateMovieDto {
     @IsString()
     director: string
 
-    @IsEnum(MovieRated, { each: true })
-    rated: MovieRated
+    @IsEnum(MovieRating, { each: true })
+    rating: MovieRating
 }

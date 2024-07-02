@@ -20,5 +20,5 @@ export class MoviesFilterDto {
     director?: string
 
     @IsOptional()
-    rated?: string
+    rating?: string
 }

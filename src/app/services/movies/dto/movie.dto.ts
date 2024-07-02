@@ -1,4 +1,4 @@
-import { Movie, MovieGenre, MovieRated } from '../schemas'
+import { Movie, MovieGenre, MovieRating } from '../schemas'
 
 export class MovieDto {
     id: string
@@ -8,10 +8,10 @@ export class MovieDto {
     plot: string
     durationMinutes: number
     director: string
-    rated: MovieRated
+    rating: MovieRating
 
     constructor(movie: Movie) {
-        const { _id, title, genre, releaseDate, plot, durationMinutes, director, rated } = movie
+        const { _id, title, genre, releaseDate, plot, durationMinutes, director, rating } = movie
 
         Object.assign(this, {
             id: _id.toString(),
@@ -21,7 +21,7 @@ export class MovieDto {
             plot,
             durationMinutes,
             director,
-            rated
+            rating
         })
     }
 }
