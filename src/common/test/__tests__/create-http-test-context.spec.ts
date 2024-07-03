@@ -24,7 +24,7 @@ describe('Service Mocking', () => {
     })
 
     afterEach(async () => {
-        if (testContext) await testContext.close()
+        await testContext?.close()
     })
 
     it('should return mock message', async () => {

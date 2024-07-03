@@ -53,6 +53,12 @@ export class ShowtimesFactory {
         this.promises.delete(event.batchId)
     }
 
+    awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { resolve, reject })
+        })
+    }
+
     async createShowtimes(createDto: CreateShowtimesDto): Promise<ShowtimesCreationResult> {
         const { batchId } = await this.showtimesService.createShowtimes(createDto)
 
@@ -63,12 +69,6 @@ export class ShowtimesFactory {
         const promises = createDtos.map((createDto) => this.createShowtimes(createDto))
 
         return Promise.all(promises)
-    }
-
-    awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
-        return new Promise((resolve, reject) => {
-            this.promises.set(batchId, { resolve, reject })
-        })
     }
 }
 
@@ -84,24 +84,4 @@ export function makeExpectedShowtime(createDto: CreateShowtimesDto): ShowtimeDto
             endTime: addMinutes(startTime, durationMinutes)
         }))
     )
-}
-
-export function sortShowtimes(showtimes: ShowtimeDto[]): ShowtimeDto[] {
-    return [...showtimes].sort((a, b) => {
-        const { id: _aId, ...aRest } = a
-        const { id: _bId, ...bRest } = b
-        return JSON.stringify(aRest).localeCompare(JSON.stringify(bRest))
-    })
-}
-
-export function expectEqualShowtimes(
-    actual: ShowtimeDto[] | undefined,
-    expected: ShowtimeDto[] | undefined
-): void {
-    if (!actual || !expected) fail('actual or expected undefined')
-
-    const sortedActual = sortShowtimes(actual)
-    const sortedExpected = sortShowtimes(expected)
-
-    expect(sortedActual).toEqual(sortedExpected)
 }

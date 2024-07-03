@@ -34,6 +34,12 @@ export class TicketsFactory {
         this.promises.delete(event.batchId)
     }
 
+    private awaitCompleteEvent(batchId: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { resolve, reject })
+        })
+    }
+
     async createTickets(createDto: CreateShowtimesDto): Promise<{ batchId: string }> {
         const { batchId } = await this.showtimesService.createShowtimes(createDto)
 
@@ -62,22 +68,6 @@ export class TicketsFactory {
 
         return showtimes
     }
-
-    private awaitCompleteEvent(batchId: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.promises.set(batchId, { resolve, reject })
-        })
-    }
-}
-
-export function sortTickets(tickets: TicketDto[]): TicketDto[] {
-    return tickets.sort((a, b) => {
-        const comparison = a.showtimeId.localeCompare(b.showtimeId)
-
-        if (comparison !== 0) return comparison
-
-        return JSON.stringify(a.seat).localeCompare(JSON.stringify(b.seat))
-    })
 }
 
 export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeDto[]) {

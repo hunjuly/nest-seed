@@ -7,8 +7,9 @@ import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovie } from './movies.fixture'
-import { ShowtimesFactory, expectEqualShowtimes, makeExpectedShowtime } from './showtimes.fixture'
+import { ShowtimesFactory, makeExpectedShowtime } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
+import { expectEqualDtos } from './test.util'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
@@ -83,7 +84,42 @@ describe('/showtimes', () => {
             const { res, actual } = await requestShowtimeCreation(req, body)
 
             expect(actual.batchId).toEqual(res.body.batchId)
-            expectEqualShowtimes(actual.createdShowtimes, makeExpectedShowtime(body))
+            expectEqualDtos(actual.createdShowtimes, makeExpectedShowtime(body))
+        })
+    })
+
+    describe('Find showtimes', () => {
+        let createdShowtimes: ShowtimeDto[]
+        let batchId: string
+
+        beforeEach(async () => {
+            const result = await factory.createShowtimes(
+                createDto({ startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')] })
+            )
+            createdShowtimes = result.createdShowtimes!
+            batchId = result.batchId
+        })
+
+        it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/showtimes', query: { batchId } })
+            expectOk(res)
+            expectEqualDtos(res.body.items, createdShowtimes)
+        })
+
+        it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/showtimes', query: { theaterId } })
+            expectOk(res)
+
+            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
+            expectEqualDtos(res.body.items, expectedShowtimes)
+        })
+
+        it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/showtimes', query: { movieId } })
+            expectOk(res)
+
+            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)
+            expectEqualDtos(res.body.items, expectedShowtimes)
         })
     })
 
@@ -120,7 +156,7 @@ describe('/showtimes', () => {
 
             const actual = results.flatMap((result) => result.createdShowtimes || [])
             const expected = createDtos.flatMap((createDto) => makeExpectedShowtime(createDto))
-            expectEqualShowtimes(actual, expected)
+            expectEqualDtos(actual, expected)
         })
 
         it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다', async () => {
@@ -172,34 +208,7 @@ describe('/showtimes', () => {
             )
 
             expect(actual.batchId).toBeDefined()
-            expectEqualShowtimes(actual.conflictShowtimes, expectedShowtimes)
-        })
-    })
-
-    describe('Find Showtimes', () => {
-        let createdShowtimes: ShowtimeDto[]
-        let batchId: string
-
-        beforeEach(async () => {
-            const result = await factory.createShowtimes(
-                createDto({ startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')] })
-            )
-            createdShowtimes = result.createdShowtimes!
-            batchId = result.batchId
-        })
-
-        it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const res = await req.get({ url: '/showtimes', query: { batchId } })
-            expectOk(res)
-            expectEqualShowtimes(res.body.items, createdShowtimes)
-        })
-
-        it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const res = await req.get({ url: '/showtimes', query: { theaterId } })
-            expectOk(res)
-
-            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
-            expectEqualShowtimes(res.body.items, expectedShowtimes)
+            expectEqualDtos(actual.conflictShowtimes, expectedShowtimes)
         })
     })
 })

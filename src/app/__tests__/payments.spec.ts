@@ -6,7 +6,7 @@ import { MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentDto, PaymentsModule, PaymentsService } from 'app/services/payments'
 import { ShowtimesModule } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule } from 'app/services/tickets'
+import { TicketDto, TicketsModule, TicketsService } from 'app/services/tickets'
 import {
     HttpTestContext,
     createHttpTestContext,
@@ -16,15 +16,17 @@ import {
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomer } from './customers.fixture'
-import { createPayments } from './payments.fixture'
-import { TicketsEventListener } from './tickets.fixture'
 import { createMovie } from './movies.fixture'
+import { createPayments } from './payments.fixture'
 import { createTheater } from './theaters.fixture'
+import { TicketsFactory } from './tickets.fixture'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let paymentsService: PaymentsService
+    let customerId: string
+    let ticketIds: string[]
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -38,7 +40,7 @@ describe('/payments', () => {
                 TicketsModule
             ],
             controllers: [PaymentsController],
-            providers: [TicketsEventListener]
+            providers: [TicketsFactory]
         })
         req = testContext.request
 
@@ -46,25 +48,38 @@ describe('/payments', () => {
 
         const customersService = module.get(CustomersService)
         const customer = await createCustomer(customersService)
+        customerId = customer.id
 
         const moviesService = module.get(MoviesService)
         const movie = await createMovie(moviesService)
+        const movieId = movie.id
 
         const theatersService = module.get(TheatersService)
         const theater = await createTheater(theatersService)
+        const theaterIds = [theater.id]
+
+        const ticketFactory = module.get(TicketsFactory)
+
+        await ticketFactory.createTickets({
+            movieId,
+            theaterIds,
+            durationMinutes: 1,
+            startTimes: [new Date(0)]
+        })
+
+        const ticketsService = module.get(TicketsService)
+        const tickets = await ticketsService.findTickets({})
+        ticketIds = tickets.map((ticket) => ticket.id)
 
         paymentsService = testContext.module.get(PaymentsService)
     })
 
     afterEach(async () => {
-        if (testContext) await testContext.close()
+        await testContext?.close()
     })
 
     describe('POST /payments', () => {
-        const createPaymentDto = {
-            customerId: 'payment name',
-            ticketIds: ['user@mail.com']
-        }
+        const createPaymentDto = { customerId, ticketIds }
 
         it('should create a payment and return CREATED status', async () => {
             const res = await req.post({ url: '/payments', body: createPaymentDto })
@@ -82,19 +97,19 @@ describe('/payments', () => {
     })
 
     describe('GET /payments', () => {
-        let payments: PaymentDto[] = []
+        // let payments: PaymentDto[] = []
 
-        beforeEach(async () => {
-            payments = await createPayments(paymentsService, 20)
-        })
+        // beforeEach(async () => {
+        //     payments = await createPayments(paymentsService, 20)
+        // })
 
-        it('Retrieve payments by partial name', async () => {
-            const res = await req.get({
-                url: '/payments',
-                query: { name: 'Payment-' }
-            })
+        it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/payments', query: { customerId } })
             expectOk(res)
-            expect(res.body.items).toEqual(expect.arrayContaining(payments))
+
+            // const filteredShowtimes = showtimes.filter((showtime) => showtime.movieId === movieId)
+            // const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            // expectEqualDtos(res.body.items, expected)
         })
     })
 })

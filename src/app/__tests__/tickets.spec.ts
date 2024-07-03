@@ -1,14 +1,15 @@
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
-import { CreateShowtimesDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { ShowtimeDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { TicketsModule, TicketsService } from 'app/services/tickets'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovie } from './movies.fixture'
+import { expectEqualDtos } from './test.util'
 import { createTheaters } from './theaters.fixture'
-import { TicketsFactory, makeExpectedTickets, sortTickets } from './tickets.fixture'
+import { TicketsFactory, makeExpectedTickets } from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
@@ -17,9 +18,9 @@ describe('/tickets', () => {
     let ticketsService: TicketsService
     let showtimesService: ShowtimesService
     let movieId: string
-    let theaterIds: string[]
     let theaters: TheaterDto[]
-    let createDto: CreateShowtimesDto
+    let theaterIds: string[]
+    let theaterId: string
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -38,54 +39,83 @@ describe('/tickets', () => {
         const theatersService = module.get(TheatersService)
         theaters = await createTheaters(theatersService, 3)
         theaterIds = theaters.map((theater) => theater.id)
+        theaterId = theaterIds[0]
 
         showtimesService = module.get(ShowtimesService)
         ticketsService = module.get(TicketsService)
         factory = module.get(TicketsFactory)
-
-        createDto = {
-            movieId,
-            theaterIds,
-            durationMinutes: 1,
-            startTimes: [new Date('1999-01-01')]
-        }
     })
 
     afterEach(async () => {
         await testContext?.close()
     })
 
-    it('should receive ShowtimesCreateCompletedEvent', async () => {
+    const createDto = () => ({
+        movieId,
+        theaterIds,
+        durationMinutes: 1,
+        startTimes: [new Date(0)]
+    })
+
+    it('ShowtimesCreateCompletedEvent 이벤트를 수신해야 한다', async () => {
         const spy = jest.spyOn(ticketsService, 'onShowtimesCreateCompleted')
-        await factory.createTickets(createDto)
+
+        await factory.createTickets(createDto())
+
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({ batchId: expect.anything() }))
     })
 
-    it('should emit tickets.create.completed event on successful ticket creation', async () => {
+    it('티켓 생성에 성공하면 TicketsCreateCompleteEvent 이벤트가 발생해야 한다', async () => {
         const spy = jest.spyOn(factory, 'onTicketsCreateCompleted')
-        await factory.createTickets(createDto)
+
+        await factory.createTickets(createDto())
+
         expect(spy).toHaveBeenCalledTimes(1)
     })
 
-    it('should create tickets and find them using API', async () => {
-        const { batchId } = await factory.createTickets(createDto)
-        const showtimes = await showtimesService.findShowtimes({ batchId })
-        const expectedTickets = makeExpectedTickets(theaters, showtimes)
+    describe('Find tickets', () => {
+        let batchId: string
+        let showtimes: ShowtimeDto[]
 
-        const res = await req.get({ url: '/tickets', query: { movieId, theaterIds } })
-        expectOk(res)
-        expect(res.body.items).toEqual(expect.arrayContaining(expectedTickets))
+        beforeEach(async () => {
+            const result = await factory.createTickets(createDto())
+            batchId = result.batchId
+
+            showtimes = await showtimesService.findShowtimes({ batchId })
+        })
+
+        it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/tickets', query: { batchId } })
+            expectOk(res)
+
+            const expected = makeExpectedTickets(theaters, showtimes)
+            expectEqualDtos(res.body.items, expected)
+        })
+
+        it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/tickets', query: { theaterId } })
+            expectOk(res)
+
+            const filteredShowtimes = showtimes.filter((showtime) => showtime.theaterId === theaterId)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            expectEqualDtos(res.body.items, expected)
+        })
+
+        it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/tickets', query: { movieId } })
+            expectOk(res)
+
+            const filteredShowtimes = showtimes.filter((showtime) => showtime.movieId === movieId)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            expectEqualDtos(res.body.items, expected)
+        })
     })
 
-    it('should successfully create tickets in parallel', async () => {
-        const showtimes = await factory.createTicketsInParallel(createDto, 100)
+    it('생성 요청이 동시에 발생해도 모든 요청이 성공적으로 완료되어야 한다', async () => {
+        const showtimes = await factory.createTicketsInParallel(createDto(), 100)
 
-        const expectedTickets = makeExpectedTickets(theaters, showtimes)
-        const tickets = await ticketsService.findTickets({ movieId, theaterIds })
-
-        sortTickets(expectedTickets)
-        sortTickets(tickets)
-
-        expect(tickets).toEqual(expectedTickets)
+        const actual = await ticketsService.findTickets({})
+        const expected = makeExpectedTickets(theaters, showtimes)
+        expectEqualDtos(actual, expected)
     })
 })

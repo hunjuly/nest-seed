@@ -27,7 +27,7 @@ describe('Pagination', () => {
     })
 
     afterEach(async () => {
-        if (testContext) await testContext.close()
+        await testContext?.close()
     })
 
     it('should apply pagination options correctly', async () => {

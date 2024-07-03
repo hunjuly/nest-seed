@@ -32,7 +32,7 @@ describe('/customers', () => {
     })
 
     afterEach(async () => {
-        if (testContext) await testContext.close()
+        await testContext?.close()
     })
 
     describe('POST /customers', () => {
