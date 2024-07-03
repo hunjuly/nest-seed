@@ -85,3 +85,23 @@ export function makeExpectedShowtime(createDto: CreateShowtimesDto): ShowtimeDto
         }))
     )
 }
+
+export function sortShowtimes(showtimes: ShowtimeDto[]): ShowtimeDto[] {
+    return [...showtimes].sort((a, b) => {
+        const { id: _aId, ...aRest } = a
+        const { id: _bId, ...bRest } = b
+        return JSON.stringify(aRest).localeCompare(JSON.stringify(bRest))
+    })
+}
+
+export function expectEqualShowtimes(
+    actual: ShowtimeDto[] | undefined,
+    expected: ShowtimeDto[] | undefined
+): void {
+    if (!actual || !expected) fail('actual or expected undefined')
+
+    const sortedActual = sortShowtimes(actual)
+    const sortedExpected = sortShowtimes(expected)
+
+    expect(sortedActual).toEqual(sortedExpected)
+}

@@ -7,7 +7,7 @@ import { nullObjectId } from 'common'
 import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovie } from './movies.fixture'
-import { ShowtimesFactory, makeExpectedShowtime } from './showtimes.fixture'
+import { ShowtimesFactory, expectEqualShowtimes, makeExpectedShowtime } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 
 describe('/showtimes', () => {
@@ -82,10 +82,8 @@ describe('/showtimes', () => {
             })
             const { res, actual } = await requestShowtimeCreation(req, body)
 
-            expect(actual).toEqual({
-                batchId: res.body.batchId,
-                createdShowtimes: expect.arrayContaining(makeExpectedShowtime(body))
-            })
+            expect(actual.batchId).toEqual(res.body.batchId)
+            expectEqualShowtimes(actual.createdShowtimes, makeExpectedShowtime(body))
         })
     })
 
@@ -122,8 +120,7 @@ describe('/showtimes', () => {
 
             const actual = results.flatMap((result) => result.createdShowtimes || [])
             const expected = createDtos.flatMap((createDto) => makeExpectedShowtime(createDto))
-
-            expect(actual).toEqual(expect.arrayContaining(expected))
+            expectEqualShowtimes(actual, expected)
         })
 
         it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다', async () => {
@@ -142,8 +139,8 @@ describe('/showtimes', () => {
     })
 
     describe('Conflict Checking', () => {
-        beforeEach(async () => {
-            await factory.createShowtimes(
+        it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
+            const { createdShowtimes } = await factory.createShowtimes(
                 createDto({
                     durationMinutes: 90,
                     startTimes: [
@@ -154,9 +151,7 @@ describe('/showtimes', () => {
                     ]
                 })
             )
-        })
 
-        it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
             const actual = await factory.createShowtimes(
                 createDto({
                     durationMinutes: 30,
@@ -168,21 +163,16 @@ describe('/showtimes', () => {
                 })
             )
 
-            expect(actual).toEqual({
-                batchId: expect.anything(),
-                conflictShowtimes: expect.arrayContaining(
-                    makeExpectedShowtime(
-                        createDto({
-                            durationMinutes: 90,
-                            startTimes: [
-                                new Date('2013-01-31T12:00'),
-                                new Date('2013-01-31T16:30'),
-                                new Date('2013-01-31T18:30')
-                            ]
-                        })
-                    )
-                )
-            })
+            const expectedShowtimes = createdShowtimes?.filter((showtime) =>
+                [
+                    new Date('2013-01-31T12:00').getTime(),
+                    new Date('2013-01-31T16:30').getTime(),
+                    new Date('2013-01-31T18:30').getTime()
+                ].includes(showtime.startTime.getTime())
+            )
+
+            expect(actual.batchId).toBeDefined()
+            expectEqualShowtimes(actual.conflictShowtimes, expectedShowtimes)
         })
     })
 
@@ -201,7 +191,7 @@ describe('/showtimes', () => {
         it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const res = await req.get({ url: '/showtimes', query: { batchId } })
             expectOk(res)
-            expect(res.body.items).toEqual(expect.arrayContaining(createdShowtimes))
+            expectEqualShowtimes(res.body.items, createdShowtimes)
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
@@ -209,7 +199,7 @@ describe('/showtimes', () => {
             expectOk(res)
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
-            expect(res.body.items).toEqual(expect.arrayContaining(expectedShowtimes))
+            expectEqualShowtimes(res.body.items, expectedShowtimes)
         })
     })
 })
