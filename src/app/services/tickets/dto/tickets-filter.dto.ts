@@ -9,4 +9,7 @@ export class TicketsFilterDto {
 
     @IsOptional()
     theaterIds?: string[]
+
+    @IsOptional()
+    ticketIds?: string[]
 }

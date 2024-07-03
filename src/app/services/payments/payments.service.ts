@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common'
-import { CreatePaymentDto, PaymentDto } from './dto'
+import { CreatePaymentDto, PaymentDto, PaymentsFilterDto } from './dto'
 import { PaymentsRepository } from './payments.repository'
+import { TicketsService } from '../tickets'
 
 @Injectable()
 export class PaymentsService {
-    constructor(private paymentsRepository: PaymentsRepository) {}
+    constructor(
+        private paymentsRepository: PaymentsRepository,
+        private ticketsService: TicketsService
+    ) {}
 
     async createPayment(createPaymentDto: CreatePaymentDto) {
         const savedPayment = await this.paymentsRepository.create(createPaymentDto)
+
+        await this.ticketsService.notifyTicketsPurchased(createPaymentDto.ticketIds)
 
         return new PaymentDto(savedPayment)
     }
@@ -18,8 +24,8 @@ export class PaymentsService {
         return paymentExists
     }
 
-    async findByCustomerId(customerId: string): Promise<PaymentDto[]> {
-        const payments = await this.paymentsRepository.findByCustomerId(customerId)
+    async findPayments(filter: PaymentsFilterDto): Promise<PaymentDto[]> {
+        const payments = await this.paymentsRepository.findPayments(filter)
 
         return payments.map((payment) => new PaymentDto(payment))
     }

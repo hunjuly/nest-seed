@@ -6,7 +6,7 @@ import { MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentDto, PaymentsModule, PaymentsService } from 'app/services/payments'
 import { ShowtimesModule } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketDto, TicketsModule, TicketsService } from 'app/services/tickets'
+import { TicketsModule, TicketsService } from 'app/services/tickets'
 import {
     HttpTestContext,
     createHttpTestContext,
@@ -17,7 +17,6 @@ import {
 import { HttpRequest } from 'src/common/test'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
-import { createPayments } from './payments.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
 
@@ -27,6 +26,7 @@ describe('/payments', () => {
     let paymentsService: PaymentsService
     let customerId: string
     let ticketIds: string[]
+    let ticketsService: TicketsService
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -67,7 +67,7 @@ describe('/payments', () => {
             startTimes: [new Date(0)]
         })
 
-        const ticketsService = module.get(TicketsService)
+        ticketsService = module.get(TicketsService)
         const tickets = await ticketsService.findTickets({})
         ticketIds = tickets.map((ticket) => ticket.id)
 
@@ -79,37 +79,50 @@ describe('/payments', () => {
     })
 
     describe('POST /payments', () => {
-        const createPaymentDto = { customerId, ticketIds }
-
         it('should create a payment and return CREATED status', async () => {
+            const createPaymentDto = { customerId, ticketIds }
+
             const res = await req.post({ url: '/payments', body: createPaymentDto })
             expectCreated(res)
             expect(res.body).toEqual({ id: expect.anything(), ...createPaymentDto })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({
-                url: '/payments',
-                body: {}
-            })
+            const res = await req.post({ url: '/payments', body: {} })
             expectBadRequest(res)
+        })
+
+        it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
+            const createPaymentDto = { customerId, ticketIds }
+
+            const res = await req.post({ url: '/payments', body: createPaymentDto })
+            expectCreated(res)
+
+            const tickets = await ticketsService.findTickets({ ticketIds })
+
+            const notSoldTickets = tickets.filter((ticket) => ticket.status !== 'sold')
+
+            expect(notSoldTickets).toHaveLength(0)
         })
     })
 
     describe('GET /payments', () => {
-        // let payments: PaymentDto[] = []
+        let payment: PaymentDto
 
-        // beforeEach(async () => {
-        //     payments = await createPayments(paymentsService, 20)
-        // })
+        beforeEach(async () => {
+            payment = await paymentsService.createPayment({ customerId, ticketIds })
+        })
+
+        it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
+            const res = await req.get({ url: '/payments', query: { paymentId: payment.id } })
+            expectOk(res)
+            expect([payment]).toEqual(res.body)
+        })
 
         it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
             const res = await req.get({ url: '/payments', query: { customerId } })
             expectOk(res)
-
-            // const filteredShowtimes = showtimes.filter((showtime) => showtime.movieId === movieId)
-            // const expected = makeExpectedTickets(theaters, filteredShowtimes)
-            // expectEqualDtos(res.body.items, expected)
+            expect([payment]).toEqual(res.body)
         })
     })
 })

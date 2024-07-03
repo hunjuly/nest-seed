@@ -2,11 +2,12 @@ import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
-import { PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
+import { Assert, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimesCreateCompletedEvent } from '../showtimes'
 import { TicketDto, TicketsFilterDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
 import { TicketsCreateEvent } from './tickets.events'
+import { TicketStatus } from './schemas'
 
 @Injectable()
 export class TicketsService {
@@ -53,6 +54,18 @@ export class TicketsService {
         const tickets = await this.ticketsRepository.findTickets(filterDto)
 
         this.logger.log(`Search completed. Found ${tickets.length} tickets.`)
+
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
+
+    async notifyTicketsPurchased(ticketIds: string[]): Promise<TicketDto[]> {
+        this.logger.log('티켓을 sold 상태로 업데이트 시작', ticketIds)
+
+        const result = await this.ticketsRepository.updateTicketStatus(ticketIds, TicketStatus.sold)
+
+        Assert.equals(result.matchedCount, result.modifiedCount, '모든 티켓의 상태가 변경되어야 한다')
+
+        const tickets = await this.ticketsRepository.findByIds(ticketIds)
 
         return tickets.map((ticket) => new TicketDto(ticket))
     }

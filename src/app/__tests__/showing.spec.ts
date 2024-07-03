@@ -6,14 +6,14 @@ import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowingModule } from 'app/services/showing'
 import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
+import { TicketsModule } from 'app/services/tickets'
 import { addDays } from 'common'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createCustomers } from './customers.fixture'
-import { createMovies, createShowtimes } from './showing.fixture'
-import { ShowtimesEventListener } from './showtimes.fixture'
+import { TicketsFactory } from './tickets.fixture'
+import { createMovies } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
-import { TicketsModule } from 'app/services/tickets'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
@@ -35,7 +35,7 @@ describe('/showing', () => {
                 TicketsModule
             ],
             controllers: [ShowingController],
-            providers: [ShowtimesEventListener]
+            providers: [TicketsFactory]
         })
         req = testContext.request
 
@@ -52,7 +52,7 @@ describe('/showing', () => {
         theaters = await createTheaters(theatersService, 1)
 
         const showtimesService = module.get(ShowtimesService)
-        const showtimesEventListener = module.get(ShowtimesEventListener)
+        const ticketFactory = module.get(TicketsFactory)
 
         const currentTime = new Date()
         currentTime.setHours(0, 0, 0, 0)
