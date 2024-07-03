@@ -19,10 +19,10 @@ export class ShowtimesService {
         await waitForQueueToEmpty(this.showtimesQueue)
     }
 
-    async createShowtimes(createShowtimesRequest: CreateShowtimesDto): Promise<CreateShowtimesResponse> {
+    async createShowtimes(createDto: CreateShowtimesDto): Promise<CreateShowtimesResponse> {
         const batchId = new ObjectId().toString()
 
-        await this.showtimesQueue.add(ShowtimesCreateEvent.eventName, { ...createShowtimesRequest, batchId })
+        await this.showtimesQueue.add(ShowtimesCreateEvent.eventName, { ...createDto, batchId })
 
         this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 
@@ -49,7 +49,7 @@ export class ShowtimesService {
     async getShowingMovieIds(): Promise<string[]> {
         const currentTime = new Date()
 
-        const showingMovieIds = await this.showtimesRepository.getShowingMovieIds(currentTime)
+        const showingMovieIds = await this.showtimesRepository.getMovieIdsShowingAfter(currentTime)
 
         return showingMovieIds
     }

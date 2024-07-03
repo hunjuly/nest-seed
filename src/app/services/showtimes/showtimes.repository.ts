@@ -59,7 +59,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return showtimes
     }
 
-    async getShowingMovieIds(time: Date): Promise<string[]> {
+    async getMovieIdsShowingAfter(time: Date): Promise<string[]> {
         const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).lean()
 
         return movieIds as string[]

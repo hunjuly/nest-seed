@@ -1,31 +1,31 @@
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { CreateShowtimesDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { TicketsModule, TicketsService } from 'app/services/tickets'
 import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createMovie } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
-import { TicketsEventListener, TicketsFactory, makeExpectedTickets, sortTickets } from './tickets.fixture'
+import { TicketsFactory, makeExpectedTickets, sortTickets } from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let factory: TicketsFactory
-    let ticketsEventListener: TicketsEventListener
     let ticketsService: TicketsService
     let showtimesService: ShowtimesService
     let movieId: string
     let theaterIds: string[]
     let theaters: TheaterDto[]
+    let createDto: CreateShowtimesDto
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
             imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
             controllers: [TicketsController],
-            providers: [TicketsEventListener]
+            providers: [TicketsFactory]
         })
 
         const module = testContext.module
@@ -41,9 +41,14 @@ describe('/tickets', () => {
 
         showtimesService = module.get(ShowtimesService)
         ticketsService = module.get(TicketsService)
-        ticketsEventListener = module.get(TicketsEventListener)
+        factory = module.get(TicketsFactory)
 
-        factory = new TicketsFactory(showtimesService, ticketsEventListener, movieId, theaterIds)
+        createDto = {
+            movieId,
+            theaterIds,
+            durationMinutes: 1,
+            startTimes: [new Date('1999-01-01')]
+        }
     })
 
     afterEach(async () => {
@@ -52,18 +57,18 @@ describe('/tickets', () => {
 
     it('should receive ShowtimesCreateCompletedEvent', async () => {
         const spy = jest.spyOn(ticketsService, 'onShowtimesCreateCompleted')
-        await factory.createTickets()
+        await factory.createTickets(createDto)
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({ batchId: expect.anything() }))
     })
 
     it('should emit tickets.create.completed event on successful ticket creation', async () => {
-        const spy = jest.spyOn(ticketsEventListener, 'onTicketsCreateCompleted')
-        await factory.createTickets()
+        const spy = jest.spyOn(factory, 'onTicketsCreateCompleted')
+        await factory.createTickets(createDto)
         expect(spy).toHaveBeenCalledTimes(1)
     })
 
     it('should create tickets and find them using API', async () => {
-        const { batchId } = await factory.createTickets()
+        const { batchId } = await factory.createTickets(createDto)
         const showtimes = await showtimesService.findShowtimes({ batchId })
         const expectedTickets = makeExpectedTickets(theaters, showtimes)
 
@@ -73,15 +78,9 @@ describe('/tickets', () => {
     })
 
     it('should successfully create tickets in parallel', async () => {
-        const count = 100
-        const batchIds = await factory.createTicketsInParallel(count)
-        expect(batchIds).toHaveLength(count)
+        const showtimes = await factory.createTicketsInParallel(createDto, 100)
 
-        const allShowtimes = await Promise.all(
-            batchIds.map((batchId) => showtimesService.findShowtimes({ batchId }))
-        ).then((showtimeArrays) => showtimeArrays.flat())
-
-        const expectedTickets = makeExpectedTickets(theaters, allShowtimes)
+        const expectedTickets = makeExpectedTickets(theaters, showtimes)
         const tickets = await ticketsService.findTickets({ movieId, theaterIds })
 
         sortTickets(expectedTickets)

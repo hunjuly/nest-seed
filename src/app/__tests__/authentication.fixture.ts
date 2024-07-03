@@ -12,7 +12,7 @@ export async function createUser(usersService: UsersService) {
         username: '.',
         firstName: '.',
         lastName: '.',
-        birthdate: new Date()
+        birthdate: new Date(0)
     }
 
     await usersService.createUser(createUserDto)

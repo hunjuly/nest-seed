@@ -65,7 +65,7 @@ describe('Path', () => {
         await Path.mkdir(subDir2)
 
         const subDirs = await Path.subdirs(tempDir)
-        expect(subDirs).toEqual(expect.arrayContaining(['subdir1', 'subdir2']))
+        expect(subDirs).toEqual(['subdir1', 'subdir2'])
     })
 
     it('should correctly copy a file', async () => {

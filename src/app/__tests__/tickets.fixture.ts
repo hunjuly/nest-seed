@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
+import { CreateShowtimesDto, ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
 
-type PromiseHandlers = {
-    resolve: (value: unknown) => void
-    reject: (reason?: any) => void
-}
+type PromiseHandlers = { resolve: (value: unknown) => void; reject: (reason?: any) => void }
 
 @Injectable()
-export class TicketsEventListener {
+export class TicketsFactory {
     private promises = new Map<string, PromiseHandlers>()
+
+    constructor(private showtimesService: ShowtimesService) {}
 
     @OnEvent(TicketsCreateCompleteEvent.eventName)
     onTicketsCreateCompleted(event: TicketsCreateCompleteEvent): void {
@@ -23,59 +22,51 @@ export class TicketsEventListener {
         this.handleEvent(event, true)
     }
 
-    awaitCompleteEvent(batchId: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.promises.set(batchId, { resolve, reject })
-        })
-    }
-
     private handleEvent(event: TicketsCreateErrorEvent | TicketsCreateCompleteEvent, isError = false): void {
         const promise = this.promises.get(event.batchId)
-        if (!promise) return
 
-        const handler = isError ? promise.reject : promise.resolve
-        handler(event)
+        if (isError) {
+            promise!.reject(event)
+        } else {
+            promise?.resolve(event)
+        }
+
         this.promises.delete(event.batchId)
     }
-}
 
-export class TicketsFactory {
-    constructor(
-        private showtimesService: ShowtimesService,
-        private ticketsEventListener: TicketsEventListener,
-        private readonly movieId: string,
-        private readonly theaterIds: string[]
-    ) {}
+    async createTickets(createDto: CreateShowtimesDto): Promise<{ batchId: string }> {
+        const { batchId } = await this.showtimesService.createShowtimes(createDto)
 
-    async createTickets(): Promise<{ batchId: string }> {
-        const { batchId } = await this.showtimesService.createShowtimes({
-            movieId: this.movieId,
-            theaterIds: this.theaterIds,
-            durationMinutes: 1,
-            startTimes: [
-                new Date('2013-01-31T12:00'),
-                new Date('2013-01-31T14:00'),
-                new Date('2013-01-31T16:30'),
-                new Date('2013-01-31T18:30')
-            ]
-        })
-        await this.ticketsEventListener.awaitCompleteEvent(batchId)
+        await this.awaitCompleteEvent(batchId)
+
         return { batchId }
     }
 
-    async createTicketsInParallel(length: number): Promise<string[]> {
+    async createTicketsInParallel(createDto: CreateShowtimesDto, length: number): Promise<ShowtimeDto[]> {
         const createShowtime = async (index: number) => {
             const { batchId } = await this.showtimesService.createShowtimes({
-                movieId: this.movieId,
-                theaterIds: this.theaterIds,
-                durationMinutes: 1,
-                startTimes: [new Date(1900, index, 31, 12, 0)]
+                ...createDto,
+                startTimes: [new Date(1900, index)]
             })
-            await this.ticketsEventListener.awaitCompleteEvent(batchId)
+            await this.awaitCompleteEvent(batchId)
             return batchId
         }
 
-        return Promise.all(Array.from({ length }, (_, i) => createShowtime(i)))
+        const batchIds = await Promise.all(Array.from({ length }, (_, i) => createShowtime(i)))
+
+        expect(batchIds).toHaveLength(length)
+
+        const showtimes = await Promise.all(
+            batchIds.map((batchId) => this.showtimesService.findShowtimes({ batchId }))
+        ).then((showtimeArrays) => showtimeArrays.flat())
+
+        return showtimes
+    }
+
+    private awaitCompleteEvent(batchId: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { resolve, reject })
+        })
     }
 }
 
