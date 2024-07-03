@@ -15,7 +15,7 @@ import { ShowtimesEventListener } from './showtimes.fixture'
 import { createTheaters } from './theaters.fixture'
 import { TicketsModule } from 'app/services/tickets'
 
-describe.skip('/showing', () => {
+describe('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
 

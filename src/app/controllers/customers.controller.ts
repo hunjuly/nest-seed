@@ -1,24 +1,12 @@
-import {
-    UsePipes,
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
 import {
     CreateCustomerDto,
-    CustomersFilterDto as CustomersFilterDto,
+    CustomersFilterDto,
     CustomersService,
     UpdateCustomerDto
 } from 'app/services/customers'
-import { CustomerEmailNotExistsGuard, CustomerExistsGuard } from './guards'
 import { PaginationOption, PaginationPipe } from 'common'
+import { CustomerEmailNotExistsGuard, CustomerExistsGuard } from './guards'
 
 @Controller('customers')
 export class CustomersController {

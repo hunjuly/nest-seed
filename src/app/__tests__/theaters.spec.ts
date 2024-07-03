@@ -12,7 +12,7 @@ import {
     expectOk
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTheaters, seatmap } from './theaters.fixture'
+import { createTheater, createTheaters, seatmap } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
@@ -62,8 +62,7 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            const theaters = await createTheaters(theatersService, 1)
-            theater = theaters[0]
+            theater = await createTheater(theatersService)
         })
 
         it('Update a theater', async () => {
@@ -97,8 +96,7 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            const theaters = await createTheaters(theatersService, 1)
-            theater = theaters[0]
+            theater = await createTheater(theatersService)
         })
 
         it('Delete a theater', async () => {
@@ -145,8 +143,7 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            const theaters = await createTheaters(theatersService, 1)
-            theater = theaters[0]
+            theater = await createTheater(theatersService)
         })
 
         it('Retrieve a theater by ID', async () => {

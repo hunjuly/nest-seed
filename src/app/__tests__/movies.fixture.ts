@@ -5,7 +5,7 @@ export async function createMovie(moviesService: MoviesService): Promise<MovieDt
     const body = {
         title: `MovieTitle`,
         genre: [MovieGenre.Action],
-        releaseDate: new Date(1999),
+        releaseDate: new Date('1900-01-01'),
         plot: `MoviePlot`,
         durationMinutes: 90,
         director: 'James Cameron',

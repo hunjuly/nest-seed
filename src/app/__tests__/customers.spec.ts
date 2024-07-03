@@ -14,7 +14,7 @@ import {
     expectOk
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createCustomers } from './customers.fixture'
+import { createCustomer, createCustomers } from './customers.fixture'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -39,26 +39,25 @@ describe('/customers', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {
-            const customers = await createCustomers(customersService, 1)
-            customer = customers[0]
+            customer = await createCustomer(customersService)
         })
 
-        const createCustomerDto = {
-            name: 'customer name',
-            email: 'user@mail.com',
+        const createDto = {
+            name: 'name',
+            email: 'name@mail.com',
             birthday: new Date('2020-12-12')
         }
 
         it('should create a customer and return CREATED status', async () => {
-            const res = await req.post({ url: '/customers', body: createCustomerDto })
+            const res = await req.post({ url: '/customers', body: createDto })
             expectCreated(res)
-            expect(res.body).toEqual({ id: expect.anything(), ...createCustomerDto })
+            expect(res.body).toEqual({ id: expect.anything(), ...createDto })
         })
 
         it('CONFLICT(409) if email already exists', async () => {
             const res = await req.post({
                 url: '/customers',
-                body: { ...createCustomerDto, email: customer.email }
+                body: { ...createDto, email: customer.email }
             })
             expectConflict(res)
         })
@@ -76,24 +75,23 @@ describe('/customers', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {
-            const customers = await createCustomers(customersService, 1)
-            customer = customers[0]
+            customer = await createCustomer(customersService)
         })
 
         it('Update a customer', async () => {
-            const updateData = {
+            const updateDto = {
                 name: 'update name',
                 email: 'new@mail.com',
                 birthday: new Date('1920-12-12')
             }
 
-            const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateData })
+            const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateDto })
             expectOk(updateResponse)
 
             const getResponse = await req.get({ url: `/customers/${customer.id}` })
             expectOk(getResponse)
 
-            expect(updateResponse.body).toEqual({ ...customer, ...updateData })
+            expect(updateResponse.body).toEqual({ ...customer, ...updateDto })
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
@@ -107,8 +105,7 @@ describe('/customers', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {
-            const customers = await createCustomers(customersService, 1)
-            customer = customers[0]
+            customer = await createCustomer(customersService)
         })
 
         it('Delete a customer', async () => {
@@ -155,8 +152,7 @@ describe('/customers', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {
-            const customers = await createCustomers(customersService, 1)
-            customer = customers[0]
+            customer = await createCustomer(customersService)
         })
 
         it('Retrieve a customer by ID', async () => {

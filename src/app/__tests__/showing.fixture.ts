@@ -4,7 +4,7 @@ import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'app/services/m
 
 export async function createMovies(moviesService: MoviesService): Promise<MovieDto[]> {
     const common = {
-        releaseDate: new Date(1900, 1, 1),
+        releaseDate: new Date('1900-01-01'),
         plot: `.`,
         durationMinutes: 1,
         director: '.',

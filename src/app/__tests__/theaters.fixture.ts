@@ -10,6 +10,14 @@ export const seatmap = {
     ]
 }
 
+export async function createTheater(theatersSerivce: TheatersService): Promise<TheaterDto> {
+    return theatersSerivce.createTheater({
+        name: `theater name`,
+        latlong: { latitude: 38.123, longitude: 138.678 },
+        seatmap
+    })
+}
+
 export async function createTheaters(theatersSerivce: TheatersService, count: number): Promise<TheaterDto[]> {
     const promises = []
 

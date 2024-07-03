@@ -1,16 +1,9 @@
-import { CustomerDto, CustomersService } from 'app/services/customers'
+import { CustomerDto } from 'app/services/customers'
+import { PaymentsService } from 'app/services/payments'
 import { padNumber } from 'common'
 
-export async function createCustomer(customersService: CustomersService): Promise<CustomerDto> {
-    return customersService.createCustomer({
-        name: 'customer name',
-        email: 'user@mail.com',
-        birthday: new Date('1999-12-12')
-    })
-}
-
-export async function createCustomers(
-    customersService: CustomersService,
+export async function createPayments(
+    paymentsService: PaymentsService,
     count: number
 ): Promise<CustomerDto[]> {
     const promises = []

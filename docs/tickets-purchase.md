@@ -174,47 +174,14 @@ Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 @startuml
 actor Customer
 
-Customer -> Frontend : 좌석 선택
-Frontend -> Backend : 선택한 좌석 예약 및 가격 계산\nPOST /orders
-Frontend <-- Backend : order
-Customer <-- Frontend : 결제화면(선택한 좌석과 총 가격 정보 제공)
-Customer -> Frontend : 결제 정보 입력 및 구매 확정
-Frontend -> Backend : 결제 처리 요청 (POST /payments)
-Frontend <-- Backend : paymentResult(success)
-Customer <-- Frontend : 티켓 구매 결과(성공)
-Customer <-- Backend : 전자 티켓 이메일 발송
-@enduml
-```
-
-```plantuml
-
-@startuml
-actor Customer
-
-Customer -> Frontend : 좌석 선택 및 결제 요청
-Frontend -> Backend : 좌석 예약 및 결제 요청\nPOST /reservations
-Backend -> Tickets : reserveSeats(showtimeId, seatIds)
-Tickets -> Tickets : 좌석 예약 처리
-Tickets -> Tickets : 이벤트 발행 (SeatsReserved)
-Showing <- Tickets : 이벤트 수신 (SeatsReserved)
-Showing -> Showing : 좌석 상태 업데이트
-Backend <-- Tickets : 예약 결과
-Backend -> Payment : processPayment(reservationId, amount)
-Payment -> Payment : 결제 처리
-alt 결제 성공
-    Payment -> Payment : 이벤트 발행 (PaymentCompleted)
-    Tickets <- Payment : 이벤트 수신 (PaymentCompleted)
-    Tickets -> Tickets : 예약 확정 처리
-else 결제 실패
-    Payment -> Payment : 이벤트 발행 (PaymentFailed)
-    Tickets <- Payment : 이벤트 수신 (PaymentFailed)
-    Tickets -> Tickets : 좌석 예약 취소 처리
-    Tickets -> Tickets : 이벤트 발행 (SeatsReservationCancelled)
-    Showing <- Tickets : 이벤트 수신 (SeatsReservationCancelled)
-    Showing -> Showing : 좌석 상태 복구
-end
-Backend <-- Payment : 결제 결과
-Frontend <-- Backend : 예약 및 결제 결과
-Customer <-- Frontend : 예약 완료 메시지 또는 실패 메시지 표시
+Customer->>Frontend: 좌석 선택
+    Frontend->>Backend: POST /payments
+        Backend->>Payment: createPayment(ticketIds[])
+            Payment->>Tickets: notifyTicketsPurchased(ticketIds[])
+                Tickets->>Tickets: updateTicketStatus(ticketIds[], 'sold')
+            Tickets-->>Payment: 티켓 구매 처리 완료
+        Payment-->>Backend: 결제 완료 및 티켓 정보
+    Backend-->>Frontend: 티켓 구매 결과(성공)
+Frontend-->>Customer: 구매 완료
 @enduml
 ```

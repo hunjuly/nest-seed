@@ -30,12 +30,6 @@ export class TheatersController {
         return this.theatersService.findPagedTheaters(filter, pagination)
     }
 
-    @Post('findByIds')
-    @HttpCode(200)
-    async findByIds(@Body() theaterIds: string[]) {
-        return this.theatersService.findByIds(theaterIds)
-    }
-
     @UseGuards(TheaterExistsGuard)
     @Get(':theaterId')
     async getTheater(@Param('theaterId') theaterId: string) {
