@@ -30,7 +30,7 @@ describe('/theaters', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     describe('POST /theaters', () => {

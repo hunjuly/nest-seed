@@ -1,24 +1,9 @@
 import { expect } from '@jest/globals'
-import { PaymentsController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { CustomersModule, CustomersService } from 'app/services/customers'
-import { MoviesModule, MoviesService } from 'app/services/movies'
-import { PaymentDto, PaymentsModule, PaymentsService } from 'app/services/payments'
-import { ShowtimesModule } from 'app/services/showtimes'
-import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule, TicketsService } from 'app/services/tickets'
-import {
-    HttpTestContext,
-    createHttpTestContext,
-    expectBadRequest,
-    expectCreated,
-    expectOk
-} from 'common/test'
-import { HttpRequest } from 'src/common/test'
-import { createCustomer } from './customers.fixture'
-import { createMovie } from './movies.fixture'
-import { createTheater } from './theaters.fixture'
-import { TicketsFactory } from './tickets.fixture'
+import { PaymentDto, PaymentsService } from 'app/services/payments'
+import { TicketsService } from 'app/services/tickets'
+import { expectBadRequest, expectCreated, expectOk, HttpRequest, HttpTestContext } from 'common/test'
+import { createFixture } from './payments.fixture'
+import { pickId } from './test.util'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
@@ -29,62 +14,31 @@ describe('/payments', () => {
     let ticketsService: TicketsService
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [
-                GlobalModule,
-                PaymentsModule,
-                CustomersModule,
-                MoviesModule,
-                ShowtimesModule,
-                TheatersModule,
-                TicketsModule
-            ],
-            controllers: [PaymentsController],
-            providers: [TicketsFactory]
-        })
-        req = testContext.request
+        const fixture = await createFixture()
 
-        const module = testContext.module
-
-        const customersService = module.get(CustomersService)
-        const customer = await createCustomer(customersService)
-        customerId = customer.id
-
-        const moviesService = module.get(MoviesService)
-        const movie = await createMovie(moviesService)
-        const movieId = movie.id
-
-        const theatersService = module.get(TheatersService)
-        const theater = await createTheater(theatersService)
-        const theaterIds = [theater.id]
-
-        const ticketFactory = module.get(TicketsFactory)
-
-        await ticketFactory.createTickets({
-            movieId,
-            theaterIds,
-            durationMinutes: 1,
-            startTimes: [new Date(0)]
-        })
-
-        ticketsService = module.get(TicketsService)
-        const tickets = await ticketsService.findTickets({})
-        ticketIds = tickets.map((ticket) => ticket.id)
-
-        paymentsService = testContext.module.get(PaymentsService)
+        testContext = fixture.testContext
+        req = fixture.testContext.request
+        paymentsService = fixture.paymentsService
+        ticketsService = fixture.ticketsService
+        customerId = fixture.customer.id
+        ticketIds = pickId(fixture.tickets)
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
+    })
+
+    const paymentCreationDto = (overrides = {}) => ({
+        customerId,
+        ticketIds,
+        ...overrides
     })
 
     describe('POST /payments', () => {
         it('should create a payment and return CREATED status', async () => {
-            const createPaymentDto = { customerId, ticketIds }
-
-            const res = await req.post({ url: '/payments', body: createPaymentDto })
+            const res = await req.post({ url: '/payments', body: paymentCreationDto() })
             expectCreated(res)
-            expect(res.body).toEqual({ id: expect.anything(), ...createPaymentDto })
+            expect(res.body).toEqual({ id: expect.anything(), ...paymentCreationDto() })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
@@ -93,9 +47,7 @@ describe('/payments', () => {
         })
 
         it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
-            const createPaymentDto = { customerId, ticketIds }
-
-            const res = await req.post({ url: '/payments', body: createPaymentDto })
+            const res = await req.post({ url: '/payments', body: paymentCreationDto() })
             expectCreated(res)
 
             const tickets = await ticketsService.findTickets({ ticketIds })
@@ -110,7 +62,7 @@ describe('/payments', () => {
         let payment: PaymentDto
 
         beforeEach(async () => {
-            payment = await paymentsService.createPayment({ customerId, ticketIds })
+            payment = await paymentsService.createPayment(paymentCreationDto())
         })
 
         it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {

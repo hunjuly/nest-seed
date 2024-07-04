@@ -67,7 +67,7 @@ describe('/showing', () => {
     })
 
     afterAll(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     it('추천 영화 목록 요청', async () => {
