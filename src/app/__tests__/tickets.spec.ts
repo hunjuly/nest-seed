@@ -1,15 +1,10 @@
-import { TicketsController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimeDto, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule, TicketsService } from 'app/services/tickets'
-import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
+import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
+import { TheaterDto } from 'app/services/theaters'
+import { TicketsService } from 'app/services/tickets'
+import { HttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createMovie } from './movies.fixture'
-import { expectEqualDtos } from './test.util'
-import { createTheaters } from './theaters.fixture'
-import { TicketsFactory, makeExpectedTickets } from './tickets.fixture'
+import { expectEqualDtos, pickIds } from './test.util'
+import { TicketsFactory, createFixture, makeExpectedTickets } from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
@@ -23,27 +18,17 @@ describe('/tickets', () => {
     let theaterId: string
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
-            controllers: [TicketsController],
-            providers: [TicketsFactory]
-        })
+        const fixture = await createFixture()
 
-        const module = testContext.module
-        req = testContext.request
-
-        const moviesService = module.get(MoviesService)
-        const movie = await createMovie(moviesService)
-        movieId = movie.id
-
-        const theatersService = module.get(TheatersService)
-        theaters = await createTheaters(theatersService, 3)
-        theaterIds = theaters.map((theater) => theater.id)
+        testContext = fixture.testContext
+        req = fixture.testContext.request
+        factory = fixture.ticketsFactory
+        ticketsService = fixture.ticketsService
+        showtimesService = fixture.showtimesService
+        movieId = fixture.movie.id
+        theaters = fixture.theaters
+        theaterIds = pickIds(theaters)
         theaterId = theaterIds[0]
-
-        showtimesService = module.get(ShowtimesService)
-        ticketsService = module.get(TicketsService)
-        factory = module.get(TicketsFactory)
     })
 
     afterEach(async () => {

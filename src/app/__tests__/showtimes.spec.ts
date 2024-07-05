@@ -1,15 +1,9 @@
-import { ShowtimesController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimeDto, ShowtimesModule } from 'app/services/showtimes'
-import { TheatersModule, TheatersService } from 'app/services/theaters'
+import { ShowtimeDto } from 'app/services/showtimes'
 import { nullObjectId } from 'common'
-import { HttpTestContext, createHttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
+import { HttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createMovie } from './movies.fixture'
-import { ShowtimesFactory, makeExpectedShowtime } from './showtimes.fixture'
-import { createTheaters } from './theaters.fixture'
-import { expectEqualDtos } from './test.util'
+import { ShowtimesFactory, createFixture, makeExpectedShowtime } from './showtimes.fixture'
+import { expectEqualDtos, pickIds } from './test.util'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
@@ -20,31 +14,20 @@ describe('/showtimes', () => {
     let theaterId: string
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule],
-            controllers: [ShowtimesController],
-            providers: [ShowtimesFactory]
-        })
-        req = testContext.request
-        const module = testContext.module
-
-        const moviesService = module.get(MoviesService)
-        const movie = await createMovie(moviesService)
-        movieId = movie.id
-
-        const theatersService = module.get(TheatersService)
-        const theaters = await createTheaters(theatersService, 3)
-        theaterIds = theaters.map((theater) => theater.id)
+        const fixture = await createFixture()
+        testContext = fixture.testContext
+        req = fixture.testContext.request
+        factory = fixture.showtimesFactory
+        movieId = fixture.movie.id
+        theaterIds = pickIds(fixture.theaters)
         theaterId = theaterIds[0]
-
-        factory = module.get(ShowtimesFactory)
     })
 
     afterEach(async () => {
         await testContext.close()
     })
 
-    const createDto = (overrides = {}) => ({
+    const creationDto = (overrides = {}) => ({
         movieId,
         theaterIds,
         durationMinutes: 1,
@@ -54,7 +37,7 @@ describe('/showtimes', () => {
 
     describe('Showtime Creation', () => {
         const requestShowtimeCreation = async (req: HttpRequest, overrides = {}) => {
-            const res = await req.post({ url: '/showtimes', body: createDto(overrides) })
+            const res = await req.post({ url: '/showtimes', body: creationDto(overrides) })
             expectCreated(res)
 
             const actual = await factory.awaitCompleteEvent(res.body.batchId)
@@ -77,7 +60,7 @@ describe('/showtimes', () => {
         })
 
         it('생성 요청에 따른 showtimes가 정확히 생성되어야 한다', async () => {
-            const body = createDto({
+            const body = creationDto({
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')],
                 durationMinutes: 90
             })
@@ -94,7 +77,9 @@ describe('/showtimes', () => {
 
         beforeEach(async () => {
             const result = await factory.createShowtimes(
-                createDto({ startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')] })
+                creationDto({
+                    startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
+                })
             )
             createdShowtimes = result.createdShowtimes!
             batchId = result.batchId
@@ -125,7 +110,7 @@ describe('/showtimes', () => {
 
     describe('Error Handling', () => {
         const requestPost = async (req: HttpRequest, overrides = {}) => {
-            return req.post({ url: '/showtimes', body: createDto(overrides) })
+            return req.post({ url: '/showtimes', body: creationDto(overrides) })
         }
 
         it('NOT_FOUND(404) when movieId is not found', async () => {
@@ -148,7 +133,7 @@ describe('/showtimes', () => {
         it('생성 요청이 동시에 발생해도 모든 요청이 성공적으로 완료되어야 한다', async () => {
             const length = 100
             const createDtos = Array.from({ length }, (_, i) =>
-                createDto({ startTimes: [new Date(1900, i)] })
+                creationDto({ startTimes: [new Date(1900, i)] })
             )
 
             const results = await factory.createMultipleShowtimes(createDtos)
@@ -161,7 +146,7 @@ describe('/showtimes', () => {
 
         it('동일한 요청을 동시에 해도 충돌 체크가 되어야 한다', async () => {
             const length = 100
-            const createDtos = Array(length).fill(createDto())
+            const createDtos = Array(length).fill(creationDto())
 
             const results = await factory.createMultipleShowtimes(createDtos)
             expect(results).toHaveLength(length)
@@ -177,7 +162,7 @@ describe('/showtimes', () => {
     describe('Conflict Checking', () => {
         it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
             const { createdShowtimes } = await factory.createShowtimes(
-                createDto({
+                creationDto({
                     durationMinutes: 90,
                     startTimes: [
                         new Date('2013-01-31T12:00'),
@@ -189,7 +174,7 @@ describe('/showtimes', () => {
             )
 
             const actual = await factory.createShowtimes(
-                createDto({
+                creationDto({
                     durationMinutes: 30,
                     startTimes: [
                         new Date('2013-01-31T12:00'),

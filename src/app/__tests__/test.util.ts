@@ -54,6 +54,6 @@ export function pick<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any 
     }
 }
 
-export function pickId<T extends { id: string }>(items: T[]): string[] {
+export function pickIds<T extends { id: string }>(items: T[]): string[] {
     return items.map((item) => item.id)
 }

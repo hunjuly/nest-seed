@@ -1,7 +1,7 @@
 import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'app/services/movies'
 import { padNumber } from 'common'
 
-export async function createMovie(moviesService: MoviesService): Promise<MovieDto> {
+export async function createMovie(moviesService: MoviesService, overrides = {}): Promise<MovieDto> {
     const body = {
         title: `MovieTitle`,
         genre: [MovieGenre.Action],
@@ -9,13 +9,14 @@ export async function createMovie(moviesService: MoviesService): Promise<MovieDt
         plot: `MoviePlot`,
         durationMinutes: 90,
         director: 'James Cameron',
-        rating: MovieRating.PG
+        rating: MovieRating.PG,
+        ...overrides
     }
 
     return moviesService.createMovie(body)
 }
 
-export async function createMovies(moviesService: MoviesService): Promise<MovieDto[]> {
+export async function createMovies(moviesService: MoviesService, overrides = {}): Promise<MovieDto[]> {
     const promises: Promise<MovieDto>[] = []
 
     const genres = [
@@ -45,7 +46,8 @@ export async function createMovies(moviesService: MoviesService): Promise<MovieD
                             releaseDate,
                             durationMinutes,
                             director,
-                            rating
+                            rating,
+                            ...overrides
                         })
 
                         promises.push(promise)

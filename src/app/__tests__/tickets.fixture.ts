@@ -1,8 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { ShowtimesCreationDto, ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
-import { Seat, TheaterDto, forEachSeat } from 'app/services/theaters'
-import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
+import { TicketsController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { MoviesModule, MoviesService } from 'app/services/movies'
+import { ShowtimesCreationDto, ShowtimeDto, ShowtimesService, ShowtimesModule } from 'app/services/showtimes'
+import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
+import {
+    TicketDto,
+    TicketsCreateCompleteEvent,
+    TicketsCreateErrorEvent,
+    TicketsModule,
+    TicketsService
+} from 'app/services/tickets'
+import { createHttpTestContext } from 'common/test'
+import { createMovie } from './movies.fixture'
+import { createTheaters } from './theaters.fixture'
 
 type PromiseHandlers = { resolve: (value: unknown) => void; reject: (reason?: any) => void }
 
@@ -89,4 +101,26 @@ export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeD
     })
 
     return tickets
+}
+
+export async function createFixture() {
+    const testContext = await createHttpTestContext({
+        imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
+        controllers: [TicketsController],
+        providers: [TicketsFactory]
+    })
+
+    const module = testContext.module
+
+    const moviesService = module.get(MoviesService)
+    const movie = await createMovie(moviesService)
+
+    const theatersService = module.get(TheatersService)
+    const theaters = await createTheaters(theatersService, 3)
+
+    const showtimesService = module.get(ShowtimesService)
+    const ticketsService = module.get(TicketsService)
+    const ticketsFactory = module.get(TicketsFactory)
+
+    return { testContext, movie, theaters, showtimesService, ticketsService, ticketsFactory }
 }

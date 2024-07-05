@@ -3,7 +3,7 @@ import { PaymentDto, PaymentsService } from 'app/services/payments'
 import { TicketsService } from 'app/services/tickets'
 import { expectBadRequest, expectCreated, expectOk, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture } from './payments.fixture'
-import { pickId } from './test.util'
+import { pickIds } from './test.util'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
@@ -21,7 +21,7 @@ describe('/payments', () => {
         paymentsService = fixture.paymentsService
         ticketsService = fixture.ticketsService
         customerId = fixture.customer.id
-        ticketIds = pickId(fixture.tickets)
+        ticketIds = pickIds(fixture.tickets)
     })
 
     afterEach(async () => {

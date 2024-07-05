@@ -1,81 +1,62 @@
 import { expect } from '@jest/globals'
-import { ShowingController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
-import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowingModule } from 'app/services/showing'
-import { ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule } from 'app/services/tickets'
-import { addDays } from 'common'
-import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
+import { CustomerDto } from 'app/services/customers'
+import { MovieDto, MovieGenre, MoviesService } from 'app/services/movies'
+import { PaymentsService } from 'app/services/payments'
+import { TheaterDto } from 'app/services/theaters'
+import { TicketsService } from 'app/services/tickets'
+import { HttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createCustomers } from './customers.fixture'
+import { createFixture } from './showing.fixture'
+import { pickIds } from './test.util'
 import { TicketsFactory } from './tickets.fixture'
-import { createMovies } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
+import { createMovie } from './movies.fixture'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
-
+    let ticketsService: TicketsService
+    let paymentsService: PaymentsService
+    let ticketFactory: TicketsFactory
     let customer: CustomerDto
-    let movies: MovieDto[]
     let theaters: TheaterDto[]
+    let moviesService: MoviesService
 
-    beforeAll(async () => {
-        testContext = await createHttpTestContext({
-            imports: [
-                GlobalModule,
-                ShowingModule,
-                CustomersModule,
-                MoviesModule,
-                ShowtimesModule,
-                TheatersModule,
-                TicketsModule
-            ],
-            controllers: [ShowingController],
-            providers: [TicketsFactory]
-        })
-        req = testContext.request
+    beforeEach(async () => {
+        const fixture = await createFixture()
 
-        const module = testContext.module
-
-        const customersService = module.get(CustomersService)
-        const customers = await createCustomers(customersService, 1)
-        customer = customers[0]
-
-        const moviesService = module.get(MoviesService)
-        movies = await createMovies(moviesService)
-
-        const theatersService = module.get(TheatersService)
-        theaters = await createTheaters(theatersService, 1)
-
-        const showtimesService = module.get(ShowtimesService)
-        const ticketFactory = module.get(TicketsFactory)
-
-        const currentTime = new Date()
-        currentTime.setHours(0, 0, 0, 0)
-        const startTimes = [
-            addDays(currentTime, -1),
-            addDays(currentTime, 0),
-            addDays(currentTime, 1),
-            addDays(currentTime, 2)
-        ]
-
-        // await createShowtimes(showtimesService, showtimesEventListener, movieIds, theaterIds, startTimes)
+        testContext = fixture.testContext
+        customer = fixture.customer
+        ticketsService = fixture.ticketsService
+        paymentsService = fixture.paymentsService
+        ticketFactory = fixture.ticketFactory
+        moviesService = fixture.moviesService
     })
 
-    afterAll(async () => {
+    beforeEach(async () => {
         await testContext.close()
     })
 
     it('추천 영화 목록 요청', async () => {
+        beforeEach(async () => {
+            const watchedMovie = await createMovie(moviesService, { genre: [MovieGenre.Action] })
+
+            await ticketFactory.createTickets({
+                movieId: watchedMovie.id,
+                theaterIds: pickIds(theaters),
+                durationMinutes: 1,
+                startTimes: [new Date('1999-01-01')]
+            })
+
+            const tickets = await ticketsService.findTickets({ movieId: movies[0].id })
+            paymentsService.createPayment({ customerId: customer.id, ticketIds: pickIds(tickets) })
+        })
+
         const res = await req.get({ url: '/showing/movies/recommended', query: { customerId: customer.id } })
-
         expectOk(res)
-        expect(res.body.movies.length).toBeGreaterThan(0)
 
-        // movie = res.body.movies[0]
+        const filteredMovies = movies.filter((movie) =>
+            movie.genre.some((item) => movies[0].genre.includes(item))
+        )
+        expect(res.body.movies).toEqual(filteredMovies)
     })
 })

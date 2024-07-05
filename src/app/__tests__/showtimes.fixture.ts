@@ -1,15 +1,23 @@
 import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
+import { ShowtimesController } from 'app/controllers'
+import { GlobalModule } from 'app/global'
+import { MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimesCreationDto,
     ShowtimeDto,
     ShowtimesCreateCompletedEvent,
     ShowtimesCreateErrorEvent,
     ShowtimesCreateFailedEvent,
-    ShowtimesService
+    ShowtimesService,
+    ShowtimesModule
 } from 'app/services/showtimes'
+import { TheatersModule, TheatersService } from 'app/services/theaters'
 import { addMinutes } from 'common'
+import { createHttpTestContext } from 'common/test'
+import { createMovie } from './movies.fixture'
+import { createTheaters } from './theaters.fixture'
 
 export interface ShowtimesCreationResult {
     conflictShowtimes?: ShowtimeDto[]
@@ -84,4 +92,24 @@ export function makeExpectedShowtime(createDto: ShowtimesCreationDto): ShowtimeD
             endTime: addMinutes(startTime, durationMinutes)
         }))
     )
+}
+
+export async function createFixture() {
+    const testContext = await createHttpTestContext({
+        imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule],
+        controllers: [ShowtimesController],
+        providers: [ShowtimesFactory]
+    })
+
+    const module = testContext.module
+
+    const moviesService = module.get(MoviesService)
+    const movie = await createMovie(moviesService)
+
+    const theatersService = module.get(TheatersService)
+    const theaters = await createTheaters(theatersService, 3)
+
+    const showtimesFactory = module.get(ShowtimesFactory)
+
+    return { testContext, movie, theaters, showtimesFactory }
 }
