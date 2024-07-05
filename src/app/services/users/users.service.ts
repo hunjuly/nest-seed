@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { AppException, PaginationOption, PaginationResult, Password } from 'common'
-import { CreateUserDto, UpdateUserDto, UserDto, UsersFilterDto } from './dto'
+import { UserCreationDto, UserUpdatingDto, UserDto, UsersFilterDto } from './dto'
 import { UsersRepository } from './users.repository'
 
 @Injectable()
 export class UsersService {
     constructor(private usersRepository: UsersRepository) {}
 
-    async createUser(createUserDto: CreateUserDto) {
+    async createUser(createUserDto: UserCreationDto) {
         const { password } = createUserDto
 
         const hashedPassword = await Password.hash(password)
@@ -71,7 +71,7 @@ export class UsersService {
         return new UserDto(user)
     }
 
-    async updateUser(userId: string, updateUserDto: UpdateUserDto) {
+    async updateUser(userId: string, updateUserDto: UserUpdatingDto) {
         const savedUser = await this.usersRepository.update(userId, updateUserDto)
 
         return new UserDto(savedUser)

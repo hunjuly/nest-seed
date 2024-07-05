@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
-import { CreateMovieDto, MoviesFilterDto, MoviesService, UpdateMovieDto } from 'app/services/movies'
+import { MovieCreationDto, MoviesFilterDto, MoviesService, MovieUpdatingDto } from 'app/services/movies'
 import { PaginationOption, PaginationPipe } from 'common'
 import { MovieExistsGuard } from './guards'
 
@@ -8,7 +8,7 @@ export class MoviesController {
     constructor(private readonly moviesService: MoviesService) {}
 
     @Post()
-    async createMovie(@Body() createMovieDto: CreateMovieDto) {
+    async createMovie(@Body() createMovieDto: MovieCreationDto) {
         return this.moviesService.createMovie(createMovieDto)
     }
 
@@ -26,7 +26,7 @@ export class MoviesController {
 
     @UseGuards(MovieExistsGuard)
     @Patch(':movieId')
-    async updateMovie(@Param('movieId') movieId: string, @Body() updateMovieDto: UpdateMovieDto) {
+    async updateMovie(@Param('movieId') movieId: string, @Body() updateMovieDto: MovieUpdatingDto) {
         return this.moviesService.updateMovie(movieId, updateMovieDto)
     }
 

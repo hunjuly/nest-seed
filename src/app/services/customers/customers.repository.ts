@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { CustomersFilterDto, UpdateCustomerDto } from './dto'
+import { CustomersFilterDto, CustomerUpdatingDto } from './dto'
 import { Customer } from './schemas'
 
 @Injectable()
@@ -12,7 +12,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         super(model)
     }
 
-    async update(id: string, updateDto: UpdateCustomerDto): Promise<Customer> {
+    async update(id: string, updateDto: CustomerUpdatingDto): Promise<Customer> {
         const customer = (await this.model.findById(id).exec())!
 
         Assert.defined(customer, `Customer with id ${id} must exist`)

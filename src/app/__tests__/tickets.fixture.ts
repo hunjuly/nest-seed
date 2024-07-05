@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { CreateShowtimesDto, ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
+import { ShowtimesCreationDto, ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheaterDto, forEachSeat } from 'app/services/theaters'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateErrorEvent } from 'app/services/tickets'
 
@@ -40,7 +40,7 @@ export class TicketsFactory {
         })
     }
 
-    async createTickets(createDto: CreateShowtimesDto): Promise<{ batchId: string }> {
+    async createTickets(createDto: ShowtimesCreationDto): Promise<{ batchId: string }> {
         const { batchId } = await this.showtimesService.createShowtimes(createDto)
 
         await this.awaitCompleteEvent(batchId)
@@ -48,7 +48,7 @@ export class TicketsFactory {
         return { batchId }
     }
 
-    async createTicketsInParallel(createDto: CreateShowtimesDto, length: number): Promise<ShowtimeDto[]> {
+    async createTicketsInParallel(createDto: ShowtimesCreationDto, length: number): Promise<ShowtimeDto[]> {
         const createShowtime = async (index: number) => {
             const { batchId } = await this.showtimesService.createShowtimes({
                 ...createDto,

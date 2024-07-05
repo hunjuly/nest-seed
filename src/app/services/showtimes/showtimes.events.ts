@@ -1,6 +1,6 @@
-import { CreateShowtimesDto, ShowtimeDto } from './dto'
+import { ShowtimesCreationDto, ShowtimeDto } from './dto'
 
-export class ShowtimesCreateEvent extends CreateShowtimesDto {
+export class ShowtimesCreateEvent extends ShowtimesCreationDto {
     static eventName = 'showtimes.create'
 
     batchId: string

@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer'
 import { IsDate, IsEmail, IsString } from 'class-validator'
 
-export class CreateUserDto {
+export class UserCreationDto {
     @IsEmail()
     email: string
 

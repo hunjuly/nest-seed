@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Assert, PaginationOption, PaginationResult } from 'common'
-import { CreateMovieDto, MovieDto, MoviesFilterDto, UpdateMovieDto } from './dto'
+import { MovieCreationDto, MovieDto, MoviesFilterDto, MovieUpdatingDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
 @Injectable()
@@ -9,7 +9,7 @@ export class MoviesService {
 
     constructor(private moviesRepository: MoviesRepository) {}
 
-    async createMovie(createMovieDto: CreateMovieDto) {
+    async createMovie(createMovieDto: MovieCreationDto) {
         const savedMovie = await this.moviesRepository.create(createMovieDto)
 
         return new MovieDto(savedMovie)
@@ -52,7 +52,7 @@ export class MoviesService {
         return new MovieDto(movie!)
     }
 
-    async updateMovie(movieId: string, updateMovieDto: UpdateMovieDto) {
+    async updateMovie(movieId: string, updateMovieDto: MovieUpdatingDto) {
         const savedMovie = await this.moviesRepository.update(movieId, updateMovieDto)
 
         return new MovieDto(savedMovie)

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, NotFoundException, Post, Query, UsePipes } from '@nestjs/common'
 import { MoviesService } from 'app/services/movies'
-import { CreateShowtimesDto, ShowtimesFilterDto, ShowtimesService } from 'app/services/showtimes'
+import { ShowtimesCreationDto, ShowtimesFilterDto, ShowtimesService } from 'app/services/showtimes'
 import { TheatersService } from 'app/services/theaters'
 import { PaginationOption, PaginationPipe } from 'common'
 
@@ -13,7 +13,7 @@ export class ShowtimesController {
     ) {}
 
     @Post()
-    async createShowtimes(@Body() request: CreateShowtimesDto) {
+    async createShowtimes(@Body() request: ShowtimesCreationDto) {
         const movieExists = await this.moviesService.movieExists(request.movieId)
 
         if (!movieExists) {

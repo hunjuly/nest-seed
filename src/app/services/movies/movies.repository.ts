@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { MoviesFilterDto, UpdateMovieDto } from './dto'
+import { MoviesFilterDto, MovieUpdatingDto } from './dto'
 import { Movie } from './schemas'
 
 @Injectable()
@@ -12,7 +12,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         super(model)
     }
 
-    async update(id: string, updateDto: UpdateMovieDto): Promise<Movie> {
+    async update(id: string, updateDto: MovieUpdatingDto): Promise<Movie> {
         const movie = (await this.model.findById(id).exec())!
 
         Assert.defined(movie, `Movie with id ${id} must exist`)

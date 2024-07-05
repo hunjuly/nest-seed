@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
-import { CreateUserDto, UpdateUserDto, UsersFilterDto, UsersService } from 'app/services/users'
+import { UserCreationDto, UserUpdatingDto, UsersFilterDto, UsersService } from 'app/services/users'
 import { PaginationOption, PaginationPipe } from 'common'
 import { JwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
 
@@ -11,7 +11,7 @@ export class UsersController {
     @Public()
     @UseGuards(UserEmailNotExistsGuard)
     @Post()
-    async createUser(@Body() createUserDto: CreateUserDto) {
+    async createUser(@Body() createUserDto: UserCreationDto) {
         return this.usersService.createUser(createUserDto)
     }
 
@@ -29,7 +29,7 @@ export class UsersController {
 
     @UseGuards(UserExistsGuard)
     @Patch(':userId')
-    async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
+    async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UserUpdatingDto) {
         return this.usersService.updateUser(userId, updateUserDto)
     }
 

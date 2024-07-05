@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { AppException, PaginationOption, PaginationResult } from 'common'
-import { CreateTheaterDto, TheaterDto, TheatersFilterDto, UpdateTheaterDto } from './dto'
+import { TheaterCreationDto, TheaterDto, TheatersFilterDto, TheaterUpdatingDto } from './dto'
 import { TheatersRepository } from './theaters.repository'
 
 @Injectable()
 export class TheatersService {
     constructor(private theatersRepository: TheatersRepository) {}
 
-    async createTheater(createTheaterDto: CreateTheaterDto) {
+    async createTheater(createTheaterDto: TheaterCreationDto) {
         const savedTheater = await this.theatersRepository.create(createTheaterDto)
 
         return new TheaterDto(savedTheater)
@@ -55,7 +55,7 @@ export class TheatersService {
         return new TheaterDto(theater)
     }
 
-    async updateTheater(theaterId: string, updateTheaterDto: UpdateTheaterDto) {
+    async updateTheater(theaterId: string, updateTheaterDto: TheaterUpdatingDto) {
         const savedTheater = await this.theatersRepository.update(theaterId, updateTheaterDto)
 
         return new TheaterDto(savedTheater)

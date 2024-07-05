@@ -14,7 +14,7 @@ export class LatLongDto {
     longitude: number
 }
 
-export class CreateTheaterDto {
+export class TheaterCreationDto {
     @IsString()
     @IsNotEmpty()
     name: string

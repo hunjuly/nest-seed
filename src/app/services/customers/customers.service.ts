@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { AppException, PaginationOption, PaginationResult } from 'common'
 import { CustomersRepository } from './customers.repository'
-import { CreateCustomerDto, CustomerDto, CustomersFilterDto, UpdateCustomerDto } from './dto'
+import { CustomerCreationDto, CustomerDto, CustomersFilterDto, CustomerUpdatingDto } from './dto'
 
 @Injectable()
 export class CustomersService {
     constructor(private customersRepository: CustomersRepository) {}
 
-    async createCustomer(createCustomerDto: CreateCustomerDto) {
+    async createCustomer(createCustomerDto: CustomerCreationDto) {
         const savedCustomer = await this.customersRepository.create(createCustomerDto)
 
         return new CustomerDto(savedCustomer)
@@ -59,7 +59,7 @@ export class CustomersService {
         return new CustomerDto(customer)
     }
 
-    async updateCustomer(customerId: string, updateCustomerDto: UpdateCustomerDto) {
+    async updateCustomer(customerId: string, updateCustomerDto: CustomerUpdatingDto) {
         const savedCustomer = await this.customersRepository.update(customerId, updateCustomerDto)
 
         return new CustomerDto(savedCustomer)

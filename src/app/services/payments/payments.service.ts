@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreatePaymentDto, PaymentDto, PaymentsFilterDto } from './dto'
+import { PaymentCreationDto, PaymentDto, PaymentsFilterDto } from './dto'
 import { PaymentsRepository } from './payments.repository'
 import { TicketsService } from '../tickets'
 
@@ -10,7 +10,7 @@ export class PaymentsService {
         private ticketsService: TicketsService
     ) {}
 
-    async createPayment(createPaymentDto: CreatePaymentDto) {
+    async createPayment(createPaymentDto: PaymentCreationDto) {
         const savedPayment = await this.paymentsRepository.create(createPaymentDto)
 
         await this.ticketsService.notifyTicketsPurchased(createPaymentDto.ticketIds)

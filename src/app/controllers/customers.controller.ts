@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
 import {
-    CreateCustomerDto,
+    CustomerCreationDto,
     CustomersFilterDto,
     CustomersService,
-    UpdateCustomerDto
+    CustomerUpdatingDto
 } from 'app/services/customers'
 import { PaginationOption, PaginationPipe } from 'common'
 import { CustomerEmailNotExistsGuard, CustomerExistsGuard } from './guards'
@@ -14,7 +14,7 @@ export class CustomersController {
 
     @Post()
     @UseGuards(CustomerEmailNotExistsGuard)
-    async createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
+    async createCustomer(@Body() createCustomerDto: CustomerCreationDto) {
         return this.customersService.createCustomer(createCustomerDto)
     }
 
@@ -34,7 +34,7 @@ export class CustomersController {
     @UseGuards(CustomerExistsGuard)
     async updateCustomer(
         @Param('customerId') customerId: string,
-        @Body() updateCustomerDto: UpdateCustomerDto
+        @Body() updateCustomerDto: CustomerUpdatingDto
     ) {
         return this.customersService.updateCustomer(customerId, updateCustomerDto)
     }

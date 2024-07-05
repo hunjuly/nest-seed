@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
 import { Assert, addMinutes, findMaxDate, findMinDate, parseObjectTypes } from 'common'
-import { CreateShowtimesDto, ShowtimeDto } from '../dto'
+import { ShowtimesCreationDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
     ShowtimesCreateCompletedEvent,
@@ -92,7 +92,7 @@ export class ShowtimesCreationService {
         return createdShowtimes
     }
 
-    async checkForTimeConflicts(request: CreateShowtimesDto): Promise<Showtime[]> {
+    async checkForTimeConflicts(request: ShowtimesCreationDto): Promise<Showtime[]> {
         this.logger.log(`충돌 검사 시작: 극장 ID ${request.theaterIds.join(', ')}`)
 
         const { durationMinutes, startTimes, theaterIds } = request
@@ -125,7 +125,7 @@ export class ShowtimesCreationService {
         return conflictShowtimes
     }
 
-    private async createTimeslotsByTheater(request: CreateShowtimesDto): Promise<Map<string, Timeslot>> {
+    private async createTimeslotsByTheater(request: ShowtimesCreationDto): Promise<Map<string, Timeslot>> {
         const { theaterIds, durationMinutes, startTimes } = request
 
         const startDate = findMinDate(startTimes)

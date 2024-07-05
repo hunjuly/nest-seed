@@ -2,7 +2,7 @@ import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import {
-    CreateShowtimesDto,
+    ShowtimesCreationDto,
     ShowtimeDto,
     ShowtimesCreateCompletedEvent,
     ShowtimesCreateErrorEvent,
@@ -59,20 +59,20 @@ export class ShowtimesFactory {
         })
     }
 
-    async createShowtimes(createDto: CreateShowtimesDto): Promise<ShowtimesCreationResult> {
+    async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResult> {
         const { batchId } = await this.showtimesService.createShowtimes(createDto)
 
         return this.awaitCompleteEvent(batchId)
     }
 
-    async createMultipleShowtimes(createDtos: CreateShowtimesDto[]): Promise<ShowtimesCreationResult[]> {
+    async createMultipleShowtimes(createDtos: ShowtimesCreationDto[]): Promise<ShowtimesCreationResult[]> {
         const promises = createDtos.map((createDto) => this.createShowtimes(createDto))
 
         return Promise.all(promises)
     }
 }
 
-export function makeExpectedShowtime(createDto: CreateShowtimesDto): ShowtimeDto[] {
+export function makeExpectedShowtime(createDto: ShowtimesCreationDto): ShowtimeDto[] {
     const { movieId, theaterIds, startTimes, durationMinutes } = createDto
 
     return theaterIds.flatMap((theaterId) =>
