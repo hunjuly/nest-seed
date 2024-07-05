@@ -54,7 +54,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
             query['_id'] = { $in: ticketIds }
         }
 
-        return await super.findByFilter(query)
+        return super.findByFilter(query)
     }
 
     async updateTicketStatus(ticketIds: string[], status: TicketStatus): Promise<RepositoryUpdateStatus> {

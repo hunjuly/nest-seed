@@ -54,9 +54,15 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     }
 
     async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
-        const showtimes = await this.findByFilter(filterDto)
+        const { showtimeIds, ...rest } = filterDto
 
-        return showtimes
+        const query: Record<string, any> = rest
+
+        if (showtimeIds) {
+            query['_id'] = { $in: showtimeIds }
+        }
+
+        return super.findByFilter(query)
     }
 
     async getMovieIdsShowingAfter(time: Date): Promise<string[]> {

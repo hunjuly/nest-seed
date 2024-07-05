@@ -107,3 +107,25 @@ export async function waitForQueueToEmpty(queue: Queue, count: number = 60): Pro
 
     return false
 }
+
+export function pick<T, K extends keyof T>(items: T[], key: K): T[K][]
+export function pick<T, K extends keyof T>(items: T[], keys: K[]): Pick<T, K>[]
+export function pick<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any {
+    if (Array.isArray(keyOrKeys)) {
+        return items.map((item) =>
+            keyOrKeys.reduce(
+                (picked, key) => {
+                    picked[key] = item[key]
+                    return picked
+                },
+                {} as Pick<T, K>
+            )
+        )
+    } else {
+        return items.map((item) => item[keyOrKeys])
+    }
+}
+
+export function pickIds<T extends { id: string }>(items: T[]): string[] {
+    return items.map((item) => item.id)
+}

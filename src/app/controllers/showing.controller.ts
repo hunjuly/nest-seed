@@ -1,7 +1,7 @@
-import { Controller, Get, NotFoundException, Query, UsePipes } from '@nestjs/common'
+import { Controller, Get, Query, UseGuards } from '@nestjs/common'
 import { CustomersService } from 'app/services/customers'
 import { ShowingService } from 'app/services/showing'
-import { PaginationOption, PaginationPipe } from 'common'
+import { CustomerExistsGuard } from './guards'
 
 @Controller('showing')
 export class ShowingController {
@@ -11,14 +11,8 @@ export class ShowingController {
     ) {}
 
     @Get('/movies/recommended')
-    @UsePipes(new PaginationPipe(50))
-    async findPagedShowtimes(@Query('customerId') customerId: string, @Query() pagination: PaginationOption) {
-        const customerExists = await this.customersService.customerExists(customerId)
-
-        if (!customerExists) {
-            throw new NotFoundException(`Customer with ID ${customerId} not found`)
-        }
-
-        this.showingService.getRecommendedMovies(customerId)
+    @UseGuards(CustomerExistsGuard)
+    async getRecommendedMovies(@Query('customerId') customerId: string) {
+        return this.showingService.getRecommendedMovies(customerId)
     }
 }

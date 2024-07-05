@@ -6,4 +6,7 @@ export class ShowtimesFilterDto {
 
     @IsOptional()
     batchId?: string
+
+    @IsOptional()
+    showtimeIds?: string[]
 }

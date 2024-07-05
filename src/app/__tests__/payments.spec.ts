@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals'
 import { PaymentDto, PaymentsService } from 'app/services/payments'
 import { TicketsService } from 'app/services/tickets'
+import { pickIds } from 'common'
 import { expectBadRequest, expectCreated, expectOk, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture } from './payments.fixture'
-import { pickIds } from './test.util'
 
 describe('/payments', () => {
     let testContext: HttpTestContext

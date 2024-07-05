@@ -10,7 +10,9 @@ import {
     notUsed,
     sleep,
     parseObjectTypes,
-    waitForQueueToEmpty
+    waitForQueueToEmpty,
+    pick,
+    pickIds
 } from '..'
 
 jest.mock('bull')
@@ -205,6 +207,56 @@ describe('common/utils/etc', () => {
             parseObjectTypes(obj)
             expect(obj.number).toEqual(123)
             expect(obj.boolean).toBe(true)
+        })
+    })
+
+    describe('pick', () => {
+        const items = [
+            { id: '1', name: 'John', age: 30 },
+            { id: '2', name: 'Jane', age: 25 },
+            { id: '3', name: 'Bob', age: 40 }
+        ]
+
+        it('should pick a single key from array of objects', () => {
+            const result = pick(items, 'name')
+            expect(result).toEqual(['John', 'Jane', 'Bob'])
+        })
+
+        it('should pick multiple keys from array of objects', () => {
+            const result = pick(items, ['id', 'name'])
+            expect(result).toEqual([
+                { id: '1', name: 'John' },
+                { id: '2', name: 'Jane' },
+                { id: '3', name: 'Bob' }
+            ])
+        })
+
+        it('should return an empty array if input array is empty', () => {
+            const result = pick([], 'name')
+            expect(result).toEqual([])
+        })
+
+        it('should handle non-existent keys gracefully', () => {
+            const result = pick(items, 'address' as any)
+            expect(result).toEqual([undefined, undefined, undefined])
+        })
+    })
+
+    describe('pickIds', () => {
+        const items = [
+            { id: '1', name: 'John' },
+            { id: '2', name: 'Jane' },
+            { id: '3', name: 'Bob' }
+        ]
+
+        it('should pick ids from array of objects', () => {
+            const result = pickIds(items)
+            expect(result).toEqual(['1', '2', '3'])
+        })
+
+        it('should return an empty array if input array is empty', () => {
+            const result = pickIds([])
+            expect(result).toEqual([])
         })
     })
 
