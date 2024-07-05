@@ -3,7 +3,14 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimesCreationDto, ShowtimeDto, ShowtimesService, ShowtimesModule } from 'app/services/showtimes'
+import {
+    ShowtimesCreationDto,
+    ShowtimeDto,
+    ShowtimesService,
+    ShowtimesModule,
+    ShowtimesCreateErrorEvent,
+    ShowtimesCreateFailedEvent
+} from 'app/services/showtimes'
 import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
 import {
     TicketDto,
@@ -31,6 +38,16 @@ export class TicketsFactory {
 
     @OnEvent(TicketsCreateErrorEvent.eventName)
     onTicketsCreateError(event: TicketsCreateErrorEvent): void {
+        this.handleEvent(event, true)
+    }
+
+    @OnEvent(ShowtimesCreateFailedEvent.eventName)
+    onShowtimesCreateFailed(event: TicketsCreateErrorEvent): void {
+        this.handleEvent(event, true)
+    }
+
+    @OnEvent(ShowtimesCreateErrorEvent.eventName)
+    onShowtimesCreateError(event: TicketsCreateErrorEvent): void {
         this.handleEvent(event, true)
     }
 
