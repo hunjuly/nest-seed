@@ -18,12 +18,6 @@ export class PaymentsService {
         return new PaymentDto(savedPayment)
     }
 
-    async paymentExists(paymentId: string): Promise<boolean> {
-        const paymentExists = await this.paymentsRepository.existsById(paymentId)
-
-        return paymentExists
-    }
-
     async findPayments(filter: PaymentsFilterDto): Promise<PaymentDto[]> {
         const payments = await this.paymentsRepository.findPayments(filter)
 
