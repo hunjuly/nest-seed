@@ -5,7 +5,8 @@ import {
     PaginationOption,
     PaginationResult,
     objectIdToString,
-    stringToObjectId
+    stringToObjectId,
+    ObjectId
 } from 'common'
 import { Model } from 'mongoose'
 import { ShowtimesFilterDto } from './dto'
@@ -65,9 +66,17 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return super.findByFilter(query)
     }
 
-    async getMovieIdsShowingAfter(time: Date): Promise<string[]> {
+    async findMovieIdsShowingAfter(time: Date): Promise<string[]> {
         const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).lean()
+        objectIdToString(movieIds)
 
         return movieIds as string[]
+    }
+
+    async findTheaterIdsShowingMovie(movieId: string): Promise<string[]> {
+        const theaterIds = await this.model.distinct('theaterId', { movieId: new ObjectId(movieId) }).lean()
+        objectIdToString(theaterIds)
+
+        return theaterIds as string[]
     }
 }

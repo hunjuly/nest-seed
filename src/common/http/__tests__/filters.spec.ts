@@ -5,19 +5,15 @@ import {
     expectInternalServerError,
     expectOk
 } from 'common/test'
-import { TestModule } from './filter.fixture'
+import { TestModule } from './filters.fixture'
 
 describe('common/filters', () => {
     let testContext: HttpTestContext
     let req: any
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [TestModule]
-        })
-
+        testContext = await createHttpTestContext({ imports: [TestModule] })
         req = testContext.request
-        // Disable outputting errors to the console
         testContext.app.useLogger(false)
     })
 

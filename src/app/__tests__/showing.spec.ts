@@ -4,6 +4,7 @@ import { MovieDto } from 'app/services/movies'
 import { HttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { createFixture } from './showing.fixture'
+import { TheaterDto } from 'app/services/theaters'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
@@ -11,6 +12,7 @@ describe('/showing', () => {
     let customer: CustomerDto
     let watchedMovies: MovieDto[]
     let showingMovies: MovieDto[]
+    let theaters: TheaterDto[]
 
     beforeEach(async () => {
         const fixture = await createFixture()
@@ -20,6 +22,7 @@ describe('/showing', () => {
         customer = fixture.customer
         showingMovies = fixture.showingMovies
         watchedMovies = fixture.watchedMovies
+        theaters = fixture.theaters
     })
 
     afterEach(async () => {
@@ -27,7 +30,10 @@ describe('/showing', () => {
     })
 
     it('추천 영화 목록 요청', async () => {
-        const res = await req.get({ url: '/showing/movies/recommended', query: { customerId: customer.id } })
+        const res = await req.get({
+            url: '/showing/movies/recommended',
+            query: { customerId: customer.id }
+        })
         expectOk(res)
 
         const genre = watchedMovies.flatMap((movie) => movie.genre)
@@ -43,10 +49,6 @@ describe('/showing', () => {
             query: { latlong: '37.123,128.678' }
         })
         expectOk(res)
-
-        const filteredMovies = showingMovies.filter((movie) =>
-            movie.genre.some((item) => watchedMovies.flatMap((movie) => movie.genre).includes(item))
-        )
-        expect(res.body).toEqual(filteredMovies)
+        expect(res.body).toEqual([theaters[0], theaters[1]])
     })
 })

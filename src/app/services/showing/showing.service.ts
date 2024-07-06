@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { pick } from 'common'
+import { Assert, LatLong, latlongDistanceInMeters, pick } from 'common'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
 import { TicketsService } from '../tickets'
+import { TheaterDto, TheatersService } from '../theaters'
 
 @Injectable()
 export class ShowingService {
@@ -13,13 +14,30 @@ export class ShowingService {
         private moviesService: MoviesService,
         private showtimesService: ShowtimesService,
         private paymentsService: PaymentsService,
-        private ticketsService: TicketsService
+        private ticketsService: TicketsService,
+        private theatersService: TheatersService
     ) {}
+
+    async findShowingTheaters(movieId: string, userLocation: LatLong) {
+        const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
+        const theaters = await this.theatersService.findByIds(theaterIds)
+        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
+
+        return this.sortTheatersByDistance(theaters, userLocation)
+    }
+
+    private sortTheatersByDistance(theaters: TheaterDto[], userLocation: LatLong) {
+        return theaters.sort(
+            (a, b) =>
+                latlongDistanceInMeters(a.latlong, userLocation) -
+                latlongDistanceInMeters(b.latlong, userLocation)
+        )
+    }
 
     async getRecommendedMovies(customerId: string) {
         this.logger.log(`Generating recommended movies for customer: ${customerId}`)
 
-        const showingMovieIds = await this.showtimesService.getShowingMovieIds()
+        const showingMovieIds = await this.showtimesService.findShowingMovieIds()
 
         const showingMovies = await this.moviesService.getMoviesByIds(showingMovieIds)
 
@@ -43,7 +61,7 @@ export class ShowingService {
         return recommendedMovies
     }
 
-    generateRecommendedMovies(showingMovies: MovieDto[], watchedMovies: MovieDto[]): MovieDto[] {
+    private generateRecommendedMovies(showingMovies: MovieDto[], watchedMovies: MovieDto[]): MovieDto[] {
         // 1. 시청한 영화들의 장르 빈도수 계산
         const genreFrequency: { [key: string]: number } = {}
         watchedMovies.forEach((movie) => {

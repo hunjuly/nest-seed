@@ -1,19 +1,12 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
 import {
-    UsePipes,
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards
-} from '@nestjs/common'
-import { TheaterCreationDto, TheatersFilterDto, TheatersService, TheaterUpdatingDto } from 'app/services/theaters'
+    TheaterCreationDto,
+    TheatersFilterDto,
+    TheatersService,
+    TheaterUpdatingDto
+} from 'app/services/theaters'
+import { PaginationOption, PaginationPipe } from 'common'
 import { TheaterExistsGuard } from './guards'
-import { PaginationPipe, PaginationOption } from 'common'
 
 @Controller('theaters')
 export class TheatersController {

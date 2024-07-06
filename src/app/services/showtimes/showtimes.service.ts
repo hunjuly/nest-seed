@@ -46,11 +46,14 @@ export class ShowtimesService {
         return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 
-    async getShowingMovieIds(): Promise<string[]> {
+    async findShowingMovieIds(): Promise<string[]> {
         const currentTime = new Date()
+        const movieIds = await this.showtimesRepository.findMovieIdsShowingAfter(currentTime)
 
-        const showingMovieIds = await this.showtimesRepository.getMovieIdsShowingAfter(currentTime)
+        return movieIds
+    }
 
-        return showingMovieIds
+    async findTheaterIdsShowingMovie(movieId: string) {
+        return this.showtimesRepository.findTheaterIdsShowingMovie(movieId)
     }
 }
