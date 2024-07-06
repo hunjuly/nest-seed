@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { AppException, PaginationOption, PaginationResult, Password } from 'common'
+import { AppException, Assert, PaginationOption, PaginationResult, Password } from 'common'
 import { UserCreationDto, UserUpdatingDto, UserDto, UsersFilterDto } from './dto'
 import { UsersRepository } from './users.repository'
 
@@ -36,12 +36,9 @@ export class UsersService {
     async isCorrectPassword(userId: string, password: string) {
         const user = await this.usersRepository.findById(userId)
 
-        /* istanbul ignore file */
-        if (!user) {
-            throw new AppException(`User with ID ${userId} not found`)
-        }
+        Assert.defined(user, `User with ID ${userId} should exist`)
 
-        return Password.validate(password, user.password)
+        return Password.validate(password, user!.password)
     }
 
     async findByEmail(email: string): Promise<UserDto | null> {
@@ -63,12 +60,9 @@ export class UsersService {
     async getUser(userId: string) {
         const user = await this.usersRepository.findById(userId)
 
-        /* istanbul ignore file */
-        if (!user) {
-            throw new AppException(`User with ID ${userId} not found`)
-        }
+        Assert.defined(user, `User with ID ${userId} should exist`)
 
-        return new UserDto(user)
+        return new UserDto(user!)
     }
 
     async updateUser(userId: string, updateUserDto: UserUpdatingDto) {

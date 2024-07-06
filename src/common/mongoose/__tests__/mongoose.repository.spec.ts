@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import { Exception, MongooseException, OrderDirection, nullObjectId } from 'common'
+import { Exception, MongooseException, ObjectId, OrderDirection, nullObjectId } from 'common'
 import { createTestingModule } from 'common/test'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import {
@@ -382,5 +382,17 @@ describe('MongooseRepository', () => {
                 'Sample-009'
             ])
         })
+    })
+
+    it('stringToObjectId', async () => {
+        const input = {
+            number: 123,
+            date: new Date(),
+            boolean: true,
+            objectId: new ObjectId(),
+            regex: /test/
+        }
+        const converted = repository.stringToObjectId(input)
+        expect(converted).toEqual(input)
     })
 })

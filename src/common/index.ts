@@ -1,5 +1,6 @@
 export * from './assert'
 export * from './exceptions'
+export * from './expect'
 export * from './http'
 export * from './logger'
 export * from './mongoose'

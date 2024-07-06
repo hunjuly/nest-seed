@@ -4,7 +4,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheatersService, forEachSeat } from 'app/services/theaters'
 import { Job } from 'bull'
-import { ObjectId } from 'common'
 import { Ticket, TicketStatus } from '../schemas'
 import { TicketsCreateCompleteEvent, TicketsCreateErrorEvent, TicketsCreateEvent } from '../tickets.events'
 import { TicketsRepository } from '../tickets.repository'
@@ -53,12 +52,12 @@ export class TicketsCreationService {
 
             forEachSeat(theater.seatmap, (seat: Seat) => {
                 ticketEntries.push({
-                    showtimeId: new ObjectId(showtime.id),
-                    theaterId: new ObjectId(showtime.theaterId),
-                    movieId: new ObjectId(showtime.movieId),
+                    showtimeId: showtime.id,
+                    theaterId: showtime.theaterId,
+                    movieId: showtime.movieId,
                     status: TicketStatus.open,
                     seat,
-                    showtimesBatchId: new ObjectId(batchId)
+                    showtimesBatchId: batchId
                 })
             })
 

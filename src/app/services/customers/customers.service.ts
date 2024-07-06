@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { AppException, PaginationOption, PaginationResult } from 'common'
+import { AppException, Assert, PaginationOption, PaginationResult } from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CustomerCreationDto, CustomerDto, CustomersFilterDto, CustomerUpdatingDto } from './dto'
 
@@ -17,14 +17,6 @@ export class CustomersService {
         const customerExists = await this.customersRepository.existsById(customerId)
 
         return customerExists
-    }
-
-    async findByIds(customerIds: string[]) {
-        const foundCustomers = await this.customersRepository.findByIds(customerIds)
-
-        const customerDtos = foundCustomers.map((customer) => new CustomerDto(customer))
-
-        return customerDtos
     }
 
     async findPagedCustomers(
@@ -51,12 +43,9 @@ export class CustomersService {
     async getCustomer(customerId: string) {
         const customer = await this.customersRepository.findById(customerId)
 
-        /* istanbul ignore file */
-        if (!customer) {
-            throw new AppException(`Customer(${customerId}) not found`)
-        }
+        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
 
-        return new CustomerDto(customer)
+        return new CustomerDto(customer!)
     }
 
     async updateCustomer(customerId: string, updateCustomerDto: CustomerUpdatingDto) {

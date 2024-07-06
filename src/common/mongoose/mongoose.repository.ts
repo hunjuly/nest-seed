@@ -9,25 +9,22 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
     async create(docData: Partial<Doc>): Promise<Doc> {
         Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
 
-        stringToObjectId(docData)
-
-        const savedDocument = await this.model.create(docData)
+        const savedDocument = await this.model.create(this.stringToObjectId(docData))
         const obj = savedDocument.toObject()
-        objectIdToString(obj)
 
-        return obj
+        return this.objectIdToString(obj)
     }
 
     async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
-        stringToObjectId(documentDatas)
-
+        const value = this.stringToObjectId(documentDatas)
         /* {lean: true} 사용하면 version 등 일부 필드가 누락된다. */
-        const savedDocuments = (await this.model.insertMany(documentDatas)) as HydratedDocument<Doc>[]
+        const savedDocuments = (await this.model.insertMany(value)) as HydratedDocument<Doc>[]
 
         const objs = savedDocuments.map((doc) => doc.toObject())
-        objectIdToString(objs)
 
-        return objs
+        const output = this.objectIdToString(objs)
+
+        return output
     }
 
     async deleteById(id: DocumentId): Promise<void> {
@@ -51,9 +48,7 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
             )
         }
 
-        stringToObjectId(filter)
-
-        const result = await this.model.deleteMany(filter)
+        const result = await this.model.deleteMany(this.stringToObjectId(filter))
 
         Logger.log(`Deleted count: ${result.deletedCount}`)
 
@@ -74,25 +69,22 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
     async findById(id: DocumentId): Promise<Doc | null> {
         const doc = await this.model.findById(id).lean()
-        objectIdToString(doc)
 
-        return doc as Doc
+        return this.objectIdToString(doc) as Doc
     }
 
     async findByIds(ids: DocumentId[]): Promise<Doc[]> {
         const docs = await this.model.find({ _id: { $in: ids } as any }).lean()
-        objectIdToString(docs)
 
-        return docs as Doc[]
+        return this.objectIdToString(docs) as Doc[]
     }
 
     async findByFilter(filter: Record<string, any>): Promise<Doc[]> {
-        stringToObjectId(filter)
+        const value = this.stringToObjectId(filter)
 
-        const docs = await this.model.find(filter).lean()
-        objectIdToString(docs)
+        const docs = await this.model.find(value).lean()
 
-        return docs as Doc[]
+        return this.objectIdToString(docs) as Doc[]
     }
 
     async findWithPagination(
@@ -118,9 +110,61 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         const items: Doc[] = await helpers.lean()
         const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
-        objectIdToString(items)
+        return { skip, take, total, items: this.objectIdToString(items) }
+    }
 
-        return { skip, take, total, items }
+    objectIdToString(obj: any): any {
+        if (obj === null || typeof obj !== 'object') {
+            return obj
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.objectIdToString(item))
+        }
+
+        if (obj instanceof Date) {
+            return obj
+        }
+
+        if (obj instanceof Types.ObjectId) {
+            return obj.toString()
+        }
+
+        const result: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+            result[key] = this.objectIdToString(value)
+        }
+
+        return result
+    }
+
+    stringToObjectId(obj: any): any {
+        if (typeof obj === 'string' && Types.ObjectId.isValid(obj)) {
+            return new Types.ObjectId(obj)
+        }
+
+        if (obj === null || typeof obj !== 'object' || obj instanceof RegExp) {
+            return obj
+        }
+
+        if (obj instanceof Date) {
+            return obj
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.stringToObjectId(item))
+        }
+
+        const result: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+            if (obj[key] instanceof Types.ObjectId) {
+                result[key] = value
+            } else {
+                result[key] = this.stringToObjectId(value)
+            }
+        }
+
+        return result
     }
 }
 

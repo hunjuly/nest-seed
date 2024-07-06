@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { AppException, PaginationOption, PaginationResult } from 'common'
+import { AppException, Assert, PaginationOption, PaginationResult } from 'common'
 import { TheaterCreationDto, TheaterDto, TheatersFilterDto, TheaterUpdatingDto } from './dto'
 import { TheatersRepository } from './theaters.repository'
 
@@ -47,12 +47,9 @@ export class TheatersService {
     async getTheater(theaterId: string) {
         const theater = await this.theatersRepository.findById(theaterId)
 
-        /* istanbul ignore file */
-        if (!theater) {
-            throw new AppException(`Theater(${theaterId}) not found`)
-        }
+        Assert.defined(theater, `Theater with ID ${theaterId} should exist`)
 
-        return new TheaterDto(theater)
+        return new TheaterDto(theater!)
     }
 
     async updateTheater(theaterId: string, updateTheaterDto: TheaterUpdatingDto) {

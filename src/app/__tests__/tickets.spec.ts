@@ -96,15 +96,12 @@ describe('/tickets', () => {
             expectEqualDtos(res.body.items, expected)
         })
 
-        //it('ticketsService.findTickets 메서드가 theaterIds로 필터링된 티켓을 정확히 반환해야 한다', async () => {
-        it('ticketsService.findTickets', async () => {
+        it('ticketsService.findTickets 메서드가 theaterIds로 필터링된 티켓을 정확히 반환해야 한다', async () => {
             const actual = await ticketsService.findTickets({ theaterIds })
 
             const filteredShowtimes = showtimes.filter((showtime) => theaterIds.includes(showtime.theaterId))
             const expected = makeExpectedTickets(theaters, filteredShowtimes)
             expectEqualDtos(actual, expected)
-
-            console.log(theaterIds)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
