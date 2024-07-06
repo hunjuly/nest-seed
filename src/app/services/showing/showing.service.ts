@@ -55,7 +55,6 @@ export class ShowingService {
         // 2. 가장 많이 본 장르 찾기
         const mostWatchedGenres = Object.entries(genreFrequency)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 3) // 상위 3개 장르 선택
             .map(([genre]) => genre)
 
         // 3. 현재 상영 중인 영화 중 추천 영화 선택

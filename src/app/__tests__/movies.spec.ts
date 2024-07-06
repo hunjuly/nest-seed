@@ -35,7 +35,7 @@ describe('/movies', () => {
 
     describe('POST /movies', () => {
         it('Create a movie', async () => {
-            const createMovieDto = {
+            const movieCreationDto = {
                 title: 'movie title',
                 genre: ['Action', 'Comedy', 'Drama'],
                 releaseDate: new Date('2024-12-12'),
@@ -45,14 +45,13 @@ describe('/movies', () => {
                 rating: 'PG'
             }
 
-            const res = await req.post({ url: '/movies', body: createMovieDto })
+            const res = await req.post({ url: '/movies', body: movieCreationDto })
             expectCreated(res)
-            expect(res.body).toEqual({ id: expect.anything(), ...createMovieDto })
+            expect(res.body).toEqual({ id: expect.anything(), ...movieCreationDto })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
             const res = await req.post({ url: '/movies', body: {} })
-
             expectBadRequest(res)
         })
     })

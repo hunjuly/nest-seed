@@ -1,24 +1,20 @@
 import { TheaterDto, TheatersService } from 'app/services/theaters'
 import { padNumber } from 'common'
 
-export const seatmap = {
-    blocks: [
-        {
-            name: 'A',
-            rows: [{ name: '1', seats: 'OOOOXXOOOO' }]
-        }
-    ]
-}
-
-export async function createTheater(theatersSerivce: TheatersService): Promise<TheaterDto> {
+export async function createTheater(theatersSerivce: TheatersService, overrides = {}): Promise<TheaterDto> {
     return theatersSerivce.createTheater({
         name: `theater name`,
         latlong: { latitude: 38.123, longitude: 138.678 },
-        seatmap
+        seatmap: { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOXXOOOO' }] }] },
+        ...overrides
     })
 }
 
-export async function createTheaters(theatersSerivce: TheatersService, count: number): Promise<TheaterDto[]> {
+export async function createTheaters(
+    theatersSerivce: TheatersService,
+    count: number,
+    overrides = {}
+): Promise<TheaterDto[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
@@ -27,7 +23,8 @@ export async function createTheaters(theatersSerivce: TheatersService, count: nu
         const promise = theatersSerivce.createTheater({
             name: `Theater-${tag}`,
             latlong: { latitude: 38.123, longitude: 138.678 },
-            seatmap
+            seatmap: { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOXXOOOO' }] }] },
+            ...overrides
         })
 
         promises.push(promise)

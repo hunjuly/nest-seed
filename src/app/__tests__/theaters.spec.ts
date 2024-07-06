@@ -12,7 +12,7 @@ import {
     expectOk
 } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { createTheater, createTheaters, seatmap } from './theaters.fixture'
+import { createTheater, createTheaters } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
@@ -37,7 +37,7 @@ describe('/theaters', () => {
         const createData = {
             name: `Theater-Name`,
             latlong: { latitude: 38.123, longitude: 138.678 },
-            seatmap
+            seatmap: { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOXXOOOO' }] }] }
         }
 
         it('Create a theater', async () => {

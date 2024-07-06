@@ -1,9 +1,10 @@
 import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
 import { TicketsService } from 'app/services/tickets'
+import { pickIds } from 'common'
 import { HttpTestContext, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { expectEqualDtos, pickIds } from './test.util'
+import { expectEqualDtos } from './test.util'
 import { TicketsFactory, createFixture, makeExpectedTickets } from './tickets.fixture'
 
 describe('/tickets', () => {

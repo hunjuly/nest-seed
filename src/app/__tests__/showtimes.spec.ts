@@ -1,9 +1,9 @@
 import { ShowtimeDto } from 'app/services/showtimes'
-import { nullObjectId } from 'common'
+import { nullObjectId, pickIds } from 'common'
 import { HttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
 import { ShowtimesFactory, createFixture, makeExpectedShowtime } from './showtimes.fixture'
-import { expectEqualDtos, pickIds } from './test.util'
+import { expectEqualDtos } from './test.util'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext

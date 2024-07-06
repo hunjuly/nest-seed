@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Assert, PaginationOption, PaginationResult } from 'common'
 import { MovieCreationDto, MovieDto, MoviesFilterDto, MovieUpdatingDto } from './dto'
 import { MoviesRepository } from './movies.repository'
+import { uniq } from 'lodash'
 
 @Injectable()
 export class MoviesService {
@@ -22,13 +23,17 @@ export class MoviesService {
     }
 
     async getMoviesByIds(movieIds: string[]) {
-        this.logger.debug('영화 ID로 검색 시작:', movieIds)
+        const uniqueMovieIds = uniq(movieIds)
 
-        const movies = await this.moviesRepository.findByIds(movieIds)
+        if (uniqueMovieIds < movieIds) this.logger.warn('중복된 영화 ID가 존재함:', movieIds)
+
+        this.logger.log('영화 ID로 검색 시작:', uniqueMovieIds)
+
+        const movies = await this.moviesRepository.findByIds(uniqueMovieIds)
+
+        Assert.sameLength(movies, uniqueMovieIds, '모든 요청된 영화 ID에 대한 영화가 존재해야 합니다')
 
         const movieDtos = movies.map((movie) => new MovieDto(movie))
-
-        Assert.sameLength(movies, movieIds, '모든 요청된 영화 ID에 대한 영화가 존재해야 합니다')
 
         return movieDtos
     }

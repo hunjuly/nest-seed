@@ -4,12 +4,12 @@ import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
 import {
-    ShowtimesCreationDto,
     ShowtimeDto,
-    ShowtimesService,
-    ShowtimesModule,
     ShowtimesCreateErrorEvent,
-    ShowtimesCreateFailedEvent
+    ShowtimesCreateFailedEvent,
+    ShowtimesCreationDto,
+    ShowtimesModule,
+    ShowtimesService
 } from 'app/services/showtimes'
 import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
 import {
