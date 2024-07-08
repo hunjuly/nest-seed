@@ -12,6 +12,9 @@ run_mongo() (
   docker exec ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
 )
 
+echo "HOSTPATH = ${HOST_PATH}"
+ls
+
 openssl rand -base64 768 >mongodb.key
 docker_compose --profile infra down
 docker_compose --profile infra up -d
