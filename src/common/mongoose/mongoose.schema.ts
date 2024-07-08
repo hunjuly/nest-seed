@@ -40,7 +40,6 @@ export function createMongooseSchema<T extends Type<any>>(cls: T) {
 
 export class ObjectId extends Types.ObjectId {}
 export type DocumentId = ObjectId | string
-
 export class RepositoryUpdateStatus {
     modifiedCount: number
     matchedCount: number

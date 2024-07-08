@@ -1,9 +1,17 @@
 import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import { Exception, MongooseException, ObjectId, OrderDirection, nullObjectId } from 'common'
+import {
+    Exception,
+    MongooseException,
+    ObjectId,
+    OrderDirection,
+    nullObjectId,
+    objectIdToString,
+    stringToObjectId
+} from 'common'
 import { createTestingModule } from 'common/test'
-import { MongoMemoryServer } from 'mongodb-memory-server'
+import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import {
     Sample,
     SampleModule,
@@ -15,12 +23,13 @@ import {
 } from './mongoose.repository.fixture'
 
 describe('MongooseRepository', () => {
-    let mongoServer: MongoMemoryServer
+    let mongoServer: MongoMemoryReplSet
     let module: TestingModule
     let repository: SamplesRepository
 
     beforeAll(async () => {
-        mongoServer = await MongoMemoryServer.create()
+        // This will create an new instance of "MongoMemoryReplSet" and automatically start all Servers
+        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 3 } })
     })
 
     afterAll(async () => {
@@ -384,15 +393,40 @@ describe('MongooseRepository', () => {
         })
     })
 
-    it('stringToObjectId', async () => {
+    describe('ObjectId conversion functions', () => {
         const input = {
             number: 123,
-            date: new Date(),
+            date: new Date(0),
             boolean: true,
-            objectId: new ObjectId(),
-            regex: /test/
+            objectId: new ObjectId('000000000000000000000001'),
+            stringId: '000000000000000000000002',
+            objectIds: [new ObjectId('000000000000000000000001'), new ObjectId('000000000000000000000001')],
+            stringIds: ['000000000000000000000002', '000000000000000000000002'],
+            regex: /test/,
+            null: null
         }
-        const converted = repository.stringToObjectId(input)
-        expect(converted).toEqual(input)
+
+        it('stringToObjectId', async () => {
+            const converted = stringToObjectId(input)
+
+            expect(converted).toEqual({
+                ...input,
+                stringId: new ObjectId('000000000000000000000002'),
+                stringIds: [
+                    new ObjectId('000000000000000000000002'),
+                    new ObjectId('000000000000000000000002')
+                ]
+            })
+        })
+
+        it('objectIdToString', async () => {
+            const converted = objectIdToString(input)
+
+            expect(converted).toEqual({
+                ...input,
+                objectId: '000000000000000000000001',
+                objectIds: ['000000000000000000000001', '000000000000000000000001']
+            })
+        })
     })
 })

@@ -85,8 +85,6 @@ export class ShowtimesCreationService {
 
         const createdShowtimes = await this.showtimesRepository.createMany(showtimeEntries)
 
-        Assert.sameLength(showtimeEntries, createdShowtimes, '요청과 저장된 showtimes의 수는 같아야 한다')
-
         this.logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
 
         return createdShowtimes

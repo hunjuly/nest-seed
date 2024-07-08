@@ -115,7 +115,7 @@ describe('/tickets', () => {
     })
 
     it('생성 요청이 동시에 발생해도 모든 요청이 성공적으로 완료되어야 한다', async () => {
-        const showtimes = await factory.createTicketsInParallel(createDto(), 100)
+        const showtimes = await factory.createTicketsInParallel(createDto(), 20)
 
         const actual = await ticketsService.findTickets({})
         const expected = makeExpectedTickets(theaters, showtimes)

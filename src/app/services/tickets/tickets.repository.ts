@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MongooseRepository,
-    ObjectId,
     PaginationOption,
     PaginationResult,
     RepositoryUpdateStatus,
@@ -24,10 +23,8 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         filterDto: TicketsFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Ticket>> {
-        stringToObjectId(filterDto)
-
         const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const { theaterIds, ...rest } = filterDto
+            const { theaterIds, ...rest } = stringToObjectId(filterDto)
 
             const query: Record<string, any> = rest
 
@@ -60,9 +57,10 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     async updateTicketStatus(ticketIds: string[], status: TicketStatus): Promise<RepositoryUpdateStatus> {
         this.logger.log(`${ticketIds}의 status를 ${status}으로 업데이트 시작`)
 
-        const objectIds = ticketIds.map((id) => new ObjectId(id))
-
-        const result = await this.model.updateMany({ _id: { $in: objectIds } }, { $set: { status } })
+        const result = await this.model.updateMany(
+            { _id: { $in: stringToObjectId(ticketIds) } },
+            { $set: { status } }
+        )
 
         this.logger.log(`${result.modifiedCount}/${result.matchedCount}개의 tickets 업데이트 완료`)
 

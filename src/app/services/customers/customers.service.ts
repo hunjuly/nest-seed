@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { AppException, Assert, PaginationOption, PaginationResult } from 'common'
+import { Assert, PaginationOption, PaginationResult } from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CustomerCreationDto, CustomerDto, CustomersFilterDto, CustomerUpdatingDto } from './dto'
 

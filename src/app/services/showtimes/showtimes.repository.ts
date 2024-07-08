@@ -2,11 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MongooseRepository,
+    objectIdToString,
     PaginationOption,
     PaginationResult,
-    objectIdToString,
-    stringToObjectId,
-    ObjectId
+    stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
 import { ShowtimesFilterDto } from './dto'
@@ -23,8 +22,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         startTime: Date
         endTime: Date
     }): Promise<Showtime[]> {
-        const converted = query
-        stringToObjectId(converted)
+        const converted = stringToObjectId(query)
         /**
          * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
          * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
@@ -36,9 +34,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             })
             .lean()
 
-        objectIdToString(showtimes)
-
-        return showtimes
+        return objectIdToString(showtimes)
     }
 
     async findPagedShowtimes(
@@ -46,9 +42,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         pagination: PaginationOption
     ): Promise<PaginationResult<Showtime>> {
         const paginated = await this.findWithPagination(pagination, (helpers) => {
-            stringToObjectId(filterDto)
-
-            helpers.setQuery(filterDto)
+            helpers.setQuery(stringToObjectId(filterDto))
         })
 
         return paginated
@@ -68,15 +62,15 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
     async findMovieIdsShowingAfter(time: Date): Promise<string[]> {
         const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).lean()
-        objectIdToString(movieIds)
 
-        return movieIds as string[]
+        return objectIdToString(movieIds)
     }
 
     async findTheaterIdsShowingMovie(movieId: string): Promise<string[]> {
-        const theaterIds = await this.model.distinct('theaterId', { movieId: new ObjectId(movieId) }).lean()
-        objectIdToString(theaterIds)
+        const theaterIds = await this.model
+            .distinct('theaterId', { movieId: stringToObjectId(movieId) })
+            .lean()
 
-        return theaterIds as string[]
+        return objectIdToString(theaterIds)
     }
 }
