@@ -1,18 +1,10 @@
 import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import {
-    Exception,
-    MongooseException,
-    ObjectId,
-    OrderDirection,
-    nullObjectId,
-    objectIdToString,
-    sleep,
-    stringToObjectId
-} from 'common'
+import { Exception, MongooseException, OrderDirection, nullObjectId, sleep } from 'common'
 import { createTestingModule } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
+import { Connection } from 'mongoose'
 import {
     Sample,
     SampleModule,
@@ -23,7 +15,6 @@ import {
     sortByName,
     sortByNameDescending
 } from './mongoose.repository.fixture'
-import { Connection } from 'mongoose'
 
 describe('MongooseRepository', () => {
     let mongoServer: MongoMemoryReplSet
@@ -395,43 +386,6 @@ describe('MongooseRepository', () => {
                 'Sample-008',
                 'Sample-009'
             ])
-        })
-    })
-
-    describe('ObjectId conversion functions', () => {
-        const input = {
-            number: 123,
-            date: new Date(0),
-            boolean: true,
-            objectId: new ObjectId('000000000000000000000001'),
-            stringId: '000000000000000000000002',
-            objectIds: [new ObjectId('000000000000000000000001'), new ObjectId('000000000000000000000001')],
-            stringIds: ['000000000000000000000002', '000000000000000000000002'],
-            regex: /test/,
-            null: null
-        }
-
-        it('stringToObjectId', async () => {
-            const converted = stringToObjectId(input)
-
-            expect(converted).toEqual({
-                ...input,
-                stringId: new ObjectId('000000000000000000000002'),
-                stringIds: [
-                    new ObjectId('000000000000000000000002'),
-                    new ObjectId('000000000000000000000002')
-                ]
-            })
-        })
-
-        it('objectIdToString', async () => {
-            const converted = objectIdToString(input)
-
-            expect(converted).toEqual({
-                ...input,
-                objectId: '000000000000000000000001',
-                objectIds: ['000000000000000000000001', '000000000000000000000001']
-            })
         })
     })
 })

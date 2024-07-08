@@ -1,9 +1,32 @@
 # https://docs.docker.com/compose/compose-file/05-services/
 version: '3'
 x-logging: &default-logging
-  options:
-    max-size: '10m'
-    max-file: '3'
+    options:
+        max-size: '10m'
+        max-file: '3'
+
+x-mongo-common: &mongo-common
+    image: mongo:latest
+    profiles: ['infra']
+    logging: *default-logging
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
+        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
+    command: 'mongod --replSet ${MONGO_DB_REPLICA_NAME} --keyFile /etc/mongodb.key --bind_ip_all'
+    volumes:
+        - ${HOST_PATH}/mongodb.key:/etc/temp.key
+    entrypoint:
+        - bash
+        - -c
+        - |
+            cp /etc/temp.key /etc/mongodb.key
+            chmod 400 /etc/mongodb.key
+            chown 999:999 /etc/mongodb.key
+            exec docker-entrypoint.sh $$@
+    networks:
+        - default
+    restart: always
+
 services:
     postgres:
         image: postgres:latest
@@ -27,22 +50,26 @@ services:
             - default
         restart: always
 
-    mongo:
-        image: mongo:latest
-        profiles: ['infra']
-        container_name: ${MONGO_DB_HOST}
-        logging: *default-logging
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
-        networks:
-            - default
-        restart: always
+    mongo1:
+        <<: *mongo-common
+        container_name: ${MONGO_DB_HOST1}
+
+    mongo2:
+        <<: *mongo-common
+        container_name: ${MONGO_DB_HOST2}
+        depends_on:
+            - mongo1
+
+    mongo3:
+        <<: *mongo-common
+        container_name: ${MONGO_DB_HOST3}
+        depends_on:
+            - mongo2
 
     mongo-express:
         image: mongo-express:latest
         profiles: ['infra']
-        container_name: ${MONGO_DB_HOST}-express
+        container_name: ${MONGO_DB_HOST1}-express
         logging: *default-logging
         environment:
             ME_CONFIG_BASICAUTH_USERNAME: user
@@ -50,7 +77,7 @@ services:
             ME_CONFIG_MONGODB_ENABLE_ADMIN: true
             ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_DB_USERNAME}
             ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_PASSWORD}
-            ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST}
+            ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST1}
             ME_CONFIG_MONGODB_PORT: ${MONGO_DB_PORT}
         networks:
             - default

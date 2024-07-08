@@ -6,7 +6,7 @@ import { LogicException } from './exceptions'
 export class Assert {
     static sameLength(a: any[], b: any[], message: string) {
         if (a.length !== b.length) {
-            throw new LogicException(message)
+            throw new LogicException(`${message} first: ${a.length}, second: ${b.length}`)
         }
     }
 

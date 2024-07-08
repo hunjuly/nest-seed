@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 import { Assert, DocumentId, MongooseSchema, PaginationOption, PaginationResult } from 'common'
-import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
+import { ClientSession, HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
 import { MongooseException } from './exceptions'
 import { objectIdToString, stringToObjectId } from './mongoose.util'
 
@@ -16,35 +16,27 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return objectIdToString(obj)
     }
 
-    async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
-        Logger.log(`Starting to save ${documentDatas.length} documents`)
+    async createMany(inputDocs: Partial<Doc>[]): Promise<Doc[]> {
+        Logger.log(`Starting to save ${inputDocs.length} documents`)
 
         const session = await this.model.startSession()
-        session.startTransaction()
 
         try {
-            const value = stringToObjectId(documentDatas)
+            const docs = await session.withTransaction(async (session: ClientSession) => {
+                /* Using {lean: true} would result in omission of some fields like version */
+                const savedDocs = (await this.model.insertMany(stringToObjectId(inputDocs), {
+                    session
+                })) as HydratedDocument<Doc>[]
 
-            /* Using {lean: true} would result in omission of some fields like version */
-            const savedDocuments = (await this.model.insertMany(value, {
-                session
-            })) as HydratedDocument<Doc>[]
+                Logger.log(`Completed saving ${savedDocs.length} documents`)
 
-            Logger.log(`Completed saving ${savedDocuments.length} documents`)
+                Assert.sameLength(inputDocs, savedDocs, 'All requested data must be saved as documents.')
 
-            if (documentDatas.length !== savedDocuments.length) {
-                throw new MongooseException(
-                    'The number of saved documents does not match the number of requested documents'
-                )
-            }
-            const val = savedDocuments.map((doc) => doc.toObject())
-            const objs = objectIdToString(val)
+                return savedDocs
+            })
 
-            await session.commitTransaction()
-
-            return objs
+            return objectIdToString(docs.map((doc) => doc.toObject()))
         } catch (error) {
-            if (session.inTransaction()) await session.abortTransaction()
             Logger.error(`Failed to save documents: ${error.message}`)
             throw error
         } finally {
