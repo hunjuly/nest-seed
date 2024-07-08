@@ -12,17 +12,19 @@ x-mongo-common: &mongo-common
     environment:
         MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USERNAME}
         MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
-    command: 'mongod --replSet ${MONGO_DB_REPLICA_NAME} --keyFile /etc/mongodb.key --bind_ip_all'
+    # command: 'mongod --replSet ${MONGO_DB_REPLICA_NAME} --keyFile /etc/mongodb.key --bind_ip_all'
+    command: 'mongod --replSet ${MONGO_DB_REPLICA_NAME} --keyFile /etc/mongodb/mongodb.key --bind_ip_all'
     volumes:
-        - ${HOST_PATH}/mongodb.key:/etc/temp.key
-    entrypoint:
-        - bash
-        - -c
-        - |
-            cp /etc/temp.key /etc/mongodb.key
-            chmod 400 /etc/mongodb.key
-            chown 999:999 /etc/mongodb.key
-            exec docker-entrypoint.sh $$@
+        - mongodb_key:/etc/mongodb
+    # volumes:
+    #     - ${HOST_PATH}/mongodb.key:/etc/temp.key
+    # entrypoint:
+    #     - bash
+    #     - -c
+    #     - |
+    #         chmod 400 /etc/mongodb/mongodb.key
+    #         chown 999:999 /etc/mongodb/mongodb.key
+    #         exec docker-entrypoint.sh $$@
     networks:
         - default
     restart: always
@@ -101,3 +103,7 @@ networks:
     default:
         external: true
         name: ${PROJECT_NAME}
+
+volumes:
+    mongodb_key:
+        external: true

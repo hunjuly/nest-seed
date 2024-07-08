@@ -16,7 +16,6 @@ jobs:
         env:
             WORKSPACE_ROOT: ${{ github.workspace }}
             PROJECT_NAME: ${{ github.event.repository.name }}
-            HOST_PATH: ${{ github.workspace }}
             NODE_ENV: development
             TERM: xterm # bash의 clear 명령어를 사용하기 위해 필요하다
         steps:
