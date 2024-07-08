@@ -13,9 +13,6 @@ run_mongo() (
 )
 
 docker_compose --profile infra down
-docker volume rm mongodb_key
-
-docker run --rm -v mongodb_key:/mongodb_key -w /mongodb_key mongo sh -c "openssl rand -base64 768 >mongodb.key && chmod 400 /mongodb_key/mongodb.key && chown mongodb:mongodb /mongodb_key/mongodb.key"
 docker_compose --profile infra up -d
 
 wait_for_service "${MONGO_DB_HOST1}" "run_mongo 'db.version()'"
