@@ -23,7 +23,7 @@ describe('PsqlsController', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('POST /psqls', () => {

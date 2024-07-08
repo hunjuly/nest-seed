@@ -18,7 +18,7 @@ describe('common/filters', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     it('ErrorFilter', async () => {

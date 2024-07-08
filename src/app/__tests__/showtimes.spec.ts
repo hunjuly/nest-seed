@@ -24,7 +24,7 @@ describe('/showtimes', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     const creationDto = (overrides = {}) => ({
