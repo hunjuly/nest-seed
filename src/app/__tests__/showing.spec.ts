@@ -44,8 +44,10 @@ describe('/showing', () => {
     })
 
     it('상영 극장 목록 요청', async () => {
+        const movieId = showingMovies[0].id
+
         const res = await req.get({
-            url: `/showing/movies/${showingMovies[0].id}/theaters`,
+            url: `/showing/movies/${movieId}/theaters`,
             query: { userLocation: '37.123,128.678' }
         })
         expectOk(res)
@@ -53,10 +55,30 @@ describe('/showing', () => {
     })
 
     it('상영일 목록 요청', async () => {
+        const movieId = showingMovies[0].id
+        const theaterId = theaters[0].id
+
         const res = await req.get({
-            url: `/showing/movies/${showingMovies[0].id}/theaters/${theaters[0].id}/showdates`
+            url: `/showing/movies/${movieId}/theaters/${theaterId}/showdates`
         })
         expectOk(res)
         expect(res.body).toEqual([new Date(2999, 0, 1), new Date(2999, 0, 2), new Date(2999, 0, 3)])
+    })
+
+    it('상영 시간 목록 요청', async () => {
+        const movieId = showingMovies[0].id
+        const theaterId = theaters[0].id
+        const showdate = '29990101'
+
+        const res = await req.get({
+            url: `/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`
+        })
+        expectOk(res)
+
+        const common = { id: expect.any(String), endTime: expect.any(Date), theaterId, movieId }
+        expect(res.body).toEqual([
+            { ...common, startTime: new Date(2999, 0, 1, 12) },
+            { ...common, startTime: new Date(2999, 0, 1, 14) }
+        ])
     })
 })

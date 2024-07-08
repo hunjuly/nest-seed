@@ -62,4 +62,10 @@ export class ShowtimesService {
 
         return showdates
     }
+
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
+        const showtimes = await this.showtimesRepository.findShowtimesByShowdate(movieId, theaterId, showdate)
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+    }
 }

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
 import { ShowingService } from 'app/services/showing'
-import { LatLong, LatLongQuery } from 'common'
+import { convertNumberToDate, LatLong, LatLongQuery } from 'common'
 import { CustomerExistsGuard, MovieExistsGuard, TheaterExistsGuard } from './guards'
 
 @Controller('showing')
@@ -27,5 +27,16 @@ export class ShowingController {
     @UseGuards(TheaterExistsGuard)
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
         return this.showingService.findShowdates(movieId, theaterId)
+    }
+
+    @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
+    @UseGuards(MovieExistsGuard)
+    @UseGuards(TheaterExistsGuard)
+    async findShowtimes(
+        @Param('movieId') movieId: string,
+        @Param('theaterId') theaterId: string,
+        @Param('showdate') showdate: number
+    ) {
+        return this.showingService.findShowtimes(movieId, theaterId, convertNumberToDate(showdate))
     }
 }

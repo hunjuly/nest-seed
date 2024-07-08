@@ -3,8 +3,9 @@ import { Assert, LatLong, latlongDistanceInMeters, pick } from 'common'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
-import { TicketsService } from '../tickets'
 import { TheaterDto, TheatersService } from '../theaters'
+import { TicketsService } from '../tickets'
+import { uniq } from 'lodash'
 
 @Injectable()
 export class ShowingService {
@@ -33,7 +34,8 @@ export class ShowingService {
         const showtimeIds = pick(tickets, 'showtimeId')
         const showtimes = await this.showtimesService.findShowtimes({ showtimeIds })
 
-        const movieIds = pick(showtimes, 'movieId')
+        const movieIds = uniq(pick(showtimes, 'movieId'))
+
         const watchedMovies = await this.moviesService.getMoviesByIds(movieIds)
 
         const recommendedMovies = this.generateRecommendedMovies(showingMovies, watchedMovies)
@@ -92,6 +94,12 @@ export class ShowingService {
 
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
+
+        return showdates
+    }
+
+    async findShowtimes(movieId: string, theaterId: string, showdate: Date) {
+        const showdates = await this.showtimesService.findShowtimesByShowdate(movieId, theaterId, showdate)
 
         return showdates
     }

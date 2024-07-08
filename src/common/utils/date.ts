@@ -74,3 +74,11 @@ export function findMaxDate(dates: Date[]): Date {
     const maxTimestamp = Math.max(...dates.map((date) => date.getTime()))
     return new Date(maxTimestamp)
 }
+
+export function convertNumberToDate(dateNumber: number): Date {
+    const year = Math.floor(dateNumber / 10000)
+    const month = Math.floor((dateNumber % 10000) / 100) - 1 // 월은 0-11로 표현되므로 1을 빼줍니다.
+    const day = dateNumber % 100
+
+    return new Date(year, month, day)
+}
