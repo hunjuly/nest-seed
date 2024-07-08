@@ -13,16 +13,14 @@ describe('CacheService', () => {
             providers: [CacheService]
         }).compile()
 
-        cacheService = module.get<CacheService>(CacheService)
+        cacheService = module.get(CacheService)
     })
 
     afterEach(async () => {
-        if (module) {
-            await module.close()
-        }
+        if (module) await module.close()
     })
 
-    it('캐시에 값을 설정한다', async () => {
+    it('sets a value in the cache', async () => {
         const key = 'key'
         const value = 'value'
 
@@ -32,48 +30,48 @@ describe('CacheService', () => {
         expect(cachedValue).toEqual(value)
     })
 
-    it('캐시에서 값을 삭제한다', async () => {
+    it('deletes a value from the cache', async () => {
         const key = 'key'
         const value = 'value'
 
         await cacheService.set(key, value)
         const initialValue = await cacheService.get(key)
-        await cacheService.delete(key)
-        const valueAfterDeletion = await cacheService.get(key)
-
         expect(initialValue).toEqual(value)
-        expect(valueAfterDeletion).toBeUndefined()
+
+        await cacheService.delete(key)
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
-    it('만료시간을 설정한다', async () => {
+    it('sets an expiration time', async () => {
         const key = 'key'
         const value = 'value'
         const ttl = '1s'
 
         await cacheService.set(key, value, ttl)
         const initialValue = await cacheService.get(key)
-        await sleep(1000 + 100)
-        const valueAfterExpiration = await cacheService.get(key)
-
         expect(initialValue).toEqual(value)
-        expect(valueAfterExpiration).toBeUndefined()
+
+        await sleep(1000 + 100)
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
-    it('milliseconds는 소수점으로 표현한다', async () => {
+    it('expresses milliseconds as a decimal', async () => {
         const key = 'key'
         const value = 'value'
         const ttl = '0.5s'
 
         await cacheService.set(key, value, ttl)
         const initialValue = await cacheService.get(key)
-        await sleep(500 + 100)
-        const valueAfterExpiration = await cacheService.get(key)
-
         expect(initialValue).toEqual(value)
-        expect(valueAfterExpiration).toBeUndefined()
+
+        await sleep(500 + 100)
+        const deletedValue = await cacheService.get(key)
+        expect(deletedValue).toBeUndefined()
     })
 
-    it('만료 시간이 음수면 exception', async () => {
+    it('throws an exception if the expiration time is negative', async () => {
         const key = 'key'
         const value = 'value'
         const wrongTTL = '-1s'

@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
-import { JwtAuthGuard, Public, UniqueEmailGuard, UserExistsGuard } from './guards'
-import { UsersService, CreateUserDto, UsersQueryDto, UpdateUserDto } from 'app/services/users'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
+import { UserCreationDto, UserUpdatingDto, UsersFilterDto, UsersService } from 'app/services/users'
+import { PaginationOption, PaginationPipe } from 'common'
+import { JwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -8,15 +9,16 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Public()
-    @UseGuards(UniqueEmailGuard)
+    @UseGuards(UserEmailNotExistsGuard)
     @Post()
-    async createUser(@Body() createUserDto: CreateUserDto) {
+    async createUser(@Body() createUserDto: UserCreationDto) {
         return this.usersService.createUser(createUserDto)
     }
 
     @Get()
-    async findUsers(@Query() query: UsersQueryDto) {
-        return this.usersService.findUsers(query)
+    @UsePipes(new PaginationPipe(50))
+    async findPagedUsers(@Query() filter: UsersFilterDto, @Query() pagination: PaginationOption) {
+        return this.usersService.findPagedUsers(filter, pagination)
     }
 
     @UseGuards(UserExistsGuard)
@@ -27,13 +29,13 @@ export class UsersController {
 
     @UseGuards(UserExistsGuard)
     @Patch(':userId')
-    async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
+    async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UserUpdatingDto) {
         return this.usersService.updateUser(userId, updateUserDto)
     }
 
     @UseGuards(UserExistsGuard)
     @Delete(':userId')
-    async removeUser(@Param('userId') userId: string) {
-        return this.usersService.removeUser(userId)
+    async deleteUser(@Param('userId') userId: string) {
+        return this.usersService.deleteUser(userId)
     }
 }

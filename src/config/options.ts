@@ -14,7 +14,9 @@ if (isDevelopment()) {
 }
 
 export const httpOptions = {
-    requestPayloadLimit: getString('HTTP_REQUEST_PAYLOAD_LIMIT')
+    requestPayloadLimit: getString('HTTP_REQUEST_PAYLOAD_LIMIT'),
+    paginationMaxSize: getNumber('HTTP_PAGINATION_MAX_SIZE'),
+    paginationDefaultSize: getNumber('HTTP_PAGINATION_DEFAULT_SIZE')
 }
 
 export const authOptions = {
@@ -34,7 +36,7 @@ export const logOptions = {
 export const redisOptions = {
     host: getString('REDIS_HOST'),
     port: getNumber('REDIS_PORT')
-    // ttl: 기본값은 5
+    // ttl: defaults to 5
 }
 
 export const psqlOptions = {
@@ -48,8 +50,11 @@ export const psqlOptions = {
 }
 
 export const mongoOptions = {
-    host: getString('MONGO_DB_HOST'),
+    host1: getString('MONGO_DB_HOST1'),
+    host2: getString('MONGO_DB_HOST2'),
+    host3: getString('MONGO_DB_HOST3'),
     port: getNumber('MONGO_DB_PORT'),
+    replica: getString('MONGO_DB_REPLICA_NAME'),
     user: getString('MONGO_DB_USERNAME'),
     pass: getString('MONGO_DB_PASSWORD'),
     database: getString('MONGO_DB_DATABASE')

@@ -7,9 +7,9 @@ export class UserExistsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
-        const userId = request.params.userId
+        const userId = request.query.userId || request.params.userId
 
-        const userExists = await this.usersService.doesUserExist(userId)
+        const userExists = await this.usersService.userExists(userId)
 
         if (!userExists) {
             throw new NotFoundException(`User with ID ${userId} not found`)

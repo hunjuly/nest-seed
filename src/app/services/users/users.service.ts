@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationResult, Password } from 'common'
-import { CreateUserDto, UpdateUserDto, UserDto, UsersQueryDto } from './dto'
-import { User } from './entities'
+import { AppException, Assert, PaginationOption, PaginationResult, Password } from 'common'
+import { UserCreationDto, UserUpdatingDto, UserDto, UsersFilterDto } from './dto'
 import { UsersRepository } from './users.repository'
 
 @Injectable()
 export class UsersService {
     constructor(private usersRepository: UsersRepository) {}
 
-    async createUser(createUserDto: CreateUserDto) {
+    async createUser(createUserDto: UserCreationDto) {
         const { password } = createUserDto
 
         const hashedPassword = await Password.hash(password)
@@ -23,8 +22,11 @@ export class UsersService {
         return new UserDto(user)
     }
 
-    async findUsers(queryDto: UsersQueryDto): Promise<PaginationResult<UserDto>> {
-        const users = await this.usersRepository.findByQuery(queryDto)
+    async findPagedUsers(
+        filterDto: UsersFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<UserDto>> {
+        const users = await this.usersRepository.findPagedUsers(filterDto, pagination)
 
         const items = users.items.map((user) => new UserDto(user))
 
@@ -32,9 +34,11 @@ export class UsersService {
     }
 
     async isCorrectPassword(userId: string, password: string) {
-        const user = await this.getUserEntity(userId)
+        const user = await this.usersRepository.findById(userId)
 
-        return Password.validate(password, user.password)
+        Assert.defined(user, `User with ID ${userId} should exist`)
+
+        return Password.validate(password, user!.password)
     }
 
     async findByEmail(email: string): Promise<UserDto | null> {
@@ -47,39 +51,27 @@ export class UsersService {
         return null
     }
 
-    async doesEmailExist(email: string) {
-        const emailExists = await this.usersRepository.doesEmailExist(email)
-
-        return emailExists
-    }
-
-    async doesUserExist(userId: string) {
-        const userExists = await this.usersRepository.doesIdExist(userId)
+    async userExists(userId: string) {
+        const userExists = await this.usersRepository.existsById(userId)
 
         return userExists
     }
 
     async getUser(userId: string) {
-        const user = await this.getUserEntity(userId)
+        const user = await this.usersRepository.findById(userId)
 
-        return new UserDto(user)
+        Assert.defined(user, `User with ID ${userId} should exist`)
+
+        return new UserDto(user!)
     }
 
-    async updateUser(userId: string, updateUserDto: UpdateUserDto) {
+    async updateUser(userId: string, updateUserDto: UserUpdatingDto) {
         const savedUser = await this.usersRepository.update(userId, updateUserDto)
 
         return new UserDto(savedUser)
     }
 
-    async removeUser(userId: string) {
-        await this.usersRepository.remove(userId)
-    }
-
-    private async getUserEntity(userId: string) {
-        const user = await this.usersRepository.findById(userId)
-
-        Assert.defined(user, `User with ID ${userId} not found`)
-
-        return user as User
+    async deleteUser(userId: string) {
+        await this.usersRepository.deleteById(userId)
     }
 }

@@ -11,11 +11,12 @@
     "containerEnv": {
         "WORKSPACE_ROOT": "${containerWorkspaceFolder}",
         "PROJECT_NAME": "${containerWorkspaceFolderBasename}",
-        "HOST_PATH": "${localWorkspaceFolder}",
+        // 사용금지 github action에는 HOST_PATH가 없다.
+        // "HOST_PATH": "${localWorkspaceFolder}",
         "NODE_ENV": "development"
     },
     // 이 프로젝트에서 실행하는 모든 컨테이너는 같은 network에 있어야 한다
-    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} || true",
+    "initializeCommand": "docker network create ${containerWorkspaceFolderBasename} >/dev/null 2>&1 || true",
     "runArgs": [
         "--network",
         "${containerWorkspaceFolderBasename}",
@@ -23,7 +24,7 @@
         "${containerWorkspaceFolderBasename}-vscode"
     ],
     "forwardPorts": [
-        "nest-mongo-express:8081"
+        "nest-mongo1-express:8081"
     ],
     "customizations": {
         "vscode": {
@@ -65,7 +66,7 @@
                 "[markdown]": {
                     "editor.defaultFormatter": "esbenp.prettier-vscode"
                 },
-                "jestrunner.codeLensSelector": "**/{*.test,*.spec,__tests__/*}.{js,jsx,ts,tsx}",
+                "jestrunner.codeLensSelector": "**/__tests__/*.{test,spec}.{js,jsx,ts,tsx}",
                 "plantuml.server": "https://www.plantuml.com/plantuml",
                 "plantuml.render": "PlantUMLServer",
                 "githubIssues.queries": [

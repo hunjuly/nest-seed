@@ -39,7 +39,7 @@ export class TypeormTransaction {
         return this.queryRunner.manager.save(entity)
     }
 
-    async remove<Entity extends TypeormEntity>(entity: Entity): Promise<void> {
+    async delete<Entity extends TypeormEntity>(entity: Entity): Promise<void> {
         Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
 
         this.ensureTransactionIsActive()

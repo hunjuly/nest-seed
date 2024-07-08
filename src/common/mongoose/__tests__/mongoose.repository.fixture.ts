@@ -1,107 +1,83 @@
-import { PaginationResult, padNumber } from 'common'
-import { Sample, SampleDocument, SamplesRepository } from './mongoose.repository.mock'
+import { Injectable, Module } from '@nestjs/common'
+import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
+import {
+    DocumentId,
+    Exception,
+    MongooseRepository,
+    MongooseSchema,
+    createMongooseSchema,
+    padNumber
+} from 'common'
+import { Model } from 'mongoose'
 
-export const sampleCreationData: Partial<Sample> = {
-    name: 'sample name'
+@Schema()
+export class Sample extends MongooseSchema {
+    @Prop({ required: true })
+    name: string
 }
 
-export function sortSamples(samples: SampleDocument[], direction: 'asc' | 'desc' = 'asc') {
-    if (direction === 'desc') {
-        return [...samples].sort((b, a) => a.name.localeCompare(b.name))
+export const DocumentSchema = createMongooseSchema(Sample)
+
+@Injectable()
+export class SamplesRepository extends MongooseRepository<Sample> {
+    constructor(@InjectModel(Sample.name) model: Model<Sample>) {
+        super(model)
     }
 
-    return [...samples].sort((a, b) => a.name.localeCompare(b.name))
-}
+    async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
+        const document = await this.model.findById(id).exec()
 
-export async function createSample(repository: SamplesRepository): Promise<SampleDocument> {
-    const sample = await repository.create(sampleCreationData)
-
-    return sample
-}
-
-export async function createManySamples(repository: SamplesRepository): Promise<SampleDocument[]> {
-    const createPromises = []
-
-    for (let i = 0; i < 100; i++) {
-        const data = { ...sampleCreationData, name: `Sample_${padNumber(i, 3)}` }
-        createPromises.push(repository.create(data))
-    }
-
-    const samples = await Promise.all(createPromises)
-
-    return sortSamples(samples)
-}
-
-function areDocsEqual(received: SampleDocument[], expected: SampleDocument[]) {
-    if (received.length !== expected.length) {
-        return {
-            pass: false,
-            message: () =>
-                `Items length mismatch: received length ${received.length}, expected length ${expected.length}`
+        if (!document) {
+            throw new Exception(`Failed to update document with id: ${id}. Document not found.`)
         }
-    }
 
-    for (let i = 0; i < received.length; i++) {
-        if (!received[i].equals(expected[i])) {
-            return {
-                pass: false,
-                message: () =>
-                    `Document at index ${i} does not match: received: ${received[i]}, expected: ${expected[i]}`
-            }
-        }
-    }
+        if (updateDto.name) document.name = updateDto.name
 
-    return {
-        pass: true,
-        message: () => 'Documents match'
+        await document.save()
+
+        return document.toObject()
     }
 }
 
-expect.extend({
-    toValidDocument(received, expected) {
-        const pass = this.equals(received.toJSON(), {
-            _id: expect.anything(),
-            createdAt: expect.anything(),
-            updatedAt: expect.anything(),
-            version: expect.anything(),
-            ...expected
+@Module({
+    imports: [MongooseModule.forFeature([{ name: Sample.name, schema: DocumentSchema }])],
+    providers: [SamplesRepository]
+})
+export class SampleModule {}
+
+export function sortByName(documents: Sample[]) {
+    return documents.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function sortByNameDescending(documents: Sample[]) {
+    return documents.sort((a, b) => b.name.localeCompare(a.name))
+}
+
+export async function createSample(repository: SamplesRepository): Promise<Sample> {
+    const document = await repository.create({ name: `Sample-Name` })
+
+    return document
+}
+
+export async function createSamples(repository: SamplesRepository, count: number): Promise<Sample[]> {
+    const promises = []
+
+    for (let i = 0; i < count; i++) {
+        const promise = repository.create({
+            name: `Sample-${padNumber(i, 3)}`
         })
 
-        const message = pass ? () => `expected document not to match` : () => `expected document to match`
-
-        return { pass, message }
-    },
-    toDocumentsEqual(received, expected) {
-        return areDocsEqual(received, expected)
-    },
-    toDocumentEqual(received, expected) {
-        const pass = received.equals(expected)
-
-        const message = pass ? () => `document not to match` : () => `document to match`
-
-        return { pass, message }
-    },
-    toPaginatedEqual(received, expected) {
-        if (
-            received.total !== expected.total ||
-            received.take !== expected.take ||
-            received.skip !== expected.skip
-        ) {
-            return {
-                pass: false,
-                message: () => `Pagination mismatch: received: ${received}, expected: ${expected}`
-            }
-        }
-
-        return areDocsEqual(received, expected)
+        promises.push(promise)
     }
-})
 
-declare module 'expect' {
-    interface Matchers<R> {
-        toPaginatedEqual(expected: PaginationResult<SampleDocument>): R
-        toDocumentsEqual(expected: SampleDocument[]): R
-        toDocumentEqual(expected: SampleDocument): R
-        toValidDocument(expected: Partial<Sample>): R
-    }
+    const documents = await Promise.all(promises)
+
+    return documents
+}
+
+export const baseFields = {
+    _id: expect.anything(),
+    createdAt: expect.anything(),
+    updatedAt: expect.anything(),
+    version: expect.anything()
 }

@@ -1,4 +1,4 @@
-export * from './create-user.dto'
-export * from './update-user.dto'
+export * from './user-creation.dto'
+export * from './user-updating.dto'
 export * from './user.dto'
-export * from './users-query.dto'
+export * from './users-filter.dto'

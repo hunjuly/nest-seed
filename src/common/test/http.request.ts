@@ -1,6 +1,9 @@
+import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
+import { LogicException } from '../exceptions'
+import { parseObjectTypes } from '../utils'
 
-interface TestRequestContext {
+interface RequestContext {
     url: string
     headers?: any
     body?: any
@@ -10,7 +13,7 @@ interface TestRequestContext {
 export class HttpRequest {
     constructor(private readonly server: any) {}
 
-    sendRequest = async (req: supertest.Test, ctx: TestRequestContext) => {
+    private sendRequest = async (req: supertest.Test, ctx: RequestContext) => {
         if (ctx.headers) {
             for (const [key, value] of Object.entries(ctx.headers)) {
                 req = req.set(key, value as string)
@@ -18,19 +21,20 @@ export class HttpRequest {
         }
 
         const res = await req
+        parseObjectTypes(res.body)
 
         return res
     }
 
-    post = async (ctx: TestRequestContext) => {
+    async post(ctx: RequestContext) {
         const req = supertest(this.server).post(ctx.url).query(ctx.query).send(ctx.body)
 
         return this.sendRequest(req, ctx)
     }
 
-    get = async (ctx: TestRequestContext) => {
+    async get(ctx: RequestContext) {
         if (ctx.body) {
-            throw new Error('get은 body를 가지지 않는다')
+            throw new LogicException('get does not have a body')
         }
 
         const req = supertest(this.server).get(ctx.url).query(ctx.query).send()
@@ -38,15 +42,15 @@ export class HttpRequest {
         return this.sendRequest(req, ctx)
     }
 
-    patch = async (ctx: TestRequestContext) => {
+    async patch(ctx: RequestContext) {
         const req = supertest(this.server).patch(ctx.url).query(ctx.query).send(ctx.body)
 
         return this.sendRequest(req, ctx)
     }
 
-    delete = async (ctx: TestRequestContext) => {
+    async delete(ctx: RequestContext) {
         if (ctx.body) {
-            throw new Error('delete은 body를 가지지 않는다')
+            throw new LogicException('delete does not have a body')
         }
 
         const req = supertest(this.server).delete(ctx.url).query(ctx.query).send()
@@ -54,3 +58,20 @@ export class HttpRequest {
         return this.sendRequest(req, ctx)
     }
 }
+
+function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
+    if (response.statusCode !== status) {
+        console.log(response.body)
+    }
+
+    expect(response.statusCode).toEqual(status)
+}
+
+export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
+export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
+export const expectBadRequest = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.BAD_REQUEST)
+export const expectUnauthorized = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.UNAUTHORIZED)
+export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)
+export const expectNotFound = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.NOT_FOUND)
+export const expectInternalServerError = (res: supertest.Response) =>
+    expectHttpStatus(res, HttpStatus.INTERNAL_SERVER_ERROR)

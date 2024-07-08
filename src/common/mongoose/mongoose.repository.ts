@@ -1,89 +1,132 @@
-import { PaginationOptions, PaginationResult } from 'common'
-import { HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
-import { DocumentNotFoundMongooseException, ParameterMongooseException } from './exceptions'
+import { Logger } from '@nestjs/common'
+import { Assert, DocumentId, MongooseSchema, PaginationOption, PaginationResult } from 'common'
+import { ClientSession, HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
+import { MongooseException } from './exceptions'
+import { objectIdToString, stringToObjectId } from './mongoose.util'
 
-export abstract class MongooseRepository<Doc> {
+export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(creationData: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const savedDocument = await this.model.create({ ...creationData })
+    async create(docData: Partial<Doc>): Promise<Doc> {
+        Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
 
-        return savedDocument
+        const savedDocument = await this.model.create(stringToObjectId(docData))
+        const obj = savedDocument.toObject()
+
+        return objectIdToString(obj)
     }
 
-    protected async update(id: string, query: Partial<Doc>): Promise<HydratedDocument<Doc>> {
-        const updatedDocument = await this.model
-            .findByIdAndUpdate(id, query, { returnDocument: 'after', upsert: false })
-            .exec()
+    async createMany(inputDocs: Partial<Doc>[]): Promise<Doc[]> {
+        Logger.log(`Starting to save ${inputDocs.length} documents`)
 
-        if (!updatedDocument) {
-            throw new DocumentNotFoundMongooseException(
-                `Failed to update document with id: ${id}. Document not found.`
+        const session = await this.model.startSession()
+
+        try {
+            const docs = await session.withTransaction(async (session: ClientSession) => {
+                /* Using {lean: true} would result in omission of some fields like version */
+                const savedDocs = (await this.model.insertMany(stringToObjectId(inputDocs), {
+                    session
+                })) as HydratedDocument<Doc>[]
+
+                Logger.log(`Completed saving ${savedDocs.length} documents`)
+
+                Assert.sameLength(inputDocs, savedDocs, 'All requested data must be saved as documents.')
+
+                return savedDocs
+            })
+
+            return objectIdToString(docs.map((doc) => doc.toObject()))
+        } catch (error) {
+            Logger.error(`Failed to save documents: ${error.message}`)
+            throw error
+        } finally {
+            session.endSession()
+        }
+    }
+
+    async deleteById(id: DocumentId): Promise<void> {
+        const deletedDocument = await this.model.findByIdAndDelete(id, { lean: true }).exec()
+
+        if (!deletedDocument) {
+            throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
+        }
+    }
+
+    async deleteByIds(ids: DocumentId[]) {
+        const result = await this.model.deleteMany({ _id: { $in: ids } as any }, { lean: true })
+
+        return result.deletedCount
+    }
+
+    async deleteByFilter(filter: Record<string, any>) {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
             )
         }
 
-        return updatedDocument as HydratedDocument<Doc>
+        const result = await this.model.deleteMany(stringToObjectId(filter))
+
+        Logger.log(`Deleted count: ${result.deletedCount}`)
+
+        return result.deletedCount
     }
 
-    async remove(id: string): Promise<void> {
-        const removedDocument = await this.model.findByIdAndDelete(id).exec()
+    async existsById(id: DocumentId): Promise<boolean> {
+        const count = await this.model.countDocuments({ _id: { $in: [id] } } as any).lean()
 
-        if (!removedDocument) {
-            throw new DocumentNotFoundMongooseException(
-                `Failed to remove document with id: ${id}. Document not found.`
-            )
+        return count === 1
+    }
+
+    async existsByIds(ids: DocumentId[]): Promise<boolean> {
+        const count = await this.model.countDocuments({ _id: { $in: ids } } as any).lean()
+
+        return count === ids.length
+    }
+
+    async findById(id: DocumentId): Promise<Doc | null> {
+        const doc = await this.model.findById(id).lean()
+
+        return objectIdToString(doc) as Doc
+    }
+
+    async findByIds(ids: DocumentId[]): Promise<Doc[]> {
+        const docs = await this.model.find({ _id: { $in: ids } as any }).lean()
+
+        return objectIdToString(docs) as Doc[]
+    }
+
+    async findByFilter(filter: Record<string, any>): Promise<Doc[]> {
+        const value = stringToObjectId(filter)
+
+        const docs = await this.model.find(value).lean()
+
+        return objectIdToString(docs) as Doc[]
+    }
+
+    async findWithPagination(
+        pagination: PaginationOption,
+        queryCustomizer?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
+    ): Promise<PaginationResult<Doc>> {
+        const { take, skip, orderby } = pagination
+
+        if (!take) {
+            throw new MongooseException('The ‘take’ parameter is required for pagination.')
         }
-    }
 
-    async findById(id: string): Promise<HydratedDocument<Doc> | null> {
-        return this.model.findById(id).exec()
-    }
+        const helpers = this.model.find({})
 
-    async findByIds(ids: string[]): Promise<HydratedDocument<Doc>[]> {
-        return this.model.find({ _id: { $in: ids } } as any).exec()
-    }
-
-    async find(
-        option: {
-            query?: Record<string, any>
-            middleware?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
-        } & PaginationOptions
-    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
-        const { take, skip, orderby, query, middleware } = option
-
-        if (!take && !query && !middleware) {
-            throw new ParameterMongooseException(
-                'At least one of the following options is required: [take, query, middleware].'
-            )
-        }
-
-        const helpers = this.model.find(query ?? {})
-
-        skip && helpers.skip(skip)
-        take && helpers.limit(take)
-
+        helpers.skip(skip)
+        helpers.limit(take)
         if (orderby) {
             helpers.sort({ [orderby.name]: orderby.direction })
         }
 
-        middleware?.(helpers)
+        queryCustomizer && queryCustomizer(helpers)
 
-        const items = await helpers.exec()
+        const items: Doc[] = await helpers.lean()
         const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
-        const opts = helpers.getOptions()
-
-        return {
-            skip: opts.skip,
-            take: opts.limit,
-            total,
-            items
-        }
-    }
-
-    async doesIdExist(id: string): Promise<boolean> {
-        const document = await this.model.exists({ _id: id } as any).exec()
-
-        return document != null
+        return { skip, take, total, items: objectIdToString(items) }
     }
 }

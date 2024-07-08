@@ -1,4 +1,4 @@
-import { Assert, PaginationOptions, PaginationResult, updateIntersection } from 'common'
+import { Assert, PaginationOption, PaginationResult } from 'common'
 import { DeepPartial, FindOptionsWhere, In, Repository, SelectQueryBuilder } from 'typeorm'
 import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException, ParameterTypeormException } from './exceptions'
@@ -6,27 +6,27 @@ import { EntityNotFoundTypeormException, ParameterTypeormException } from './exc
 export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
-    async create(creationData: DeepPartial<Entity>): Promise<Entity> {
-        Assert.undefined(creationData.id, `id${creationData.id}가 정의되어 있으면 안 된다.`)
+    async create(entityData: DeepPartial<Entity>): Promise<Entity> {
+        Assert.undefined(entityData.id, `The id ${entityData.id} should not be defined.`)
 
         // repo.save(creationData)를 하면 creationData에 id가 자동으로 생성돼서 변형된다.
-        const cloned = { ...creationData }
+        const cloned = { ...entityData }
         const savedEntity = await this.repo.save(cloned)
 
         return savedEntity
     }
 
-    async update(id: string, query: Partial<Entity>): Promise<Entity> {
+    async update(id: string, query: DeepPartial<Entity>): Promise<Entity> {
         const entity = await this.repo.findOne({
             where: { id } as unknown as FindOptionsWhere<Entity>
         })
 
         if (entity) {
-            const updatePsql = updateIntersection(entity, query)
+            this.repo.merge(entity, query)
 
-            const saved = await this.repo.save(updatePsql)
+            const saved = await this.repo.save(entity)
 
-            Assert.deepEquals(saved, updatePsql, 'update 요청과 결과가 다름')
+            Assert.equals(saved, entity, 'update 요청과 결과가 다름')
 
             return saved
         }
@@ -34,16 +34,22 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         throw new EntityNotFoundTypeormException(`Failed to update entity with id: ${id}. Entity not found.`)
     }
 
-    async remove(id: string): Promise<void> {
+    async deleteById(id: string): Promise<void> {
         const result = await this.repo.delete(id)
 
         if (result.affected === 0) {
             throw new EntityNotFoundTypeormException(
-                `Failed to remove entity with id: ${id}. Entity not found.`
+                `Failed to delete entity with id: ${id}. Entity not found.`
             )
         }
 
         Assert.truthy(result.affected === 1, 'Affected must be 1')
+    }
+
+    async existsById(id: string): Promise<boolean> {
+        return this.repo.exists({
+            where: { id } as unknown as FindOptionsWhere<Entity>
+        })
     }
 
     async findById(id: string): Promise<Entity | null> {
@@ -58,23 +64,34 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         } as unknown as FindOptionsWhere<Entity>)
     }
 
-    async find(
-        option: {
-            middleware?: (qb: SelectQueryBuilder<Entity>) => void
-        } & PaginationOptions
-    ): Promise<PaginationResult<Entity>> {
-        const { take, skip, orderby, middleware } = option
+    async findByFilter(filter: Record<string, any>): Promise<Entity[]> {
+        const qb = this.repo.createQueryBuilder('entity')
 
-        if (!take && !middleware) {
-            throw new ParameterTypeormException(
-                'At least one of the following options is required: [take, middleware].'
-            )
+        Object.entries(filter).forEach(([key, value]) => {
+            if (value !== undefined) {
+                qb.andWhere(`entity.${key} = :${key}`, { [key]: value })
+            }
+        })
+
+        const entities = await qb.getMany()
+
+        return entities
+    }
+
+    async findWithPagination(
+        pagination: PaginationOption,
+        queryCustomizer?: (qb: SelectQueryBuilder<Entity>) => void
+    ): Promise<PaginationResult<Entity>> {
+        const { take, skip, orderby } = pagination
+
+        if (!take) {
+            throw new ParameterTypeormException('The ‘take’ parameter is required for pagination.')
         }
 
         const qb = this.repo.createQueryBuilder('entity')
 
-        take && qb.take(take)
-        skip && qb.skip(skip)
+        qb.skip(skip)
+        qb.take(take)
 
         if (orderby) {
             const order = orderby.direction.toLowerCase() === 'desc' ? 'DESC' : 'ASC'
@@ -82,21 +99,10 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
             qb.orderBy(`entity.${orderby.name}`, order)
         }
 
-        middleware?.(qb)
+        queryCustomizer && queryCustomizer(qb)
 
         const [items, total] = await qb.getManyAndCount()
 
-        return {
-            skip: qb.expressionMap.skip,
-            take: qb.expressionMap.take,
-            total,
-            items
-        }
-    }
-
-    async doesIdExist(id: string): Promise<boolean> {
-        return this.repo.exists({
-            where: { id } as unknown as FindOptionsWhere<Entity>
-        })
+        return { skip, take, total, items }
     }
 }

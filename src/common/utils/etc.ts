@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcrypt'
-import { Coordinate, InvalidArgumentException } from 'common'
+import { Queue } from 'bull'
+import { LatLong } from 'common'
 import { randomUUID } from 'crypto'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
@@ -13,96 +14,26 @@ export function generateUUID() {
 export const nullUUID = '00000000000000000000000000000000'
 export const nullObjectId = '000000000000000000000000'
 
-export function updateIntersection<T extends object>(obj1: T, obj2: any): T {
-    const updatedObject = Object.keys(obj2).reduce(
-        (updated, key) => {
-            if (key in updated) {
-                updated[key as keyof T] = obj2[key]
-            }
-            return updated
-        },
-        { ...obj1 } // obj1의 사본을 만듭니다
-    )
-
-    return updatedObject
-}
-
-export function convertStringToMillis(str: string): number {
-    const timeUnits: { [key: string]: number } = {
-        ms: 1,
-        s: 1000,
-        m: 60 * 1000,
-        h: 60 * 60 * 1000,
-        d: 24 * 60 * 60 * 1000
-    }
-
-    // 유효한 시간 형식인지 검사하는 정규 표현식
-    const validFormatRegex = /^(-?\d+(\.\d+)?)(ms|s|m|h|d)(\s*(-?\d+(\.\d+)?)(ms|s|m|h|d))*$/
-    if (!validFormatRegex.test(str)) {
-        throw new InvalidArgumentException(`Invalid time format(${str})`)
-    }
-
-    const regex = /(-?\d+(\.\d+)?)(ms|s|m|h|d)/g
-    let totalMillis = 0
-
-    let match
-    while ((match = regex.exec(str)) !== null) {
-        const amount = parseFloat(match[1])
-        const unit = match[3]
-
-        totalMillis += amount * timeUnits[unit]
-    }
-
-    return totalMillis
-}
-
-export function convertMillisToString(ms: number): string {
-    if (ms === 0) {
-        return '0ms'
-    }
-
-    const negative = ms < 0
-    ms = Math.abs(ms)
-
-    const days = Math.floor(ms / (24 * 60 * 60 * 1000))
-    ms %= 24 * 60 * 60 * 1000
-    const hours = Math.floor(ms / (60 * 60 * 1000))
-    ms %= 60 * 60 * 1000
-    const minutes = Math.floor(ms / (60 * 1000))
-    ms %= 60 * 1000
-    const seconds = Math.floor(ms / 1000)
-    const milliseconds = ms % 1000
-
-    let result = ''
-    if (days > 0) result += `${days}d`
-    if (hours > 0) result += `${hours}h`
-    if (minutes > 0) result += `${minutes}m`
-    if (seconds > 0) result += `${seconds}s`
-    if (milliseconds > 0) result += `${milliseconds}ms`
-
-    return (negative ? '-' : '') + result.trim()
-}
-
 /**
- * 숫자 값을 따옴표로 감싸는 함수
- * 64bit 정수가 json으로 오면 BigInt가 아니라 number로 처리하기 때문에 정확한 값을 얻을 수 없다.
- * 따라서 숫자 값을 따옴표로 감싸서 string으로 처리해야 한다.
+ * Functions that wrap numeric values in quotes
+ * When a 64-bit integer comes in json, you can't get the exact value because it is treated as a number, not a BigInt.
+ * Therefore, we need to wrap the numeric value in quotes and treat it as a string.
  *
- * addQuotesToNumbers('{"id":1234}') // '{"id":"1234"}'
- * addQuotesToNumbers('[{"id":1234}]') // '[{"id":"1234"}]'
+ * addQuotesToNumbers('{"id":1234}') -> '{"id":"1234"}'
+ * addQuotesToNumbers('[{"id":1234}]') -> '[{"id":"1234"}]'
  */
 export function addQuotesToNumbers(text: string) {
     return text.replace(/:(\s*)(\d+)(\s*[,\}])/g, ':"$2"$3')
 }
 
-export function coordinateDistanceInMeters(coord1: Coordinate, coord2: Coordinate) {
+export function latlongDistanceInMeters(latlong1: LatLong, latlong2: LatLong) {
     const toRad = (degree: number) => degree * (Math.PI / 180)
     const R = 6371000 // earth radius in meters
 
-    const lat1 = toRad(coord1.latitude)
-    const lon1 = toRad(coord1.longitude)
-    const lat2 = toRad(coord2.latitude)
-    const lon2 = toRad(coord2.longitude)
+    const lat1 = toRad(latlong1.latitude)
+    const lon1 = toRad(latlong1.longitude)
+    const lat2 = toRad(latlong2.latitude)
+    const lon2 = toRad(latlong2.longitude)
 
     const dLat = lat2 - lat1
     const dLon = lon2 - lon1
@@ -144,4 +75,57 @@ export function padNumber(num: number, length: number): string {
     const paddedNumber = num.toString().padStart(length, '0')
 
     return paddedNumber
+}
+
+/**
+ * When received as JSON, Date is a string. Convert it to a Date automatically.
+ * Add any other types to this function that need to be converted automatically besides Date.
+ */
+export function parseObjectTypes(obj: any) {
+    for (const key in obj) {
+        if (typeof obj[key] === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj[key])) {
+            obj[key] = new Date(obj[key])
+        } else if (typeof obj[key] === 'object') {
+            parseObjectTypes(obj[key])
+        }
+    }
+}
+
+export async function waitForQueueToEmpty(queue: Queue, count: number = 60): Promise<boolean> {
+    for (let i = 0; i < count * 10; i++) {
+        const [activeCount, waitingCount] = await Promise.all([
+            queue.getActiveCount(),
+            queue.getWaitingCount()
+        ])
+
+        if (activeCount === 0 && waitingCount === 0) {
+            return true
+        }
+
+        await sleep(100)
+    }
+
+    return false
+}
+
+export function pick<T, K extends keyof T>(items: T[], key: K): T[K][]
+export function pick<T, K extends keyof T>(items: T[], keys: K[]): Pick<T, K>[]
+export function pick<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any {
+    if (Array.isArray(keyOrKeys)) {
+        return items.map((item) =>
+            keyOrKeys.reduce(
+                (picked, key) => {
+                    picked[key] = item[key]
+                    return picked
+                },
+                {} as Pick<T, K>
+            )
+        )
+    } else {
+        return items.map((item) => item[keyOrKeys])
+    }
+}
+
+export function pickIds<T extends { id: string }>(items: T[]): string[] {
+    return items.map((item) => item.id)
 }

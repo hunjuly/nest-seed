@@ -1,10 +1,10 @@
 /* istanbul ignore file */
 
 /**
- * 테스트 하기 어렵고 테스트 할 때 log가 출력되면 불편하기 때문에 테스트에서 제외시킨다.
+ * This file is ignored in the test coverage because testing it is challenging and seeing logs during testing can be distracting.
  */
 
-import { Path } from 'common'
+import { EnvironmentException, Path } from 'common'
 import * as winston from 'winston'
 import * as DailyRotateFile from 'winston-daily-rotate-file'
 import { consoleLogFormat } from './console-log.format'
@@ -20,7 +20,7 @@ export async function initializeLogger(config: LoggerConfiguration) {
     const { logDirectory, daysToKeepLogs, fileLogLevel, consoleLogLevel } = config
 
     if (!(await Path.isWritable(logDirectory))) {
-        throw new Error(`"${logDirectory}" is not writable.`)
+        throw new EnvironmentException(`"${logDirectory}" is not writable.`)
     }
 
     const logFileOptions = {

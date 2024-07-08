@@ -1,12 +1,16 @@
+/* istanbul ignore file */
+
 import { isEqual } from 'lodash'
 import { LogicException } from './exceptions'
 
-/**
- * 명백한 논리 에러나 그 외 예측하지 못한 에러들
- * 이런 것들은 즉시 시스템을 중단해야 한다.
- */
 export class Assert {
-    static deepEquals<T>(a: T, b: T, message: string) {
+    static sameLength(a: any[], b: any[], message: string) {
+        if (a.length !== b.length) {
+            throw new LogicException(`${message} first: ${a.length}, second: ${b.length}`)
+        }
+    }
+
+    static equals<T>(a: T, b: T, message: string) {
         if (!isEqual(a, b)) {
             throw new LogicException(`${JSON.stringify(a)} !== ${JSON.stringify(b)}, ${message}`)
         }
@@ -19,6 +23,12 @@ export class Assert {
     }
 
     static undefined(value: any, message: string) {
+        if (value !== undefined) {
+            throw new LogicException(message)
+        }
+    }
+
+    static notDefined(value: any, message: string) {
         if (value) {
             throw new LogicException(message)
         }
@@ -32,6 +42,12 @@ export class Assert {
 
     static falsy(value: any, message: string) {
         if (value) {
+            throw new LogicException(message)
+        }
+    }
+
+    static unique(value: any, message: string) {
+        if (1 < value.length) {
             throw new LogicException(message)
         }
     }

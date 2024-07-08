@@ -5,7 +5,7 @@ import * as p from 'path'
 
 export class Path {
     public static async getAbsolute(src: string): Promise<string> {
-        // resolve 함수는 상대 경로를 절대 경로로 변환
+        // resolve function converts relative paths to absolute paths
         return p.isAbsolute(src) ? src : p.resolve(src)
     }
 
@@ -56,7 +56,7 @@ export class Path {
         await fs.mkdir(path, { recursive: true })
     }
 
-    public static async remove(path: string): Promise<void> {
+    public static async delete(path: string): Promise<void> {
         if (await this.exists(path)) {
             await fs.rm(path, { recursive: true, force: true })
         }
