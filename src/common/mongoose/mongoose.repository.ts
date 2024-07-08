@@ -16,56 +16,40 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return objectIdToString(obj)
     }
 
-    // async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
-    //     Logger.log(`Starting to save ${documentDatas.length} documents`)
-
-    //     const session = await this.model.startSession()
-    //     session.startTransaction()
-
-    //     try {
-    //         const value = stringToObjectId(documentDatas)
-
-    //         /* Using {lean: true} would result in omission of some fields like version */
-    //         const savedDocuments = (await this.model.insertMany(value, {
-    //             session
-    //         })) as HydratedDocument<Doc>[]
-
-    //         Logger.log(`Completed saving ${savedDocuments.length} documents`)
-
-    //         if (documentDatas.length !== savedDocuments.length) {
-    //             throw new MongooseException(
-    //                 'The number of saved documents does not match the number of requested documents'
-    //             )
-    //         }
-    //         const val = savedDocuments.map((doc) => doc.toObject())
-    //         const objs = objectIdToString(val)
-
-    //         await session.commitTransaction()
-
-    //         return objs
-    //     } catch (error) {
-    //         await session.abortTransaction()
-    //         Logger.error(`Failed to save documents: ${error.message}`)
-    //         throw error
-    //     } finally {
-    //         session.endSession()
-    //     }
-    // }
     async createMany(documentDatas: Partial<Doc>[]): Promise<Doc[]> {
-        Logger.log(`${documentDatas.length}개의 문서 저장 시작`)
+        Logger.log(`Starting to save ${documentDatas.length} documents`)
 
-        const value = stringToObjectId(documentDatas)
+        const session = await this.model.startSession()
+        session.startTransaction()
 
-        /* {lean: true} 사용하면 version 등 일부 필드가 누락된다. */
-        const savedDocuments = (await this.model.insertMany(value)) as HydratedDocument<Doc>[]
+        try {
+            const value = stringToObjectId(documentDatas)
 
-        Logger.log(`${savedDocuments.length}개의 문서 저장 완료`)
+            /* Using {lean: true} would result in omission of some fields like version */
+            const savedDocuments = (await this.model.insertMany(value, {
+                session
+            })) as HydratedDocument<Doc>[]
 
-        Assert.sameLength(documentDatas, savedDocuments, '요청과 저장된 documents의 수는 같아야 한다')
+            Logger.log(`Completed saving ${savedDocuments.length} documents`)
 
-        const objs = savedDocuments.map((doc) => doc.toObject())
+            if (documentDatas.length !== savedDocuments.length) {
+                throw new MongooseException(
+                    'The number of saved documents does not match the number of requested documents'
+                )
+            }
+            const val = savedDocuments.map((doc) => doc.toObject())
+            const objs = objectIdToString(val)
 
-        return objectIdToString(objs)
+            await session.commitTransaction()
+
+            return objs
+        } catch (error) {
+            if (session.inTransaction()) await session.abortTransaction()
+            Logger.error(`Failed to save documents: ${error.message}`)
+            throw error
+        } finally {
+            session.endSession()
+        }
     }
 
     async deleteById(id: DocumentId): Promise<void> {

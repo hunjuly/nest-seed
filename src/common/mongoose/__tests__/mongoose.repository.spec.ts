@@ -8,6 +8,7 @@ import {
     OrderDirection,
     nullObjectId,
     objectIdToString,
+    sleep,
     stringToObjectId
 } from 'common'
 import { createTestingModule } from 'common/test'
@@ -17,10 +18,12 @@ import {
     SampleModule,
     SamplesRepository,
     baseFields,
+    createSample,
     createSamples,
     sortByName,
     sortByNameDescending
 } from './mongoose.repository.fixture'
+import { Connection } from 'mongoose'
 
 describe('MongooseRepository', () => {
     let mongoServer: MongoMemoryReplSet
@@ -28,19 +31,18 @@ describe('MongooseRepository', () => {
     let repository: SamplesRepository
 
     beforeAll(async () => {
-        // This will create an new instance of "MongoMemoryReplSet" and automatically start all Servers
-        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 3 } })
+        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 4 } })
     })
 
     afterAll(async () => {
-        if (mongoServer) await mongoServer.stop()
+        await mongoServer?.stop()
     })
 
     beforeEach(async () => {
         module = await createTestingModule({
             imports: [
                 MongooseModule.forRoot(mongoServer.getUri(), {
-                    connectionFactory: async (connection: any) => {
+                    connectionFactory: async (connection: Connection) => {
                         await connection.dropDatabase()
                         return connection
                     }
@@ -48,8 +50,14 @@ describe('MongooseRepository', () => {
                 SampleModule
             ]
         })
-
         repository = module.get(SamplesRepository)
+
+        /**
+         * Failure to sleep() results in the following error, which appears to be an error in mongdb-memory-server
+         * Failed to save documents: Caused by :: Collection namespace 'test.samples' is already in use.
+         * :: Please retry your operation or multi-document transaction
+         */
+        await sleep(100)
     })
 
     afterEach(async () => {
@@ -89,6 +97,8 @@ describe('MongooseRepository', () => {
         })
 
         it('should throw an exception if required fields are missing', async () => {
+            module.useLogger(false)
+
             const promise = repository.createMany([{}])
 
             await expect(promise).rejects.toThrowError()
@@ -99,8 +109,7 @@ describe('MongooseRepository', () => {
         let sample: Sample
 
         beforeEach(async () => {
-            const samples = await createSamples(repository, 1)
-            sample = samples[0]
+            sample = await createSample(repository)
         })
 
         it('should successfully update a document', async () => {
@@ -120,8 +129,7 @@ describe('MongooseRepository', () => {
         let sample: Sample
 
         beforeEach(async () => {
-            const samples = await createSamples(repository, 1)
-            sample = samples[0]
+            sample = await createSample(repository)
         })
 
         it('should delete a document successfully', async () => {
@@ -168,8 +176,7 @@ describe('MongooseRepository', () => {
         let sample: Sample
 
         beforeEach(async () => {
-            const samples = await createSamples(repository, 1)
-            sample = samples[0]
+            sample = await createSample(repository)
         })
 
         it('should delete documents based on a filter', async () => {
@@ -191,8 +198,7 @@ describe('MongooseRepository', () => {
         let sample: Sample
 
         beforeEach(async () => {
-            const samples = await createSamples(repository, 1)
-            sample = samples[0]
+            sample = await createSample(repository)
         })
 
         it('should return true if the ID does exist', async () => {
@@ -234,8 +240,7 @@ describe('MongooseRepository', () => {
         let sample: Sample
 
         beforeEach(async () => {
-            const samples = await createSamples(repository, 1)
-            sample = samples[0]
+            sample = await createSample(repository)
         })
 
         it('should find a document by ID', async () => {

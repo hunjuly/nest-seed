@@ -53,6 +53,12 @@ export function sortByNameDescending(documents: Sample[]) {
     return documents.sort((a, b) => b.name.localeCompare(a.name))
 }
 
+export async function createSample(repository: SamplesRepository): Promise<Sample> {
+    const document = await repository.create({ name: `Sample-Name` })
+
+    return document
+}
+
 export async function createSamples(repository: SamplesRepository, count: number): Promise<Sample[]> {
     const promises = []
 

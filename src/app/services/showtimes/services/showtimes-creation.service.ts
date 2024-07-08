@@ -38,7 +38,7 @@ export class ShowtimesCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.eventEmitter.emitAsync(ShowtimesCreateErrorEvent.name, {
+        await this.eventEmitter.emitAsync(ShowtimesCreateErrorEvent.eventName, {
             message: job.failedReason,
             batchId: job.data.batchId
         })
