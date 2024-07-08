@@ -73,4 +73,30 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
         return objectIdToString(theaterIds)
     }
+
+    async findShowdates(movieId: string, theaterId: string): Promise<Date[]> {
+        const showdates = await this.model.aggregate([
+            {
+                $match: {
+                    movieId: stringToObjectId(movieId),
+                    theaterId: stringToObjectId(theaterId)
+                }
+            },
+            {
+                $project: {
+                    date: { $dateToString: { format: '%Y-%m-%d', date: '$startTime' } }
+                }
+            },
+            {
+                $group: {
+                    _id: '$date'
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ])
+
+        return showdates.map((item) => new Date(item._id))
+    }
 }

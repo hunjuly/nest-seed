@@ -36,9 +36,9 @@ export class LatLongPipe implements PipeTransform<string, Promise<LatLong>> {
     }
 }
 
-export const LatLongQuery = createParamDecorator(async (data: string, ctx: ExecutionContext) => {
+export const LatLongQuery = createParamDecorator(async (name: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest()
-    const latlong = request.query[data ?? 'latlong']
+    const latlong = request.query[name]
 
     const pipe = new LatLongPipe()
     return pipe.transform(latlong)

@@ -46,9 +46,17 @@ describe('/showing', () => {
     it('상영 극장 목록 요청', async () => {
         const res = await req.get({
             url: `/showing/movies/${showingMovies[0].id}/theaters`,
-            query: { latlong: '37.123,128.678' }
+            query: { userLocation: '37.123,128.678' }
         })
         expectOk(res)
         expect(res.body).toEqual([theaters[0], theaters[1]])
+    })
+
+    it('상영일 목록 요청', async () => {
+        const res = await req.get({
+            url: `/showing/movies/${showingMovies[0].id}/theaters/${theaters[0].id}/showdates`
+        })
+        expectOk(res)
+        expect(res.body).toEqual([new Date(2999, 0, 1), new Date(2999, 0, 2), new Date(2999, 0, 3)])
     })
 })

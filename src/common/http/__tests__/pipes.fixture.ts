@@ -5,12 +5,7 @@ import { LatLongQuery } from '../pipes'
 @Controller('')
 class TestController {
     @Get('latlong')
-    async testLatlong(@LatLongQuery() latlong: LatLong) {
-        return latlong
-    }
-
-    @Get('custom-key')
-    async testCustom(@LatLongQuery('customKey') latlong: LatLong) {
+    async testLatlong(@LatLongQuery('location') latlong: LatLong) {
         return latlong
     }
 }

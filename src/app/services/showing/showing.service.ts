@@ -18,22 +18,6 @@ export class ShowingService {
         private theatersService: TheatersService
     ) {}
 
-    async findShowingTheaters(movieId: string, userLocation: LatLong) {
-        const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
-        const theaters = await this.theatersService.findByIds(theaterIds)
-        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
-
-        return this.sortTheatersByDistance(theaters, userLocation)
-    }
-
-    private sortTheatersByDistance(theaters: TheaterDto[], userLocation: LatLong) {
-        return theaters.sort(
-            (a, b) =>
-                latlongDistanceInMeters(a.latlong, userLocation) -
-                latlongDistanceInMeters(b.latlong, userLocation)
-        )
-    }
-
     async getRecommendedMovies(customerId: string) {
         this.logger.log(`Generating recommended movies for customer: ${customerId}`)
 
@@ -88,5 +72,27 @@ export class ShowingService {
         })
 
         return recommendedMovies
+    }
+
+    async findShowingTheaters(movieId: string, userLocation: LatLong) {
+        const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
+        const theaters = await this.theatersService.findByIds(theaterIds)
+        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
+
+        return this.sortTheatersByDistance(theaters, userLocation)
+    }
+
+    private sortTheatersByDistance(theaters: TheaterDto[], userLocation: LatLong) {
+        return theaters.sort(
+            (a, b) =>
+                latlongDistanceInMeters(a.latlong, userLocation) -
+                latlongDistanceInMeters(b.latlong, userLocation)
+        )
+    }
+
+    async findShowdates(movieId: string, theaterId: string) {
+        const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
+
+        return showdates
     }
 }

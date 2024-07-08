@@ -56,4 +56,10 @@ export class ShowtimesService {
     async findTheaterIdsShowingMovie(movieId: string) {
         return this.showtimesRepository.findTheaterIdsShowingMovie(movieId)
     }
+
+    async findShowdates(movieId: string, theaterId: string) {
+        const showdates = await this.showtimesRepository.findShowdates(movieId, theaterId)
+
+        return showdates
+    }
 }

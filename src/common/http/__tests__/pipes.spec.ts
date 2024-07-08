@@ -16,12 +16,7 @@ describe('common/http/pipes', () => {
 
     describe('LatLongPipe', () => {
         it('should parse valid latlong', async () => {
-            const res = await req.get({ url: '/latlong', query: { latlong: '37.123,128.678' } })
-            expect(res.body).toEqual({ latitude: 37.123, longitude: 128.678 })
-        })
-
-        it('should correctly parse latlong when using a custom query parameter key', async () => {
-            const res = await req.get({ url: '/custom-key', query: { customKey: '37.123,128.678' } })
+            const res = await req.get({ url: '/latlong', query: { location: '37.123,128.678' } })
             expect(res.body).toEqual({ latitude: 37.123, longitude: 128.678 })
         })
 

@@ -100,13 +100,18 @@ async function createShowingMovies(
 
     const promises = overrides.map(async (override, i) => {
         const movie = await createMovie(moviesService, override)
-        const theaterIds = [theaters[0].id, theaters[1].id]
 
         await ticketFactory.createTickets({
             movieId: movie.id,
-            theaterIds,
+            theaterIds: [theaters[0].id, theaters[1].id],
             durationMinutes: 1,
-            startTimes: [new Date(2999, i, 1), new Date(2999, i, 2), new Date(2999, i, 3)]
+            startTimes: [
+                new Date(2999, i, 1, 12),
+                new Date(2999, i, 1, 14),
+                new Date(2999, i, 2, 19),
+                new Date(2999, i, 2, 21),
+                new Date(2999, i, 3)
+            ]
         })
 
         return movie
