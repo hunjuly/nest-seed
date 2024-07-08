@@ -8,7 +8,7 @@ run_psql() (
 )
 
 run_mongo() (
-    docker exec -it ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
+    docker exec ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
 )
 
 openssl rand -base64 768 >mongodb.key
