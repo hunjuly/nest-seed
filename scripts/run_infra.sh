@@ -8,7 +8,6 @@ run_psql() (
 )
 
 run_mongo() (
-  docker logs ${MONGO_DB_HOST1}
   docker exec ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
 )
 
