@@ -13,6 +13,7 @@ run_mongo() (
 )
 
 echo "HOSTPATH = ${HOST_PATH}, $(pwd)"
+docker run --rm -v ${HOST_PATH}:/test mongo ls /test -al
 
 openssl rand -base64 768 >mongodb.key
 docker_compose --profile infra down
