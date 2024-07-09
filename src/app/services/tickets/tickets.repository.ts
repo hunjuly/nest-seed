@@ -19,27 +19,8 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         super(model)
     }
 
-    async findPagedTickets(
-        filterDto: TicketsFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Ticket>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const { theaterIds, ...rest } = stringToObjectId(filterDto)
-
-            const query: Record<string, any> = rest
-
-            if (theaterIds) {
-                query['theaterId'] = { $in: theaterIds }
-            }
-
-            helpers.setQuery(query)
-        })
-
-        return paginated
-    }
-
-    async findTickets(filterDto: TicketsFilterDto): Promise<Ticket[]> {
-        const { theaterIds, ticketIds, ...rest } = filterDto
+    private makeQueryByFilter(filterDto: TicketsFilterDto) {
+        const { theaterIds, ticketIds, ...rest } = stringToObjectId(filterDto)
 
         const query: Record<string, any> = rest
 
@@ -50,6 +31,25 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         if (ticketIds) {
             query['_id'] = { $in: ticketIds }
         }
+
+        return query
+    }
+
+    async findPagedTickets(
+        filterDto: TicketsFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Ticket>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query = this.makeQueryByFilter(filterDto)
+
+            helpers.setQuery(query)
+        })
+
+        return paginated
+    }
+
+    async findTickets(filterDto: TicketsFilterDto): Promise<Ticket[]> {
+        const query = this.makeQueryByFilter(filterDto)
 
         return super.findByFilter(query)
     }
