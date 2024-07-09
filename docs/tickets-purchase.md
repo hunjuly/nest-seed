@@ -137,14 +137,16 @@ Customer -> Frontend : 상영일 선택
             Showing -> Showtimes: findShowtimes({movieId, theaterId, showdate})
             Showing <-- Showtimes: showtimes[]
             Showing -> Tickets: getSalesStatuses({ showtimeIds })
-            note left
-            getSalesStatuses({
-                showtimeIds: [1, 2, 3, 4],
-                region: 'Seoul',
-                theaterId: 123
-            })
-            end note
             Showing <-- Tickets: salesStatuses[]
+            note left
+            ShowtimeSalesStatus = {
+                showtimeId: string
+                totalSeats: number
+                soldSeats: number
+                availableSeats: number
+                isSoldOut: boolean
+            }
+            end note
             Showing -> Showing: generateShowtimesWithSalesStatus(Showtimes[], salesStatuses)
         Backend <-- Showing: showtimesWithSalesStatus[]
     Frontend <-- Backend : showtimesWithSalesStatus[]
