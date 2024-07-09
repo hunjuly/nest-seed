@@ -57,7 +57,7 @@ export class TicketsCreationService {
                     movieId: showtime.movieId,
                     status: TicketStatus.open,
                     seat,
-                    showtimesBatchId: batchId
+                    batchId
                 })
             })
 

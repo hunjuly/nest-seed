@@ -31,10 +31,7 @@ export class ShowingService {
         const ticketIds = payments.flatMap((payment) => payment.ticketIds)
         const tickets = await this.ticketsService.findTickets({ ticketIds })
 
-        const showtimeIds = pick(tickets, 'showtimeId')
-        const showtimes = await this.showtimesService.findShowtimes({ showtimeIds })
-
-        const movieIds = uniq(pick(showtimes, 'movieId'))
+        const movieIds = uniq(pick(tickets, 'movieId'))
 
         const watchedMovies = await this.moviesService.getMoviesByIds(movieIds)
 

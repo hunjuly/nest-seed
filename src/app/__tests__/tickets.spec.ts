@@ -74,7 +74,7 @@ describe('/tickets', () => {
             const res = await req.get({ url: '/tickets', query: { batchId } })
             expectOk(res)
 
-            const expected = makeExpectedTickets(theaters, showtimes)
+            const expected = makeExpectedTickets(theaters, showtimes, movieId)
             expectEqualDtos(res.body.items, expected)
         })
 
@@ -83,7 +83,7 @@ describe('/tickets', () => {
             expectOk(res)
 
             const filteredShowtimes = showtimes.filter((showtime) => showtime.theaterId === theaterId)
-            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes, movieId)
             expectEqualDtos(res.body.items, expected)
         })
 
@@ -92,7 +92,7 @@ describe('/tickets', () => {
             expectOk(res)
 
             const filteredShowtimes = showtimes.filter((showtime) => theaterIds.includes(showtime.theaterId))
-            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes, movieId)
             expectEqualDtos(res.body.items, expected)
         })
 
@@ -100,7 +100,7 @@ describe('/tickets', () => {
             const actual = await ticketsService.findTickets({ theaterIds })
 
             const filteredShowtimes = showtimes.filter((showtime) => theaterIds.includes(showtime.theaterId))
-            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes, movieId)
             expectEqualDtos(actual, expected)
         })
 
@@ -109,7 +109,7 @@ describe('/tickets', () => {
             expectOk(res)
 
             const filteredShowtimes = showtimes.filter((showtime) => showtime.movieId === movieId)
-            const expected = makeExpectedTickets(theaters, filteredShowtimes)
+            const expected = makeExpectedTickets(theaters, filteredShowtimes, movieId)
             expectEqualDtos(res.body.items, expected)
         })
     })
@@ -118,7 +118,7 @@ describe('/tickets', () => {
         const showtimes = await factory.createTicketsInParallel(createDto(), 20)
 
         const actual = await ticketsService.findTickets({})
-        const expected = makeExpectedTickets(theaters, showtimes)
+        const expected = makeExpectedTickets(theaters, showtimes, movieId)
         expectEqualDtos(actual, expected)
     })
 })

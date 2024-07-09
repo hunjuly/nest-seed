@@ -99,7 +99,7 @@ export class TicketsFactory {
     }
 }
 
-export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeDto[]) {
+export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeDto[], movieId: string) {
     const tickets: TicketDto[] = []
 
     theaters.flatMap((theater) => {
@@ -110,6 +110,8 @@ export function makeExpectedTickets(theaters: TheaterDto[], showtimes: ShowtimeD
                     tickets.push({
                         id: expect.anything(),
                         showtimeId: showtime.id,
+                        theaterId: theater.id,
+                        movieId,
                         seat,
                         status: 'open'
                     })
