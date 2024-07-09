@@ -26,12 +26,12 @@ describe('common/http/pipes', () => {
         })
 
         it('should throw BadRequestException for invalid format', async () => {
-            const res = await req.get({ url: '/latlong', query: { latlong: '37.123' } })
+            const res = await req.get({ url: '/latlong', query: { location: '37.123' } })
             expectBadRequest(res)
         })
 
         it('should throw BadRequestException for out of range values', async () => {
-            const res = await req.get({ url: '/latlong', query: { latlong: '91,181' } })
+            const res = await req.get({ url: '/latlong', query: { location: '91,181' } })
             expectBadRequest(res)
         })
     })
