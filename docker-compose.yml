@@ -46,7 +46,7 @@ services:
         image: mongo
         command: sh -c "openssl rand -base64 768 > mongodb.key && chmod 400 mongodb.key && chown mongodb:mongodb mongodb.key"
         volumes:
-        - mongodb_key:/mongodb_key
+            - mongodb_key:/mongodb_key
         working_dir: /mongodb_key
 
     mongo1:

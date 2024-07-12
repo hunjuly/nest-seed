@@ -11,7 +11,7 @@ run_mongo() (
   docker exec ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
 )
 
-docker_compose --profile infra down
+docker_compose --profile infra down --volumes --remove-orphans --timeout 0
 docker_compose --profile infra up -d
 
 wait_for_service "${MONGO_DB_HOST1}" "run_mongo 'db.version()'"
