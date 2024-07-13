@@ -10,22 +10,22 @@ describe('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let customer: CustomerDto
-    let watchedMovies: MovieDto[]
-    let showingMovies: MovieDto[]
+    let movies: MovieDto[]
     let theaters: TheaterDto[]
+    let watchedMovie: MovieDto
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
         req = testContext.request
         customer = fixture.customer
-        showingMovies = fixture.showingMovies
-        watchedMovies = fixture.watchedMovies
+        movies = fixture.movies
         theaters = fixture.theaters
+        watchedMovie = fixture.watchedMovie
     })
 
-    afterEach(async () => {
+    afterAll(async () => {
         await testContext?.close()
     })
 
@@ -36,15 +36,14 @@ describe('/showing', () => {
         })
         expectOk(res)
 
-        const genre = watchedMovies.flatMap((movie) => movie.genre)
-        const filteredMovies = showingMovies.filter((movie) =>
-            movie.genre.some((item) => genre.includes(item))
+        const filteredMovies = movies.filter((movie) =>
+            movie.genre.some((item) => watchedMovie.genre.includes(item))
         )
         expect(res.body).toEqual(filteredMovies)
     })
 
     it('상영 극장 목록 요청', async () => {
-        const movieId = showingMovies[0].id
+        const movieId = movies[0].id
 
         const res = await req.get({
             url: `/showing/movies/${movieId}/theaters`,
@@ -55,7 +54,7 @@ describe('/showing', () => {
     })
 
     it('상영일 목록 요청', async () => {
-        const movieId = showingMovies[0].id
+        const movieId = movies[0].id
         const theaterId = theaters[0].id
 
         const res = await req.get({
@@ -66,7 +65,7 @@ describe('/showing', () => {
     })
 
     it('상영 시간 목록 요청', async () => {
-        const movieId = showingMovies[0].id
+        const movieId = movies[0].id
         const theaterId = theaters[0].id
         const showdate = '29990101'
 

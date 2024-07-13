@@ -69,8 +69,12 @@ export class TicketsFactory {
         })
     }
 
-    async createTickets(createDto: ShowtimesCreationDto): Promise<{ batchId: string }> {
-        const { batchId } = await this.showtimesService.createShowtimes(createDto)
+    async createTickets(createDto: Partial<ShowtimesCreationDto>): Promise<{ batchId: string }> {
+        const { batchId } = await this.showtimesService.createShowtimes({
+            durationMinutes: 1,
+            startTimes: [new Date(0)],
+            ...createDto
+        } as ShowtimesCreationDto)
 
         await this.awaitCompleteEvent(batchId)
 
