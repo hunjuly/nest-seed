@@ -5,108 +5,32 @@ import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
-    ShowtimesCreateErrorEvent,
     ShowtimesCreateFailEvent,
-    ShowtimesCreationDto,
     ShowtimesModule,
     ShowtimesService
 } from 'app/services/showtimes'
 import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
-import {
-    TicketDto,
-    TicketsCreateEvent,
-    TicketsCreateCompleteEvent,
-    TicketsCreateErrorEvent,
-    TicketsModule,
-    TicketsService
-} from 'app/services/tickets'
+import { TicketDto, TicketsCreateEvent, TicketsModule, TicketsService } from 'app/services/tickets'
 import { createHttpTestContext } from 'common/test'
 import { createMovie } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
-
-type PromiseHandlers = { resolve: (value: unknown) => void; reject: (reason?: any) => void }
+import { BatchEventListener } from './test.util'
+import { createTheater } from './theaters.fixture'
 
 @Injectable()
-export class TicketsFactory {
-    private promises = new Map<string, PromiseHandlers>()
-
-    constructor(private showtimesService: ShowtimesService) {}
-
-    @OnEvent('**')
-    allEvents(event: TicketsCreateEvent): void {
-        console.log(event.name)
-        console.log(event)
-    }
-
-    @OnEvent(TicketsCreateCompleteEvent.eventName, { async: true })
-    onTicketsCreateCompleted(event: TicketsCreateCompleteEvent): void {
+export class TicketsEventListener extends BatchEventListener {
+    @OnEvent('tickets.create.complete', { async: true })
+    onTicketsCreateCompleteEvent(event: TicketsCreateEvent): void {
         this.handleEvent(event)
     }
 
-    @OnEvent(TicketsCreateErrorEvent.eventName, { async: true })
-    onTicketsCreateError(event: TicketsCreateErrorEvent): void {
-        this.handleEvent(event, true)
+    @OnEvent('*.create.error', { async: true })
+    onErrorEvent(event: TicketsCreateEvent): void {
+        this.handleEvent(event)
     }
 
-    @OnEvent(ShowtimesCreateFailEvent.eventName, { async: true })
-    onShowtimesCreateFailed(event: TicketsCreateErrorEvent): void {
-        this.handleEvent(event, true)
-    }
-
-    @OnEvent(ShowtimesCreateErrorEvent.eventName, { async: true })
-    onShowtimesCreateError(event: TicketsCreateErrorEvent): void {
-        this.handleEvent(event, true)
-    }
-
-    private handleEvent(event: TicketsCreateEvent, isError = false): void {
-        const promise = this.promises.get(event.batchId)
-
-        if (isError) {
-            promise!.reject(event)
-        } else {
-            promise?.resolve(event)
-        }
-
-        this.promises.delete(event.batchId)
-    }
-
-    private awaitCompleteEvent(batchId: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.promises.set(batchId, { resolve, reject })
-        })
-    }
-
-    async createTickets(createDto: Partial<ShowtimesCreationDto>): Promise<{ batchId: string }> {
-        const { batchId } = await this.showtimesService.createShowtimes({
-            durationMinutes: 1,
-            startTimes: [new Date(0)],
-            ...createDto
-        } as ShowtimesCreationDto)
-
-        await this.awaitCompleteEvent(batchId)
-
-        return { batchId }
-    }
-
-    async createTicketsInParallel(createDto: ShowtimesCreationDto, length: number): Promise<ShowtimeDto[]> {
-        const createShowtime = async (index: number) => {
-            const { batchId } = await this.showtimesService.createShowtimes({
-                ...createDto,
-                startTimes: [new Date(1900, index)]
-            })
-            await this.awaitCompleteEvent(batchId)
-            return batchId
-        }
-
-        const batchIds = await Promise.all(Array.from({ length }, (_, i) => createShowtime(i)))
-
-        expect(batchIds).toHaveLength(length)
-
-        const showtimes = await Promise.all(
-            batchIds.map((batchId) => this.showtimesService.findShowtimes({ batchId }))
-        ).then((showtimeArrays) => showtimeArrays.flat())
-
-        return showtimes
+    @OnEvent('showtimes.create.fail', { async: true })
+    onFailEvent(event: ShowtimesCreateFailEvent): void {
+        this.handleEvent(event)
     }
 }
 
@@ -137,20 +61,24 @@ export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
         controllers: [TicketsController],
-        providers: [TicketsFactory]
+        providers: [TicketsEventListener]
     })
 
     const module = testContext.module
+
+    const showtimesService = module.get(ShowtimesService)
+    const ticketsService = module.get(TicketsService)
+    const eventListener = module.get(TicketsEventListener)
 
     const moviesService = module.get(MoviesService)
     const movie = await createMovie(moviesService)
 
     const theatersService = module.get(TheatersService)
-    const theaters = await createTheaters(theatersService, 3)
+    const theaters = [
+        await createTheater(theatersService),
+        await createTheater(theatersService),
+        await createTheater(theatersService)
+    ]
 
-    const showtimesService = module.get(ShowtimesService)
-    const ticketsService = module.get(TicketsService)
-    const ticketsFactory = module.get(TicketsFactory)
-
-    return { testContext, movie, theaters, showtimesService, ticketsService, ticketsFactory }
+    return { testContext, movie, theaters, showtimesService, ticketsService, eventListener }
 }

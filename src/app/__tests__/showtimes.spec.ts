@@ -7,7 +7,7 @@ import {
 import { nullObjectId, pickIds } from 'common'
 import { HttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { ShowtimesEventListener, createFixture, makeShowtimesFromDto } from './showtimes.fixture'
+import { ShowtimesEventListener, createFixture, makeExpectedShowtimes } from './showtimes.fixture'
 import { expectEqualDtos } from './test.util'
 
 describe('/showtimes', () => {
@@ -74,7 +74,7 @@ describe('/showtimes', () => {
             expectCreated(res)
 
             const result = await waitComplete(res.body.batchId)
-            expectEqualDtos(result.createdShowtimes, makeShowtimesFromDto(body))
+            expectEqualDtos(result.createdShowtimes, makeExpectedShowtimes(body))
         })
     })
 
@@ -115,20 +115,22 @@ describe('/showtimes', () => {
             createdShowtimes = result.createdShowtimes
         })
 
-        const requestGet = (query = {}) => {
-            return req.get({ url: '/showtimes', query })
+        const requestGet = async (query = {}) => {
+            const res = await req.get({ url: '/showtimes', query })
+            expectOk(res)
+
+            return res
         }
 
         it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const res = await requestGet({ batchId })
-            expectOk(res)
+
             expectEqualDtos(res.body.items, createdShowtimes)
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const theaterId = theaterIds[0]
             const res = await requestGet({ theaterId })
-            expectOk(res)
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
             expectEqualDtos(res.body.items, expectedShowtimes)
@@ -136,7 +138,6 @@ describe('/showtimes', () => {
 
         it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const res = await requestGet({ movieId })
-            expectOk(res)
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)
             expectEqualDtos(res.body.items, expectedShowtimes)
@@ -191,18 +192,19 @@ describe('/showtimes', () => {
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
                     const dto = makeCreationDto({ startTimes: [new Date(1900, index)] })
-                    const expected = makeShowtimesFromDto(dto)
 
-                    const res = await showtimesService.createShowtimes(dto)
+                    const { batchId } = await showtimesService.createShowtimes(dto)
 
-                    const result = await waitComplete(res.batchId)
+                    const result = await waitComplete(batchId)
 
-                    return { createdShowtimes: result.createdShowtimes, expected }
+                    const expectedShowtimes = makeExpectedShowtimes(dto)
+
+                    return { createdShowtimes: result.createdShowtimes, expectedShowtimes }
                 })
             )
 
             const actual = results.flatMap((result) => result.createdShowtimes)
-            const expected = results.flatMap((result) => result.expected)
+            const expected = results.flatMap((result) => result.expectedShowtimes)
 
             expectEqualDtos(actual, expected)
         })

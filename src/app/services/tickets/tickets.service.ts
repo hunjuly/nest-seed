@@ -23,8 +23,8 @@ export class TicketsService {
     }
 
     @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
-    async onShowtimesCreateCompleted(event: ShowtimesCreateCompleteEvent) {
-        this.logger.log(`showtimes.create.completed 수신. batchId=${event.batchId}`)
+    async onShowtimesCreateComplete(event: ShowtimesCreateCompleteEvent) {
+        this.logger.log(`${event.name} 수신. batchId=${event.batchId}`)
 
         const { batchId } = event
 

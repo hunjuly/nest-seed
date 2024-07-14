@@ -6,7 +6,7 @@ export abstract class TicketsCreateEvent extends AppEvent {
     }
 }
 
-@EventName('tickets.create.completed')
+@EventName('tickets.create.complete')
 export class TicketsCreateCompleteEvent extends TicketsCreateEvent {
     constructor(batchId: string) {
         super(batchId)

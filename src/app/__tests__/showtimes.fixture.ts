@@ -25,7 +25,7 @@ export class ShowtimesEventListener extends BatchEventListener {
     }
 }
 
-export const makeShowtimesFromDto = (createDto: ShowtimesCreationDto): ShowtimeDto[] => {
+export const makeExpectedShowtimes = (createDto: ShowtimesCreationDto): ShowtimeDto[] => {
     const { movieId, theaterIds, startTimes, durationMinutes } = createDto
 
     return theaterIds.flatMap((theaterId) =>
@@ -55,8 +55,7 @@ export async function createFixture() {
     const movie = await createMovie(moviesService)
 
     const theatersService = module.get(TheatersService)
-    const theater1 = await createTheater(theatersService)
-    const theater2 = await createTheater(theatersService)
+    const theaters = [await createTheater(theatersService), await createTheater(theatersService)]
 
-    return { testContext, showtimesService, eventListener, movie, theaters: [theater1, theater2] }
+    return { testContext, showtimesService, eventListener, movie, theaters }
 }
