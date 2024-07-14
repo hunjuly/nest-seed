@@ -1,18 +1,31 @@
-export class TicketsCreateCompleteEvent {
-    static eventName = 'tickets.create.completed'
+import { AppEvent, EventName } from 'common'
 
-    batchId: string
+export abstract class TicketsCreateEvent extends AppEvent {
+    constructor(public batchId: string) {
+        super()
+    }
 }
 
-export class TicketsCreateErrorEvent {
-    static eventName = 'tickets.create.error'
-
-    batchId: string
-    message: string
+@EventName('tickets.create.completed')
+export class TicketsCreateCompleteEvent extends TicketsCreateEvent {
+    constructor(batchId: string) {
+        super(batchId)
+    }
 }
 
-export class TicketsCreateEvent {
-    static eventName = 'tickets.create'
+@EventName('tickets.create.error')
+export class TicketsCreateErrorEvent extends TicketsCreateEvent {
+    constructor(
+        batchId: string,
+        public message: string
+    ) {
+        super(batchId)
+    }
+}
 
-    batchId: string
+@EventName('tickets.create.request')
+export class TicketsCreateRequestEvent extends TicketsCreateEvent {
+    constructor(batchId: string) {
+        super(batchId)
+    }
 }

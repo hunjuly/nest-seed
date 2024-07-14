@@ -6,7 +6,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
     imports: [
         EventEmitterModule.forRoot({
             // set this to `true` to use wildcards
-            wildcard: false,
+            wildcard: true,
             // the delimiter used to segment namespaces
             delimiter: '.',
             // set this to `true` if you want to emit the newListener event

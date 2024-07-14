@@ -5,8 +5,13 @@ import { ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheatersService, forEachSeat } from 'app/services/theaters'
 import { Job } from 'bull'
 import { Ticket, TicketStatus } from '../schemas'
-import { TicketsCreateCompleteEvent, TicketsCreateErrorEvent, TicketsCreateEvent } from '../tickets.events'
+import {
+    TicketsCreateCompleteEvent,
+    TicketsCreateErrorEvent,
+    TicketsCreateRequestEvent
+} from '../tickets.events'
 import { TicketsRepository } from '../tickets.repository'
+import { AppEvent } from 'common'
 
 type TicketsCreationData = { batchId: string }
 
@@ -22,8 +27,8 @@ export class TicketsCreationService {
         private showtimesService: ShowtimesService
     ) {}
 
-    async emitCreateCompleted(event: TicketsCreateCompleteEvent) {
-        await this.eventEmitter.emitAsync(TicketsCreateCompleteEvent.eventName, event)
+    private async emitEvent(event: AppEvent) {
+        await this.eventEmitter.emitAsync(event.name, event)
     }
 
     /* istanbul ignore next */
@@ -31,13 +36,10 @@ export class TicketsCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.eventEmitter.emitAsync(TicketsCreateErrorEvent.eventName, {
-            message: job.failedReason,
-            batchId: job.data.batchId
-        })
+        await this.emitEvent(new TicketsCreateErrorEvent(job.data.batchId, job.failedReason ?? ''))
     }
 
-    @Process(TicketsCreateEvent.eventName)
+    @Process(TicketsCreateRequestEvent.eventName)
     async createTickets(job: Job<TicketsCreationData>): Promise<void> {
         const { batchId } = job.data
 
@@ -70,6 +72,6 @@ export class TicketsCreationService {
 
         this.logger.log(`${tickets.length} tickets have been successfully created and saved.`)
 
-        await this.emitCreateCompleted({ batchId })
+        await this.emitEvent(new TicketsCreateCompleteEvent(batchId))
     }
 }

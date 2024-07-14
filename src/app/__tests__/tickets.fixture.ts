@@ -14,6 +14,7 @@ import {
 import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
 import {
     TicketDto,
+    TicketsCreateEvent,
     TicketsCreateCompleteEvent,
     TicketsCreateErrorEvent,
     TicketsModule,
@@ -31,27 +32,33 @@ export class TicketsFactory {
 
     constructor(private showtimesService: ShowtimesService) {}
 
-    @OnEvent(TicketsCreateCompleteEvent.eventName)
+    @OnEvent('**')
+    allEvents(event: TicketsCreateEvent): void {
+        console.log(event.name)
+        console.log(event)
+    }
+
+    @OnEvent(TicketsCreateCompleteEvent.eventName, { async: true })
     onTicketsCreateCompleted(event: TicketsCreateCompleteEvent): void {
         this.handleEvent(event)
     }
 
-    @OnEvent(TicketsCreateErrorEvent.eventName)
+    @OnEvent(TicketsCreateErrorEvent.eventName, { async: true })
     onTicketsCreateError(event: TicketsCreateErrorEvent): void {
         this.handleEvent(event, true)
     }
 
-    @OnEvent(ShowtimesCreateFailedEvent.eventName)
+    @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
     onShowtimesCreateFailed(event: TicketsCreateErrorEvent): void {
         this.handleEvent(event, true)
     }
 
-    @OnEvent(ShowtimesCreateErrorEvent.eventName)
+    @OnEvent(ShowtimesCreateErrorEvent.eventName, { async: true })
     onShowtimesCreateError(event: TicketsCreateErrorEvent): void {
         this.handleEvent(event, true)
     }
 
-    private handleEvent(event: TicketsCreateErrorEvent | TicketsCreateCompleteEvent, isError = false): void {
+    private handleEvent(event: TicketsCreateEvent, isError = false): void {
         const promise = this.promises.get(event.batchId)
 
         if (isError) {

@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Queue } from 'bull'
 import { createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimeDto, ShowtimesCreationDto, ShowtimesCreationResponse, ShowtimesFilterDto } from './dto'
-import { ShowtimesCreateEvent } from './showtimes.events'
+import { ShowtimesCreateRequestEvent } from './showtimes.events'
 import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
@@ -22,7 +22,8 @@ export class ShowtimesService {
     async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResponse> {
         const batchId = createObjectId()
 
-        await this.showtimesQueue.add(ShowtimesCreateEvent.eventName, { ...createDto, batchId })
+        const event = new ShowtimesCreateRequestEvent(batchId, createDto)
+        await this.showtimesQueue.add(event.name, event)
 
         this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 
