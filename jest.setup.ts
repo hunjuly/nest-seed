@@ -1,17 +1,15 @@
 /**
- * import 'reflect-metadata' 을 하지 않으면
- * .spec.ts에서 'class-transformer' 코드를 포함하면
+ * import 'reflect-metadata'을 하지 않으면 .spec.ts에서 'class-transformer' 코드를 포함하면
  * 'TypeError: Reflect.getMetadata is not a function' 에러 발생함
  *
  * import { Type } from 'class-transformer'
  *
- * export class Dto {
- *     @Type(() => Date)
+ * class Dto {
+ *     @Type()
  *     times: Date
  * }
  *
  * describe('...', () => {})
- *
  */
 import 'reflect-metadata'
 

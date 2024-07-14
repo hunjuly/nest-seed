@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
 import { Assert, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
-import { ShowtimesCreateCompletedEvent } from '../showtimes'
+import { ShowtimesCreateCompleteEvent } from '../showtimes'
 import { TicketDto, TicketsFilterDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
 import { TicketsCreateRequestEvent } from './tickets.events'
@@ -22,8 +22,8 @@ export class TicketsService {
         await waitForQueueToEmpty(this.ticketsQueue)
     }
 
-    @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
-    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
+    @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
+    async onShowtimesCreateCompleted(event: ShowtimesCreateCompleteEvent) {
         this.logger.log(`showtimes.create.completed 수신. batchId=${event.batchId}`)
 
         const { batchId } = event

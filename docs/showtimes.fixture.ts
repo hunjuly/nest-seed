@@ -5,22 +5,47 @@ import { GlobalModule } from 'app/global'
 import { MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
-    ShowtimesCreateEvent,
+    ShowtimesCreateCompletedEvent,
     ShowtimesCreationDto,
     ShowtimesModule,
     ShowtimesService
 } from 'app/services/showtimes'
 import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { addMinutes } from 'common'
+import { addMinutes, AppEvent } from 'common'
 import { createHttpTestContext } from 'common/test'
 import { createMovie } from './movies.fixture'
-import { BatchEventListener } from './test.util'
 import { createTheater } from './theaters.fixture'
+
+type PromiseHandlers = { eventName: string; resolve: (value: unknown) => void; reject: (value: any) => void }
+
+export class BatchEventListener {
+    private promises = new Map<string, PromiseHandlers>()
+
+    protected handleEvent(event: AppEvent & { batchId: string }): void {
+        const promise = this.promises.get(event.batchId)
+
+        if (promise) {
+            if (promise.eventName === event.name) {
+                promise.resolve(event)
+            } else {
+                promise.reject(event)
+            }
+
+            this.promises.delete(event.batchId)
+        }
+    }
+
+    awaitEvent(eventName: string, batchId: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { eventName, resolve, reject })
+        })
+    }
+}
 
 @Injectable()
 export class ShowtimesEventListener extends BatchEventListener {
     @OnEvent('showtimes.create.*', { async: true })
-    onShowtimesCreateEvent(event: ShowtimesCreateEvent): void {
+    onShowtimesCreateEvent(event: ShowtimesCreateCompletedEvent): void {
         this.handleEvent(event)
     }
 }

@@ -6,7 +6,7 @@ import { MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
     ShowtimesCreateErrorEvent,
-    ShowtimesCreateFailedEvent,
+    ShowtimesCreateFailEvent,
     ShowtimesCreationDto,
     ShowtimesModule,
     ShowtimesService
@@ -48,7 +48,7 @@ export class TicketsFactory {
         this.handleEvent(event, true)
     }
 
-    @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
+    @OnEvent(ShowtimesCreateFailEvent.eventName, { async: true })
     onShowtimesCreateFailed(event: TicketsCreateErrorEvent): void {
         this.handleEvent(event, true)
     }

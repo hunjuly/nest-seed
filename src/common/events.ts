@@ -7,21 +7,6 @@ export abstract class AppEvent {
     }
 }
 
-// export abstract class AppEvent {
-//     constructor(public eventName: string) {}
-// }
-
-// export function EventName(eventName: string) {
-//     return function <T extends new (...args: any[]) => AppEvent>(constructor: T) {
-//         return class extends constructor {
-//             static eventName = eventName
-//             constructor(...args: any[]) {
-//                 super(eventName, ...args)
-//             }
-//         }
-//     }
-// }
-
 export function EventName(name: string) {
     return function <T extends new (...args: any[]) => AppEvent>(constructor: T) {
         return class extends constructor {

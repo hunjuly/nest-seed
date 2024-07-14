@@ -6,10 +6,10 @@ import { AppEvent, Assert, addMinutes, findMaxDate, findMinDate, parseObjectType
 import { ShowtimesCreationDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
-    ShowtimesCreateCompletedEvent,
+    ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
     ShowtimesCreateRequestEvent,
-    ShowtimesCreateFailedEvent
+    ShowtimesCreateFailEvent
 } from '../showtimes.events'
 import { ShowtimesRepository } from '../showtimes.repository'
 
@@ -46,7 +46,7 @@ export class ShowtimesCreationService {
 
         if (0 < conflictShowtimes.length) {
             await this.emitEvent(
-                new ShowtimesCreateFailedEvent(
+                new ShowtimesCreateFailEvent(
                     request.batchId,
                     conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
                 )
@@ -55,7 +55,7 @@ export class ShowtimesCreationService {
             const createdShowtimes = await this.saveShowtimes(request)
 
             await this.emitEvent(
-                new ShowtimesCreateCompletedEvent(
+                new ShowtimesCreateCompleteEvent(
                     request.batchId,
                     createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
                 )

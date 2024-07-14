@@ -17,8 +17,8 @@ export class ShowtimesCreateRequestEvent extends ShowtimesCreateEvent {
     }
 }
 
-@EventName('showtimes.create.completed')
-export class ShowtimesCreateCompletedEvent extends ShowtimesCreateEvent {
+@EventName('showtimes.create.complete')
+export class ShowtimesCreateCompleteEvent extends ShowtimesCreateEvent {
     constructor(
         batchId: string,
         public createdShowtimes: ShowtimeDto[]
@@ -27,8 +27,8 @@ export class ShowtimesCreateCompletedEvent extends ShowtimesCreateEvent {
     }
 }
 
-@EventName('showtimes.create.failed')
-export class ShowtimesCreateFailedEvent extends ShowtimesCreateEvent {
+@EventName('showtimes.create.fail')
+export class ShowtimesCreateFailEvent extends ShowtimesCreateEvent {
     constructor(
         batchId: string,
         public conflictShowtimes: ShowtimeDto[]
