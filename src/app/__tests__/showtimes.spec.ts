@@ -1,61 +1,33 @@
-import {
-    ShowtimeDto,
-    ShowtimesCreateCompleteEvent,
-    ShowtimesCreateFailEvent,
-    ShowtimesService
-} from 'app/services/showtimes'
-import { nullObjectId, pickIds } from 'common'
+import { ShowtimeDto, ShowtimesCreateCompleteEvent } from 'app/services/showtimes'
+import { nullObjectId } from 'common'
 import { HttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
 import { HttpRequest } from 'src/common/test'
-import { ShowtimesEventListener, createFixture, makeExpectedShowtimes } from './showtimes.fixture'
+import { ShowtimesFactory, createFixture, makeExpectedShowtimes } from './showtimes.fixture'
 import { expectEqualDtos } from './test.util'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
-    let showtimesService: ShowtimesService
-    let eventListener: ShowtimesEventListener
-
-    let movieId: string
-    let theaterIds: string[]
+    let factory: ShowtimesFactory
 
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
         req = fixture.testContext.request
-        showtimesService = fixture.showtimesService
-        eventListener = fixture.eventListener
-
-        movieId = fixture.movie.id
-        theaterIds = pickIds(fixture.theaters)
+        factory = fixture.factory
     })
 
     afterEach(async () => {
         await testContext?.close()
     })
 
-    const makeCreationDto = (overrides = {}) => ({
-        movieId,
-        theaterIds,
-        durationMinutes: 1,
-        startTimes: [new Date(0)],
-        ...overrides
-    })
-
     const waitComplete = (batchId: string) => {
-        return eventListener.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
-    }
-
-    const waitFinish = (batchId: string) => {
-        return eventListener.awaitEvent(batchId, [
-            ShowtimesCreateCompleteEvent.eventName,
-            ShowtimesCreateFailEvent.eventName
-        ])
+        return factory.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
     }
 
     describe('Showtimes Creation Request', () => {
         it('상영 시간 생성을 요청하면 batchId를 반환해야 한다', async () => {
-            const body = makeCreationDto({})
+            const body = factory.makeCreationDto({})
 
             const res = await req.post({ url: '/showtimes', body })
 
@@ -66,7 +38,7 @@ describe('/showtimes', () => {
         })
 
         it('생성 요청에 따라 정확하게 showtimes을 생성하고 완료될 때까지 기다려야 한다', async () => {
-            const body = makeCreationDto({
+            const body = factory.makeCreationDto({
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
             })
 
@@ -80,7 +52,7 @@ describe('/showtimes', () => {
 
     describe('Error Handling', () => {
         const requestPost = (overrides = {}) => {
-            return req.post({ url: '/showtimes', body: makeCreationDto(overrides) })
+            return req.post({ url: '/showtimes', body: factory.makeCreationDto(overrides) })
         }
 
         it('NOT_FOUND(404) when movieId is not found', async () => {
@@ -94,7 +66,7 @@ describe('/showtimes', () => {
         })
 
         it('NOT_FOUND(404) when any theaterId in the list is not found', async () => {
-            const res = await requestPost({ theaterIds: [theaterIds[0], nullObjectId] })
+            const res = await requestPost({ theaterIds: [factory.theaters[0].id, nullObjectId] })
             expectNotFound(res)
         })
     })
@@ -104,13 +76,10 @@ describe('/showtimes', () => {
         let batchId: string
 
         beforeEach(async () => {
-            const res = await showtimesService.createShowtimes(
-                makeCreationDto({
-                    startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
-                })
-            )
+            const result = await factory.createShowtimes({
+                startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
+            })
 
-            const result = await waitComplete(res.batchId)
             batchId = result.batchId
             createdShowtimes = result.createdShowtimes
         })
@@ -129,7 +98,7 @@ describe('/showtimes', () => {
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const theaterId = theaterIds[0]
+            const theaterId = factory.theaters[0].id
             const res = await requestGet({ theaterId })
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
@@ -137,6 +106,7 @@ describe('/showtimes', () => {
         })
 
         it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const movieId = factory.movie.id
             const res = await requestGet({ movieId })
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)
@@ -145,14 +115,8 @@ describe('/showtimes', () => {
     })
 
     describe('Conflict Checking', () => {
-        const createShowtimes = async (overrides = {}) => {
-            const res = await showtimesService.createShowtimes(makeCreationDto(overrides))
-
-            return waitFinish(res.batchId)
-        }
-
         it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
-            const { createdShowtimes } = await createShowtimes({
+            const { createdShowtimes } = await factory.createShowtimes({
                 durationMinutes: 90,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -162,7 +126,7 @@ describe('/showtimes', () => {
                 ]
             })
 
-            const { conflictShowtimes } = await createShowtimes({
+            const { conflictShowtimes } = await factory.createShowtimes({
                 durationMinutes: 30,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -191,11 +155,9 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
-                    const dto = makeCreationDto({ startTimes: [new Date(1900, index)] })
+                    const dto = factory.makeCreationDto({ startTimes: [new Date(1900, index)] })
 
-                    const { batchId } = await showtimesService.createShowtimes(dto)
-
-                    const result = await waitComplete(batchId)
+                    const result = await factory.createShowtimes(dto)
 
                     const expectedShowtimes = makeExpectedShowtimes(dto)
 
@@ -214,11 +176,7 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async () => {
-                    const dto = makeCreationDto()
-
-                    const res = await showtimesService.createShowtimes(dto)
-
-                    const result = await waitFinish(res.batchId)
+                    const result = await factory.createShowtimes()
 
                     return {
                         createdShowtimes: result.createdShowtimes,
