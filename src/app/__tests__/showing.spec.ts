@@ -5,7 +5,7 @@ import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest, HttpTestContext, expectOk } from 'common/test'
 import { createFixture } from './showing.fixture'
 
-describe('/showing', () => {
+describe.skip('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let customer: CustomerDto

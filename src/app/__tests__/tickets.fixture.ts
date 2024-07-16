@@ -4,9 +4,8 @@ import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
+import { Seat, TheaterDto, TheatersModule, TheatersService, mapSeats } from 'app/services/theaters'
 import {
-    TicketDto,
     TicketsCreateCompleteEvent,
     TicketsCreateEvent,
     TicketsModule,
@@ -64,21 +63,17 @@ export class TicketsFactory extends BatchEventListener {
     makeExpectedTickets(overrides = {}) {
         const showtimes = this.showtimesFactory.makeExpectedShowtimes(overrides)
 
-        const tickets: TicketDto[] = []
-
-        showtimes.map((showtime) => {
+        const tickets = showtimes.flatMap((showtime) => {
             const theater = this.theaters.find((theater) => theater.id === showtime.theaterId)!
 
-            forEachSeat(theater.seatmap, (seat: Seat) => {
-                tickets.push({
-                    id: expect.anything(),
-                    showtimeId: showtime.id,
-                    theaterId: showtime.theaterId,
-                    movieId: showtime.movieId,
-                    seat,
-                    status: 'open'
-                })
-            })
+            return mapSeats(theater.seatmap, (seat: Seat) => ({
+                id: expect.anything(),
+                showtimeId: showtime.id,
+                theaterId: showtime.theaterId,
+                movieId: showtime.movieId,
+                seat,
+                status: 'open'
+            }))
         })
 
         return tickets

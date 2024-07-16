@@ -2,7 +2,7 @@ import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ShowtimesService } from 'app/services/showtimes'
-import { Seat, TheatersService, forEachSeat } from 'app/services/theaters'
+import { Seat, TheatersService, mapSeats } from 'app/services/theaters'
 import { Job } from 'bull'
 import { Ticket, TicketStatus } from '../schemas'
 import {
@@ -52,7 +52,7 @@ export class TicketsCreationService {
         for (const showtime of showtimes) {
             const theater = await this.theatersService.getTheater(showtime.theaterId)
 
-            forEachSeat(theater.seatmap, (seat: Seat) => {
+            mapSeats(theater.seatmap, (seat: Seat) => {
                 ticketEntries.push({
                     showtimeId: showtime.id,
                     theaterId: showtime.theaterId,

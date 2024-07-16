@@ -23,8 +23,6 @@ import { BatchEventListener } from './utils'
 export class ShowtimesFactory extends BatchEventListener {
     constructor(private showtimesService: ShowtimesService) {
         super()
-
-        this.theaters = []
     }
 
     @OnEvent('showtimes.create.*', { async: true })
@@ -43,7 +41,7 @@ export class ShowtimesFactory extends BatchEventListener {
         ])
     }
 
-    movie: MovieDto | undefined
+    movie: MovieDto
     theaters: TheaterDto[]
 
     async createShowtimes(overrides = {}) {
@@ -53,8 +51,10 @@ export class ShowtimesFactory extends BatchEventListener {
     }
 
     makeCreationDto(overrides = {}) {
+        if (!this.movie || !this.theaters) throw new Error('movie or theaters is not defined')
+
         return {
-            movieId: this.movie?.id,
+            movieId: this.movie.id,
             theaterIds: pickIds(this.theaters),
             durationMinutes: 1,
             startTimes: [new Date(0)],
