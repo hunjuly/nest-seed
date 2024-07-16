@@ -4,6 +4,7 @@ import { GlobalModule } from 'app/global'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
 import {
+    HttpRequest,
     HttpTestContext,
     createHttpTestContext,
     expectBadRequest,
@@ -11,7 +12,6 @@ import {
     expectNotFound,
     expectOk
 } from 'common/test'
-import { HttpRequest } from 'src/common/test'
 import { createTheater, createTheaters } from './theaters.fixture'
 
 describe('/theaters', () => {

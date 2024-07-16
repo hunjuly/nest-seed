@@ -5,6 +5,7 @@ import { GlobalModule } from 'app/global'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import {
+    HttpRequest,
     HttpTestContext,
     createHttpTestContext,
     expectBadRequest,
@@ -13,7 +14,6 @@ import {
     expectNotFound,
     expectOk
 } from 'common/test'
-import { HttpRequest } from 'src/common/test'
 import { createCustomer, createCustomers } from './customers.fixture'
 
 describe('/customers', () => {

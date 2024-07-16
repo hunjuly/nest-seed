@@ -1,9 +1,14 @@
-import { ShowtimeDto, ShowtimesCreateCompleteEvent } from 'app/services/showtimes'
+import { ShowtimeDto } from 'app/services/showtimes'
 import { nullObjectId } from 'common'
-import { HttpTestContext, expectCreated, expectNotFound, expectOk } from 'common/test'
-import { HttpRequest } from 'src/common/test'
-import { ShowtimesFactory, createFixture, makeExpectedShowtimes } from './showtimes.fixture'
-import { expectEqualDtos } from './test.util'
+import {
+    HttpRequest,
+    HttpTestContext,
+    expectCreated,
+    expectEqualDtos,
+    expectNotFound,
+    expectOk
+} from 'common/test'
+import { ShowtimesFactory, createFixture } from './showtimes.fixture'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
@@ -21,10 +26,6 @@ describe('/showtimes', () => {
         await testContext?.close()
     })
 
-    const waitComplete = (batchId: string) => {
-        return factory.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
-    }
-
     describe('Showtimes Creation Request', () => {
         it('상영 시간 생성을 요청하면 batchId를 반환해야 한다', async () => {
             const body = factory.makeCreationDto({})
@@ -34,7 +35,7 @@ describe('/showtimes', () => {
             expectCreated(res)
             expect(res.body.batchId).toBeDefined()
 
-            await waitComplete(res.body.batchId)
+            await factory.waitComplete(res.body.batchId)
         })
 
         it('생성 요청에 따라 정확하게 showtimes을 생성하고 완료될 때까지 기다려야 한다', async () => {
@@ -45,8 +46,8 @@ describe('/showtimes', () => {
             const res = await req.post({ url: '/showtimes', body })
             expectCreated(res)
 
-            const result = await waitComplete(res.body.batchId)
-            expectEqualDtos(result.createdShowtimes, makeExpectedShowtimes(body))
+            const result = await factory.waitComplete(res.body.batchId)
+            expectEqualDtos(result.createdShowtimes, factory.makeExpectedShowtimes(body))
         })
     })
 
@@ -66,7 +67,8 @@ describe('/showtimes', () => {
         })
 
         it('NOT_FOUND(404) when any theaterId in the list is not found', async () => {
-            const res = await requestPost({ theaterIds: [factory.theaters[0].id, nullObjectId] })
+            const theaterId = factory.theaters[0].id
+            const res = await requestPost({ theaterIds: [theaterId, nullObjectId] })
             expectNotFound(res)
         })
     })
@@ -135,14 +137,12 @@ describe('/showtimes', () => {
                 ]
             })
 
-            const conflictTimes = [
-                new Date('2013-01-31T12:00').getTime(),
-                new Date('2013-01-31T16:30').getTime(),
-                new Date('2013-01-31T18:30').getTime()
-            ]
-
             const expectedShowtimes = createdShowtimes.filter((showtime: ShowtimeDto) =>
-                conflictTimes.includes(showtime.startTime.getTime())
+                [
+                    new Date('2013-01-31T12:00').getTime(),
+                    new Date('2013-01-31T16:30').getTime(),
+                    new Date('2013-01-31T18:30').getTime()
+                ].includes(showtime.startTime.getTime())
             )
 
             expectEqualDtos(conflictShowtimes, expectedShowtimes)
@@ -155,13 +155,12 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
-                    const dto = factory.makeCreationDto({ startTimes: [new Date(1900, index)] })
+                    const dto = { startTimes: [new Date(1900, index)] }
 
-                    const result = await factory.createShowtimes(dto)
+                    const { createdShowtimes } = await factory.createShowtimes(dto)
+                    const expectedShowtimes = factory.makeExpectedShowtimes(dto)
 
-                    const expectedShowtimes = makeExpectedShowtimes(dto)
-
-                    return { createdShowtimes: result.createdShowtimes, expectedShowtimes }
+                    return { createdShowtimes, expectedShowtimes }
                 })
             )
 
@@ -176,12 +175,7 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async () => {
-                    const result = await factory.createShowtimes()
-
-                    return {
-                        createdShowtimes: result.createdShowtimes,
-                        conflictShowtimes: result.conflictShowtimes
-                    }
+                    return factory.createShowtimes()
                 })
             )
 

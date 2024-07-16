@@ -3,12 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
-import {
-    ShowtimeDto,
-    ShowtimesCreateFailEvent,
-    ShowtimesModule,
-    ShowtimesService
-} from 'app/services/showtimes'
+import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeat } from 'app/services/theaters'
 import {
     TicketDto,
@@ -19,12 +14,16 @@ import {
 } from 'app/services/tickets'
 import { createHttpTestContext } from 'common/test'
 import { createMovie } from './movies.fixture'
-import { BatchEventListener } from './test.util'
+import { ShowtimesFactory } from './showtimes.fixture'
 import { createTheater } from './theaters.fixture'
-import { pickIds } from 'common'
+import { BatchEventListener } from './utils'
 
 @Injectable()
 export class TicketsFactory extends BatchEventListener {
+    constructor(private showtimesFactory: ShowtimesFactory) {
+        super()
+    }
+
     @OnEvent('tickets.create.complete', { async: true })
     onTicketsCreateCompleteEvent(event: TicketsCreateEvent): void {
         this.handleEvent(event)
@@ -40,68 +39,49 @@ export class TicketsFactory extends BatchEventListener {
         this.handleEvent(event)
     }
 
+    waitComplete = (batchId: string) => {
+        return this.awaitEvent(batchId, [TicketsCreateCompleteEvent.eventName])
+    }
+
     movie: MovieDto
     theaters: TheaterDto[]
 
-    constructor(
-        private showtimesService: ShowtimesService,
-        private moviesService: MoviesService,
-        private theatersService: TheatersService
-    ) {
-        super()
-
-        this.theaters = []
+    setMovie(movie: MovieDto) {
+        this.movie = movie
+        this.showtimesFactory.movie = movie
     }
-
-    makeCreationDto(overrides = {}) {
-        return {
-            movieId: this.movie.id,
-            theaterIds: pickIds(this.theaters),
-            durationMinutes: 1,
-            startTimes: [new Date(0)],
-            ...overrides
-        }
-    }
-
-    makeExpectedTickets(showtimes: ShowtimeDto[]) {
-        const tickets: TicketDto[] = []
-
-        this.theaters.flatMap((theater) => {
-            showtimes
-                .filter((showtime) => showtime.theaterId === theater.id)
-                .flatMap((showtime) => {
-                    forEachSeat(theater.seatmap, (seat: Seat) => {
-                        tickets.push({
-                            id: expect.anything(),
-                            showtimeId: showtime.id,
-                            theaterId: theater.id,
-                            movieId: this.movie.id,
-                            seat,
-                            status: 'open'
-                        })
-                    })
-                })
-        })
-
-        return tickets
+    setTheaters(theaters: TheaterDto[]) {
+        this.theaters = theaters
+        this.showtimesFactory.theaters = theaters
     }
 
     async createTickets(overrides = {}) {
-        const { batchId } = await this.showtimesService.createShowtimes(this.makeCreationDto(overrides))
+        const { batchId } = await this.showtimesFactory.createShowtimes(overrides)
 
-        await this.awaitEvent(batchId, [TicketsCreateCompleteEvent.eventName])
-
-        const showtimes = await this.showtimesService.findShowtimes({ batchId })
-
-        return { batchId, showtimes }
+        return this.waitComplete(batchId)
     }
 
-    async createMovie(overrides = {}) {
-        this.movie = await createMovie(this.moviesService, overrides)
-    }
+    makeExpectedTickets(overrides = {}) {
+        const showtimes = this.showtimesFactory.makeExpectedShowtimes(overrides)
 
-    async addTheater(overrides = {}) {
-        this.theaters.push(await createTheater(this.theatersService, overrides))
+        const tickets: TicketDto[] = []
+
+        showtimes.map((showtime) => {
+            const theater = this.theaters.find((theater) => theater.id === showtime.theaterId)!
+
+            forEachSeat(theater.seatmap, (seat: Seat) => {
+                tickets.push({
+                    id: expect.anything(),
+                    showtimeId: showtime.id,
+                    theaterId: showtime.theaterId,
+                    movieId: showtime.movieId,
+                    seat,
+                    status: 'open'
+                })
+            })
+        })
+
+        return tickets
     }
 }
 
@@ -109,18 +89,24 @@ export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
         controllers: [TicketsController],
-        providers: [TicketsFactory]
+        providers: [TicketsFactory, ShowtimesFactory]
     })
 
     const module = testContext.module
 
+    const showtimesService = module.get(ShowtimesService)
     const ticketsService = module.get(TicketsService)
     const factory = module.get(TicketsFactory)
 
-    await factory.createMovie()
-    await factory.addTheater()
-    await factory.addTheater()
-    await factory.addTheater()
+    const moviesService = module.get(MoviesService)
+    factory.setMovie(await createMovie(moviesService))
 
-    return { testContext, ticketsService, factory }
+    const theatersService = module.get(TheatersService)
+    factory.setTheaters([
+        await createTheater(theatersService),
+        await createTheater(theatersService),
+        await createTheater(theatersService)
+    ])
+
+    return { testContext, showtimesService, ticketsService, factory }
 }

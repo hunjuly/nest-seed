@@ -1,9 +1,6 @@
-import { ShowtimeDto } from 'app/services/showtimes'
-import { TicketsService } from 'app/services/tickets'
+import { TicketDto, TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { expectOk, HttpTestContext } from 'common/test'
-import { HttpRequest } from 'src/common/test'
-import { expectEqualDtos } from './test.util'
+import { expectEqualDtos, expectOk, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture, TicketsFactory } from './tickets.fixture'
 
 describe('/tickets', () => {
@@ -17,8 +14,8 @@ describe('/tickets', () => {
 
         testContext = fixture.testContext
         req = fixture.testContext.request
-        ticketsService = fixture.ticketsService
         factory = fixture.factory
+        ticketsService = fixture.ticketsService
     })
 
     afterEach(async () => {
@@ -46,9 +43,10 @@ describe('/tickets', () => {
 
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
-                const { showtimes } = await factory.createTickets({ startTimes: [new Date(1900, index)] })
+                const dto = { startTimes: [new Date(1900, index)] }
+                await factory.createTickets(dto)
 
-                return factory.makeExpectedTickets(showtimes)
+                return factory.makeExpectedTickets(dto)
             })
         )
 
@@ -60,12 +58,12 @@ describe('/tickets', () => {
 
     describe('Tickets Retrieval', () => {
         let batchId: string
-        let showtimes: ShowtimeDto[]
+        let expectedTickets: TicketDto[]
 
         beforeEach(async () => {
-            const result = await factory.createTickets()
-            batchId = result.batchId
-            showtimes = result.showtimes
+            const res = await factory.createTickets()
+            batchId = res.batchId
+            expectedTickets = factory.makeExpectedTickets()
         })
 
         const requestGet = async (query = {}) => {
@@ -78,44 +76,39 @@ describe('/tickets', () => {
         it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const res = await requestGet({ batchId })
 
-            const expected = factory.makeExpectedTickets(showtimes)
-            expectEqualDtos(res.body.items, expected)
+            expectEqualDtos(res.body.items, expectedTickets)
         })
 
         it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const theaterId = factory.theaters[0].id
             const res = await requestGet({ theaterId })
 
-            const filteredShowtimes = showtimes.filter((s) => s.theaterId === theaterId)
-            const expected = factory.makeExpectedTickets(filteredShowtimes)
-            expectEqualDtos(res.body.items, expected)
+            const filteredTickets = expectedTickets.filter((ticket) => ticket.theaterId === theaterId)
+            expectEqualDtos(res.body.items, filteredTickets)
         })
 
         it('theaterIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const theaterIds = pickIds(factory.theaters)
             const res = await requestGet({ theaterIds })
 
-            const filteredShowtimes = showtimes.filter((s) => theaterIds.includes(s.theaterId))
-            const expected = factory.makeExpectedTickets(filteredShowtimes)
-            expectEqualDtos(res.body.items, expected)
+            const filteredTickets = expectedTickets.filter((ticket) => theaterIds.includes(ticket.theaterId))
+            expectEqualDtos(res.body.items, filteredTickets)
         })
 
         it('findTickets 메서드로 theaterIds을 조회하면 해당 티켓을 반환해야 한다', async () => {
             const theaterIds = pickIds(factory.theaters)
             const actual = await ticketsService.findTickets({ theaterIds })
 
-            const filteredShowtimes = showtimes.filter((s) => theaterIds.includes(s.theaterId))
-            const expected = factory.makeExpectedTickets(filteredShowtimes)
-            expectEqualDtos(actual, expected)
+            const filteredTickets = expectedTickets.filter((ticket) => theaterIds.includes(ticket.theaterId))
+            expectEqualDtos(actual, filteredTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const movieId = factory.movie.id
             const res = await requestGet({ movieId })
 
-            const filteredShowtimes = showtimes.filter((s) => s.movieId === movieId)
-            const expected = factory.makeExpectedTickets(filteredShowtimes)
-            expectEqualDtos(res.body.items, expected)
+            const filteredTickets = expectedTickets.filter((ticket) => ticket.movieId === movieId)
+            expectEqualDtos(res.body.items, filteredTickets)
         })
     })
 })

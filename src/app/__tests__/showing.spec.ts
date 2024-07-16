@@ -1,10 +1,9 @@
 import { expect } from '@jest/globals'
 import { CustomerDto } from 'app/services/customers'
 import { MovieDto } from 'app/services/movies'
-import { HttpTestContext, expectOk } from 'common/test'
-import { HttpRequest } from 'src/common/test'
-import { createFixture } from './showing.fixture'
 import { TheaterDto } from 'app/services/theaters'
+import { HttpRequest, HttpTestContext, expectOk } from 'common/test'
+import { createFixture } from './showing.fixture'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
