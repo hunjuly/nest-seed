@@ -8,6 +8,7 @@ import {
     ShowtimesCreateCompleteEvent,
     ShowtimesCreateEvent,
     ShowtimesCreateFailEvent,
+    ShowtimesCreationDto,
     ShowtimesModule,
     ShowtimesService
 } from 'app/services/showtimes'
@@ -22,6 +23,8 @@ import { BatchEventListener } from './utils'
 export class ShowtimesFactory extends BatchEventListener {
     constructor(private showtimesService: ShowtimesService) {
         super()
+
+        this.theaters = []
     }
 
     @OnEvent('showtimes.create.*', { async: true })
@@ -40,7 +43,7 @@ export class ShowtimesFactory extends BatchEventListener {
         ])
     }
 
-    movie: MovieDto
+    movie: MovieDto | undefined
     theaters: TheaterDto[]
 
     async createShowtimes(overrides = {}) {
@@ -51,12 +54,12 @@ export class ShowtimesFactory extends BatchEventListener {
 
     makeCreationDto(overrides = {}) {
         return {
-            movieId: this.movie.id,
+            movieId: this.movie?.id,
             theaterIds: pickIds(this.theaters),
             durationMinutes: 1,
             startTimes: [new Date(0)],
             ...overrides
-        }
+        } as ShowtimesCreationDto
     }
 
     makeExpectedShowtimes(overrides = {}): ShowtimeDto[] {

@@ -11,6 +11,7 @@ import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
+import { ShowtimesFactory } from './showtimes.fixture'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
@@ -24,7 +25,7 @@ export async function createFixture() {
             TicketsModule
         ],
         controllers: [PaymentsController],
-        providers: [TicketsFactory]
+        providers: [TicketsFactory, ShowtimesFactory]
     })
 
     const module = testContext.module
@@ -32,22 +33,15 @@ export async function createFixture() {
     const customersService = module.get(CustomersService)
     const customer = await createCustomer(customersService)
 
-    const moviesService = module.get(MoviesService)
-    const movie = await createMovie(moviesService)
-    const movieId = movie.id
-
-    const theatersService = module.get(TheatersService)
-    const theater = await createTheater(theatersService)
-    const theaterIds = [theater.id]
-
     const ticketFactory = module.get(TicketsFactory)
 
-    await ticketFactory.createTickets({
-        movieId,
-        theaterIds,
-        durationMinutes: 1,
-        startTimes: [new Date(0)]
-    })
+    const moviesService = module.get(MoviesService)
+    ticketFactory.setMovie(await createMovie(moviesService))
+
+    const theatersService = module.get(TheatersService)
+    ticketFactory.setTheaters([await createTheater(theatersService)])
+
+    await ticketFactory.createTickets()
 
     const ticketsService = module.get(TicketsService)
     const tickets = await ticketsService.findTickets({})

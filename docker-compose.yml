@@ -43,7 +43,7 @@ services:
         restart: always
 
     mongo-key-generator:
-        image: mongo
+        image: mongo:latest
         command: sh -c "openssl rand -base64 768 > mongodb.key && chmod 400 mongodb.key && chown mongodb:mongodb mongodb.key"
         volumes:
             - mongodb_key:/mongodb_key
@@ -70,7 +70,7 @@ services:
     mongo-express:
         image: mongo-express:latest
         profiles: ['infra']
-        container_name: ${MONGO_DB_HOST1}-express
+        container_name: $PROJECT_NAME-mongo-express
         logging: *default-logging
         environment:
             ME_CONFIG_BASICAUTH_USERNAME: user
