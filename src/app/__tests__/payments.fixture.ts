@@ -12,6 +12,7 @@ import { createMovie } from './movies.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
 import { ShowtimesFactory } from './showtimes.fixture'
+import { pickIds } from 'common'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
@@ -31,22 +32,20 @@ export async function createFixture() {
     const module = testContext.module
 
     const customersService = module.get(CustomersService)
-    const customer = await createCustomer(customersService)
-
     const ticketFactory = module.get(TicketsFactory)
-
     const moviesService = module.get(MoviesService)
-    ticketFactory.setMovie(await createMovie(moviesService))
-
     const theatersService = module.get(TheatersService)
-    ticketFactory.setTheaters([await createTheater(theatersService)])
-
-    await ticketFactory.createTickets()
-
     const ticketsService = module.get(TicketsService)
-    const tickets = await ticketsService.findTickets({})
-
     const paymentsService = testContext.module.get(PaymentsService)
+
+    const customer = await createCustomer(customersService)
+    const movie = await createMovie(moviesService)
+    const theaters = [await createTheater(theatersService)]
+
+    ticketFactory.setupTestData(movie, theaters)
+    await ticketFactory.createTickets({ movieId: movie.id, theaterIds: pickIds(theaters) })
+
+    const tickets = await ticketsService.findTickets({})
 
     return { testContext, paymentsService, customer, tickets, ticketsService }
 }

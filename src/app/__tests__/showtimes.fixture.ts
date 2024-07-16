@@ -21,6 +21,9 @@ import { BatchEventListener } from './utils'
 
 @Injectable()
 export class ShowtimesFactory extends BatchEventListener {
+    movie: MovieDto | undefined
+    theaters: TheaterDto[] = []
+
     constructor(private showtimesService: ShowtimesService) {
         super()
     }
@@ -41,8 +44,10 @@ export class ShowtimesFactory extends BatchEventListener {
         ])
     }
 
-    movie: MovieDto
-    theaters: TheaterDto[]
+    setupTestData(movie: MovieDto, theaters: TheaterDto[]) {
+        this.movie = movie
+        this.theaters = theaters
+    }
 
     async createShowtimes(overrides = {}) {
         const { batchId } = await this.showtimesService.createShowtimes(this.makeCreationDto(overrides))
@@ -51,15 +56,18 @@ export class ShowtimesFactory extends BatchEventListener {
     }
 
     makeCreationDto(overrides = {}) {
-        if (!this.movie || !this.theaters) throw new Error('movie or theaters is not defined')
-
-        return {
-            movieId: this.movie.id,
+        const creationDto = {
+            movieId: this.movie?.id,
             theaterIds: pickIds(this.theaters),
             durationMinutes: 1,
             startTimes: [new Date(0)],
             ...overrides
         } as ShowtimesCreationDto
+
+        if (!creationDto.movieId || !creationDto.theaterIds)
+            throw new Error('movie or theaters is not defined')
+
+        return creationDto
     }
 
     makeExpectedShowtimes(overrides = {}): ShowtimeDto[] {
@@ -88,12 +96,13 @@ export async function createFixture() {
 
     const showtimesService = module.get(ShowtimesService)
     const factory = module.get(ShowtimesFactory)
-
     const moviesService = module.get(MoviesService)
-    factory.movie = await createMovie(moviesService)
-
     const theatersService = module.get(TheatersService)
-    factory.theaters = [await createTheater(theatersService), await createTheater(theatersService)]
+
+    const movie = await createMovie(moviesService)
+    const theaters = [await createTheater(theatersService), await createTheater(theatersService)]
+
+    factory.setupTestData(movie, theaters)
 
     return { testContext, showtimesService, factory }
 }

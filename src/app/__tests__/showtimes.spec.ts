@@ -108,7 +108,7 @@ describe('/showtimes', () => {
         })
 
         it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const movieId = factory.movie.id
+            const movieId = factory.movie?.id
             const res = await requestGet({ movieId })
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)

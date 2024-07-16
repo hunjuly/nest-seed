@@ -5,7 +5,7 @@ import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest, HttpTestContext, expectOk } from 'common/test'
 import { createFixture } from './showing.fixture'
 
-describe.skip('/showing', () => {
+describe('/showing', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let customer: CustomerDto
@@ -13,7 +13,7 @@ describe.skip('/showing', () => {
     let theaters: TheaterDto[]
     let watchedMovie: MovieDto
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
@@ -24,7 +24,7 @@ describe.skip('/showing', () => {
         watchedMovie = fixture.watchedMovie
     })
 
-    afterAll(async () => {
+    afterEach(async () => {
         await testContext?.close()
     })
 

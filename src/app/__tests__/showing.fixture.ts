@@ -9,11 +9,12 @@ import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theate
 import { TicketDto, TicketsModule, TicketsService } from 'app/services/tickets'
 import { Assert, pick, pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
+import { uniq } from 'lodash'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
-import { uniq } from 'lodash'
+import { ShowtimesFactory } from './showtimes.fixture'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
@@ -28,23 +29,19 @@ export async function createFixture() {
             TicketsModule
         ],
         controllers: [ShowingController],
-        providers: [TicketsFactory]
+        providers: [TicketsFactory, ShowtimesFactory]
     })
 
     const module = testContext.module
 
     const customersService = module.get(CustomersService)
-    const customer = await createCustomer(customersService)
-
     const moviesService = module.get(MoviesService)
-
     const theatersService = module.get(TheatersService)
-
     const ticketsService = testContext.module.get(TicketsService)
     const paymentsService = testContext.module.get(PaymentsService)
-
     const ticketsFactory = module.get(TicketsFactory)
 
+    const customer = await createCustomer(customersService)
     const theaters = await createTheaters(theatersService)
     const movies = await createMovies(moviesService)
     const tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)

@@ -19,6 +19,9 @@ import { BatchEventListener } from './utils'
 
 @Injectable()
 export class TicketsFactory extends BatchEventListener {
+    movie: MovieDto
+    theaters: TheaterDto[] = []
+
     constructor(private showtimesFactory: ShowtimesFactory) {
         super()
     }
@@ -38,20 +41,15 @@ export class TicketsFactory extends BatchEventListener {
         this.handleEvent(event)
     }
 
+    setupTestData(movie: MovieDto, theaters: TheaterDto[]) {
+        this.movie = movie
+        this.theaters = theaters
+
+        this.showtimesFactory.setupTestData(movie, theaters)
+    }
+
     waitComplete = (batchId: string) => {
         return this.awaitEvent(batchId, [TicketsCreateCompleteEvent.eventName])
-    }
-
-    movie: MovieDto
-    theaters: TheaterDto[]
-
-    setMovie(movie: MovieDto) {
-        this.movie = movie
-        this.showtimesFactory.movie = movie
-    }
-    setTheaters(theaters: TheaterDto[]) {
-        this.theaters = theaters
-        this.showtimesFactory.theaters = theaters
     }
 
     async createTickets(overrides = {}) {
@@ -92,16 +90,17 @@ export async function createFixture() {
     const showtimesService = module.get(ShowtimesService)
     const ticketsService = module.get(TicketsService)
     const factory = module.get(TicketsFactory)
-
     const moviesService = module.get(MoviesService)
-    factory.setMovie(await createMovie(moviesService))
-
     const theatersService = module.get(TheatersService)
-    factory.setTheaters([
+
+    const movie = await createMovie(moviesService)
+    const theaters = [
         await createTheater(theatersService),
         await createTheater(theatersService),
         await createTheater(theatersService)
-    ])
+    ]
+
+    factory.setupTestData(movie, theaters)
 
     return { testContext, showtimesService, ticketsService, factory }
 }
