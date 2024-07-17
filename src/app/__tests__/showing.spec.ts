@@ -3,7 +3,7 @@ import { CustomerDto } from 'app/services/customers'
 import { MovieDto } from 'app/services/movies'
 import { TheaterDto } from 'app/services/theaters'
 import { HttpRequest, HttpTestContext, expectEqualDtos, expectOk } from 'common/test'
-import { createFixture } from './showing.fixture'
+import { createFixture, filterMoviesByGenre } from './showing.fixture'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
@@ -35,10 +35,8 @@ describe('/showing', () => {
         })
         expectOk(res)
 
-        const filteredMovies = movies.filter((movie) =>
-            movie.genre.some((item) => watchedMovie.genre.includes(item))
-        )
-        expectEqualDtos(res.body, filteredMovies)
+        const similarMovies = filterMoviesByGenre(movies, watchedMovie)
+        expectEqualDtos(res.body, similarMovies)
     })
 
     it('상영 극장 목록 요청', async () => {

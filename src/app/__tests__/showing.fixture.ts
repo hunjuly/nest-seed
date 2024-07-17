@@ -143,3 +143,7 @@ async function createWatchedMovie(
 
     return movie
 }
+
+export function filterMoviesByGenre(movies: MovieDto[], referenceMovie: MovieDto): MovieDto[] {
+    return movies.filter((movie) => movie.genre.some((item) => referenceMovie.genre.includes(item)))
+}
