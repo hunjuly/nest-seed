@@ -160,15 +160,13 @@ Customer <-- Frontend : 상영일의 상세 정보 제공
 actor Customer
 
 Customer -> Frontend : 상영 시간 선택
-    Frontend -> Backend : 상영 시간의 상세 정보 요청\nGET /showing/showtimes/{}
+    Frontend -> Backend : 상영 시간의 티켓 정보 요청\nGET /showing/showtimes/{}
         Backend -> Showing : getShowingSeatmap(showtimeId)
-            Showing -> Theaters : getSeatmap(theaterId)
-            Showing <-- Theaters : seatmap
             Showing -> Tickets : getTickets(showtimeId)
             Showing <-- Tickets : tickets[]
-            Showing -> Showing : generateShowingSeatmap(seatmap, tickets)
-        Backend <-- Showing: showingSeatmap
-    Frontend <-- Backend : showingSeatmap
+            Showing -> Showing : tickets[]
+        Backend <-- Showing: tickets[]
+    Frontend <-- Backend : tickets[]
 Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 @enduml
 ```
@@ -178,7 +176,7 @@ Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 actor Customer
 
 Customer->>Frontend: 좌석 선택
-    Frontend->>Backend: POST /payments
+    Frontend->>Backend: 티켓 구매\nPOST /payments
         Backend->>Payment: createPayment(ticketIds[])
             Payment->>Tickets: notifyTicketsPurchased(ticketIds[])
                 Tickets->>Tickets: updateTicketStatus(ticketIds[], 'sold')

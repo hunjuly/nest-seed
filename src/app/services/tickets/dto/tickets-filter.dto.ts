@@ -19,10 +19,3 @@ export class TicketsFilterDto {
     @IsOptional()
     showtimeId?: string
 }
-
-export class TicketSalesStatus {
-    showtimeId: string
-    total: number
-    sold: number
-    available: number
-}

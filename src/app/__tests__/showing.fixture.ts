@@ -1,4 +1,4 @@
-import { ShowingController } from 'app/controllers'
+import { PaymentsController, ShowingController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
@@ -27,7 +27,7 @@ export async function createFixture() {
             TheatersModule,
             TicketsModule
         ],
-        controllers: [ShowingController],
+        controllers: [ShowingController, PaymentsController],
         providers: [TicketsFactory, ShowtimesFactory]
     })
 

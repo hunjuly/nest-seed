@@ -2,10 +2,11 @@ import { expect } from '@jest/globals'
 import { CustomerDto } from 'app/services/customers'
 import { MovieDto } from 'app/services/movies'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
-import { expectEqualUnsorted, expectOk, HttpRequest, HttpTestContext } from 'common/test'
+import { expectCreated, expectEqualUnsorted, expectOk, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture, filterMoviesByGenre } from './showing.fixture'
 import { ShowtimeDto } from 'app/services/showtimes'
-import { convertDateToString } from 'common'
+import { convertDateToString, pick, pickIds } from 'common'
+import { TicketDto } from 'app/services/tickets'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
@@ -19,6 +20,7 @@ describe('/showing', () => {
     let selectedTheater: TheaterDto
     let selectedShowdate: Date
     let selectedShowtime: ShowtimeDto
+    let selectedTickets: TicketDto[]
 
     beforeAll(async () => {
         const fixture = await createFixture()
@@ -117,5 +119,49 @@ describe('/showing', () => {
         }))
 
         expectEqualUnsorted(tickets, expectedTickets)
+
+        selectedTickets = [tickets[0], tickets[1]]
+    })
+
+    it('티켓 구매', async () => {
+        const res = await req.post({
+            url: `/payments`,
+            body: {
+                customerId: customer.id,
+                ticketIds: pickIds(selectedTickets)
+            }
+        })
+        expectCreated(res)
+    })
+
+    it('상영 시간 목록 업데이트 확인', async () => {
+        const movieId = selectedMovie.id
+        const theaterId = selectedTheater.id
+        const showdate = convertDateToString(selectedShowdate)
+
+        const res = await req.get({
+            url: `/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`
+        })
+        expectOk(res)
+
+        const showtimes = res.body as any[]
+        const salesStatuses = pick(showtimes, 'salesStatus')
+        const seatCount = getSeatCount(theaters[0].seatmap)
+        const expectedStatuses = [
+            { total: seatCount, sold: 0, available: seatCount },
+            { total: seatCount, sold: 2, available: seatCount - 2 }
+        ]
+        expectEqualUnsorted(salesStatuses, expectedStatuses)
+    })
+
+    it('상영 시간의 티켓 정보 업데이트 확인', async () => {
+        const res = await req.get({
+            url: `/showing/showtimes/${selectedShowtime.id}/tickets`
+        })
+        expectOk(res)
+
+        const tickets: TicketDto[] = res.body
+        const soldTickets = tickets.filter((ticket) => ticket.status === 'sold')
+        expectEqualUnsorted(pickIds(soldTickets), pickIds(selectedTickets))
     })
 })

@@ -8,7 +8,7 @@ import {
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { TicketSalesStatus, TicketsFilterDto } from './dto'
+import { TicketSalesStatusDto, TicketsFilterDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
 
 @Injectable()
@@ -67,7 +67,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         return result
     }
 
-    async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatus[]> {
+    async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatusDto[]> {
         this.logger.log(`Fetching sales statuses for showtimes: ${showtimeIds}`)
 
         const salesStatuses = await this.model.aggregate([
