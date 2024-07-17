@@ -11,6 +11,8 @@ import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
+import { ShowtimesFactory } from './showtimes.fixture'
+import { pickIds } from 'common'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
@@ -24,35 +26,26 @@ export async function createFixture() {
             TicketsModule
         ],
         controllers: [PaymentsController],
-        providers: [TicketsFactory]
+        providers: [TicketsFactory, ShowtimesFactory]
     })
 
     const module = testContext.module
 
     const customersService = module.get(CustomersService)
-    const customer = await createCustomer(customersService)
-
-    const moviesService = module.get(MoviesService)
-    const movie = await createMovie(moviesService)
-    const movieId = movie.id
-
-    const theatersService = module.get(TheatersService)
-    const theater = await createTheater(theatersService)
-    const theaterIds = [theater.id]
-
     const ticketFactory = module.get(TicketsFactory)
-
-    await ticketFactory.createTickets({
-        movieId,
-        theaterIds,
-        durationMinutes: 1,
-        startTimes: [new Date(0)]
-    })
-
+    const moviesService = module.get(MoviesService)
+    const theatersService = module.get(TheatersService)
     const ticketsService = module.get(TicketsService)
-    const tickets = await ticketsService.findTickets({})
-
     const paymentsService = testContext.module.get(PaymentsService)
+
+    const customer = await createCustomer(customersService)
+    const movie = await createMovie(moviesService)
+    const theaters = [await createTheater(theatersService)]
+
+    ticketFactory.setupTestData(movie, theaters)
+    await ticketFactory.createTickets({ movieId: movie.id, theaterIds: pickIds(theaters) })
+
+    const tickets = await ticketsService.findTickets({})
 
     return { testContext, paymentsService, customer, tickets, ticketsService }
 }

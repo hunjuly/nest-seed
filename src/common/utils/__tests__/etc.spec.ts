@@ -9,7 +9,7 @@ import {
     generateUUID,
     notUsed,
     sleep,
-    parseObjectTypes,
+    jsonToObject,
     waitForQueueToEmpty,
     pick,
     pickIds
@@ -170,7 +170,7 @@ describe('common/utils/etc', () => {
             const obj = {
                 date: '2023-06-18T12:00:00.000Z'
             }
-            parseObjectTypes(obj)
+            jsonToObject(obj)
             expect(obj.date).toBeInstanceOf(Date)
             expect((obj.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
         })
@@ -184,7 +184,7 @@ describe('common/utils/etc', () => {
                     }
                 }
             }
-            parseObjectTypes(obj)
+            jsonToObject(obj)
             expect(obj.level1.date).toBeInstanceOf(Date)
             expect((obj.level1.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
             expect(obj.level1.level2.date).toBeInstanceOf(Date)
@@ -195,7 +195,7 @@ describe('common/utils/etc', () => {
             const obj = {
                 text: 'Hello, world!'
             }
-            parseObjectTypes(obj)
+            jsonToObject(obj)
             expect(obj.text).toEqual('Hello, world!')
         })
 
@@ -204,7 +204,7 @@ describe('common/utils/etc', () => {
                 number: 123,
                 boolean: true
             }
-            parseObjectTypes(obj)
+            jsonToObject(obj)
             expect(obj.number).toEqual(123)
             expect(obj.boolean).toBe(true)
         })

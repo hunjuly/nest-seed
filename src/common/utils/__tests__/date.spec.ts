@@ -1,5 +1,14 @@
 import { UserException } from 'common'
-import { addDays, addMinutes, findMaxDate, findMinDate, millisecsToString, stringToMillisecs } from '..'
+import {
+    addDays,
+    addMinutes,
+    convertDateToString,
+    convertStringToDate,
+    findMaxDate,
+    findMinDate,
+    millisecsToString,
+    stringToMillisecs
+} from '..'
 
 describe('common/utils/date', () => {
     describe('stringToMillisecs', () => {
@@ -131,5 +140,22 @@ describe('common/utils/date', () => {
             const expectedDate = new Date('2022-01-03T15:30:00Z')
             expect(maxDate).toEqual(expectedDate)
         })
+    })
+
+    it('convertStringToDate', () => {
+        const date = convertStringToDate('19990102')
+
+        expect(date.getFullYear()).toEqual(1999)
+        expect(date.getMonth()).toEqual(0)
+        expect(date.getDate()).toEqual(2)
+
+        const callback = () => convertStringToDate('')
+        expect(callback).toThrow()
+    })
+
+    it('convertDateToString', () => {
+        const string = convertDateToString(new Date('1999-01-02'))
+
+        expect(string).toEqual('19990102')
     })
 })

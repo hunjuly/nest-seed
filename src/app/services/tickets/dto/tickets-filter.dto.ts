@@ -12,4 +12,10 @@ export class TicketsFilterDto {
 
     @IsOptional()
     ticketIds?: string[]
+
+    @IsOptional()
+    batchId?: string
+
+    @IsOptional()
+    showtimeId?: string
 }

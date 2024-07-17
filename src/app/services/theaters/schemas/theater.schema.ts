@@ -21,22 +21,44 @@ export class Seat {
     seatnum: number
 }
 
-export function forEachSeat(seatmap: Seatmap, callback: (seat: Seat) => void) {
+export function getSeatCount(seatmap: Seatmap) {
+    let count = 0
+
+    for (const block of seatmap.blocks) {
+        for (const row of block.rows) {
+            for (let i = 0; i < row.seats.length; i++) {
+                if (row.seats[i] !== 'X') {
+                    count = count + 1
+                }
+            }
+        }
+    }
+
+    return count
+}
+
+export function mapSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
+    const results: any[] = []
+
     for (const block of seatmap.blocks) {
         for (const row of block.rows) {
             for (let i = 0; i < row.seats.length; i++) {
                 const seat = row.seats[i]
 
                 if (seat !== 'X') {
-                    callback({
-                        block: block.name,
-                        row: row.name,
-                        seatnum: i + 1
-                    })
+                    results.push(
+                        callback({
+                            block: block.name,
+                            row: row.name,
+                            seatnum: i + 1
+                        })
+                    )
                 }
             }
         }
     }
+
+    return results
 }
 
 @Schema()

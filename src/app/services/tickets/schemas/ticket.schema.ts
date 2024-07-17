@@ -26,7 +26,7 @@ export class Ticket extends MongooseSchema {
     seat: Seat
 
     @Prop({ type: ObjectId, required: true })
-    showtimesBatchId: DocumentId
+    batchId: DocumentId
 }
 
 export const TicketSchema = createMongooseSchema(Ticket)

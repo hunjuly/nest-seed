@@ -1,8 +1,21 @@
-import { Body, Controller, Get, NotFoundException, Post, Query, UsePipes } from '@nestjs/common'
+import {
+    Param,
+    UseGuards,
+    HttpCode,
+    HttpStatus,
+    Body,
+    Controller,
+    Get,
+    NotFoundException,
+    Post,
+    Query,
+    UsePipes
+} from '@nestjs/common'
 import { MoviesService } from 'app/services/movies'
 import { ShowtimesCreationDto, ShowtimesFilterDto, ShowtimesService } from 'app/services/showtimes'
 import { TheatersService } from 'app/services/theaters'
 import { PaginationOption, PaginationPipe } from 'common'
+import { ShowtimeExistsGuard } from './guards'
 
 @Controller('showtimes')
 export class ShowtimesController {
@@ -13,6 +26,7 @@ export class ShowtimesController {
     ) {}
 
     @Post()
+    @HttpCode(HttpStatus.ACCEPTED)
     async createShowtimes(@Body() request: ShowtimesCreationDto) {
         const movieExists = await this.moviesService.movieExists(request.movieId)
 
@@ -35,5 +49,11 @@ export class ShowtimesController {
     @UsePipes(new PaginationPipe(50))
     async findPagedShowtimes(@Query() filter: ShowtimesFilterDto, @Query() pagination: PaginationOption) {
         return this.showtimesService.findPagedShowtimes(filter, pagination)
+    }
+
+    @UseGuards(ShowtimeExistsGuard)
+    @Get(':showtimeId')
+    async getShowtime(@Param('showtimeId') showtimeId: string) {
+        return this.showtimesService.getShowtime(showtimeId)
     }
 }

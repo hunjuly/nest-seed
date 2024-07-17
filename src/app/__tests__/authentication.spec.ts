@@ -51,7 +51,7 @@ describe('/auth', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('POST /auth/login', () => {

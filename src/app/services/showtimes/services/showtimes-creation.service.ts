@@ -2,14 +2,14 @@ import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
-import { Assert, addMinutes, findMaxDate, findMinDate, parseObjectTypes } from 'common'
+import { AppEvent, Assert, addMinutes, findMaxDate, findMinDate, jsonToObject } from 'common'
 import { ShowtimesCreationDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
-    ShowtimesCreateCompletedEvent,
+    ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
-    ShowtimesCreateEvent,
-    ShowtimesCreateFailedEvent
+    ShowtimesCreateRequestEvent,
+    ShowtimesCreateFailEvent
 } from '../showtimes.events'
 import { ShowtimesRepository } from '../showtimes.repository'
 
@@ -25,12 +25,8 @@ export class ShowtimesCreationService {
         private eventEmitter: EventEmitter2
     ) {}
 
-    async emitCreateCompleted(event: ShowtimesCreateCompletedEvent) {
-        await this.eventEmitter.emitAsync(ShowtimesCreateCompletedEvent.eventName, event)
-    }
-
-    async emitCreateFailed(event: ShowtimesCreateFailedEvent) {
-        await this.eventEmitter.emitAsync(ShowtimesCreateFailedEvent.eventName, event)
+    private async emitEvent(event: AppEvent) {
+        await this.eventEmitter.emitAsync(event.name, event)
     }
 
     /* istanbul ignore next */
@@ -38,36 +34,38 @@ export class ShowtimesCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.eventEmitter.emitAsync(ShowtimesCreateErrorEvent.eventName, {
-            message: job.failedReason,
-            batchId: job.data.batchId
-        })
+        await this.emitEvent(new ShowtimesCreateErrorEvent(job.data.batchId, job.failedReason ?? ''))
     }
 
-    @Process(ShowtimesCreateEvent.eventName)
-    async createShowtimes(job: Job<ShowtimesCreateEvent>) {
+    @Process(ShowtimesCreateRequestEvent.eventName)
+    async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
         const request = { ...job.data }
-        parseObjectTypes(request)
+        jsonToObject(request)
 
-        const conflictShowtimes = await this.checkForTimeConflicts(request)
+        const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
 
         if (0 < conflictShowtimes.length) {
-            await this.emitCreateFailed({
-                batchId: request.batchId,
-                conflictShowtimes: conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            })
+            await this.emitEvent(
+                new ShowtimesCreateFailEvent(
+                    request.batchId,
+                    conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
+                )
+            )
         } else {
             const createdShowtimes = await this.saveShowtimes(request)
 
-            await this.emitCreateCompleted({
-                batchId: request.batchId,
-                createdShowtimes: createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-            })
+            await this.emitEvent(
+                new ShowtimesCreateCompleteEvent(
+                    request.batchId,
+                    createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
+                )
+            )
         }
     }
 
-    private async saveShowtimes(event: ShowtimesCreateEvent) {
-        const { movieId, theaterIds, durationMinutes, startTimes, batchId } = event
+    private async saveShowtimes(event: ShowtimesCreateRequestEvent) {
+        const { batchId } = event
+        const { movieId, theaterIds, durationMinutes, startTimes } = event.creationDto
 
         this.logger.log('showtime 저장 요청', JSON.stringify(event))
 

@@ -1,97 +1,93 @@
-import { Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
-import { MoviesModule, MoviesService } from 'app/services/movies'
+import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import {
-    ShowtimesCreationDto,
     ShowtimeDto,
-    ShowtimesCreateCompletedEvent,
+    ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
-    ShowtimesCreateFailedEvent,
-    ShowtimesService,
-    ShowtimesModule
+    ShowtimesCreateEvent,
+    ShowtimesCreateFailEvent,
+    ShowtimesCreationDto,
+    ShowtimesModule,
+    ShowtimesService
 } from 'app/services/showtimes'
-import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { addMinutes } from 'common'
+import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
+import { addMinutes, pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
 import { createMovie } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
-
-export interface ShowtimesCreationResult {
-    conflictShowtimes?: ShowtimeDto[]
-    createdShowtimes?: ShowtimeDto[]
-    batchId: string
-}
-
-type PromiseHandlers = { resolve: (value: unknown) => void; reject: (value: any) => void }
+import { createTheater } from './theaters.fixture'
+import { BatchEventListener } from './utils'
 
 @Injectable()
-@Processor('showtimes')
-export class ShowtimesFactory {
-    private promises = new Map<string, PromiseHandlers>()
+export class ShowtimesFactory extends BatchEventListener {
+    movie: MovieDto | undefined
+    theaters: TheaterDto[] = []
 
-    constructor(private readonly showtimesService: ShowtimesService) {}
+    constructor(private showtimesService: ShowtimesService) {
+        super()
+    }
 
-    @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
-    onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent): void {
+    @OnEvent('showtimes.create.*', { async: true })
+    onShowtimesCreateEvent(event: ShowtimesCreateEvent): void {
         this.handleEvent(event)
     }
 
-    @OnEvent(ShowtimesCreateFailedEvent.eventName, { async: true })
-    onShowtimesCreateFailed(event: ShowtimesCreateFailedEvent): void {
-        this.handleEvent(event)
+    waitComplete = (batchId: string) => {
+        return this.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
     }
 
-    @OnEvent(ShowtimesCreateErrorEvent.eventName, { async: true })
-    onShowtimesCreateError(event: ShowtimesCreateErrorEvent): void {
-        this.handleEvent(event, true)
+    waitFinish = (batchId: string) => {
+        return this.awaitEvent(batchId, [
+            ShowtimesCreateCompleteEvent.eventName,
+            ShowtimesCreateFailEvent.eventName
+        ])
     }
 
-    private handleEvent(event: ShowtimesCreationResult, isError = false): void {
-        const promise = this.promises.get(event.batchId)
-
-        if (isError) {
-            promise!.reject(event)
-        } else {
-            promise?.resolve(event)
-        }
-
-        this.promises.delete(event.batchId)
+    waitError = (batchId: string) => {
+        return this.awaitEvent(batchId, [ShowtimesCreateErrorEvent.eventName])
     }
 
-    awaitCompleteEvent(batchId: string): Promise<ShowtimesCreationResult> {
-        return new Promise((resolve, reject) => {
-            this.promises.set(batchId, { resolve, reject })
-        })
+    setupTestData(movie: MovieDto, theaters: TheaterDto[]) {
+        this.movie = movie
+        this.theaters = theaters
     }
 
-    async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResult> {
-        const { batchId } = await this.showtimesService.createShowtimes(createDto)
+    async createShowtimes(overrides = {}) {
+        const { batchId } = await this.showtimesService.createShowtimes(this.makeCreationDto(overrides))
 
-        return this.awaitCompleteEvent(batchId)
+        return this.waitFinish(batchId)
     }
 
-    async createMultipleShowtimes(createDtos: ShowtimesCreationDto[]): Promise<ShowtimesCreationResult[]> {
-        const promises = createDtos.map((createDto) => this.createShowtimes(createDto))
+    makeCreationDto(overrides = {}) {
+        const creationDto = {
+            movieId: this.movie?.id,
+            theaterIds: pickIds(this.theaters),
+            durationMinutes: 1,
+            startTimes: [new Date(0)],
+            ...overrides
+        } as ShowtimesCreationDto
 
-        return Promise.all(promises)
+        if (!creationDto.movieId || !creationDto.theaterIds)
+            throw new Error('movie or theaters is not defined')
+
+        return creationDto
     }
-}
 
-export function makeExpectedShowtime(createDto: ShowtimesCreationDto): ShowtimeDto[] {
-    const { movieId, theaterIds, startTimes, durationMinutes } = createDto
+    makeExpectedShowtimes(overrides = {}): ShowtimeDto[] {
+        const { movieId, theaterIds, startTimes, durationMinutes } = this.makeCreationDto(overrides)
 
-    return theaterIds.flatMap((theaterId) =>
-        startTimes.map((startTime) => ({
-            id: expect.anything(),
-            movieId,
-            theaterId,
-            startTime,
-            endTime: addMinutes(startTime, durationMinutes)
-        }))
-    )
+        return theaterIds.flatMap((theaterId) =>
+            startTimes.map((startTime) => ({
+                id: expect.anything(),
+                movieId,
+                theaterId,
+                startTime,
+                endTime: addMinutes(startTime, durationMinutes)
+            }))
+        )
+    }
 }
 
 export async function createFixture() {
@@ -103,13 +99,15 @@ export async function createFixture() {
 
     const module = testContext.module
 
+    const showtimesService = module.get(ShowtimesService)
+    const factory = module.get(ShowtimesFactory)
     const moviesService = module.get(MoviesService)
-    const movie = await createMovie(moviesService)
-
     const theatersService = module.get(TheatersService)
-    const theaters = await createTheaters(theatersService, 3)
 
-    const showtimesFactory = module.get(ShowtimesFactory)
+    const movie = await createMovie(moviesService)
+    const theaters = [await createTheater(theatersService), await createTheater(theatersService)]
 
-    return { testContext, movie, theaters, showtimesFactory }
+    factory.setupTestData(movie, theaters)
+
+    return { testContext, showtimesService, factory }
 }

@@ -3,10 +3,10 @@ import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
 import { Assert, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
-import { ShowtimesCreateCompletedEvent } from '../showtimes'
+import { ShowtimesCreateCompleteEvent } from '../showtimes'
 import { TicketDto, TicketsFilterDto } from './dto'
 import { TicketsRepository } from './tickets.repository'
-import { TicketsCreateEvent } from './tickets.events'
+import { TicketsCreateRequestEvent } from './tickets.events'
 import { TicketStatus } from './schemas'
 
 @Injectable()
@@ -22,15 +22,15 @@ export class TicketsService {
         await waitForQueueToEmpty(this.ticketsQueue)
     }
 
-    @OnEvent(ShowtimesCreateCompletedEvent.eventName, { async: true })
-    async onShowtimesCreateCompleted(event: ShowtimesCreateCompletedEvent) {
-        this.logger.log(`showtimes.create.completed 수신. batchId=${event.batchId}`)
+    @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
+    async onShowtimesCreateComplete(showtimesEvent: ShowtimesCreateCompleteEvent) {
+        this.logger.log(`${showtimesEvent.name} 수신. batchId=${showtimesEvent.batchId}`)
 
-        const { batchId } = event
+        const ticketsEvent = new TicketsCreateRequestEvent(showtimesEvent.batchId)
 
-        await this.ticketsQueue.add(TicketsCreateEvent.eventName, { batchId })
+        await this.ticketsQueue.add(ticketsEvent.name, ticketsEvent)
 
-        this.logger.log(`Tickets 생성 요청. batchId=${batchId}`)
+        this.logger.log(`Tickets 생성 요청. batchId=${showtimesEvent.batchId}`)
     }
 
     async findPagedTickets(
@@ -68,5 +68,15 @@ export class TicketsService {
         const tickets = await this.ticketsRepository.findByIds(ticketIds)
 
         return tickets.map((ticket) => new TicketDto(ticket))
+    }
+
+    async getSalesStatuses(showtimeIds: string[]) {
+        this.logger.log('상영 시간의 판매 상태 검색 시작.', showtimeIds)
+
+        const statuses = await this.ticketsRepository.getSalesStatuses(showtimeIds)
+
+        this.logger.log('상영 시간의 판매 상태 검색 완료.', statuses)
+
+        return statuses
     }
 }

@@ -37,25 +37,33 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return objectIdToString(showtimes)
     }
 
-    async findPagedShowtimes(
-        filterDto: ShowtimesFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Showtime>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            helpers.setQuery(stringToObjectId(filterDto))
-        })
-
-        return paginated
-    }
-
-    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
-        const { showtimeIds, ...rest } = filterDto
+    private makeQueryByFilter(filterDto: ShowtimesFilterDto) {
+        const { showtimeIds, ...rest } = stringToObjectId(filterDto)
 
         const query: Record<string, any> = rest
 
         if (showtimeIds) {
             query['_id'] = { $in: showtimeIds }
         }
+
+        return query
+    }
+
+    async findPagedShowtimes(
+        filterDto: ShowtimesFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Showtime>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query = this.makeQueryByFilter(filterDto)
+
+            helpers.setQuery(query)
+        })
+
+        return paginated
+    }
+
+    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
+        const query = this.makeQueryByFilter(filterDto)
 
         return super.findByFilter(query)
     }
@@ -72,5 +80,53 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             .lean()
 
         return objectIdToString(theaterIds)
+    }
+
+    async findShowdates(movieId: string, theaterId: string): Promise<Date[]> {
+        const showdates = await this.model.aggregate([
+            {
+                $match: {
+                    movieId: stringToObjectId(movieId),
+                    theaterId: stringToObjectId(theaterId)
+                }
+            },
+            {
+                $project: {
+                    date: { $dateToString: { format: '%Y-%m-%d', date: '$startTime' } }
+                }
+            },
+            {
+                $group: {
+                    _id: '$date'
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ])
+
+        return showdates.map((item) => new Date(item._id))
+    }
+
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date): Promise<Showtime[]> {
+        const startOfDay = new Date(showdate)
+        startOfDay.setHours(0, 0, 0, 0)
+
+        const endOfDay = new Date(showdate)
+        endOfDay.setHours(23, 59, 59, 999)
+
+        const showtimes = await this.model
+            .find({
+                movieId: stringToObjectId(movieId),
+                theaterId: stringToObjectId(theaterId),
+                startTime: {
+                    $gte: startOfDay,
+                    $lte: endOfDay
+                }
+            })
+            .sort({ startTime: 1 })
+            .lean()
+
+        return objectIdToString(showtimes)
     }
 }

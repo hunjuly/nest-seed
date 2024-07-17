@@ -1,9 +1,9 @@
 import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { Queue } from 'bull'
-import { createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
+import { Assert, createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimeDto, ShowtimesCreationDto, ShowtimesCreationResponse, ShowtimesFilterDto } from './dto'
-import { ShowtimesCreateEvent } from './showtimes.events'
+import { ShowtimesCreateRequestEvent } from './showtimes.events'
 import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
@@ -22,11 +22,26 @@ export class ShowtimesService {
     async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResponse> {
         const batchId = createObjectId()
 
-        await this.showtimesQueue.add(ShowtimesCreateEvent.eventName, { ...createDto, batchId })
+        const event = new ShowtimesCreateRequestEvent(batchId, createDto)
+        await this.showtimesQueue.add(event.name, event)
 
         this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 
         return { batchId }
+    }
+
+    async showtimeExists(showtimeId: string): Promise<boolean> {
+        const showtimeExists = await this.showtimesRepository.existsById(showtimeId)
+
+        return showtimeExists
+    }
+
+    async getShowtime(showtimeId: string) {
+        const showtime = await this.showtimesRepository.findById(showtimeId)
+
+        Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
+
+        return new ShowtimeDto(showtime!)
     }
 
     async findPagedShowtimes(
@@ -55,5 +70,17 @@ export class ShowtimesService {
 
     async findTheaterIdsShowingMovie(movieId: string) {
         return this.showtimesRepository.findTheaterIdsShowingMovie(movieId)
+    }
+
+    async findShowdates(movieId: string, theaterId: string) {
+        const showdates = await this.showtimesRepository.findShowdates(movieId, theaterId)
+
+        return showdates
+    }
+
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
+        const showtimes = await this.showtimesRepository.findShowtimesByShowdate(movieId, theaterId, showdate)
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 }

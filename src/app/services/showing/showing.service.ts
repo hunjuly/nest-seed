@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Assert, LatLong, latlongDistanceInMeters, pick } from 'common'
+import { Assert, LatLong, latlongDistanceInMeters, pick, pickIds } from 'common'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
-import { TicketsService } from '../tickets'
 import { TheaterDto, TheatersService } from '../theaters'
+import { TicketsService } from '../tickets'
+import { uniq } from 'lodash'
+import { ShowtimeSalesStatus } from './showtime-sales-status.dto'
 
 @Injectable()
 export class ShowingService {
@@ -18,22 +20,6 @@ export class ShowingService {
         private theatersService: TheatersService
     ) {}
 
-    async findShowingTheaters(movieId: string, userLocation: LatLong) {
-        const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
-        const theaters = await this.theatersService.findByIds(theaterIds)
-        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
-
-        return this.sortTheatersByDistance(theaters, userLocation)
-    }
-
-    private sortTheatersByDistance(theaters: TheaterDto[], userLocation: LatLong) {
-        return theaters.sort(
-            (a, b) =>
-                latlongDistanceInMeters(a.latlong, userLocation) -
-                latlongDistanceInMeters(b.latlong, userLocation)
-        )
-    }
-
     async getRecommendedMovies(customerId: string) {
         this.logger.log(`Generating recommended movies for customer: ${customerId}`)
 
@@ -46,10 +32,8 @@ export class ShowingService {
         const ticketIds = payments.flatMap((payment) => payment.ticketIds)
         const tickets = await this.ticketsService.findTickets({ ticketIds })
 
-        const showtimeIds = pick(tickets, 'showtimeId')
-        const showtimes = await this.showtimesService.findShowtimes({ showtimeIds })
+        const movieIds = uniq(pick(tickets, 'movieId'))
 
-        const movieIds = pick(showtimes, 'movieId')
         const watchedMovies = await this.moviesService.getMoviesByIds(movieIds)
 
         const recommendedMovies = this.generateRecommendedMovies(showingMovies, watchedMovies)
@@ -88,5 +72,54 @@ export class ShowingService {
         })
 
         return recommendedMovies
+    }
+
+    async findShowingTheaters(movieId: string, userLocation: LatLong) {
+        const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
+        const theaters = await this.theatersService.findByIds(theaterIds)
+        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
+
+        return this.sortTheatersByDistance(theaters, userLocation)
+    }
+
+    private sortTheatersByDistance(theaters: TheaterDto[], userLocation: LatLong) {
+        return theaters.sort(
+            (a, b) =>
+                latlongDistanceInMeters(a.latlong, userLocation) -
+                latlongDistanceInMeters(b.latlong, userLocation)
+        )
+    }
+
+    async findShowdates(movieId: string, theaterId: string) {
+        const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
+
+        return showdates
+    }
+
+    async findShowtimes(movieId: string, theaterId: string, showdate: Date) {
+        const showtimes = await this.showtimesService.findShowtimesByShowdate(movieId, theaterId, showdate)
+        const salesStatuses = await this.ticketsService.getSalesStatuses(pickIds(showtimes))
+        const salesStatusMap = new Map(salesStatuses.map((status) => [status.showtimeId, status]))
+
+        const showtimeSalesStatuses: ShowtimeSalesStatus[] = showtimes.map((showtime) => {
+            const salesStatus = salesStatusMap.get(showtime.id)!
+
+            return {
+                ...showtime,
+                salesStatus: {
+                    total: salesStatus.total,
+                    sold: salesStatus.sold,
+                    available: salesStatus.available
+                }
+            }
+        })
+
+        return showtimeSalesStatuses
+    }
+
+    async findTickets(showtimeId: string) {
+        const tickets = await this.ticketsService.findTickets({ showtimeId })
+
+        return tickets
     }
 }

@@ -25,7 +25,7 @@ describe('/payments', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     const paymentCreationDto = (overrides = {}) => ({

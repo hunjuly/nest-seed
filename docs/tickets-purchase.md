@@ -95,13 +95,13 @@ Customer <-- Frontend : 영화 목록 제공
 actor Customer
 
 Customer -> Frontend : 영화 선택
-    Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?latlongs=37.123,128.678
-        Backend -> Showing: findShowingTheaters({movieId, latlongs})
+    Frontend -> Backend : 상영 극장 목록 요청\nGET /showing/movies/{}/theaters?userLocation=37.123,128.678
+        Backend -> Showing: findShowingTheaters({movieId, userLocation})
             Showing -> Showtimes: findShowingTheaterIds({movieId})
             Showing <-- Showtimes: theaterIds[]
             Showing -> Theaters: getTheaters({theaterIds})
             Showing <-- Theaters: theaters[]
-            Showing -> Showing: sortTheatersByDistance({theaters, latlongs})
+            Showing -> Showing: sortTheatersByDistance({theaters, userLocation})
         Backend <-- Showing: showingTheaters[]
     Frontend <-- Backend : showingTheaters[]
 Customer <-- Frontend : 상영 극장 목록 제공
@@ -137,14 +137,17 @@ Customer -> Frontend : 상영일 선택
             Showing -> Showtimes: findShowtimes({movieId, theaterId, showdate})
             Showing <-- Showtimes: showtimes[]
             Showing -> Tickets: getSalesStatuses({ showtimeIds })
-            note left
-            getSalesStatuses({
-                showtimeIds: [1, 2, 3, 4],
-                region: 'Seoul',
-                theaterId: 123
-            })
-            end note
             Showing <-- Tickets: salesStatuses[]
+            note left
+            ShowtimeSalesStatus = {
+                showtimeId: string
+                salesStatus:{
+                    total: number
+                    sold: number
+                    available: number
+                }
+            }
+            end note
             Showing -> Showing: generateShowtimesWithSalesStatus(Showtimes[], salesStatuses)
         Backend <-- Showing: showtimesWithSalesStatus[]
     Frontend <-- Backend : showtimesWithSalesStatus[]
@@ -157,15 +160,13 @@ Customer <-- Frontend : 상영일의 상세 정보 제공
 actor Customer
 
 Customer -> Frontend : 상영 시간 선택
-    Frontend -> Backend : 상영 시간의 좌석 정보 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes/{}/seatmap
+    Frontend -> Backend : 상영 시간의 티켓 정보 요청\nGET /showing/showtimes/{}
         Backend -> Showing : getShowingSeatmap(showtimeId)
-            Showing -> Theaters : getSeatmap(theaterId)
-            Showing <-- Theaters : seatmap
             Showing -> Tickets : getTickets(showtimeId)
             Showing <-- Tickets : tickets[]
-            Showing -> Showing : generateShowingSeatmap(seatmap, tickets)
-        Backend <-- Showing: showingSeatmap
-    Frontend <-- Backend : showingSeatmap
+            Showing -> Showing : tickets[]
+        Backend <-- Showing: tickets[]
+    Frontend <-- Backend : tickets[]
 Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 @enduml
 ```
@@ -175,7 +176,7 @@ Customer <-- Frontend : 선택 가능한 좌석 정보 제공
 actor Customer
 
 Customer->>Frontend: 좌석 선택
-    Frontend->>Backend: POST /payments
+    Frontend->>Backend: 티켓 구매\nPOST /payments
         Backend->>Payment: createPayment(ticketIds[])
             Payment->>Tickets: notifyTicketsPurchased(ticketIds[])
                 Tickets->>Tickets: updateTicketStatus(ticketIds[], 'sold')

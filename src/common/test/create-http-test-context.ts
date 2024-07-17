@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
 import * as express from 'express'
-import { ModuleMetadataEx, createTestingModule } from './create-test-module'
+import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
 
 export interface HttpTestContext {

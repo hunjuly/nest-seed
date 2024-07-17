@@ -8,7 +8,7 @@ import {
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { TicketsFilterDto } from './dto'
+import { TicketSalesStatusDto, TicketsFilterDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
 
 @Injectable()
@@ -19,27 +19,8 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         super(model)
     }
 
-    async findPagedTickets(
-        filterDto: TicketsFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Ticket>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const { theaterIds, ...rest } = stringToObjectId(filterDto)
-
-            const query: Record<string, any> = rest
-
-            if (theaterIds) {
-                query['theaterId'] = { $in: theaterIds }
-            }
-
-            helpers.setQuery(query)
-        })
-
-        return paginated
-    }
-
-    async findTickets(filterDto: TicketsFilterDto): Promise<Ticket[]> {
-        const { theaterIds, ticketIds, ...rest } = filterDto
+    private makeQueryByFilter(filterDto: TicketsFilterDto) {
+        const { theaterIds, ticketIds, ...rest } = stringToObjectId(filterDto)
 
         const query: Record<string, any> = rest
 
@@ -50,6 +31,25 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         if (ticketIds) {
             query['_id'] = { $in: ticketIds }
         }
+
+        return query
+    }
+
+    async findPagedTickets(
+        filterDto: TicketsFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Ticket>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query = this.makeQueryByFilter(filterDto)
+
+            helpers.setQuery(query)
+        })
+
+        return paginated
+    }
+
+    async findTickets(filterDto: TicketsFilterDto): Promise<Ticket[]> {
+        const query = this.makeQueryByFilter(filterDto)
 
         return super.findByFilter(query)
     }
@@ -65,5 +65,36 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         this.logger.log(`${result.modifiedCount}/${result.matchedCount}개의 tickets 업데이트 완료`)
 
         return result
+    }
+
+    async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatusDto[]> {
+        this.logger.log(`Fetching sales statuses for showtimes: ${showtimeIds}`)
+
+        const salesStatuses = await this.model.aggregate([
+            { $match: { showtimeId: { $in: stringToObjectId(showtimeIds) } } },
+            {
+                $group: {
+                    _id: '$showtimeId',
+                    total: { $sum: 1 },
+                    sold: {
+                        $sum: {
+                            $cond: [{ $eq: ['$status', TicketStatus.sold] }, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    showtimeId: { $toString: '$_id' },
+                    total: 1,
+                    sold: 1,
+                    available: { $subtract: ['$total', '$sold'] }
+                }
+            }
+        ])
+
+        this.logger.log(`Fetched sales statuses for ${salesStatuses.length} showtimes`)
+
+        return salesStatuses
     }
 }
