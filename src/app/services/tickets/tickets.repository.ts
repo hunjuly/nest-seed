@@ -8,7 +8,7 @@ import {
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { TicketsFilterDto } from './dto'
+import { TicketSalesStatus, TicketsFilterDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
 
 @Injectable()
@@ -65,5 +65,36 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         this.logger.log(`${result.modifiedCount}/${result.matchedCount}개의 tickets 업데이트 완료`)
 
         return result
+    }
+
+    async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatus[]> {
+        this.logger.log(`Fetching sales statuses for showtimes: ${showtimeIds}`)
+
+        const salesStatuses = await this.model.aggregate([
+            { $match: { showtimeId: { $in: stringToObjectId(showtimeIds) } } },
+            {
+                $group: {
+                    _id: '$showtimeId',
+                    total: { $sum: 1 },
+                    sold: {
+                        $sum: {
+                            $cond: [{ $eq: ['$status', TicketStatus.sold] }, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    showtimeId: { $toString: '$_id' },
+                    total: 1,
+                    sold: 1,
+                    available: { $subtract: ['$total', '$sold'] }
+                }
+            }
+        ])
+
+        this.logger.log(`Fetched sales statuses for ${salesStatuses.length} showtimes`)
+
+        return salesStatuses
     }
 }

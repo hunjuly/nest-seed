@@ -141,10 +141,11 @@ Customer -> Frontend : 상영일 선택
             note left
             ShowtimeSalesStatus = {
                 showtimeId: string
-                totalSeats: number
-                soldSeats: number
-                availableSeats: number
-                isSoldOut: boolean
+                salesStatus:{
+                    total: number
+                    sold: number
+                    available: number
+                }
             }
             end note
             Showing -> Showing: generateShowtimesWithSalesStatus(Showtimes[], salesStatuses)
@@ -159,7 +160,7 @@ Customer <-- Frontend : 상영일의 상세 정보 제공
 actor Customer
 
 Customer -> Frontend : 상영 시간 선택
-    Frontend -> Backend : 상영 시간의 좌석 정보 요청\nGET /showing/movies/{}/theaters/{}/showdates/{}/showtimes/{}/seatmap
+    Frontend -> Backend : 상영 시간의 상세 정보 요청\nGET /showing/showtimes/{}
         Backend -> Showing : getShowingSeatmap(showtimeId)
             Showing -> Theaters : getSeatmap(theaterId)
             Showing <-- Theaters : seatmap

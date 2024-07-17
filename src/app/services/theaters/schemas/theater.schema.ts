@@ -21,6 +21,22 @@ export class Seat {
     seatnum: number
 }
 
+export function getSeatCount(seatmap: Seatmap) {
+    let count = 0
+
+    for (const block of seatmap.blocks) {
+        for (const row of block.rows) {
+            for (let i = 0; i < row.seats.length; i++) {
+                if (row.seats[i] !== 'X') {
+                    count = count + 1
+                }
+            }
+        }
+    }
+
+    return count
+}
+
 export function mapSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
     const results: any[] = []
 

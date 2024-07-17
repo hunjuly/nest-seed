@@ -3,7 +3,7 @@ import { nullObjectId, pickIds } from 'common'
 import {
     HttpRequest,
     HttpTestContext,
-    expectCreated,
+    expectAccepted,
     expectEqualUnsorted,
     expectNotFound,
     expectOk
@@ -32,7 +32,7 @@ describe('/showtimes', () => {
 
             const res = await req.post({ url: '/showtimes', body })
 
-            expectCreated(res)
+            expectAccepted(res)
             expect(res.body.batchId).toBeDefined()
 
             await factory.waitComplete(res.body.batchId)
@@ -44,7 +44,7 @@ describe('/showtimes', () => {
             })
 
             const res = await req.post({ url: '/showtimes', body })
-            expectCreated(res)
+            expectAccepted(res)
 
             const result = await factory.waitComplete(res.body.batchId)
             expectEqualUnsorted(result.createdShowtimes, factory.makeExpectedShowtimes(body))
@@ -121,6 +121,18 @@ describe('/showtimes', () => {
 
             const expectedShowtimes = findingShowtimes
             expectEqualUnsorted(res.body.items, expectedShowtimes)
+        })
+
+        it('showtime의 id로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const showtime = createdShowtimes[0]
+            const res = await req.get({ url: `/showtimes/${showtime.id}` })
+            expectOk(res)
+            expect(res.body).toEqual(showtime)
+        })
+
+        it('showtime의 id가 존재하지 않으면 NOT_FOUND(404)', async () => {
+            const res = await req.get({ url: `/showtimes/${nullObjectId}` })
+            expectNotFound(res)
         })
     })
 

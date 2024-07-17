@@ -2,7 +2,8 @@ import { UserException } from 'common'
 import {
     addDays,
     addMinutes,
-    convertNumberToDate,
+    convertDateToString,
+    convertStringToDate,
     findMaxDate,
     findMinDate,
     millisecsToString,
@@ -141,11 +142,20 @@ describe('common/utils/date', () => {
         })
     })
 
-    it('convertNumberToDate', () => {
-        const date = convertNumberToDate(19990102)
+    it('convertStringToDate', () => {
+        const date = convertStringToDate('19990102')
 
         expect(date.getFullYear()).toEqual(1999)
         expect(date.getMonth()).toEqual(0)
         expect(date.getDate()).toEqual(2)
+
+        const callback = () => convertStringToDate('')
+        expect(callback).toThrow()
+    })
+
+    it('convertDateToString', () => {
+        const string = convertDateToString(new Date('1999-01-02'))
+
+        expect(string).toEqual('19990102')
     })
 })

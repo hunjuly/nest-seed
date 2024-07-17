@@ -15,4 +15,14 @@ export class TicketsFilterDto {
 
     @IsOptional()
     batchId?: string
+
+    @IsOptional()
+    showtimeId?: string
+}
+
+export class TicketSalesStatus {
+    showtimeId: string
+    total: number
+    sold: number
+    available: number
 }

@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { Queue } from 'bull'
-import { createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
+import { Assert, createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
 import { ShowtimeDto, ShowtimesCreationDto, ShowtimesCreationResponse, ShowtimesFilterDto } from './dto'
 import { ShowtimesCreateRequestEvent } from './showtimes.events'
 import { ShowtimesRepository } from './showtimes.repository'
@@ -28,6 +28,20 @@ export class ShowtimesService {
         this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
 
         return { batchId }
+    }
+
+    async showtimeExists(showtimeId: string): Promise<boolean> {
+        const showtimeExists = await this.showtimesRepository.existsById(showtimeId)
+
+        return showtimeExists
+    }
+
+    async getShowtime(showtimeId: string) {
+        const showtime = await this.showtimesRepository.findById(showtimeId)
+
+        Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
+
+        return new ShowtimeDto(showtime!)
     }
 
     async findPagedShowtimes(

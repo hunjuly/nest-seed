@@ -43,7 +43,7 @@ export async function createFixture() {
     const customer = await createCustomer(customersService)
     const theaters = await createTheaters(theatersService)
     const movies = await createMovies(moviesService)
-    const _tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)
+    const tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)
     const watchedMovie = await createWatchedMovie(
         moviesService,
         ticketsFactory,
@@ -63,17 +63,19 @@ export async function createFixture() {
         customer,
         movies,
         theaters,
+        tickets,
         watchedMovie
     }
 }
 
 async function createTheaters(theatersService: TheatersService) {
+    const seatmap = { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOOOOOO' }] }] }
     const overrides = [
-        { latlong: { latitude: 37.0, longitude: 128.0 } },
-        { latlong: { latitude: 37.5, longitude: 128.5 } },
-        { latlong: { latitude: 38.0, longitude: 129.0 } },
-        { latlong: { latitude: 38.5, longitude: 129.5 } },
-        { latlong: { latitude: 39.0, longitude: 130.0 } }
+        { latlong: { latitude: 37.0, longitude: 128.0 }, seatmap },
+        { latlong: { latitude: 37.5, longitude: 128.5 }, seatmap },
+        { latlong: { latitude: 38.0, longitude: 129.0 }, seatmap },
+        { latlong: { latitude: 38.5, longitude: 129.5 }, seatmap },
+        { latlong: { latitude: 39.0, longitude: 130.0 }, seatmap }
     ]
 
     const promises = overrides.map(async (override) => createTheater(theatersService, override))

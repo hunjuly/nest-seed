@@ -75,10 +75,22 @@ export function findMaxDate(dates: Date[]): Date {
     return new Date(maxTimestamp)
 }
 
-export function convertNumberToDate(dateNumber: number): Date {
-    const year = Math.floor(dateNumber / 10000)
-    const month = Math.floor((dateNumber % 10000) / 100) - 1 // 월은 0-11로 표현되므로 1을 빼줍니다.
-    const day = dateNumber % 100
+export function convertDateToString(date: Date): string {
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0') // 월을 2자리 숫자로 만듭니다.
+    const day = date.getDate().toString().padStart(2, '0') // 일을 2자리 숫자로 만듭니다.
+
+    return `${year}${month}${day}`
+}
+
+export function convertStringToDate(dateString: string): Date {
+    if (dateString.length !== 8) {
+        throw new Error('Invalid date string format. Expected YYYYMMDD.')
+    }
+
+    const year = parseInt(dateString.substring(0, 4), 10)
+    const month = parseInt(dateString.substring(4, 6), 10) - 1 // 월은 0-11로 표현되므로 1을 빼줍니다.
+    const day = parseInt(dateString.substring(6, 8), 10)
 
     return new Date(year, month, day)
 }

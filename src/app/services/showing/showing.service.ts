@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Assert, LatLong, latlongDistanceInMeters, pick } from 'common'
+import { Assert, LatLong, latlongDistanceInMeters, pick, pickIds } from 'common'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
 import { TheaterDto, TheatersService } from '../theaters'
 import { TicketsService } from '../tickets'
 import { uniq } from 'lodash'
+import { ShowtimeSalesStatus } from './showtime-sales-status.dto'
 
 @Injectable()
 export class ShowingService {
@@ -96,8 +97,29 @@ export class ShowingService {
     }
 
     async findShowtimes(movieId: string, theaterId: string, showdate: Date) {
-        const showdates = await this.showtimesService.findShowtimesByShowdate(movieId, theaterId, showdate)
+        const showtimes = await this.showtimesService.findShowtimesByShowdate(movieId, theaterId, showdate)
+        const salesStatuses = await this.ticketsService.getSalesStatuses(pickIds(showtimes))
+        const salesStatusMap = new Map(salesStatuses.map((status) => [status.showtimeId, status]))
 
-        return showdates
+        const showtimeSalesStatuses: ShowtimeSalesStatus[] = showtimes.map((showtime) => {
+            const salesStatus = salesStatusMap.get(showtime.id)!
+
+            return {
+                ...showtime,
+                salesStatus: {
+                    total: salesStatus.total,
+                    sold: salesStatus.sold,
+                    available: salesStatus.available
+                }
+            }
+        })
+
+        return showtimeSalesStatuses
+    }
+
+    async findTickets(showtimeId: string) {
+        const tickets = await this.ticketsService.findTickets({ showtimeId })
+
+        return tickets
     }
 }

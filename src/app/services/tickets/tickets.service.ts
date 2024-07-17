@@ -69,4 +69,14 @@ export class TicketsService {
 
         return tickets.map((ticket) => new TicketDto(ticket))
     }
+
+    async getSalesStatuses(showtimeIds: string[]) {
+        this.logger.log('상영 시간의 판매 상태 검색 시작.', showtimeIds)
+
+        const statuses = await this.ticketsRepository.getSalesStatuses(showtimeIds)
+
+        this.logger.log('상영 시간의 판매 상태 검색 완료.', statuses)
+
+        return statuses
+    }
 }

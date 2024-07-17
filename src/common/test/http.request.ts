@@ -69,6 +69,7 @@ function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
 
 export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
 export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
+export const expectAccepted = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.ACCEPTED)
 export const expectBadRequest = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.BAD_REQUEST)
 export const expectUnauthorized = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.UNAUTHORIZED)
 export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)
