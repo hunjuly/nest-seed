@@ -2,7 +2,7 @@ import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
-import { AppEvent, Assert, addMinutes, findMaxDate, findMinDate, parseObjectTypes } from 'common'
+import { AppEvent, Assert, addMinutes, findMaxDate, findMinDate, jsonToObject } from 'common'
 import { ShowtimesCreationDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
@@ -40,7 +40,7 @@ export class ShowtimesCreationService {
     @Process(ShowtimesCreateRequestEvent.eventName)
     async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
         const request = { ...job.data }
-        parseObjectTypes(request)
+        jsonToObject(request)
 
         const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
 

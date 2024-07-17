@@ -57,7 +57,7 @@ function getAnythingKeys(obj: Record<string, any>): string[] {
 /**
  * Sort and compare all values except the expect.anything() value
  */
-export function expectEqualDtos(actual: any[] | undefined, expected: any[] | undefined) {
+export function expectEqualUnsorted(actual: any[] | undefined, expected: any[] | undefined) {
     if (!actual || !expected) throw new Error('actual or expected undefined')
 
     // Find all expect.anything() keys

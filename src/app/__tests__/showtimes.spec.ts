@@ -1,10 +1,10 @@
 import { ShowtimeDto } from 'app/services/showtimes'
-import { nullObjectId } from 'common'
+import { nullObjectId, pickIds } from 'common'
 import {
     HttpRequest,
     HttpTestContext,
     expectCreated,
-    expectEqualDtos,
+    expectEqualUnsorted,
     expectNotFound,
     expectOk
 } from 'common/test'
@@ -47,7 +47,7 @@ describe('/showtimes', () => {
             expectCreated(res)
 
             const result = await factory.waitComplete(res.body.batchId)
-            expectEqualDtos(result.createdShowtimes, factory.makeExpectedShowtimes(body))
+            expectEqualUnsorted(result.createdShowtimes, factory.makeExpectedShowtimes(body))
         })
     })
 
@@ -96,7 +96,7 @@ describe('/showtimes', () => {
         it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const res = await requestGet({ batchId })
 
-            expectEqualDtos(res.body.items, createdShowtimes)
+            expectEqualUnsorted(res.body.items, createdShowtimes)
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
@@ -104,7 +104,7 @@ describe('/showtimes', () => {
             const res = await requestGet({ theaterId })
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
-            expectEqualDtos(res.body.items, expectedShowtimes)
+            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
@@ -112,7 +112,15 @@ describe('/showtimes', () => {
             const res = await requestGet({ movieId })
 
             const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)
-            expectEqualDtos(res.body.items, expectedShowtimes)
+            expectEqualUnsorted(res.body.items, expectedShowtimes)
+        })
+
+        it('showtimeIds[]로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+            const findingShowtimes = [createdShowtimes[0], createdShowtimes[1]]
+            const res = await requestGet({ showtimeIds: pickIds(findingShowtimes) })
+
+            const expectedShowtimes = findingShowtimes
+            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
     })
 
@@ -145,7 +153,7 @@ describe('/showtimes', () => {
                 ].includes(showtime.startTime.getTime())
             )
 
-            expectEqualDtos(conflictShowtimes, expectedShowtimes)
+            expectEqualUnsorted(conflictShowtimes, expectedShowtimes)
         })
     })
 
@@ -167,7 +175,7 @@ describe('/showtimes', () => {
             const actual = results.flatMap((result) => result.createdShowtimes)
             const expected = results.flatMap((result) => result.expectedShowtimes)
 
-            expectEqualDtos(actual, expected)
+            expectEqualUnsorted(actual, expected)
         })
 
         it('동일한 요청이 동시에 발생해도 충돌 체크가 되어야 한다', async () => {

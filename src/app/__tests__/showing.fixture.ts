@@ -71,9 +71,9 @@ async function createTheaters(theatersService: TheatersService) {
     const overrides = [
         { latlong: { latitude: 37.0, longitude: 128.0 } },
         { latlong: { latitude: 37.5, longitude: 128.5 } },
-        { latlong: { latitude: 39.0, longitude: 130.0 } },
         { latlong: { latitude: 38.0, longitude: 129.0 } },
-        { latlong: { latitude: 38.5, longitude: 129.5 } }
+        { latlong: { latitude: 38.5, longitude: 129.5 } },
+        { latlong: { latitude: 39.0, longitude: 130.0 } }
     ]
 
     const promises = overrides.map(async (override) => createTheater(theatersService, override))
@@ -110,10 +110,10 @@ async function createTickets(
                 movieId: movie.id,
                 theaterIds: pickIds(theaters),
                 startTimes: [
-                    new Date(2999, i, 1, 12),
-                    new Date(2999, i, 1, 14),
                     new Date(2999, i, 2, 19),
                     new Date(2999, i, 2, 21),
+                    new Date(2999, i, 1, 12),
+                    new Date(2999, i, 1, 14),
                     new Date(2999, i, 3)
                 ]
             })

@@ -39,6 +39,7 @@ export class ShowtimesCreateFailEvent extends ShowtimesCreateEvent {
 
 @EventName('showtimes.create.error')
 export class ShowtimesCreateErrorEvent extends ShowtimesCreateEvent {
+    /* istanbul ignore next */
     constructor(
         batchId: string,
         public message: string

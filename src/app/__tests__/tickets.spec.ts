@@ -1,6 +1,6 @@
 import { TicketDto, TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { expectEqualDtos, expectOk, HttpRequest, HttpTestContext } from 'common/test'
+import { expectEqualUnsorted, expectOk, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture, TicketsFactory } from './tickets.fixture'
 
 describe('/tickets', () => {
@@ -53,7 +53,7 @@ describe('/tickets', () => {
         const actual = await ticketsService.findTickets({})
         const expected = results.flatMap((result) => result)
 
-        expectEqualDtos(actual, expected)
+        expectEqualUnsorted(actual, expected)
     })
 
     describe('Tickets Retrieval', () => {
@@ -76,7 +76,7 @@ describe('/tickets', () => {
         it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const res = await requestGet({ batchId })
 
-            expectEqualDtos(res.body.items, expectedTickets)
+            expectEqualUnsorted(res.body.items, expectedTickets)
         })
 
         it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
@@ -84,7 +84,7 @@ describe('/tickets', () => {
             const res = await requestGet({ theaterId })
 
             const filteredTickets = expectedTickets.filter((ticket) => ticket.theaterId === theaterId)
-            expectEqualDtos(res.body.items, filteredTickets)
+            expectEqualUnsorted(res.body.items, filteredTickets)
         })
 
         it('theaterIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
@@ -92,7 +92,7 @@ describe('/tickets', () => {
             const res = await requestGet({ theaterIds })
 
             const filteredTickets = expectedTickets.filter((ticket) => theaterIds.includes(ticket.theaterId))
-            expectEqualDtos(res.body.items, filteredTickets)
+            expectEqualUnsorted(res.body.items, filteredTickets)
         })
 
         it('findTickets 메서드로 theaterIds을 조회하면 해당 티켓을 반환해야 한다', async () => {
@@ -100,7 +100,7 @@ describe('/tickets', () => {
             const actual = await ticketsService.findTickets({ theaterIds })
 
             const filteredTickets = expectedTickets.filter((ticket) => theaterIds.includes(ticket.theaterId))
-            expectEqualDtos(actual, filteredTickets)
+            expectEqualUnsorted(actual, filteredTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
@@ -108,7 +108,7 @@ describe('/tickets', () => {
             const res = await requestGet({ movieId })
 
             const filteredTickets = expectedTickets.filter((ticket) => ticket.movieId === movieId)
-            expectEqualDtos(res.body.items, filteredTickets)
+            expectEqualUnsorted(res.body.items, filteredTickets)
         })
     })
 })

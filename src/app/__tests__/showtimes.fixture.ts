@@ -6,6 +6,7 @@ import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
     ShowtimesCreateCompleteEvent,
+    ShowtimesCreateErrorEvent,
     ShowtimesCreateEvent,
     ShowtimesCreateFailEvent,
     ShowtimesCreationDto,
@@ -42,6 +43,10 @@ export class ShowtimesFactory extends BatchEventListener {
             ShowtimesCreateCompleteEvent.eventName,
             ShowtimesCreateFailEvent.eventName
         ])
+    }
+
+    waitError = (batchId: string) => {
+        return this.awaitEvent(batchId, [ShowtimesCreateErrorEvent.eventName])
     }
 
     setupTestData(movie: MovieDto, theaters: TheaterDto[]) {

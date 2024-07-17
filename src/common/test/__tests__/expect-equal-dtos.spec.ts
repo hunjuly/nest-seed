@@ -1,6 +1,6 @@
-import { expectEqualDtos } from './..'
+import { expectEqualUnsorted } from './..'
 
-describe('expectEqualDtos', () => {
+describe('expectEqualUnsorted', () => {
     it('should compare arrays of objects correctly', () => {
         const actual = [
             { id: 1, name: 'John', age: 30 },
@@ -11,7 +11,7 @@ describe('expectEqualDtos', () => {
             { id: 1, name: 'John', age: 30 }
         ]
 
-        expect(() => expectEqualDtos(actual, expected)).not.toThrow()
+        expect(() => expectEqualUnsorted(actual, expected)).not.toThrow()
     })
 
     it('should ignore expect.anything() fields', () => {
@@ -24,7 +24,7 @@ describe('expectEqualDtos', () => {
             { id: 2, name: 'John', age: 30 }
         ]
 
-        expect(() => expectEqualDtos(actual, expected)).not.toThrow()
+        expect(() => expectEqualUnsorted(actual, expected)).not.toThrow()
     })
 
     it('should throw when arrays are not equal', () => {
@@ -37,7 +37,7 @@ describe('expectEqualDtos', () => {
             { id: 2, name: 'Jane', age: 25 }
         ]
 
-        expect(() => expectEqualDtos(actual, expected)).toThrow()
+        expect(() => expectEqualUnsorted(actual, expected)).toThrow()
     })
 
     it('should handle nested objects', () => {
@@ -50,15 +50,15 @@ describe('expectEqualDtos', () => {
             { id: 1, name: 'John', address: { city: 'New York', zip: '10001' } }
         ]
 
-        expect(() => expectEqualDtos(actual, expected)).not.toThrow()
+        expect(() => expectEqualUnsorted(actual, expected)).not.toThrow()
     })
 
     it('should throw when actual or expected is undefined', () => {
-        expect(() => expectEqualDtos(undefined, [])).toThrow('actual or expected undefined')
-        expect(() => expectEqualDtos([], undefined)).toThrow('actual or expected undefined')
+        expect(() => expectEqualUnsorted(undefined, [])).toThrow('actual or expected undefined')
+        expect(() => expectEqualUnsorted([], undefined)).toThrow('actual or expected undefined')
     })
 
     it('should handle empty arrays', () => {
-        expect(() => expectEqualDtos([], [])).not.toThrow()
+        expect(() => expectEqualUnsorted([], [])).not.toThrow()
     })
 })

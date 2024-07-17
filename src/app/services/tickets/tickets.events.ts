@@ -15,6 +15,7 @@ export class TicketsCreateCompleteEvent extends TicketsCreateEvent {
 
 @EventName('tickets.create.error')
 export class TicketsCreateErrorEvent extends TicketsCreateEvent {
+    /* istanbul ignore next */
     constructor(
         batchId: string,
         public message: string
