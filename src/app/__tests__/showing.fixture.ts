@@ -6,15 +6,14 @@ import { PaymentsModule, PaymentsService } from 'app/services/payments'
 import { ShowingModule } from 'app/services/showing'
 import { ShowtimesModule } from 'app/services/showtimes'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketDto, TicketsModule, TicketsService } from 'app/services/tickets'
-import { Assert, pick, pickIds } from 'common'
+import { TicketsModule, TicketsService } from 'app/services/tickets'
+import { pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
-import { uniq } from 'lodash'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
+import { ShowtimesFactory } from './showtimes.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
-import { ShowtimesFactory } from './showtimes.fixture'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
@@ -44,17 +43,24 @@ export async function createFixture() {
     const customer = await createCustomer(customersService)
     const theaters = await createTheaters(theatersService)
     const movies = await createMovies(moviesService)
-    const tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)
-    const watchedMovie = await purchaseTickets(paymentsService, customer, tickets.slice(0, 3), movies)
+    const _tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)
+    const watchedMovie = await createWatchedMovie(
+        moviesService,
+        ticketsFactory,
+        ticketsService,
+        paymentsService,
+        customer,
+        theaters
+    )
 
     return {
         testContext,
         ticketsService,
         paymentsService,
         ticketsFactory,
-        customer,
         theatersService,
         moviesService,
+        customer,
         movies,
         theaters,
         watchedMovie
@@ -63,11 +69,11 @@ export async function createFixture() {
 
 async function createTheaters(theatersService: TheatersService) {
     const overrides = [
-        { latlong: { latitude: 38.0, longitude: 138.0 } },
-        { latlong: { latitude: 38.1, longitude: 138.1 } },
-        { latlong: { latitude: 38.2, longitude: 138.2 } },
-        { latlong: { latitude: 38.3, longitude: 138.3 } },
-        { latlong: { latitude: 38.4, longitude: 138.4 } }
+        { latlong: { latitude: 37.0, longitude: 128.0 } },
+        { latlong: { latitude: 37.5, longitude: 128.5 } },
+        { latlong: { latitude: 39.0, longitude: 130.0 } },
+        { latlong: { latitude: 38.0, longitude: 129.0 } },
+        { latlong: { latitude: 38.5, longitude: 129.5 } }
     ]
 
     const promises = overrides.map(async (override) => createTheater(theatersService, override))
@@ -98,45 +104,42 @@ async function createTickets(
     movies: MovieDto[],
     theaters: TheaterDto[]
 ) {
-    const allTickets: TicketDto[] = []
+    const allTickets = await Promise.all(
+        movies.map(async (movie, i) => {
+            const { batchId } = await ticketFactory.createTickets({
+                movieId: movie.id,
+                theaterIds: pickIds(theaters),
+                startTimes: [
+                    new Date(2999, i, 1, 12),
+                    new Date(2999, i, 1, 14),
+                    new Date(2999, i, 2, 19),
+                    new Date(2999, i, 2, 21),
+                    new Date(2999, i, 3)
+                ]
+            })
 
-    const promises = movies.map(async (movie, i) => {
-        const { batchId } = await ticketFactory.createTickets({
-            movieId: movie.id,
-            theaterIds: pickIds(theaters),
-            durationMinutes: 1,
-            startTimes: [
-                new Date(2999, i, 1, 12),
-                new Date(2999, i, 1, 14),
-                new Date(2999, i, 2, 19),
-                new Date(2999, i, 2, 21),
-                new Date(2999, i, 3)
-            ]
+            return ticketsService.findTickets({ batchId })
         })
+    )
 
-        const tickets = await ticketsService.findTickets({ batchId })
-
-        allTickets.push(...tickets)
-    })
-
-    await Promise.all(promises)
-
-    return allTickets
+    return allTickets.flat()
 }
 
-async function purchaseTickets(
+async function createWatchedMovie(
+    moviesService: MoviesService,
+    ticketsFactory: TicketsFactory,
+    ticketsService: TicketsService,
     paymentsService: PaymentsService,
     customer: CustomerDto,
-    tickets: TicketDto[],
-    movies: MovieDto[]
+    theaters: TheaterDto[]
 ) {
-    const movieIds = uniq(pick(tickets, 'movieId'))
-    Assert.unique(movieIds, '테스트를 위해서 movieId는 하나여야 한다.')
+    const movie = await createMovie(moviesService, { genre: [MovieGenre.Drama, MovieGenre.Fantasy] })
 
-    await paymentsService.createPayment({ customerId: customer.id, ticketIds: pickIds(tickets) })
+    await ticketsFactory.createTickets({ movieId: movie.id, theaterIds: [theaters[0].id] })
 
-    const watchedMovieId = movieIds[0]
-    const watchedMovie = movies.filter((movie) => movie.id === watchedMovieId)[0]
+    const tickets = await ticketsService.findTickets({ movieId: movie.id })
 
-    return watchedMovie
+    await paymentsService.createPayment({ customerId: customer.id, ticketIds: [tickets[0].id] })
+
+    return movie
 }

@@ -37,25 +37,33 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return objectIdToString(showtimes)
     }
 
-    async findPagedShowtimes(
-        filterDto: ShowtimesFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Showtime>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            helpers.setQuery(stringToObjectId(filterDto))
-        })
-
-        return paginated
-    }
-
-    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
-        const { showtimeIds, ...rest } = filterDto
+    private makeQueryByFilter(filterDto: ShowtimesFilterDto) {
+        const { showtimeIds, ...rest } = stringToObjectId(filterDto)
 
         const query: Record<string, any> = rest
 
         if (showtimeIds) {
             query['_id'] = { $in: showtimeIds }
         }
+
+        return query
+    }
+
+    async findPagedShowtimes(
+        filterDto: ShowtimesFilterDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<Showtime>> {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
+            const query = this.makeQueryByFilter(filterDto)
+
+            helpers.setQuery(query)
+        })
+
+        return paginated
+    }
+
+    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
+        const query = this.makeQueryByFilter(filterDto)
 
         return super.findByFilter(query)
     }

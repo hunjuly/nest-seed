@@ -23,14 +23,14 @@ export class TicketsService {
     }
 
     @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
-    async onShowtimesCreateComplete(event: ShowtimesCreateCompleteEvent) {
-        this.logger.log(`${event.name} 수신. batchId=${event.batchId}`)
+    async onShowtimesCreateComplete(showtimesEvent: ShowtimesCreateCompleteEvent) {
+        this.logger.log(`${showtimesEvent.name} 수신. batchId=${showtimesEvent.batchId}`)
 
-        const { batchId } = event
+        const ticketsEvent = new TicketsCreateRequestEvent(showtimesEvent.batchId)
 
-        await this.ticketsQueue.add(TicketsCreateRequestEvent.eventName, { batchId })
+        await this.ticketsQueue.add(ticketsEvent.name, ticketsEvent)
 
-        this.logger.log(`Tickets 생성 요청. batchId=${batchId}`)
+        this.logger.log(`Tickets 생성 요청. batchId=${showtimesEvent.batchId}`)
     }
 
     async findPagedTickets(

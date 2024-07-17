@@ -2,7 +2,7 @@ import { expect } from '@jest/globals'
 import { CustomerDto } from 'app/services/customers'
 import { MovieDto } from 'app/services/movies'
 import { TheaterDto } from 'app/services/theaters'
-import { HttpRequest, HttpTestContext, expectOk } from 'common/test'
+import { HttpRequest, HttpTestContext, expectEqualDtos, expectOk } from 'common/test'
 import { createFixture } from './showing.fixture'
 
 describe('/showing', () => {
@@ -38,7 +38,7 @@ describe('/showing', () => {
         const filteredMovies = movies.filter((movie) =>
             movie.genre.some((item) => watchedMovie.genre.includes(item))
         )
-        expect(res.body).toEqual(filteredMovies)
+        expectEqualDtos(res.body, filteredMovies)
     })
 
     it('상영 극장 목록 요청', async () => {
@@ -46,10 +46,10 @@ describe('/showing', () => {
 
         const res = await req.get({
             url: `/showing/movies/${movieId}/theaters`,
-            query: { userLocation: '37.123,128.678' }
+            query: { userLocation: '37.4,128.4' }
         })
         expectOk(res)
-        expect(res.body).toEqual([theaters[0], theaters[1]])
+        expect(res.body).toEqual([theaters[1], theaters[0], theaters[3], theaters[4], theaters[2]])
     })
 
     it('상영일 목록 요청', async () => {
