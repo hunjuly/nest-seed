@@ -3,15 +3,7 @@ import { MoviesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import {
-    HttpRequest,
-    HttpTestContext,
-    createHttpTestContext,
-    expectBadRequest,
-    expectCreated,
-    expectNotFound,
-    expectOk
-} from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createMovie, createMovies } from './movies.fixture'
 
 describe('/movies', () => {
@@ -45,14 +37,13 @@ describe('/movies', () => {
                 rating: 'PG'
             }
 
-            const res = await req.post({ url: '/movies', body: movieCreationDto })
-            expectCreated(res)
+            const res = await req.post('/movies').body(movieCreationDto).created()
+
             expect(res.body).toEqual({ id: expect.anything(), ...movieCreationDto })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({ url: '/movies', body: {} })
-            expectBadRequest(res)
+            return req.post('/movies').body({}).badRequest()
         })
     })
 
@@ -74,22 +65,15 @@ describe('/movies', () => {
                 rating: 'NC17'
             }
 
-            const updateResponse = await req.patch({ url: `/movies/${movie.id}`, body: updateData })
-            expectOk(updateResponse)
-
-            const getResponse = await req.get({ url: `/movies/${movie.id}` })
-            expectOk(getResponse)
-
+            const updateResponse = await req.patch(`/movies/${movie.id}`).body(updateData).ok()
             expect(updateResponse.body).toEqual({ ...movie, ...updateData })
+
+            const getResponse = await req.get(`/movies/${movie.id}`).ok()
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('NOT_FOUND(404) if movie is not found', async () => {
-            const res = await req.patch({
-                url: `/movies/${nullObjectId}`,
-                body: {}
-            })
-            expectNotFound(res)
+            return req.patch(`/movies/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -101,16 +85,12 @@ describe('/movies', () => {
         })
 
         it('Delete a movie', async () => {
-            const deleteResponse = await req.delete({ url: `/movies/${movie.id}` })
-            expectOk(deleteResponse)
-
-            const getResponse = await req.get({ url: `/movies/${movie.id}` })
-            expectNotFound(getResponse)
+            await req.delete(`/movies/${movie.id}`).ok()
+            await req.get(`/movies/${movie.id}`).notFound()
         })
 
         it('NOT_FOUND(404) if movie is not found', async () => {
-            const res = await req.delete({ url: `/movies/${nullObjectId}` })
-            expectNotFound(res)
+            return req.delete(`/movies/${nullObjectId}`).notFound()
         })
     })
 
@@ -122,14 +102,13 @@ describe('/movies', () => {
         })
 
         it('Retrieve a movie by ID', async () => {
-            const res = await req.get({ url: `/movies/${movie.id}` })
-            expectOk(res)
+            const res = await req.get(`/movies/${movie.id}`).ok()
+
             expect(res.body).toEqual(movie)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
-            const res = await req.get({ url: `/movies/${nullObjectId}` })
-            expectNotFound(res)
+            return req.get(`/movies/${nullObjectId}`).notFound()
         })
     })
 
@@ -141,8 +120,7 @@ describe('/movies', () => {
         })
 
         const getMovies = async (query: Record<string, any> = {}) => {
-            const res = await req.get({ url: '/movies', query })
-            expectOk(res)
+            const res = await req.get('/movies').query(query).ok()
             return res.body
         }
 
@@ -170,7 +148,9 @@ describe('/movies', () => {
             const targetDate = movies[0].releaseDate
             const result = await getMovies({ releaseDate: targetDate })
 
-            const expected = movies.filter((movie) => movie.releaseDate.getTime() === targetDate.getTime())
+            const expected = movies.filter(
+                (movie) => movie.releaseDate.getTime() === targetDate.getTime()
+            )
             expect(result.items).toEqual(expect.arrayContaining(expected))
             expect(result.items.length).toBe(expected.length)
         })

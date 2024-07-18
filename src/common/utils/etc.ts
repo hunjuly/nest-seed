@@ -81,14 +81,36 @@ export function padNumber(num: number, length: number): string {
  * When received as JSON, Date is a string. Convert it to a Date automatically.
  * Add any other types to this function that need to be converted automatically besides Date.
  */
-export function jsonToObject(obj: any) {
+export const jsonToObject = (obj: any): any => {
+    if (typeof obj === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj)) {
+        return new Date(obj)
+    }
+
+    if (obj === null || typeof obj !== 'object') {
+        return obj
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map((item) => jsonToObject(item))
+    }
+
+    const result: Record<string, any> = {}
+
     for (const key in obj) {
-        if (typeof obj[key] === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(obj[key])) {
-            obj[key] = new Date(obj[key])
-        } else if (typeof obj[key] === 'object') {
-            jsonToObject(obj[key])
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = obj[key]
+
+            if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)) {
+                result[key] = new Date(value)
+            } else if (typeof value === 'object') {
+                result[key] = jsonToObject(value)
+            } else {
+                result[key] = value
+            }
         }
     }
+
+    return result
 }
 
 export async function waitForQueueToEmpty(queue: Queue, count: number = 60): Promise<boolean> {

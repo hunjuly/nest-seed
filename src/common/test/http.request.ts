@@ -2,76 +2,99 @@ import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
 
-interface RequestContext {
-    url: string
-    headers?: any
-    body?: any
-    query?: Record<string, any> | string
-    fields?: { name: string; value: any }[]
-    attachs?: {
-        name: string
-        file: any
-        options?: string | { filename?: string | undefined; contentType?: string | undefined }
-    }[]
-}
-
-const sendRequest = async (req: supertest.Test, ctx: RequestContext) => {
-    ctx.attachs?.forEach((attach) => {
-        req.attach(attach.name, attach.file, attach.options)
-    })
-
-    ctx.fields?.forEach((field) => {
-        req.field(field.name, field.value)
-    })
-
-    if (ctx.headers) {
-        for (const [key, value] of Object.entries(ctx.headers)) {
-            req = req.set(key, value as string)
-        }
-    }
-
-    if (ctx.query) req.query(ctx.query)
-    if (ctx.body) req.send(ctx.body)
-
-    const res = await req
-    jsonToObject(res.body)
-
-    return res
-}
-
 export class HttpRequest {
-    constructor(private readonly server: any) {}
-    async post(ctx: RequestContext) {
-        return sendRequest(supertest(this.server).post(ctx.url), ctx)
+    private req: any
+
+    constructor(private server: any) {}
+
+    post(url: string): this {
+        this.req = supertest(this.server).post(url)
+        return this
     }
 
-    async patch(ctx: RequestContext) {
-        return sendRequest(supertest(this.server).patch(ctx.url), ctx)
+    patch(url: string): this {
+        this.req = supertest(this.server).patch(url)
+        return this
     }
 
-    async get(ctx: RequestContext) {
-        return sendRequest(supertest(this.server).get(ctx.url), ctx)
+    get(url: string): this {
+        this.req = supertest(this.server).get(url)
+        return this
     }
 
-    async delete(ctx: RequestContext) {
-        return sendRequest(supertest(this.server).delete(ctx.url), ctx)
+    delete(url: string): this {
+        this.req = supertest(this.server).delete(url)
+        return this
+    }
+
+    query(query: Record<string, any>): this {
+        this.req = this.req.query(query)
+        return this
+    }
+
+    headers(headers: Record<string, string>): this {
+        Object.entries(headers).forEach(([key, value]) => {
+            this.req = this.req.set(key, value)
+        })
+        return this
+    }
+
+    body(body: Record<string, any>): this {
+        this.req = this.req.send(body)
+        return this
+    }
+
+    attachs(
+        attachs: Array<{
+            name: string
+            file: string | Buffer
+            options?: string | { filename?: string; contentType?: string }
+        }>
+    ): this {
+        attachs.forEach(({ name, file, options }) => {
+            this.req = this.req.attach(name, file, options)
+        })
+        return this
+    }
+
+    fields(fields: Array<{ name: string; value: string }>): this {
+        fields.forEach(({ name, value }) => {
+            this.req = this.req.field(name, value)
+        })
+        return this
+    }
+
+    async send(status: HttpStatus): Promise<supertest.Test> {
+        const res = await this.req
+        if (res.status !== status) {
+            console.log(res.body)
+        }
+        expect(res.status).toEqual(status)
+        res.body = jsonToObject(res.body)
+        return res
+    }
+    created() {
+        return this.send(HttpStatus.CREATED)
+    }
+    ok() {
+        return this.send(HttpStatus.OK)
+    }
+    accepted() {
+        return this.send(HttpStatus.ACCEPTED)
+    }
+    badRequest() {
+        return this.send(HttpStatus.BAD_REQUEST)
+    }
+    unauthorized() {
+        return this.send(HttpStatus.UNAUTHORIZED)
+    }
+    conflict() {
+        return this.send(HttpStatus.CONFLICT)
+    }
+    notFound() {
+        return this.send(HttpStatus.NOT_FOUND)
+    }
+    internalServerError() {
+        return this.send(HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
-
-function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
-    if (response.statusCode !== status) {
-        console.log(response.body)
-    }
-
-    expect(response.statusCode).toEqual(status)
-}
-
-export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
-export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
-export const expectAccepted = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.ACCEPTED)
-export const expectBadRequest = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.BAD_REQUEST)
-export const expectUnauthorized = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.UNAUTHORIZED)
-export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)
-export const expectNotFound = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.NOT_FOUND)
-export const expectInternalServerError = (res: supertest.Response) =>
-    expectHttpStatus(res, HttpStatus.INTERNAL_SERVER_ERROR)

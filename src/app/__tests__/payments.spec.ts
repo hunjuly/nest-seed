@@ -2,7 +2,7 @@ import { expect } from '@jest/globals'
 import { PaymentDto, PaymentsService } from 'app/services/payments'
 import { TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { expectBadRequest, expectCreated, expectOk, HttpRequest, HttpTestContext } from 'common/test'
+import { HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture } from './payments.fixture'
 
 describe('/payments', () => {
@@ -36,24 +36,20 @@ describe('/payments', () => {
 
     describe('POST /payments', () => {
         it('should create a payment and return CREATED status', async () => {
-            const res = await req.post({ url: '/payments', body: paymentCreationDto() })
-            expectCreated(res)
+            const res = await req.post('/payments').body(paymentCreationDto()).created()
+
             expect(res.body).toEqual({ id: expect.anything(), ...paymentCreationDto() })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({ url: '/payments', body: {} })
-            expectBadRequest(res)
+            return req.post('/payments').body({}).badRequest()
         })
 
         it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
-            const res = await req.post({ url: '/payments', body: paymentCreationDto() })
-            expectCreated(res)
+            await req.post('/payments').body(paymentCreationDto()).created()
 
             const tickets = await ticketsService.findTickets({ ticketIds })
-
             const notSoldTickets = tickets.filter((ticket) => ticket.status !== 'sold')
-
             expect(notSoldTickets).toHaveLength(0)
         })
     })
@@ -66,15 +62,15 @@ describe('/payments', () => {
         })
 
         it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
-            const res = await req.get({ url: '/payments', query: { paymentId: payment.id } })
-            expectOk(res)
-            expect([payment]).toEqual(res.body)
+            const res = await req.get('/payments').query({ paymentId: payment.id }).ok()
+
+            expect(res.body).toEqual([payment])
         })
 
         it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
-            const res = await req.get({ url: '/payments', query: { customerId } })
-            expectOk(res)
-            expect([payment]).toEqual(res.body)
+            const res = await req.get('/payments').query({ customerId }).ok()
+
+            expect(res.body).toEqual([payment])
         })
     })
 })

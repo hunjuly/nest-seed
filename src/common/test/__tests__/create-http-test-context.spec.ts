@@ -1,4 +1,4 @@
-import { HttpTestContext, createHttpTestContext, expectOk } from 'common/test'
+import { HttpTestContext, createHttpTestContext } from 'common/test'
 import { FixtureModule, FixtureService } from './create-http-test-context.fixture'
 
 describe('Service Mocking', () => {
@@ -28,8 +28,8 @@ describe('Service Mocking', () => {
     })
 
     it('should return mock message', async () => {
-        const res = await req.get({ url: '/' })
-        expectOk(res)
+        const res = await req.get('/').ok()
+
         expect(res.body).toEqual({ message: 'This is Mock' })
     })
 })

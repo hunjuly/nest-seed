@@ -39,8 +39,7 @@ export class ShowtimesCreationService {
 
     @Process(ShowtimesCreateRequestEvent.eventName)
     async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
-        const request = { ...job.data }
-        jsonToObject(request)
+        const request = jsonToObject({ ...job.data })
 
         const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
 

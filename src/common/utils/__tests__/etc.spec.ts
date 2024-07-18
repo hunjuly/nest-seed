@@ -165,46 +165,42 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('parseObjectTypes', () => {
+    describe('jsonToObject', () => {
         it('converts ISO 8601 date strings to Date objects', () => {
-            const obj = {
+            const obj = jsonToObject({
                 date: '2023-06-18T12:00:00.000Z'
-            }
-            jsonToObject(obj)
+            })
+
             expect(obj.date).toBeInstanceOf(Date)
             expect((obj.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
         })
 
         it('recursively converts date strings in nested objects', () => {
-            const obj = {
+            const obj = jsonToObject({
                 level1: {
                     date: '2023-06-18T12:00:00.000Z',
                     level2: {
-                        date: '2023-06-19T12:00:00.000Z'
+                        date: ['2023-06-19T12:00:00.000Z']
                     }
                 }
-            }
-            jsonToObject(obj)
+            })
             expect(obj.level1.date).toBeInstanceOf(Date)
             expect((obj.level1.date as any).toISOString()).toEqual('2023-06-18T12:00:00.000Z')
-            expect(obj.level1.level2.date).toBeInstanceOf(Date)
-            expect((obj.level1.level2.date as any).toISOString()).toEqual('2023-06-19T12:00:00.000Z')
+            expect(obj.level1.level2.date).toEqual([new Date('2023-06-19T12:00:00.000Z')])
         })
 
         it('ignores non-date string formats', () => {
-            const obj = {
+            const obj = jsonToObject({
                 text: 'Hello, world!'
-            }
-            jsonToObject(obj)
+            })
             expect(obj.text).toEqual('Hello, world!')
         })
 
         it('ignores non-string types', () => {
-            const obj = {
+            const obj = jsonToObject({
                 number: 123,
                 boolean: true
-            }
-            jsonToObject(obj)
+            })
             expect(obj.number).toEqual(123)
             expect(obj.boolean).toBe(true)
         })

@@ -1,13 +1,6 @@
 import { ShowtimeDto } from 'app/services/showtimes'
 import { nullObjectId, pickIds } from 'common'
-import {
-    HttpRequest,
-    HttpTestContext,
-    expectAccepted,
-    expectEqualUnsorted,
-    expectNotFound,
-    expectOk
-} from 'common/test'
+import { HttpRequest, HttpTestContext, expectEqualUnsorted } from 'common/test'
 import { ShowtimesFactory, createFixture } from './showtimes.fixture'
 
 describe('/showtimes', () => {
@@ -28,48 +21,39 @@ describe('/showtimes', () => {
 
     describe('Showtimes Creation Request', () => {
         it('상영 시간 생성을 요청하면 batchId를 반환해야 한다', async () => {
-            const body = factory.makeCreationDto({})
+            const creationDto = factory.makeCreationDto({})
+            const res = await req.post('/showtimes').body(creationDto).accepted()
 
-            const res = await req.post({ url: '/showtimes', body })
-
-            expectAccepted(res)
             expect(res.body.batchId).toBeDefined()
-
             await factory.waitComplete(res.body.batchId)
         })
 
         it('생성 요청에 따라 정확하게 showtimes을 생성하고 완료될 때까지 기다려야 한다', async () => {
-            const body = factory.makeCreationDto({
+            const creationDto = factory.makeCreationDto({
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
             })
-
-            const res = await req.post({ url: '/showtimes', body })
-            expectAccepted(res)
+            const res = await req.post('/showtimes').body(creationDto).accepted()
 
             const result = await factory.waitComplete(res.body.batchId)
-            expectEqualUnsorted(result.createdShowtimes, factory.makeExpectedShowtimes(body))
+            expectEqualUnsorted(result.createdShowtimes, factory.makeExpectedShowtimes(creationDto))
         })
     })
 
     describe('Error Handling', () => {
-        const requestPost = (overrides = {}) => {
-            return req.post({ url: '/showtimes', body: factory.makeCreationDto(overrides) })
-        }
-
         it('NOT_FOUND(404) when movieId is not found', async () => {
-            const res = await requestPost({ movieId: nullObjectId })
-            expectNotFound(res)
+            const creationDto = factory.makeCreationDto({ movieId: nullObjectId })
+            return req.post('/showtimes').body(creationDto).notFound()
         })
 
         it('NOT_FOUND(404) when theaterId is not found', async () => {
-            const res = await requestPost({ theaterIds: [nullObjectId] })
-            expectNotFound(res)
+            const creationDto = factory.makeCreationDto({ theaterIds: [nullObjectId] })
+            return req.post('/showtimes').body(creationDto).notFound()
         })
 
         it('NOT_FOUND(404) when any theaterId in the list is not found', async () => {
             const theaterId = factory.theaters[0].id
-            const res = await requestPost({ theaterIds: [theaterId, nullObjectId] })
-            expectNotFound(res)
+            const creationDto = factory.makeCreationDto({ theaterIds: [theaterId, nullObjectId] })
+            return req.post('/showtimes').body(creationDto).notFound()
         })
     })
 
@@ -86,53 +70,55 @@ describe('/showtimes', () => {
             createdShowtimes = result.createdShowtimes
         })
 
-        const requestGet = async (query = {}) => {
-            const res = await req.get({ url: '/showtimes', query })
-            expectOk(res)
-
-            return res
-        }
+        // const requestGet = async (query = {}) => {
+        //     return req.get('/showtimes').query(query).ok()
+        // }
 
         it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const res = await requestGet({ batchId })
+            const res = await req.get('/showtimes').query({ batchId }).ok()
 
             expectEqualUnsorted(res.body.items, createdShowtimes)
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const theaterId = factory.theaters[0].id
-            const res = await requestGet({ theaterId })
+            const res = await req.get('/showtimes').query({ theaterId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
+            const expectedShowtimes = createdShowtimes.filter(
+                (showtime) => showtime.theaterId === theaterId
+            )
             expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const movieId = factory.movie?.id
-            const res = await requestGet({ movieId })
+            const res = await req.get('/showtimes').query({ movieId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter((showtime) => showtime.movieId === movieId)
+            const expectedShowtimes = createdShowtimes.filter(
+                (showtime) => showtime.movieId === movieId
+            )
             expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('showtimeIds[]로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const findingShowtimes = [createdShowtimes[0], createdShowtimes[1]]
-            const res = await requestGet({ showtimeIds: pickIds(findingShowtimes) })
+            const res = await req
+                .get('/showtimes')
+                .query({ showtimeIds: pickIds(findingShowtimes) })
+                .ok()
 
-            const expectedShowtimes = findingShowtimes
-            expectEqualUnsorted(res.body.items, expectedShowtimes)
+            expectEqualUnsorted(res.body.items, findingShowtimes)
         })
 
         it('showtime의 id로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
             const showtime = createdShowtimes[0]
-            const res = await req.get({ url: `/showtimes/${showtime.id}` })
-            expectOk(res)
+            const res = await req.get(`/showtimes/${showtime.id}`).ok()
+
             expect(res.body).toEqual(showtime)
         })
 
         it('showtime의 id가 존재하지 않으면 NOT_FOUND(404)', async () => {
-            const res = await req.get({ url: `/showtimes/${nullObjectId}` })
-            expectNotFound(res)
+            return req.get(`/showtimes/${nullObjectId}`).notFound()
         })
     })
 

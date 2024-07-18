@@ -18,11 +18,11 @@ describe('E2E FileTest', () => {
     })
 
     it('should allow for file uploads', async () => {
-        const res = await req.post({
-            url: '/file',
-            attachs: [{ name: 'file', file: './package.json' }],
-            fields: [{ name: 'name', value: 'test' }]
-        })
+        const res = await req
+            .post('/file')
+            .attachs([{ name: 'file', file: './package.json' }])
+            .fields([{ name: 'name', value: 'test' }])
+            .created()
 
         expect(res.body).toEqual({
             body: { name: 'test' },

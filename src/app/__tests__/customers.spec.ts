@@ -1,19 +1,9 @@
 import { expect } from '@jest/globals'
-import { HttpStatus } from '@nestjs/common'
 import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
-import {
-    HttpRequest,
-    HttpTestContext,
-    createHttpTestContext,
-    expectBadRequest,
-    expectConflict,
-    expectCreated,
-    expectNotFound,
-    expectOk
-} from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createCustomer, createCustomers } from './customers.fixture'
 
 describe('/customers', () => {
@@ -49,25 +39,20 @@ describe('/customers', () => {
         }
 
         it('should create a customer and return CREATED status', async () => {
-            const res = await req.post({ url: '/customers', body: createDto })
-            expectCreated(res)
+            const res = await req.post('/customers').body(createDto).created()
+
             expect(res.body).toEqual({ id: expect.anything(), ...createDto })
         })
 
         it('CONFLICT(409) if email already exists', async () => {
-            const res = await req.post({
-                url: '/customers',
-                body: { ...createDto, email: customer.email }
-            })
-            expectConflict(res)
+            return req
+                .post('/customers')
+                .body({ ...createDto, email: customer.email })
+                .conflict()
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({
-                url: '/customers',
-                body: {}
-            })
-            expectBadRequest(res)
+            return req.post('/customers').body({}).badRequest()
         })
     })
 
@@ -85,19 +70,15 @@ describe('/customers', () => {
                 birthday: new Date('1920-12-12')
             }
 
-            const updateResponse = await req.patch({ url: `/customers/${customer.id}`, body: updateDto })
-            expectOk(updateResponse)
-
-            const getResponse = await req.get({ url: `/customers/${customer.id}` })
-            expectOk(getResponse)
-
+            const updateResponse = await req.patch(`/customers/${customer.id}`).body(updateDto).ok()
             expect(updateResponse.body).toEqual({ ...customer, ...updateDto })
+
+            const getResponse = await req.get(`/customers/${customer.id}`).ok()
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('NOT_FOUND(404) if customer is not found', async () => {
-            const res = await req.patch({ url: `/customers/${nullObjectId}`, body: {} })
-            expectNotFound(res)
+            return req.patch(`/customers/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -109,16 +90,12 @@ describe('/customers', () => {
         })
 
         it('Delete a customer', async () => {
-            const deleteResponse = await req.delete({ url: `/customers/${customer.id}` })
-            expect(deleteResponse.status).toEqual(HttpStatus.OK)
-
-            const getResponse = await req.get({ url: `/customers/${customer.id}` })
-            expect(getResponse.status).toEqual(HttpStatus.NOT_FOUND)
+            await req.delete(`/customers/${customer.id}`).ok()
+            await req.get(`/customers/${customer.id}`).notFound()
         })
 
         it('NOT_FOUND(404) if customer is not found', async () => {
-            const res = await req.delete({ url: `/customers/${nullObjectId}` })
-            expectNotFound(res)
+            return req.delete(`/customers/${nullObjectId}`).notFound()
         })
     })
 
@@ -130,20 +107,14 @@ describe('/customers', () => {
         })
 
         it('Retrieve all customers', async () => {
-            const res = await req.get({
-                url: '/customers',
-                query: { orderby: 'name:asc' }
-            })
-            expectOk(res)
+            const res = await req.get('/customers').query({ orderby: 'name:asc' }).ok()
+
             expect(res.body.items).toEqual(customers)
         })
 
         it('Retrieve customers by partial name', async () => {
-            const res = await req.get({
-                url: '/customers',
-                query: { name: 'Customer-' }
-            })
-            expectOk(res)
+            const res = await req.get('/customers').query({ name: 'Customer-' }).ok()
+
             expect(res.body.items).toEqual(expect.arrayContaining(customers))
         })
     })
@@ -156,14 +127,13 @@ describe('/customers', () => {
         })
 
         it('Retrieve a customer by ID', async () => {
-            const res = await req.get({ url: `/customers/${customer.id}` })
-            expectOk(res)
+            const res = await req.get(`/customers/${customer.id}`).ok()
+
             expect(res.body).toEqual(customer)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
-            const res = await req.get({ url: `/customers/${nullObjectId}` })
-            expectNotFound(res)
+            return req.get(`/customers/${nullObjectId}`).notFound()
         })
     })
 })
