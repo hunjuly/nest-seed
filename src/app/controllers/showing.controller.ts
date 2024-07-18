@@ -1,7 +1,12 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
 import { ShowingService } from 'app/services/showing'
 import { convertStringToDate, LatLong, LatLongQuery } from 'common'
-import { CustomerExistsGuard, MovieExistsGuard, ShowtimeExistsGuard, TheaterExistsGuard } from './guards'
+import {
+    CustomerExistsGuard,
+    MovieExistsGuard,
+    ShowtimeExistsGuard,
+    TheaterExistsGuard
+} from './guards'
 
 @Controller('showing')
 export class ShowingController {

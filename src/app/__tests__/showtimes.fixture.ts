@@ -55,7 +55,9 @@ export class ShowtimesFactory extends BatchEventListener {
     }
 
     async createShowtimes(overrides = {}) {
-        const { batchId } = await this.showtimesService.createShowtimes(this.makeCreationDto(overrides))
+        const { batchId } = await this.showtimesService.createShowtimes(
+            this.makeCreationDto(overrides)
+        )
 
         return this.waitFinish(batchId)
     }

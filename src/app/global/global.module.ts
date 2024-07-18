@@ -8,6 +8,14 @@ import { PsqlDbModule } from './psql.db.module'
 import { QueueModule } from './queue.module'
 
 @Module({
-    imports: [CacheModule, EventModule, QueueModule, HttpModule, LoggerModule, MongoDbModule, PsqlDbModule]
+    imports: [
+        CacheModule,
+        EventModule,
+        QueueModule,
+        HttpModule,
+        LoggerModule,
+        MongoDbModule,
+        PsqlDbModule
+    ]
 })
 export class GlobalModule {}

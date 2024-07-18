@@ -100,7 +100,10 @@ export const jsonToObject = (obj: any): any => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const value = obj[key]
 
-            if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)) {
+            if (
+                typeof value === 'string' &&
+                /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)
+            ) {
                 result[key] = new Date(value)
             } else if (typeof value === 'object') {
                 result[key] = jsonToObject(value)

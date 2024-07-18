@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+    UsePipes
+} from '@nestjs/common'
 import {
     CustomerCreationDto,
     CustomersFilterDto,
@@ -20,7 +31,10 @@ export class CustomersController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findPagedCustomers(@Query() filter: CustomersFilterDto, @Query() pagination: PaginationOption) {
+    async findPagedCustomers(
+        @Query() filter: CustomersFilterDto,
+        @Query() pagination: PaginationOption
+    ) {
         return this.customersService.findPagedCustomers(filter, pagination)
     }
 

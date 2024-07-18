@@ -30,7 +30,11 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
                 Logger.log(`Completed saving ${savedDocs.length} documents`)
 
-                Assert.sameLength(inputDocs, savedDocs, 'All requested data must be saved as documents.')
+                Assert.sameLength(
+                    inputDocs,
+                    savedDocs,
+                    'All requested data must be saved as documents.'
+                )
 
                 return savedDocs
             })
@@ -48,7 +52,9 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         const deletedDocument = await this.model.findByIdAndDelete(id, { lean: true }).exec()
 
         if (!deletedDocument) {
-            throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
+            throw new MongooseException(
+                `Failed to delete document with id: ${id}. Document not found.`
+            )
         }
     }
 

@@ -48,6 +48,8 @@ describe('jest examples', () => {
             { id: 1, name: 'A' }
         ]
 
-        expect(array1).toEqual(expect.arrayContaining(array2.map((obj) => expect.objectContaining(obj))))
+        expect(array1).toEqual(
+            expect.arrayContaining(array2.map((obj) => expect.objectContaining(obj)))
+        )
     })
 })
