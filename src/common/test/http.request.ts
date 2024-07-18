@@ -1,61 +1,60 @@
 import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
-import { LogicException } from '../exceptions'
 import { jsonToObject } from '../utils'
 
 interface RequestContext {
     url: string
     headers?: any
     body?: any
-    query?: any
+    query?: Record<string, any> | string
+    fields?: { name: string; value: any }[]
+    attachs?: {
+        name: string
+        file: any
+        options?: string | { filename?: string | undefined; contentType?: string | undefined }
+    }[]
+}
+
+const sendRequest = async (req: supertest.Test, ctx: RequestContext) => {
+    ctx.attachs?.forEach((attach) => {
+        req.attach(attach.name, attach.file, attach.options)
+    })
+
+    ctx.fields?.forEach((field) => {
+        req.field(field.name, field.value)
+    })
+
+    if (ctx.headers) {
+        for (const [key, value] of Object.entries(ctx.headers)) {
+            req = req.set(key, value as string)
+        }
+    }
+
+    if (ctx.query) req.query(ctx.query)
+    if (ctx.body) req.send(ctx.body)
+
+    const res = await req
+    jsonToObject(res.body)
+
+    return res
 }
 
 export class HttpRequest {
     constructor(private readonly server: any) {}
-
-    private sendRequest = async (req: supertest.Test, ctx: RequestContext) => {
-        if (ctx.headers) {
-            for (const [key, value] of Object.entries(ctx.headers)) {
-                req = req.set(key, value as string)
-            }
-        }
-
-        const res = await req
-        jsonToObject(res.body)
-
-        return res
-    }
-
     async post(ctx: RequestContext) {
-        const req = supertest(this.server).post(ctx.url).query(ctx.query).send(ctx.body)
-
-        return this.sendRequest(req, ctx)
-    }
-
-    async get(ctx: RequestContext) {
-        if (ctx.body) {
-            throw new LogicException('get does not have a body')
-        }
-
-        const req = supertest(this.server).get(ctx.url).query(ctx.query).send()
-
-        return this.sendRequest(req, ctx)
+        return sendRequest(supertest(this.server).post(ctx.url), ctx)
     }
 
     async patch(ctx: RequestContext) {
-        const req = supertest(this.server).patch(ctx.url).query(ctx.query).send(ctx.body)
+        return sendRequest(supertest(this.server).patch(ctx.url), ctx)
+    }
 
-        return this.sendRequest(req, ctx)
+    async get(ctx: RequestContext) {
+        return sendRequest(supertest(this.server).get(ctx.url), ctx)
     }
 
     async delete(ctx: RequestContext) {
-        if (ctx.body) {
-            throw new LogicException('delete does not have a body')
-        }
-
-        const req = supertest(this.server).delete(ctx.url).query(ctx.query).send()
-
-        return this.sendRequest(req, ctx)
+        return sendRequest(supertest(this.server).delete(ctx.url), ctx)
     }
 }
 
