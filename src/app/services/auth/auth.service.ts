@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UserDto, UsersService } from 'app/services/users'
 import { CacheService, comment, generateUUID, notUsed } from 'common'
-import { authOptions } from 'config'
+import { Config } from 'config'
 import { AccessTokenPayload, AuthTokens, RefreshTokenPayload } from './interfaces'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
@@ -40,7 +40,10 @@ export class AuthService {
             const storedRefreshToken = await this.getStoredRefreshToken(refreshTokenPayload.userId)
 
             if (storedRefreshToken === refreshToken) {
-                return this.generateAuthTokens(refreshTokenPayload.userId, refreshTokenPayload.email)
+                return this.generateAuthTokens(
+                    refreshTokenPayload.userId,
+                    refreshTokenPayload.email
+                )
             }
         }
 
@@ -49,9 +52,11 @@ export class AuthService {
 
     private async getRefreshTokenPayload(token: string): Promise<RefreshTokenPayload | undefined> {
         try {
-            const secret = authOptions.refreshSecret
+            const secret = Config.auth.refreshSecret
 
-            const { exp, iat, jti, ...payload } = await this.jwtService.verifyAsync(token, { secret })
+            const { exp, iat, jti, ...payload } = await this.jwtService.verifyAsync(token, {
+                secret
+            })
             notUsed(exp, iat, jti)
 
             return payload
@@ -67,14 +72,14 @@ export class AuthService {
 
         const accessToken = await this.createToken(
             commonPayload,
-            authOptions.accessSecret,
-            authOptions.accessTokenExpiration
+            Config.auth.accessSecret,
+            Config.auth.accessTokenExpiration
         )
 
         const refreshToken = await this.createToken(
             commonPayload,
-            authOptions.refreshSecret,
-            authOptions.refreshTokenExpiration
+            Config.auth.refreshSecret,
+            Config.auth.refreshTokenExpiration
         )
 
         await this.storeRefreshToken(userId, refreshToken)
@@ -99,7 +104,7 @@ export class AuthService {
         await this.cache.set(
             `${REFRESH_TOKEN_PREFIX}${userId}`,
             refreshToken,
-            authOptions.refreshTokenExpiration
+            Config.auth.refreshTokenExpiration
         )
     }
 

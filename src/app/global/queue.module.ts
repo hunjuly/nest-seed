@@ -1,12 +1,12 @@
 import { BullModule } from '@nestjs/bull'
 import { Global, Module } from '@nestjs/common'
-import { redisOptions } from 'config'
+import { Config } from 'config'
 
 @Global()
 @Module({
     imports: [
         BullModule.forRoot({
-            redis: { ...redisOptions }
+            redis: { ...Config.redis }
         })
     ]
 })

@@ -6,7 +6,7 @@ desktop.ini
 /coverage/
 /node_modules/
 /config/
-
+/uploads/
 /.env
 /.env.*
 !/.env.development

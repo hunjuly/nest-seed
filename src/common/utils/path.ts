@@ -51,6 +51,16 @@ export class Path {
         return stats.isDirectory()
     }
 
+    public static async getFileSize(filePath: string) {
+        try {
+            const stats = await fs.stat(filePath)
+            return stats.size
+        } catch (err) {
+            console.error('Error reading file:', err)
+            return null
+        }
+    }
+
     // Directory operations
     public static async mkdir(path: string): Promise<void> {
         await fs.mkdir(path, { recursive: true })

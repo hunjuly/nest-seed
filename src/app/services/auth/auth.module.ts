@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { GlobalModule } from 'app/global'
 import { UsersModule } from 'app/services/users'
-import { authOptions } from 'config'
+import { Config } from 'config'
 import { AuthService } from './auth.service'
 import { JwtStrategy, LocalStrategy } from './strategies'
 
@@ -13,15 +13,15 @@ import { JwtStrategy, LocalStrategy } from './strategies'
         PassportModule,
         UsersModule,
         JwtModule.register({
-            secret: authOptions.accessSecret,
+            secret: Config.auth.accessSecret,
             signOptions: {
-                expiresIn: authOptions.accessTokenExpiration
+                expiresIn: Config.auth.accessTokenExpiration
             }
         }),
         JwtModule.register({
-            secret: authOptions.refreshSecret,
+            secret: Config.auth.refreshSecret,
             signOptions: {
-                expiresIn: authOptions.refreshTokenExpiration
+                expiresIn: Config.auth.refreshTokenExpiration
             }
         })
     ],

@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import { AppLoggerService } from 'common'
-import { httpOptions, isDevelopment, isProduction } from 'config'
+import { Config, isDevelopment, isProduction } from 'config'
 import * as express from 'express'
 import { AppModule } from './app.module'
 import * as compression from 'compression'
@@ -10,7 +10,7 @@ async function bootstrap() {
 
     app.use(compression())
 
-    const limit = httpOptions.requestPayloadLimit
+    const limit = Config.http.requestPayloadLimit
     app.use(express.json({ limit }))
     app.use(express.urlencoded({ limit, extended: true }))
 

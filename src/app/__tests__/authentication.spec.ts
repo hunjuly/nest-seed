@@ -8,15 +8,18 @@ import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test
 import { UserCredentials, createUser } from './authentication.fixture'
 
 jest.mock('config', () => {
-    const actualConfig = jest.requireActual('config')
+    const { Config, ...rest } = jest.requireActual('config')
 
     return {
-        ...actualConfig,
-        authOptions: {
-            accessSecret: 'mockAccessSecret',
-            accessTokenExpiration: '3s',
-            refreshSecret: 'mockRefreshSecret',
-            refreshTokenExpiration: '3s'
+        ...rest,
+        Config: {
+            ...Config,
+            auth: {
+                accessSecret: 'mockAccessSecret',
+                accessTokenExpiration: '3s',
+                refreshSecret: 'mockRefreshSecret',
+                refreshTokenExpiration: '3s'
+            }
         }
     }
 })

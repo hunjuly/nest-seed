@@ -24,6 +24,15 @@ describe('Path', () => {
         expect(tempDir.startsWith(os.tmpdir())).toBeTruthy()
     })
 
+    it('getFileSize', async () => {
+        const contents = 'hello world'
+        const filePath = Path.join(tempDir, 'file.txt')
+        await fs.writeFile(filePath, contents)
+
+        const fileSize = await Path.getFileSize(filePath)
+        expect(fileSize).toEqual(contents.length)
+    })
+
     it('should correctly check if the specified path exists (async)', async () => {
         const filePath = Path.join(tempDir, 'file.txt')
         await fs.writeFile(filePath, 'hello world')

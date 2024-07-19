@@ -2,7 +2,7 @@ import { CacheModule as NestCacheModule } from '@nestjs/cache-manager'
 import { Global, Module } from '@nestjs/common'
 import { redisStore } from 'cache-manager-ioredis-yet'
 import { CacheService } from 'common'
-import { redisOptions } from 'config'
+import { Config } from 'config'
 
 @Global()
 @Module({
@@ -11,7 +11,7 @@ import { redisOptions } from 'config'
             isGlobal: true,
             useFactory: async () => {
                 return {
-                    ...redisOptions,
+                    ...Config.redis,
                     store: redisStore
                 }
             }
