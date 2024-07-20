@@ -49,16 +49,26 @@ services:
             - mongodb_key:/mongodb_key
         working_dir: /mongodb_key
 
-    mongo:
+    mongo1:
         <<: *mongo-common
-        container_name: ${MONGO_DB_HOST}
+        container_name: ${MONGO_DB_HOST1}
         depends_on:
             - mongo-key-generator
+    mongo2:
+        <<: *mongo-common
+        container_name: ${MONGO_DB_HOST2}
+        depends_on:
+            - mongo1
+    mongo3:
+        <<: *mongo-common
+        container_name: ${MONGO_DB_HOST3}
+        depends_on:
+            - mongo2
 
     mongo-express:
         image: mongo-express:latest
         profiles: ['infra']
-        container_name: ${MONGO_DB_HOST}-express
+        container_name: $PROJECT_NAME-mongo-express
         logging: *default-logging
         environment:
             ME_CONFIG_BASICAUTH_USERNAME: user
@@ -66,7 +76,7 @@ services:
             ME_CONFIG_MONGODB_ENABLE_ADMIN: true
             ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_DB_USERNAME}
             ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_DB_PASSWORD}
-            ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST}
+            ME_CONFIG_MONGODB_SERVER: ${MONGO_DB_HOST1}
             ME_CONFIG_MONGODB_PORT: ${MONGO_DB_PORT}
         networks:
             - default

@@ -46,7 +46,9 @@ export const Config = {
         poolSize: getNumber('POSTGRES_DB_POOL_SIZE')
     },
     mongo: {
-        host: getString('MONGO_DB_HOST'),
+        host1: getString('MONGO_DB_HOST1'),
+        host2: getString('MONGO_DB_HOST2'),
+        host3: getString('MONGO_DB_HOST3'),
         port: getNumber('MONGO_DB_PORT'),
         replica: getString('MONGO_DB_REPLICA_NAME'),
         user: getString('MONGO_DB_USERNAME'),

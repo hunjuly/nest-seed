@@ -47,29 +47,20 @@ export class Path {
 
     public static async isDirectory(path: string): Promise<boolean> {
         const stats = await fs.stat(path)
-
         return stats.isDirectory()
     }
 
     public static async getFileSize(filePath: string) {
-        try {
-            const stats = await fs.stat(filePath)
-            return stats.size
-        } catch (err) {
-            console.error('Error reading file:', err)
-            return null
-        }
+        const stats = await fs.stat(filePath)
+        return stats.size
     }
 
-    // Directory operations
     public static async mkdir(path: string): Promise<void> {
         await fs.mkdir(path, { recursive: true })
     }
 
     public static async delete(path: string): Promise<void> {
-        if (await this.exists(path)) {
-            await fs.rm(path, { recursive: true, force: true })
-        }
+        await fs.rm(path, { recursive: true, force: true })
     }
 
     public static async subdirs(src: string): Promise<string[]> {

@@ -180,7 +180,9 @@ describe('common/utils/etc', () => {
                 level1: {
                     date: '2023-06-18T12:00:00.000Z',
                     level2: {
-                        date: ['2023-06-19T12:00:00.000Z']
+                        date: ['2023-06-19T12:00:00.000Z'],
+                        date2: new Date(0),
+                        null: null
                     }
                 }
             })
