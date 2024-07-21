@@ -39,7 +39,10 @@ describe('/movies', () => {
 
             const res = await req.post('/movies').body(movieCreationDto).created()
 
-            expect(res.body).toEqual({ id: expect.anything(), ...movieCreationDto })
+            expect(res.body).toEqual({
+                id: expect.anything(),
+                ...movieCreationDto
+            })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {

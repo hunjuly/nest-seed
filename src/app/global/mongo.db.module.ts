@@ -15,7 +15,7 @@ const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
         autoIndex: isDevelopment(),
         autoCreate: isDevelopment(),
         bufferCommands: true,
-        waitQueueTimeoutMS: 1000, // bufferTimeoutMS option was missing, so we used it instead
+        waitQueueTimeoutMS: 5000,
         connectionFactory
     }
 
