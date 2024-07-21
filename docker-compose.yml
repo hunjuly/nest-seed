@@ -43,6 +43,7 @@ services:
         restart: always
 
     mongo-key-generator:
+        container_name: mongo-key-generator
         image: mongo:latest
         command: sh -c "openssl rand -base64 768 > mongodb.key && chmod 400 mongodb.key && chown mongodb:mongodb mongodb.key"
         volumes:

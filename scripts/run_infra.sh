@@ -28,3 +28,5 @@ rs.initiate({
 
 wait_for_service $POSTGRES_DB_HOST "run_psql -c 'SELECT 1' >/dev/null 2>&1"
 run_psql -c "CREATE SCHEMA $POSTGRES_DB_SCHEMA AUTHORIZATION $POSTGRES_DB_USERNAME;"
+
+docker rm mongo-key-generator
