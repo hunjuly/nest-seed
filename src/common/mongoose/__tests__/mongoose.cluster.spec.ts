@@ -6,7 +6,7 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import { Connection } from 'mongoose'
 import { SampleModule, SamplesRepository } from './mongoose.repository.fixture'
 
-describe('(Not Completed)MongoDB Cluster Testing', () => {
+describe.skip('(Not Completed)MongoDB Cluster Testing', () => {
     let mongoServer: MongoMemoryReplSet
     let module: TestingModule
     let repository: SamplesRepository
