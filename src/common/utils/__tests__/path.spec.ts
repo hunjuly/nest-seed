@@ -1,9 +1,9 @@
 import * as fs from 'fs/promises'
 import * as os from 'os'
 import * as p from 'path'
-import { Path } from '..'
+import { Path, sleep } from '..'
 
-// TODO 시가날 때 다시 보자. 지저분 하다.
+// TODO 시간될 때 다시 보자. 지저분 하다.
 describe('Path', () => {
     let tempDir: string
 
@@ -159,5 +159,28 @@ describe('Path', () => {
 
         expect(result).toBeFalsy()
         expect(fs.access).toHaveBeenCalledWith('/test/path', fs.constants.W_OK)
+    })
+
+    it('getFileChecksum', async () => {
+        const file1 = Path.join(tempDir, 'file1.txt')
+        await fs.writeFile(file1, 'hello world1')
+        const checksum1 = await Path.getFileChecksum(file1)
+
+        const file2 = Path.join(tempDir, 'file2.txt')
+        await fs.writeFile(file2, 'hello world2')
+        const checksum2 = await Path.getFileChecksum(file2)
+
+        expect(checksum1).toHaveLength(32)
+        expect(checksum1).not.toEqual(checksum2)
+    })
+
+    it('createDummyFile', async () => {
+        const file1 = Path.join(tempDir, 'file1.txt')
+        const fileSize = 5 * 1024 * 1024
+        Path.createDummyFile(file1, fileSize)
+
+        await sleep(1000)
+        expect(await Path.exists(file1)).toBeTruthy()
+        expect(await Path.getFileSize(file1)).toEqual(fileSize)
     })
 })

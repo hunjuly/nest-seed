@@ -1,27 +1,33 @@
+import { createHash, Hash } from 'crypto'
 import * as syncFs from 'fs'
+import { createReadStream } from 'fs'
 import * as fs from 'fs/promises'
 import { tmpdir } from 'os'
 import * as p from 'path'
+import { pipeline, Writable } from 'stream'
+import { promisify } from 'util'
+
+const promisifiedPipeline = promisify(pipeline)
 
 export class Path {
-    public static async getAbsolute(src: string): Promise<string> {
+    static async getAbsolute(src: string): Promise<string> {
         // resolve function converts relative paths to absolute paths
         return p.isAbsolute(src) ? src : p.resolve(src)
     }
 
-    public static join(...paths: string[]): string {
+    static join(...paths: string[]): string {
         return p.join(...paths)
     }
 
-    public static basename(path: string): string {
+    static basename(path: string): string {
         return p.basename(path)
     }
 
-    public static dirname(path: string): string {
+    static dirname(path: string): string {
         return p.dirname(path)
     }
 
-    public static async isWritable(path: string): Promise<boolean> {
+    static async isWritable(path: string): Promise<boolean> {
         try {
             await fs.access(path, fs.constants.W_OK)
 
@@ -31,11 +37,11 @@ export class Path {
         }
     }
 
-    public static existsSync(path: string): boolean {
+    static existsSync(path: string): boolean {
         return syncFs.existsSync(path)
     }
 
-    public static async exists(path: string): Promise<boolean> {
+    static async exists(path: string): Promise<boolean> {
         try {
             await fs.access(path)
 
@@ -45,25 +51,25 @@ export class Path {
         }
     }
 
-    public static async isDirectory(path: string): Promise<boolean> {
+    static async isDirectory(path: string): Promise<boolean> {
         const stats = await fs.stat(path)
         return stats.isDirectory()
     }
 
-    public static async getFileSize(filePath: string) {
+    static async getFileSize(filePath: string) {
         const stats = await fs.stat(filePath)
         return stats.size
     }
 
-    public static async mkdir(path: string): Promise<void> {
+    static async mkdir(path: string): Promise<void> {
         await fs.mkdir(path, { recursive: true })
     }
 
-    public static async delete(path: string): Promise<void> {
+    static async delete(path: string): Promise<void> {
         await fs.rm(path, { recursive: true, force: true })
     }
 
-    public static async subdirs(src: string): Promise<string[]> {
+    static async subdirs(src: string): Promise<string[]> {
         const res: string[] = []
 
         const items = await fs.readdir(src)
@@ -79,8 +85,7 @@ export class Path {
         return res
     }
 
-    // File operations
-    public static async copyFileOrDir(src: string, dest: string): Promise<void> {
+    static async copyFileOrDir(src: string, dest: string): Promise<void> {
         if (await this.isDirectory(src)) {
             await this.mkdir(dest)
             const items = await fs.readdir(src)
@@ -93,12 +98,44 @@ export class Path {
         }
     }
 
-    public static async createTempDirectory(): Promise<string> {
+    static async createTempDirectory(): Promise<string> {
         return await fs.mkdtemp(`${tmpdir()}${this.sep()}`)
     }
 
-    // The platform-specific file separator. '\\' or '/'.
-    public static sep() {
+    static sep() {
         return p.sep
+    }
+
+    static async getFileChecksum(
+        filePath: string,
+        algorithm: 'md5' | 'sha1' | 'sha256' | 'sha512' = 'md5'
+    ): Promise<string> {
+        const hash: Hash = createHash(algorithm)
+
+        await promisifiedPipeline(createReadStream(filePath), hash as unknown as Writable)
+
+        return hash.digest('hex')
+    }
+
+    static async createDummyFile(filePath: string, sizeInBytes: number) {
+        const file = await fs.open(filePath, 'w')
+
+        let remainingBytes = sizeInBytes
+
+        const buffer = Buffer.alloc(1024 * 1024, 'A') // 'A' 문자로 채워진 버퍼
+
+        try {
+            while (remainingBytes > 0) {
+                const currentChunkSize = Math.min(buffer.byteLength, remainingBytes)
+
+                await file.write(buffer, 0, currentChunkSize)
+                remainingBytes -= currentChunkSize
+            }
+        } finally {
+            await file.sync()
+            await file.close()
+        }
+
+        return filePath
     }
 }

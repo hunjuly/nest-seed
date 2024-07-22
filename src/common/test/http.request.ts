@@ -94,6 +94,9 @@ export class HttpRequest {
     notFound() {
         return this.send(HttpStatus.NOT_FOUND)
     }
+    payloadTooLarge() {
+        return this.send(HttpStatus.PAYLOAD_TOO_LARGE)
+    }
     internalServerError() {
         return this.send(HttpStatus.INTERNAL_SERVER_ERROR)
     }
