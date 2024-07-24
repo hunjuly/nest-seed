@@ -2,12 +2,14 @@ import {
     BadRequestException,
     Body,
     Controller,
+    Delete,
     Get,
     Logger,
     Param,
     Post,
     Res,
     UploadedFiles,
+    UseGuards,
     UseInterceptors
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
@@ -17,6 +19,7 @@ import { generateUUID } from 'common'
 import { Config } from 'config'
 import { Response } from 'express'
 import { diskStorage } from 'multer'
+import { StorageFileExistsGuard } from './guards/storage-file-exists.guard'
 
 class UploadFileDto {
     @IsString()
@@ -59,12 +62,10 @@ export class StorageFilesController {
     }
 
     @Get(':fileId')
+    @UseGuards(StorageFileExistsGuard)
     async downloadFile(@Param('fileId') fileId: string, @Res() res: Response) {
         const file = await this.storageFileService.getFile(fileId)
         const fileStream = await this.storageFileService.getFileStream(fileId)
-        if (!fileStream) {
-            return res.status(404).send('File stream not found')
-        }
 
         res.setHeader('Content-Type', file.mimetype)
         res.setHeader(
@@ -74,22 +75,31 @@ export class StorageFilesController {
         res.setHeader('Content-Length', file.size)
 
         return new Promise((resolve, reject) => {
+            /* istanbul ignore next */
+            const errorHandler = (error: Error) => {
+                // 에러 발생 시에도 스트림 리소스 해제
+                fileStream!.destroy()
+                reject(error)
+            }
+
             fileStream!
                 .pipe(res)
                 .on('finish', () => {
                     // 명시적으로 스트림 리소스를 해제
-                    fileStream.destroy()
+                    fileStream!.destroy()
                     resolve(true)
                 })
-                .on('error', (error) => {
-                    // 에러 발생 시에도 스트림 리소스 해제
-                    fileStream.destroy()
-                    reject(error)
-                })
+                .on('error', errorHandler)
                 .on('close', () => {
                     // 클라이언트가 연결을 끊으면 스트림을 정리
-                    fileStream.destroy()
+                    fileStream!.destroy()
                 })
         })
+    }
+
+    @Delete(':fileId')
+    @UseGuards(StorageFileExistsGuard)
+    async deleteMovie(@Param('fileId') fileId: string) {
+        return this.storageFileService.deleteFile(fileId)
     }
 }
