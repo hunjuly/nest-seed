@@ -1,6 +1,6 @@
 import { createHash, Hash } from 'crypto'
 import * as syncFs from 'fs'
-import { createReadStream } from 'fs'
+import { ReadStream } from 'fs'
 import * as fs from 'fs/promises'
 import { tmpdir } from 'os'
 import * as p from 'path'
@@ -107,12 +107,12 @@ export class Path {
     }
 
     static async getFileChecksum(
-        filePath: string,
+        readStream: ReadStream,
         algorithm: 'md5' | 'sha1' | 'sha256' | 'sha512' = 'md5'
     ): Promise<string> {
         const hash: Hash = createHash(algorithm)
 
-        await promisifiedPipeline(createReadStream(filePath), hash as unknown as Writable)
+        await promisifiedPipeline(readStream, hash as unknown as Writable)
 
         return hash.digest('hex')
     }
@@ -122,7 +122,10 @@ export class Path {
 
         let remainingBytes = sizeInBytes
 
-        const buffer = Buffer.alloc(1024 * 1024, 'A') // 'A' 문자로 채워진 버퍼
+        const buffer = Buffer.alloc(
+            1024 * 1024,
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ가나다라마바사아자차카타파하~!@#$%^&*()_+'
+        )
 
         try {
             while (remainingBytes > 0) {

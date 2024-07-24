@@ -1,9 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
+import { createWriteStream } from 'fs'
 
 export class HttpRequest {
-    private req: any
+    private req: supertest.Test
 
     constructor(private server: any) {}
 
@@ -64,6 +65,22 @@ export class HttpRequest {
         return this
     }
 
+    download(downloadFilePath: string): this {
+        const writeStream = createWriteStream(downloadFilePath)
+
+        this.req.buffer().parse((res, callback) => {
+            res.on('data', (chunk: any) => {
+                writeStream.write(chunk)
+            })
+            res.on('end', () => {
+                writeStream.end()
+                callback(null, '')
+            })
+        })
+
+        return this
+    }
+
     async send(status: HttpStatus): Promise<supertest.Test> {
         const res = await this.req
         if (res.status !== status) {
@@ -73,31 +90,13 @@ export class HttpRequest {
         res.body = jsonToObject(res.body)
         return res
     }
-    created() {
-        return this.send(HttpStatus.CREATED)
-    }
-    ok() {
-        return this.send(HttpStatus.OK)
-    }
-    accepted() {
-        return this.send(HttpStatus.ACCEPTED)
-    }
-    badRequest() {
-        return this.send(HttpStatus.BAD_REQUEST)
-    }
-    unauthorized() {
-        return this.send(HttpStatus.UNAUTHORIZED)
-    }
-    conflict() {
-        return this.send(HttpStatus.CONFLICT)
-    }
-    notFound() {
-        return this.send(HttpStatus.NOT_FOUND)
-    }
-    payloadTooLarge() {
-        return this.send(HttpStatus.PAYLOAD_TOO_LARGE)
-    }
-    internalServerError() {
-        return this.send(HttpStatus.INTERNAL_SERVER_ERROR)
-    }
+    created = () => this.send(HttpStatus.CREATED)
+    ok = () => this.send(HttpStatus.OK)
+    accepted = () => this.send(HttpStatus.ACCEPTED)
+    badRequest = () => this.send(HttpStatus.BAD_REQUEST)
+    unauthorized = () => this.send(HttpStatus.UNAUTHORIZED)
+    conflict = () => this.send(HttpStatus.CONFLICT)
+    notFound = () => this.send(HttpStatus.NOT_FOUND)
+    payloadTooLarge = () => this.send(HttpStatus.PAYLOAD_TOO_LARGE)
+    internalServerError = () => this.send(HttpStatus.INTERNAL_SERVER_ERROR)
 }

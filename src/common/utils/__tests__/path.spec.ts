@@ -2,6 +2,7 @@ import * as fs from 'fs/promises'
 import * as os from 'os'
 import * as p from 'path'
 import { Path, sleep } from '..'
+import { createReadStream } from 'fs'
 
 // TODO 시간될 때 다시 보자. 지저분 하다.
 describe('Path', () => {
@@ -164,11 +165,13 @@ describe('Path', () => {
     it('getFileChecksum', async () => {
         const file1 = Path.join(tempDir, 'file1.txt')
         await fs.writeFile(file1, 'hello world1')
-        const checksum1 = await Path.getFileChecksum(file1)
+        const readStream1 = createReadStream(file1)
+        const checksum1 = await Path.getFileChecksum(readStream1)
 
         const file2 = Path.join(tempDir, 'file2.txt')
         await fs.writeFile(file2, 'hello world2')
-        const checksum2 = await Path.getFileChecksum(file2)
+        const readStream2 = createReadStream(file2)
+        const checksum2 = await Path.getFileChecksum(readStream2)
 
         expect(checksum1).toHaveLength(32)
         expect(checksum1).not.toEqual(checksum2)
