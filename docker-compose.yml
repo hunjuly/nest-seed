@@ -20,18 +20,18 @@ x-mongo-common: &mongo-common
     restart: always
 
 services:
-    postgres:
-        image: postgres:latest
-        profiles: ['infra']
-        container_name: ${POSTGRES_DB_HOST}
-        logging: *default-logging
-        environment:
-            POSTGRES_USER: ${POSTGRES_DB_USERNAME}
-            POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
-            POSTGRES_DB: ${POSTGRES_DB_DATABASE}
-        networks:
-            - default
-        restart: always
+    # postgres:
+    #     image: postgres:latest
+    #     profiles: ['infra']
+    #     container_name: ${POSTGRES_DB_HOST}
+    #     logging: *default-logging
+    #     environment:
+    #         POSTGRES_USER: ${POSTGRES_DB_USERNAME}
+    #         POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
+    #         POSTGRES_DB: ${POSTGRES_DB_DATABASE}
+    #     networks:
+    #         - default
+    #     restart: always
 
     redis:
         image: redis:latest
