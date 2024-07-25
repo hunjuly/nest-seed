@@ -37,7 +37,7 @@ export class StorageFilesController {
         FilesInterceptor('files', Config.fileUpload.maxFilesPerUpload, {
             storage: diskStorage({
                 destination: (_req, _file, cb) => cb(null, Config.fileUpload.directory),
-                filename: (_req, _file, cb) => cb(null, `${generateUUID()}.file`)
+                filename: (_req, _file, cb) => cb(null, `${generateUUID()}.tmp`)
             }),
             fileFilter: (_req, file, cb) => {
                 let error: Error | null = null

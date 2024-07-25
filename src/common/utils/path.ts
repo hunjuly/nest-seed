@@ -85,13 +85,13 @@ export class Path {
         return res
     }
 
-    static async copyFileOrDir(src: string, dest: string): Promise<void> {
+    static async copy(src: string, dest: string): Promise<void> {
         if (await this.isDirectory(src)) {
             await this.mkdir(dest)
             const items = await fs.readdir(src)
 
             for (const item of items) {
-                await this.copyFileOrDir(this.join(src, item), this.join(dest, item))
+                await this.copy(this.join(src, item), this.join(dest, item))
             }
         } else {
             await fs.copyFile(src, dest)
@@ -140,5 +140,10 @@ export class Path {
         }
 
         return filePath
+    }
+
+    static async move(src: string, dest: string): Promise<void> {
+        // rename may fail if moving to a different file-system
+        await fs.rename(src, dest)
     }
 }

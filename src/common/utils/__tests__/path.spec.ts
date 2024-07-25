@@ -83,7 +83,7 @@ describe('Path', () => {
         await fs.writeFile(srcFilePath, 'hello world')
 
         const destFilePath = Path.join(tempDir, 'file_copy.txt')
-        await Path.copyFileOrDir(srcFilePath, destFilePath)
+        await Path.copy(srcFilePath, destFilePath)
 
         const copiedExists = await Path.exists(destFilePath)
         expect(copiedExists).toBeTruthy()
@@ -101,7 +101,7 @@ describe('Path', () => {
         await fs.writeFile(fileInSrcDirPath, 'hello from the original dir')
 
         const destDirPath = Path.join(tempDir, 'testdir_copy')
-        await Path.copyFileOrDir(srcDirPath, destDirPath)
+        await Path.copy(srcDirPath, destDirPath)
 
         const copiedDirExists = await Path.exists(destDirPath)
         expect(copiedDirExists).toBeTruthy()
@@ -185,5 +185,23 @@ describe('Path', () => {
         await sleep(1000)
         expect(await Path.exists(file1)).toBeTruthy()
         expect(await Path.getFileSize(file1)).toEqual(fileSize)
+    })
+
+    it('move', async () => {
+        const srcFilePath = Path.join(tempDir, 'file.txt')
+        await fs.writeFile(srcFilePath, 'hello world')
+
+        const destFilePath = Path.join(tempDir, 'move.txt')
+        await Path.move(srcFilePath, destFilePath)
+
+        const movedExists = await Path.exists(destFilePath)
+        expect(movedExists).toBeTruthy()
+
+        const srcExists = await Path.exists(srcFilePath)
+        expect(srcExists).toBeFalsy()
+
+        // check the contents of the copied file
+        const content = await fs.readFile(destFilePath, 'utf-8')
+        expect(content).toEqual('hello world')
     })
 })
