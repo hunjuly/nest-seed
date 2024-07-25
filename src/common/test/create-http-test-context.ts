@@ -9,7 +9,7 @@ export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
-    request: HttpRequest
+    createRequest: (prefix?: string) => HttpRequest
     close: () => Promise<void>
 }
 
@@ -48,12 +48,12 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
         })
     })
 
-    const request = new HttpRequest(server)
+    const createRequest = (prefix: string = '') => new HttpRequest(server, prefix)
 
     const close = async () => {
         if (server) await server.close()
         if (module) await module.close()
     }
 
-    return { server, module, app, request, close }
+    return { server, module, app, createRequest, close }
 }

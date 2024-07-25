@@ -48,7 +48,7 @@ describe('/storage-files', () => {
             imports: [GlobalModule, StorageFilesModule],
             controllers: [StorageFilesController]
         })
-        req = testContext.request
+        req = testContext.createRequest()
         storageFilesService = testContext.module.get(StorageFilesService)
         uploadDir = await Path.createTempDirectory()
         Config.fileUpload.directory = uploadDir

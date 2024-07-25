@@ -11,7 +11,7 @@ describe('/showtimes', () => {
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        req = fixture.testContext.request
+        req = fixture.testContext.createRequest()
         factory = fixture.factory
     })
 

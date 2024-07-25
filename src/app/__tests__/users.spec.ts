@@ -18,7 +18,7 @@ describe('/users', () => {
             ignoreGuards: [LocalAuthGuard, JwtAuthGuard]
         })
 
-        req = testContext.request
+        req = testContext.createRequest()
 
         usersService = testContext.module.get(UsersService)
     })

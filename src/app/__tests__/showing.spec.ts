@@ -26,7 +26,7 @@ describe('/showing', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = testContext.request
+        req = testContext.createRequest()
         customer = fixture.customer
         movies = fixture.movies
         theaters = fixture.theaters

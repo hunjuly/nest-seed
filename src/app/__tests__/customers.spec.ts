@@ -16,7 +16,7 @@ describe('/customers', () => {
             imports: [GlobalModule, CustomersModule],
             controllers: [CustomersController]
         })
-        req = testContext.request
+        req = testContext.createRequest()
 
         customersService = testContext.module.get(CustomersService)
     })

@@ -6,25 +6,28 @@ import { createWriteStream } from 'fs'
 export class HttpRequest {
     private req: supertest.Test
 
-    constructor(private server: any) {}
+    constructor(
+        private server: any,
+        private prefix: string
+    ) {}
 
     post(url: string): this {
-        this.req = supertest(this.server).post(url)
+        this.req = supertest(this.server).post(this.prefix + url)
         return this
     }
 
     patch(url: string): this {
-        this.req = supertest(this.server).patch(url)
+        this.req = supertest(this.server).patch(this.prefix + url)
         return this
     }
 
     get(url: string): this {
-        this.req = supertest(this.server).get(url)
+        this.req = supertest(this.server).get(this.prefix + url)
         return this
     }
 
     delete(url: string): this {
-        this.req = supertest(this.server).delete(url)
+        this.req = supertest(this.server).delete(this.prefix + url)
         return this
     }
 

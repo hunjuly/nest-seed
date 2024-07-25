@@ -36,7 +36,7 @@ describe('/auth', () => {
             imports: [GlobalModule, AuthModule, UsersModule],
             controllers: [AuthController]
         })
-        req = testContext.request
+        req = testContext.createRequest()
 
         const module = testContext.module
 

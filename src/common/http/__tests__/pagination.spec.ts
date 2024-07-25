@@ -23,7 +23,7 @@ describe('Pagination', () => {
             ]
         })
 
-        req = testContext.request
+        req = testContext.createRequest()
     })
 
     afterEach(async () => {
