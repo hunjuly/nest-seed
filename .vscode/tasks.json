@@ -28,7 +28,7 @@
             "command": "bash scripts/workspace_setup.sh"
         },
         {
-            "label": "Workspace Clean Up",
+            "label": "Workspace Cleanup",
             "detail": "개발 환경을 초기화하고 모든 데이터를 제거합니다.",
             "type": "shell",
             "command": "bash scripts/workspace_cleanup.sh"
