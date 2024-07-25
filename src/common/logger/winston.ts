@@ -10,21 +10,21 @@ import * as DailyRotateFile from 'winston-daily-rotate-file'
 import { consoleLogFormat } from './console-log.format'
 
 export interface LoggerConfiguration {
-    logDirectory: string
+    directory: string
     daysToKeepLogs: string
     fileLogLevel: string
     consoleLogLevel: string
 }
 
 export async function initializeLogger(config: LoggerConfiguration) {
-    const { logDirectory, daysToKeepLogs, fileLogLevel, consoleLogLevel } = config
+    const { directory, daysToKeepLogs, fileLogLevel, consoleLogLevel } = config
 
-    if (!(await Path.isWritable(logDirectory))) {
-        throw new EnvironmentException(`"${logDirectory}" is not writable.`)
+    if (!(await Path.isWritable(directory))) {
+        throw new EnvironmentException(`"${directory}" is not writable.`)
     }
 
     const logFileOptions = {
-        dirname: logDirectory,
+        dirname: directory,
         zippedArchive: false,
         maxSize: '10m',
         createSymlink: true,

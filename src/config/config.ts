@@ -1,5 +1,7 @@
+import { existsSync } from 'fs'
 import * as dotenv from 'dotenv'
 import { getNumber, getString } from './utils'
+import { exit } from 'process'
 
 export function isProduction() {
     return process.env.NODE_ENV === 'production'
@@ -26,7 +28,7 @@ export const Config = {
         refreshTokenExpiration: getString('AUTH_REFRESH_TOKEN_EXPIRATION')
     },
     log: {
-        logDirectory: getString('LOG_DIRECTORY'),
+        directory: getString('LOG_DIRECTORY'),
         daysToKeepLogs: getString('LOG_DAYS_TO_KEEP'),
         fileLogLevel: getString('LOG_FILE_LEVEL'),
         consoleLogLevel: getString('LOG_CONSOLE_LEVEL')
@@ -61,4 +63,14 @@ export const Config = {
         maxFilesPerUpload: getNumber('FILE_UPLOAD_MAX_FILES_PER_UPLOAD'),
         allowedMimeTypes: getString('FILE_UPLOAD_ALLOWED_FILE_TYPES').split(',')
     }
+}
+
+if (!existsSync(Config.fileUpload.directory)) {
+    console.log(`File upload directory does not exist: ${Config.fileUpload.directory}`)
+    exit(1)
+}
+
+if (!existsSync(Config.log.directory)) {
+    console.log(`Log directory does not exist: ${Config.log.directory}`)
+    exit(1)
 }
