@@ -3,15 +3,7 @@ import { TheatersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
-import {
-    HttpRequest,
-    HttpTestContext,
-    createHttpTestContext,
-    expectBadRequest,
-    expectCreated,
-    expectNotFound,
-    expectOk
-} from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createTheater, createTheaters } from './theaters.fixture'
 
 describe('/theaters', () => {
@@ -41,20 +33,13 @@ describe('/theaters', () => {
         }
 
         it('Create a theater', async () => {
-            const res = await req.post({ url: '/theaters', body: createData })
-            expectCreated(res)
-            expect(res.body).toEqual({
-                id: expect.anything(),
-                ...createData
-            })
+            const res = await req.post('/theaters').body(createData).created()
+
+            expect(res.body).toEqual({ id: expect.anything(), ...createData })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            const res = await req.post({
-                url: '/theaters',
-                body: {}
-            })
-            expectBadRequest(res)
+            return req.post('/theaters').body({}).badRequest()
         })
     })
 
@@ -72,23 +57,15 @@ describe('/theaters', () => {
                 seatmap: []
             }
 
-            const updateResponse = await req.patch({ url: `/theaters/${theater.id}`, body: updateData })
-            expectOk(updateResponse)
+            const updateResponse = await req.patch(`/theaters/${theater.id}`).body(updateData).ok()
+            expect(updateResponse.body).toEqual({ ...theater, ...updateData })
 
-            const getResponse = await req.get({ url: `/theaters/${theater.id}` })
-            expectOk(getResponse)
-
-            const expected = { ...theater, ...updateData }
-            expect(updateResponse.body).toEqual(expected)
+            const getResponse = await req.get(`/theaters/${theater.id}`).ok()
             expect(updateResponse.body).toEqual(getResponse.body)
         })
 
         it('NOT_FOUND(404) if theater is not found', async () => {
-            const res = await req.patch({
-                url: `/theaters/${nullObjectId}`,
-                body: {}
-            })
-            expectNotFound(res)
+            return req.patch(`/theaters/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -100,16 +77,12 @@ describe('/theaters', () => {
         })
 
         it('Delete a theater', async () => {
-            const deleteResponse = await req.delete({ url: `/theaters/${theater.id}` })
-            expectOk(deleteResponse)
-
-            const getResponse = await req.get({ url: `/theaters/${theater.id}` })
-            expectNotFound(getResponse)
+            await req.delete(`/theaters/${theater.id}`).ok()
+            await req.get(`/theaters/${theater.id}`).notFound()
         })
 
         it('NOT_FOUND(404) if theater is not found', async () => {
-            const res = await req.delete({ url: `/theaters/${nullObjectId}` })
-            expectNotFound(res)
+            return req.delete(`/theaters/${nullObjectId}`).notFound()
         })
     })
 
@@ -121,20 +94,14 @@ describe('/theaters', () => {
         })
 
         it('Retrieve all theaters', async () => {
-            const res = await req.get({
-                url: '/theaters',
-                query: { orderby: 'name:asc' }
-            })
-            expectOk(res)
+            const res = await req.get('/theaters').query({ orderby: 'name:asc' }).ok()
+
             expect(res.body.items).toEqual(theaters)
         })
 
         it('Retrieve theaters by partial name', async () => {
-            const res = await req.get({
-                url: '/theaters',
-                query: { name: 'Theater-' }
-            })
-            expectOk(res)
+            const res = await req.get('/theaters').query({ name: 'Theater-' }).ok()
+
             expect(res.body.items).toEqual(expect.arrayContaining(theaters))
         })
     })
@@ -147,14 +114,13 @@ describe('/theaters', () => {
         })
 
         it('Retrieve a theater by ID', async () => {
-            const res = await req.get({ url: `/theaters/${theater.id}` })
-            expectOk(res)
+            const res = await req.get(`/theaters/${theater.id}`).ok()
+
             expect(res.body).toEqual(theater)
         })
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
-            const res = await req.get({ url: `/theaters/${nullObjectId}` })
-            expectNotFound(res)
+            return req.get(`/theaters/${nullObjectId}`).notFound()
         })
     })
 })

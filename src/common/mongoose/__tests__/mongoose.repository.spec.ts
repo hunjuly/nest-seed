@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
-import { Exception, MongooseException, OrderDirection, nullObjectId, sleep } from 'common'
+import { Exception, MongooseException, OrderDirection, nullObjectId } from 'common'
 import { createTestingModule } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import { Connection } from 'mongoose'
@@ -17,22 +17,22 @@ import {
 } from './mongoose.repository.fixture'
 
 describe('MongooseRepository', () => {
-    let mongoServer: MongoMemoryReplSet
+    let mongod: MongoMemoryReplSet
     let module: TestingModule
     let repository: SamplesRepository
 
     beforeAll(async () => {
-        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 4 } })
+        mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
     })
 
     afterAll(async () => {
-        await mongoServer?.stop()
+        await mongod?.stop()
     })
 
     beforeEach(async () => {
         module = await createTestingModule({
             imports: [
-                MongooseModule.forRoot(mongoServer.getUri(), {
+                MongooseModule.forRoot(mongod.getUri(), {
                     connectionFactory: async (connection: Connection) => {
                         await connection.dropDatabase()
                         return connection
@@ -42,13 +42,6 @@ describe('MongooseRepository', () => {
             ]
         })
         repository = module.get(SamplesRepository)
-
-        /**
-         * Failure to sleep() results in the following error, which appears to be an error in mongdb-memory-server
-         * Failed to save documents: Caused by :: Collection namespace 'test.samples' is already in use.
-         * :: Please retry your operation or multi-document transaction
-         */
-        await sleep(100)
     })
 
     afterEach(async () => {
@@ -57,9 +50,7 @@ describe('MongooseRepository', () => {
 
     describe('create', () => {
         it('should successfully create a document', async () => {
-            const doc = await repository.create({
-                name: 'document name'
-            })
+            const doc = await repository.create({ name: 'document name' })
 
             expect(doc).toEqual({
                 ...baseFields,
@@ -76,10 +67,12 @@ describe('MongooseRepository', () => {
 
     describe('createMany', () => {
         it('should successfully create multiple documents', async () => {
-            const doc = await repository.createMany([
-                { name: 'document-1 name' },
-                { name: 'document-2 name' }
-            ])
+            const doc = await repository.withTransaction(async (session) =>
+                repository.createMany(
+                    [{ name: 'document-1 name' }, { name: 'document-2 name' }],
+                    session
+                )
+            )
 
             expect(doc).toEqual([
                 { ...baseFields, name: 'document-1 name' },
@@ -90,7 +83,9 @@ describe('MongooseRepository', () => {
         it('should throw an exception if required fields are missing', async () => {
             module.useLogger(false)
 
-            const promise = repository.createMany([{}])
+            const promise = repository.withTransaction(async (session) =>
+                repository.createMany([{}], session)
+            )
 
             await expect(promise).rejects.toThrowError()
         })
@@ -104,7 +99,9 @@ describe('MongooseRepository', () => {
         })
 
         it('should successfully update a document', async () => {
-            const doc = await repository.update(sample._id, { name: 'new name' })
+            const doc = await repository.update(sample._id, {
+                name: 'new name'
+            })
 
             expect(doc).toEqual({ ...baseFields, name: 'new name' })
         })
@@ -276,10 +273,13 @@ describe('MongooseRepository', () => {
             samples = await createSamples(repository, 20)
         })
 
-        it('should return all documents if no filter is specified', async () => {
-            const docs = await repository.findByFilter({})
-
+        it('should return all documents when using findAll()', async () => {
+            const docs = await repository.findAll()
             expect(docs).toEqual(expect.arrayContaining(samples))
+        })
+
+        it('should throw an exception when findByFilter is called with an empty filter', async () => {
+            await expect(repository.findByFilter({})).rejects.toThrow()
         })
 
         it('should query using a regular expression', async () => {

@@ -1,7 +1,9 @@
-import { mongoOptions } from 'config'
+import { notUsed } from 'common'
+import { Config } from 'config'
 
-const { user, pass, host, port, replica, database: dbName } = mongoOptions
+const { user, pass, host1, host2, host3, port, replica, database: dbName } = Config.mongo
 
-const uri = `mongodb://${user}:${pass}@${host}:${port}/?replicaSet=${replica}`
+notUsed(host3, '3개를 다 적을 필요는 없다')
+const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
 
 export const mongoDatasource = { uri, dbName }

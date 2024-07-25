@@ -16,7 +16,10 @@ export async function createMovie(moviesService: MoviesService, overrides = {}):
     return moviesService.createMovie(body)
 }
 
-export async function createMovies(moviesService: MoviesService, overrides = {}): Promise<MovieDto[]> {
+export async function createMovies(
+    moviesService: MoviesService,
+    overrides = {}
+): Promise<MovieDto[]> {
     const promises: Promise<MovieDto>[] = []
 
     const genres = [

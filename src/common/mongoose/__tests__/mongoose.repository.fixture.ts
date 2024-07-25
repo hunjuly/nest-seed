@@ -59,7 +59,10 @@ export async function createSample(repository: SamplesRepository): Promise<Sampl
     return document
 }
 
-export async function createSamples(repository: SamplesRepository, count: number): Promise<Sample[]> {
+export async function createSamples(
+    repository: SamplesRepository,
+    count: number
+): Promise<Sample[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {

@@ -1,15 +1,9 @@
-import {
-    HttpTestContext,
-    createHttpTestContext,
-    expectBadRequest,
-    expectInternalServerError,
-    expectOk
-} from 'common/test'
+import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { TestModule } from './filters.fixture'
 
 describe('common/filters', () => {
     let testContext: HttpTestContext
-    let req: any
+    let req: HttpRequest
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [TestModule] })
@@ -22,17 +16,14 @@ describe('common/filters', () => {
     })
 
     it('ErrorFilter', async () => {
-        const res = await req.get({ url: '/error' })
-        expectInternalServerError(res)
+        return req.get('/error').internalServerError()
     })
 
     it('HttpExceptionFilter', async () => {
-        const res = await req.get({ url: '/http-exception' })
-        expectBadRequest(res)
+        return req.get('/http-exception').badRequest()
     })
 
     it('HttpSuccessInterceptor', async () => {
-        const res = await req.get({ url: '/http-success' })
-        expectOk(res)
+        return req.get('/http-success').ok()
     })
 })

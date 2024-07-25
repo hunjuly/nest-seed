@@ -54,7 +54,10 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         return super.findByFilter(query)
     }
 
-    async updateTicketStatus(ticketIds: string[], status: TicketStatus): Promise<RepositoryUpdateStatus> {
+    async updateTicketStatus(
+        ticketIds: string[],
+        status: TicketStatus
+    ): Promise<RepositoryUpdateStatus> {
         this.logger.log(`${ticketIds}의 status를 ${status}으로 업데이트 시작`)
 
         const result = await this.model.updateMany(

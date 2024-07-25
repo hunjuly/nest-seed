@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UsePipes } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
+    UsePipes
+} from '@nestjs/common'
 import {
     TheaterCreationDto,
     TheatersFilterDto,
@@ -19,7 +30,10 @@ export class TheatersController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findPagedTheaters(@Query() filter: TheatersFilterDto, @Query() pagination: PaginationOption) {
+    async findPagedTheaters(
+        @Query() filter: TheatersFilterDto,
+        @Query() pagination: PaginationOption
+    ) {
         return this.theatersService.findPagedTheaters(filter, pagination)
     }
 
@@ -31,7 +45,10 @@ export class TheatersController {
 
     @UseGuards(TheaterExistsGuard)
     @Patch(':theaterId')
-    async updateTheater(@Param('theaterId') theaterId: string, @Body() updateTheaterDto: TheaterUpdatingDto) {
+    async updateTheater(
+        @Param('theaterId') theaterId: string,
+        @Body() updateTheaterDto: TheaterUpdatingDto
+    ) {
         return this.theatersService.updateTheater(theaterId, updateTheaterDto)
     }
 

@@ -1,7 +1,10 @@
 import { TheaterDto, TheatersService } from 'app/services/theaters'
 import { padNumber } from 'common'
 
-export async function createTheater(theatersSerivce: TheatersService, overrides = {}): Promise<TheaterDto> {
+export async function createTheater(
+    theatersSerivce: TheatersService,
+    overrides = {}
+): Promise<TheaterDto> {
     return theatersSerivce.createTheater({
         name: `theater name`,
         latlong: { latitude: 38.123, longitude: 138.678 },

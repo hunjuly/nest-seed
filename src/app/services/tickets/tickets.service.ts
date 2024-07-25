@@ -48,6 +48,16 @@ export class TicketsService {
         return { ...paginated, items }
     }
 
+    async findAllTickets(): Promise<TicketDto[]> {
+        this.logger.log('Searching for all tickets.')
+
+        const tickets = await this.ticketsRepository.findAll()
+
+        this.logger.log(`Search completed. Found ${tickets.length} tickets.`)
+
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
+
     async findTickets(filterDto: TicketsFilterDto): Promise<TicketDto[]> {
         this.logger.log('Searching for tickets with the provided query parameters.', filterDto)
 
@@ -63,7 +73,11 @@ export class TicketsService {
 
         const result = await this.ticketsRepository.updateTicketStatus(ticketIds, TicketStatus.sold)
 
-        Assert.equals(result.matchedCount, result.modifiedCount, '모든 티켓의 상태가 변경되어야 한다')
+        Assert.equals(
+            result.matchedCount,
+            result.modifiedCount,
+            '모든 티켓의 상태가 변경되어야 한다'
+        )
 
         const tickets = await this.ticketsRepository.findByIds(ticketIds)
 

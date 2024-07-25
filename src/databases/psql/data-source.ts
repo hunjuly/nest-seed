@@ -1,5 +1,5 @@
 import { User } from 'app/services/users/entities'
-import { psqlOptions } from 'config'
+import { Config } from 'config'
 import { DataSource } from 'typeorm'
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions'
 import { NestSeed1691754788909 } from './migrations/1691754788909-nest-seed'
@@ -8,7 +8,7 @@ const entities = [User]
 const migrations = [NestSeed1691754788909]
 
 export const psqlConnectionOptions = {
-    ...psqlOptions,
+    ...Config.psql,
     type: 'postgres',
     migrations,
     entities

@@ -31,7 +31,9 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
             return saved
         }
 
-        throw new EntityNotFoundTypeormException(`Failed to update entity with id: ${id}. Entity not found.`)
+        throw new EntityNotFoundTypeormException(
+            `Failed to update entity with id: ${id}. Entity not found.`
+        )
     }
 
     async deleteById(id: string): Promise<void> {

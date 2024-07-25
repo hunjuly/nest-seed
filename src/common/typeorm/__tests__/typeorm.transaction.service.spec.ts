@@ -30,20 +30,6 @@ describe('TypeormTransactionService', () => {
         if (module) await module.close()
     })
 
-    it('rollback a transaction', async () => {
-        let createdEntity!: Sample
-
-        await transactionService.execute(async (transaction) => {
-            createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
-
-            transaction.rollback()
-        })
-
-        const foundEntity = await sampleRepository.findById(createdEntity.id)
-
-        expect(foundEntity).toBeNull()
-    })
-
     it('create in transaction', async () => {
         let createdEntity!: Sample
 
@@ -79,6 +65,20 @@ describe('TypeormTransactionService', () => {
             createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
 
             await transaction.delete(createdEntity)
+        })
+
+        const foundEntity = await sampleRepository.findById(createdEntity.id)
+
+        expect(foundEntity).toBeNull()
+    })
+
+    it('rollback a transaction', async () => {
+        let createdEntity!: Sample
+
+        await transactionService.execute(async (transaction) => {
+            createdEntity = await transaction.create(Sample, { name: 'Create Sample' })
+
+            transaction.rollback()
         })
 
         const foundEntity = await sampleRepository.findById(createdEntity.id)

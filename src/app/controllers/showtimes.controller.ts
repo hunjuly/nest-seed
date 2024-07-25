@@ -47,7 +47,10 @@ export class ShowtimesController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findPagedShowtimes(@Query() filter: ShowtimesFilterDto, @Query() pagination: PaginationOption) {
+    async findPagedShowtimes(
+        @Query() filter: ShowtimesFilterDto,
+        @Query() pagination: PaginationOption
+    ) {
         return this.showtimesService.findPagedShowtimes(filter, pagination)
     }
 

@@ -1,7 +1,12 @@
 import { Injectable, Module, OnModuleDestroy } from '@nestjs/common'
 import { APP_INTERCEPTOR } from '@nestjs/core'
-import { AppLoggerService, HttpSuccessInterceptor, LoggerConfiguration, initializeLogger } from 'common'
-import { logOptions } from 'config'
+import {
+    AppLoggerService,
+    HttpSuccessInterceptor,
+    LoggerConfiguration,
+    initializeLogger
+} from 'common'
+import { Config } from 'config'
 import winston from 'winston'
 
 @Injectable()
@@ -20,7 +25,7 @@ class WinstonConfigService implements OnModuleDestroy {
     }
 
     private async setupLogger() {
-        this.loggerInstance = await initializeLogger(logOptions as LoggerConfiguration)
+        this.loggerInstance = await initializeLogger(Config.log as LoggerConfiguration)
     }
 
     async getLoggerService() {

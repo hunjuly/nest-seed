@@ -8,13 +8,23 @@ export class TypeormLogger implements ILogger {
         NestLogger.verbose('QUERY', 'DB', { query, parameters })
     }
 
-    logQueryError(error: string | Error, query: string, parameters?: any[], _queryRunner?: QueryRunner) {
+    logQueryError(
+        error: string | Error,
+        query: string,
+        parameters?: any[],
+        _queryRunner?: QueryRunner
+    ) {
         const message = error instanceof Error ? error.message : error
 
         NestLogger.error(message, 'DB', { query, parameters })
     }
 
-    logQuerySlow(runningTime: number, query: string, parameters?: any[], _queryRunner?: QueryRunner) {
+    logQuerySlow(
+        runningTime: number,
+        query: string,
+        parameters?: any[],
+        _queryRunner?: QueryRunner
+    ) {
         NestLogger.warn('Slow Query', 'DB', { query, parameters, runningTime })
     }
 

@@ -102,7 +102,12 @@ export const consoleLogFormat = winston.format.combine(
         if (etc[0] === 'HTTP') {
             return formatHttpLog(formattedMessage, formattedLevel, formattedTimestamp, etc[1] ?? {})
         } else if (etc[0] === 'DB') {
-            return formatDatabaseLog(formattedMessage, formattedLevel, formattedTimestamp, etc[1] ?? {})
+            return formatDatabaseLog(
+                formattedMessage,
+                formattedLevel,
+                formattedTimestamp,
+                etc[1] ?? {}
+            )
         } else {
             return formatGenericLog(formattedMessage, formattedLevel, formattedTimestamp, etc ?? {})
         }

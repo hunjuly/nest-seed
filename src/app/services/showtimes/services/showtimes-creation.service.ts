@@ -34,13 +34,14 @@ export class ShowtimesCreationService {
     async onFailed(job: Job) {
         this.logger.error(job.failedReason, job.data)
 
-        await this.emitEvent(new ShowtimesCreateErrorEvent(job.data.batchId, job.failedReason ?? ''))
+        await this.emitEvent(
+            new ShowtimesCreateErrorEvent(job.data.batchId, job.failedReason ?? '')
+        )
     }
 
     @Process(ShowtimesCreateRequestEvent.eventName)
     async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
-        const request = { ...job.data }
-        jsonToObject(request)
+        const request = jsonToObject({ ...job.data })
 
         const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
 
@@ -81,7 +82,9 @@ export class ShowtimesCreationService {
 
         this.logger.log(`${showtimeEntries.length}개의 showtime을 저장 시작`)
 
-        const createdShowtimes = await this.showtimesRepository.createMany(showtimeEntries)
+        const createdShowtimes = await this.showtimesRepository.withTransaction((session) =>
+            this.showtimesRepository.createMany(showtimeEntries, session)
+        )
 
         this.logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
 
@@ -121,7 +124,9 @@ export class ShowtimesCreationService {
         return conflictShowtimes
     }
 
-    private async createTimeslotsByTheater(request: ShowtimesCreationDto): Promise<Map<string, Timeslot>> {
+    private async createTimeslotsByTheater(
+        request: ShowtimesCreationDto
+    ): Promise<Map<string, Timeslot>> {
         const { theaterIds, durationMinutes, startTimes } = request
 
         const startDate = findMinDate(startTimes)

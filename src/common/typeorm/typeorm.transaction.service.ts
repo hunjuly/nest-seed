@@ -6,7 +6,9 @@ import { TypeormTransaction } from '.'
 export class TypeormTransactionService {
     constructor(private dataSource: DataSource) {}
 
-    async execute<Entity>(task: (transaction: TypeormTransaction) => Promise<Entity>): Promise<Entity> {
+    async execute<Entity>(
+        task: (transaction: TypeormTransaction) => Promise<Entity>
+    ): Promise<Entity> {
         const queryRunner = this.dataSource.createQueryRunner()
 
         try {

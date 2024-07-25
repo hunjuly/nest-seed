@@ -1,78 +1,102 @@
 import { HttpStatus } from '@nestjs/common'
 import * as supertest from 'supertest'
-import { LogicException } from '../exceptions'
 import { jsonToObject } from '../utils'
-
-interface RequestContext {
-    url: string
-    headers?: any
-    body?: any
-    query?: any
-}
+import { createWriteStream } from 'fs'
 
 export class HttpRequest {
-    constructor(private readonly server: any) {}
+    private req: supertest.Test
 
-    private sendRequest = async (req: supertest.Test, ctx: RequestContext) => {
-        if (ctx.headers) {
-            for (const [key, value] of Object.entries(ctx.headers)) {
-                req = req.set(key, value as string)
-            }
+    constructor(private server: any) {}
+
+    post(url: string): this {
+        this.req = supertest(this.server).post(url)
+        return this
+    }
+
+    patch(url: string): this {
+        this.req = supertest(this.server).patch(url)
+        return this
+    }
+
+    get(url: string): this {
+        this.req = supertest(this.server).get(url)
+        return this
+    }
+
+    delete(url: string): this {
+        this.req = supertest(this.server).delete(url)
+        return this
+    }
+
+    query(query: Record<string, any>): this {
+        this.req = this.req.query(query)
+        return this
+    }
+
+    headers(headers: Record<string, string>): this {
+        Object.entries(headers).forEach(([key, value]) => {
+            this.req = this.req.set(key, value)
+        })
+        return this
+    }
+
+    body(body: Record<string, any>): this {
+        this.req = this.req.send(body)
+        return this
+    }
+
+    attachs(
+        attachs: Array<{
+            name: string
+            file: string | Buffer
+            options?: string | { filename?: string; contentType?: string }
+        }>
+    ): this {
+        attachs.forEach(({ name, file, options }) => {
+            this.req = this.req.attach(name, file, options)
+        })
+        return this
+    }
+
+    fields(fields: Array<{ name: string; value: string }>): this {
+        fields.forEach(({ name, value }) => {
+            this.req = this.req.field(name, value)
+        })
+        return this
+    }
+
+    download(downloadFilePath: string): this {
+        const writeStream = createWriteStream(downloadFilePath)
+
+        this.req.buffer().parse((res, callback) => {
+            res.on('data', (chunk: any) => {
+                writeStream.write(chunk)
+            })
+            res.on('end', () => {
+                writeStream.end()
+                callback(null, '')
+            })
+        })
+
+        return this
+    }
+
+    async send(status: HttpStatus): Promise<supertest.Test> {
+        const res = await this.req
+        if (res.status !== status) {
+            console.log(res.body)
         }
-
-        const res = await req
-        jsonToObject(res.body)
-
+        expect(res.status).toEqual(status)
+        res.body = jsonToObject(res.body)
         return res
     }
-
-    async post(ctx: RequestContext) {
-        const req = supertest(this.server).post(ctx.url).query(ctx.query).send(ctx.body)
-
-        return this.sendRequest(req, ctx)
-    }
-
-    async get(ctx: RequestContext) {
-        if (ctx.body) {
-            throw new LogicException('get does not have a body')
-        }
-
-        const req = supertest(this.server).get(ctx.url).query(ctx.query).send()
-
-        return this.sendRequest(req, ctx)
-    }
-
-    async patch(ctx: RequestContext) {
-        const req = supertest(this.server).patch(ctx.url).query(ctx.query).send(ctx.body)
-
-        return this.sendRequest(req, ctx)
-    }
-
-    async delete(ctx: RequestContext) {
-        if (ctx.body) {
-            throw new LogicException('delete does not have a body')
-        }
-
-        const req = supertest(this.server).delete(ctx.url).query(ctx.query).send()
-
-        return this.sendRequest(req, ctx)
-    }
+    created = () => this.send(HttpStatus.CREATED)
+    ok = () => this.send(HttpStatus.OK)
+    accepted = () => this.send(HttpStatus.ACCEPTED)
+    badRequest = () => this.send(HttpStatus.BAD_REQUEST)
+    unauthorized = () => this.send(HttpStatus.UNAUTHORIZED)
+    conflict = () => this.send(HttpStatus.CONFLICT)
+    notFound = () => this.send(HttpStatus.NOT_FOUND)
+    payloadTooLarge = () => this.send(HttpStatus.PAYLOAD_TOO_LARGE)
+    internalServerError = () => this.send(HttpStatus.INTERNAL_SERVER_ERROR)
 }
-
-function expectHttpStatus(response: supertest.Response, status: HttpStatus) {
-    if (response.statusCode !== status) {
-        console.log(response.body)
-    }
-
-    expect(response.statusCode).toEqual(status)
-}
-
-export const expectCreated = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CREATED)
-export const expectOk = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.OK)
-export const expectAccepted = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.ACCEPTED)
-export const expectBadRequest = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.BAD_REQUEST)
-export const expectUnauthorized = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.UNAUTHORIZED)
-export const expectConflict = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.CONFLICT)
-export const expectNotFound = (res: supertest.Response) => expectHttpStatus(res, HttpStatus.NOT_FOUND)
-export const expectInternalServerError = (res: supertest.Response) =>
-    expectHttpStatus(res, HttpStatus.INTERNAL_SERVER_ERROR)

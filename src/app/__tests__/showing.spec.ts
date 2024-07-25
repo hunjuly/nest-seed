@@ -1,12 +1,12 @@
 import { expect } from '@jest/globals'
 import { CustomerDto } from 'app/services/customers'
 import { MovieDto } from 'app/services/movies'
-import { getSeatCount, TheaterDto } from 'app/services/theaters'
-import { expectCreated, expectEqualUnsorted, expectOk, HttpRequest, HttpTestContext } from 'common/test'
-import { createFixture, filterMoviesByGenre } from './showing.fixture'
 import { ShowtimeDto } from 'app/services/showtimes'
-import { convertDateToString, pick, pickIds } from 'common'
+import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
+import { convertDateToString, pick, pickIds } from 'common'
+import { expectEqualUnsorted, HttpRequest, HttpTestContext } from 'common/test'
+import { createFixture, filterMoviesByGenre } from './showing.fixture'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
@@ -38,11 +38,10 @@ describe('/showing', () => {
     })
 
     it('추천 영화 목록 요청', async () => {
-        const res = await req.get({
-            url: '/showing/movies/recommended',
-            query: { customerId: customer.id }
-        })
-        expectOk(res)
+        const res = await req
+            .get('/showing/movies/recommended')
+            .query({ customerId: customer.id })
+            .ok()
 
         const similarMovies = filterMoviesByGenre(movies, watchedMovie)
         expectEqualUnsorted(res.body, similarMovies)
@@ -52,24 +51,27 @@ describe('/showing', () => {
 
     it('상영 극장 목록 요청', async () => {
         const nearbyTheater1 = '37.6,128.6'
-        const res = await req.get({
-            url: `/showing/movies/${selectedMovie.id}/theaters`,
-            query: { userLocation: nearbyTheater1 }
-        })
-        expectOk(res)
+        const res = await req
+            .get(`/showing/movies/${selectedMovie.id}/theaters`)
+            .query({ userLocation: nearbyTheater1 })
+            .ok()
+
         expect(res.body).toEqual([theaters[1], theaters[2], theaters[0], theaters[3], theaters[4]])
 
         selectedTheater = theaters[0]
     })
 
     it('상영일 목록 요청', async () => {
-        const res = await req.get({
-            url: `/showing/movies/${selectedMovie.id}/theaters/${selectedTheater.id}/showdates`
-        })
-        expectOk(res)
+        const res = await req
+            .get(`/showing/movies/${selectedMovie.id}/theaters/${selectedTheater.id}/showdates`)
+            .ok()
 
         const showdates = res.body
-        expect(showdates).toEqual([new Date(2999, 0, 1), new Date(2999, 0, 2), new Date(2999, 0, 3)])
+        expect(showdates).toEqual([
+            new Date(2999, 0, 1),
+            new Date(2999, 0, 2),
+            new Date(2999, 0, 3)
+        ])
 
         selectedShowdate = showdates[0]
     })
@@ -79,12 +81,10 @@ describe('/showing', () => {
         const theaterId = selectedTheater.id
         const showdate = convertDateToString(selectedShowdate)
 
-        const res = await req.get({
-            url: `/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`
-        })
-        expectOk(res)
+        const { body: showtimes } = await req
+            .get(`/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`)
+            .ok()
 
-        const showtimes = res.body
         const seatCount = getSeatCount(theaters[0].seatmap)
         const common = {
             id: expect.any(String),
@@ -102,12 +102,10 @@ describe('/showing', () => {
     })
 
     it('상영 시간의 티켓 정보 요청', async () => {
-        const res = await req.get({
-            url: `/showing/showtimes/${selectedShowtime.id}/tickets`
-        })
-        expectOk(res)
+        const { body: tickets } = await req
+            .get(`/showing/showtimes/${selectedShowtime.id}/tickets`)
+            .ok()
 
-        const tickets = res.body
         const seatCount = getSeatCount(selectedTheater.seatmap)
         const expectedTickets = Array.from({ length: seatCount }, (_, index) => ({
             id: expect.any(String),
@@ -124,14 +122,10 @@ describe('/showing', () => {
     })
 
     it('티켓 구매', async () => {
-        const res = await req.post({
-            url: `/payments`,
-            body: {
-                customerId: customer.id,
-                ticketIds: pickIds(selectedTickets)
-            }
-        })
-        expectCreated(res)
+        return req
+            .post('/payments')
+            .body({ customerId: customer.id, ticketIds: pickIds(selectedTickets) })
+            .created()
     })
 
     it('상영 시간 목록 업데이트 확인', async () => {
@@ -139,13 +133,12 @@ describe('/showing', () => {
         const theaterId = selectedTheater.id
         const showdate = convertDateToString(selectedShowdate)
 
-        const res = await req.get({
-            url: `/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`
-        })
-        expectOk(res)
+        const { body } = await req
+            .get(`/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`)
+            .ok()
 
-        const showtimes = res.body as any[]
-        const salesStatuses = pick(showtimes, 'salesStatus')
+        const showtimes = body as ShowtimeDto[]
+        const salesStatuses = pick(showtimes as any[], 'salesStatus')
         const seatCount = getSeatCount(theaters[0].seatmap)
         const expectedStatuses = [
             { total: seatCount, sold: 0, available: seatCount },
@@ -155,12 +148,9 @@ describe('/showing', () => {
     })
 
     it('상영 시간의 티켓 정보 업데이트 확인', async () => {
-        const res = await req.get({
-            url: `/showing/showtimes/${selectedShowtime.id}/tickets`
-        })
-        expectOk(res)
+        const { body } = await req.get(`/showing/showtimes/${selectedShowtime.id}/tickets`).ok()
 
-        const tickets: TicketDto[] = res.body
+        const tickets = body as TicketDto[]
         const soldTickets = tickets.filter((ticket) => ticket.status === 'sold')
         expectEqualUnsorted(pickIds(soldTickets), pickIds(selectedTickets))
     })

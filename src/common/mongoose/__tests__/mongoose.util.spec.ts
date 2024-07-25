@@ -9,7 +9,10 @@ describe('MongooseRepository Utils', () => {
         boolean: true,
         objectId: new ObjectId('000000000000000000000001'),
         stringId: '000000000000000000000002',
-        objectIds: [new ObjectId('000000000000000000000001'), new ObjectId('000000000000000000000001')],
+        objectIds: [
+            new ObjectId('000000000000000000000001'),
+            new ObjectId('000000000000000000000001')
+        ],
         stringIds: ['000000000000000000000002', '000000000000000000000002'],
         regex: /test/,
         null: null
@@ -21,7 +24,10 @@ describe('MongooseRepository Utils', () => {
         expect(converted).toEqual({
             ...input,
             stringId: new ObjectId('000000000000000000000002'),
-            stringIds: [new ObjectId('000000000000000000000002'), new ObjectId('000000000000000000000002')]
+            stringIds: [
+                new ObjectId('000000000000000000000002'),
+                new ObjectId('000000000000000000000002')
+            ]
         })
     })
 

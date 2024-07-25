@@ -135,7 +135,9 @@ async function createWatchedMovie(
     customer: CustomerDto,
     theaters: TheaterDto[]
 ) {
-    const movie = await createMovie(moviesService, { genre: [MovieGenre.Drama, MovieGenre.Fantasy] })
+    const movie = await createMovie(moviesService, {
+        genre: [MovieGenre.Drama, MovieGenre.Fantasy]
+    })
 
     await ticketsFactory.createTickets({ movieId: movie.id, theaterIds: [theaters[0].id] })
 

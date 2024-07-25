@@ -1,9 +1,10 @@
 import * as fs from 'fs/promises'
 import * as os from 'os'
 import * as p from 'path'
-import { Path } from '..'
+import { Path, sleep } from '..'
+import { createReadStream } from 'fs'
 
-// TODO 시가날 때 다시 보자. 지저분 하다.
+// TODO 시간될 때 다시 보자. 지저분 하다.
 describe('Path', () => {
     let tempDir: string
 
@@ -22,6 +23,15 @@ describe('Path', () => {
 
         // ensure it's under OS temp directory
         expect(tempDir.startsWith(os.tmpdir())).toBeTruthy()
+    })
+
+    it('getFileSize', async () => {
+        const contents = 'hello world'
+        const filePath = Path.join(tempDir, 'file.txt')
+        await fs.writeFile(filePath, contents)
+
+        const fileSize = await Path.getFileSize(filePath)
+        expect(fileSize).toEqual(contents.length)
     })
 
     it('should correctly check if the specified path exists (async)', async () => {
@@ -73,7 +83,7 @@ describe('Path', () => {
         await fs.writeFile(srcFilePath, 'hello world')
 
         const destFilePath = Path.join(tempDir, 'file_copy.txt')
-        await Path.copyFileOrDir(srcFilePath, destFilePath)
+        await Path.copy(srcFilePath, destFilePath)
 
         const copiedExists = await Path.exists(destFilePath)
         expect(copiedExists).toBeTruthy()
@@ -91,7 +101,7 @@ describe('Path', () => {
         await fs.writeFile(fileInSrcDirPath, 'hello from the original dir')
 
         const destDirPath = Path.join(tempDir, 'testdir_copy')
-        await Path.copyFileOrDir(srcDirPath, destDirPath)
+        await Path.copy(srcDirPath, destDirPath)
 
         const copiedDirExists = await Path.exists(destDirPath)
         expect(copiedDirExists).toBeTruthy()
@@ -150,5 +160,48 @@ describe('Path', () => {
 
         expect(result).toBeFalsy()
         expect(fs.access).toHaveBeenCalledWith('/test/path', fs.constants.W_OK)
+    })
+
+    it('getFileChecksum', async () => {
+        const file1 = Path.join(tempDir, 'file1.txt')
+        await fs.writeFile(file1, 'hello world1')
+        const readStream1 = createReadStream(file1)
+        const checksum1 = await Path.getFileChecksum(readStream1)
+
+        const file2 = Path.join(tempDir, 'file2.txt')
+        await fs.writeFile(file2, 'hello world2')
+        const readStream2 = createReadStream(file2)
+        const checksum2 = await Path.getFileChecksum(readStream2)
+
+        expect(checksum1).toHaveLength(32)
+        expect(checksum1).not.toEqual(checksum2)
+    })
+
+    it('createDummyFile', async () => {
+        const file1 = Path.join(tempDir, 'file1.txt')
+        const fileSize = 5 * 1024 * 1024
+        Path.createDummyFile(file1, fileSize)
+
+        await sleep(1000)
+        expect(await Path.exists(file1)).toBeTruthy()
+        expect(await Path.getFileSize(file1)).toEqual(fileSize)
+    })
+
+    it('move', async () => {
+        const srcFilePath = Path.join(tempDir, 'file.txt')
+        await fs.writeFile(srcFilePath, 'hello world')
+
+        const destFilePath = Path.join(tempDir, 'move.txt')
+        await Path.move(srcFilePath, destFilePath)
+
+        const movedExists = await Path.exists(destFilePath)
+        expect(movedExists).toBeTruthy()
+
+        const srcExists = await Path.exists(srcFilePath)
+        expect(srcExists).toBeFalsy()
+
+        // check the contents of the copied file
+        const content = await fs.readFile(destFilePath, 'utf-8')
+        expect(content).toEqual('hello world')
     })
 })

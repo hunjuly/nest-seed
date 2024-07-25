@@ -45,7 +45,7 @@ export async function createFixture() {
     ticketFactory.setupTestData(movie, theaters)
     await ticketFactory.createTickets({ movieId: movie.id, theaterIds: pickIds(theaters) })
 
-    const tickets = await ticketsService.findTickets({})
+    const tickets = await ticketsService.findAllTickets()
 
     return { testContext, paymentsService, customer, tickets, ticketsService }
 }

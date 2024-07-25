@@ -61,7 +61,10 @@ export function expectEqualUnsorted(actual: any[] | undefined, expected: any[] |
     if (!actual || !expected) throw new Error('actual or expected undefined')
 
     // Find all expect.anything() keys
-    const anythingKeys = new Set([...actual.flatMap(getAnythingKeys), ...expected.flatMap(getAnythingKeys)])
+    const anythingKeys = new Set([
+        ...actual.flatMap(getAnythingKeys),
+        ...expected.flatMap(getAnythingKeys)
+    ])
     const excludeKeys = [...anythingKeys]
 
     const sortedActual = sortDtos(actual, excludeKeys)

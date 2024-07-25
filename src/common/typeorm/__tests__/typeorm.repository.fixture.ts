@@ -9,6 +9,32 @@ export class Sample extends TypeormEntity {
     name: string
 }
 
+/* for psql
+
+export enum PsqlEnum {
+    EnumA = 'EnumA',
+    EnumB = 'EnumB',
+    EnumC = 'EnumC',
+    EnumD = 'EnumD',
+    EnumE = 'EnumE'
+}
+@Entity()
+export class Psql extends TypeormEntity {
+    @Column()
+    name: string
+    @Column({ unique: true })
+    email: string
+    @Column({ type: 'text' })
+    desc: string
+    @Column({ type: 'integer' })
+    integer: number
+    @Column('varchar', { array: true })
+    enums: PsqlEnum[]
+    @Column({ type: 'timestamptz' })
+    date: Date
+}
+*/
+
 @Injectable()
 export class SamplesRepository extends TypeormRepository<Sample> {
     constructor(@InjectRepository(Sample) repo: Repository<Sample>) {
@@ -22,7 +48,10 @@ export class SamplesRepository extends TypeormRepository<Sample> {
 })
 export class SamplesModule {}
 
-export async function createSamples(repository: SamplesRepository, count: number): Promise<Sample[]> {
+export async function createSamples(
+    repository: SamplesRepository,
+    count: number
+): Promise<Sample[]> {
     const promises = []
 
     for (let i = 0; i < count; i++) {
