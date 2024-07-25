@@ -269,10 +269,13 @@ describe('MongooseRepository', () => {
             samples = await createSamples(repository, 20)
         })
 
-        it('should return all documents if no filter is specified', async () => {
-            const docs = await repository.findByFilter({})
-
+        it('should return all documents when using findAll()', async () => {
+            const docs = await repository.findAll()
             expect(docs).toEqual(expect.arrayContaining(samples))
+        })
+
+        it('should throw an exception when findByFilter is called with an empty filter', async () => {
+            await expect(repository.findByFilter({})).rejects.toThrow()
         })
 
         it('should query using a regular expression', async () => {

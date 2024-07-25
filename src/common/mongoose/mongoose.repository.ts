@@ -102,13 +102,20 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return objectIdToString(docs) as Doc[]
     }
 
-    // TODO filter에 조건이 없으면 예외 던져야 한다.
-    // 그리고 findAll을 만들어라.
     async findByFilter(filter: Record<string, any>): Promise<Doc[]> {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Use findAll() for retrieving all documents.'
+            )
+        }
+
         const value = stringToObjectId(filter)
-
         const docs = await this.model.find(value).lean()
+        return objectIdToString(docs) as Doc[]
+    }
 
+    async findAll(): Promise<Doc[]> {
+        const docs = await this.model.find().lean()
         return objectIdToString(docs) as Doc[]
     }
 

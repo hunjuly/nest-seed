@@ -50,7 +50,7 @@ describe('/tickets', () => {
             })
         )
 
-        const actual = await ticketsService.findTickets({})
+        const actual = await ticketsService.findAllTickets()
         const expected = results.flatMap((result) => result)
 
         expectEqualUnsorted(actual, expected)
