@@ -9,7 +9,7 @@ type SeesionArg = ClientSession | undefined
 export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    async withTransaction(callback: (session: ClientSession) => Promise<any>) {
+    async withTransaction<T>(callback: (session: ClientSession) => Promise<T>) {
         const session = await this.model.startSession()
 
         try {

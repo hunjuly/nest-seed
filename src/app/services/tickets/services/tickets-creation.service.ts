@@ -68,7 +68,9 @@ export class TicketsCreationService {
             )
         }
 
-        const tickets = await this.ticketsRepository.createMany(ticketEntries)
+        const tickets = await this.ticketsRepository.withTransaction((session) =>
+            this.ticketsRepository.createMany(ticketEntries, session)
+        )
 
         this.logger.log(`${tickets.length} tickets have been successfully created and saved.`)
 

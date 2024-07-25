@@ -25,7 +25,9 @@ export class StorageFilesService {
             size: file.size
         }))
 
-        const savedFiles = await this.filesRepository.createMany(storageFiles)
+        const savedFiles = await this.filesRepository.withTransaction((session) =>
+            this.filesRepository.createMany(storageFiles, session)
+        )
 
         return { files: savedFiles.map((file) => new StorageFileDto(file)) }
     }
