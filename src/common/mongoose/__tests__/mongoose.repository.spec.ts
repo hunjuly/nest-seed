@@ -67,10 +67,12 @@ describe('MongooseRepository', () => {
 
     describe('createMany', () => {
         it('should successfully create multiple documents', async () => {
-            const doc = await repository.createMany([
-                { name: 'document-1 name' },
-                { name: 'document-2 name' }
-            ])
+            const doc = await repository.withTransaction(async (session) =>
+                repository.createMany(
+                    [{ name: 'document-1 name' }, { name: 'document-2 name' }],
+                    session
+                )
+            )
 
             expect(doc).toEqual([
                 { ...baseFields, name: 'document-1 name' },
@@ -81,7 +83,9 @@ describe('MongooseRepository', () => {
         it('should throw an exception if required fields are missing', async () => {
             module.useLogger(false)
 
-            const promise = repository.createMany([{}])
+            const promise = repository.withTransaction(async (session) =>
+                repository.createMany([{}], session)
+            )
 
             await expect(promise).rejects.toThrowError()
         })

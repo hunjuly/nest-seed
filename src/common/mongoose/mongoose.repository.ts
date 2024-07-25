@@ -4,52 +4,52 @@ import { ClientSession, HydratedDocument, Model, QueryWithHelpers } from 'mongoo
 import { MongooseException } from './exceptions'
 import { objectIdToString, stringToObjectId } from './mongoose.util'
 
+type SeesionArg = ClientSession | undefined
+
 export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(docData: Partial<Doc>): Promise<Doc> {
-        Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
-
-        const savedDocument = await this.model.create(stringToObjectId(docData))
-        const obj = savedDocument.toObject()
-
-        return objectIdToString(obj)
-    }
-
-    async createMany(inputDocs: Partial<Doc>[]): Promise<Doc[]> {
-        Logger.log(`Starting to save ${inputDocs.length} documents`)
-
+    async withTransaction(callback: (session: ClientSession) => Promise<any>) {
         const session = await this.model.startSession()
 
         try {
-            const docs = await session.withTransaction(async (session: ClientSession) => {
-                /* Using {lean: true} would result in omission of some fields like version */
-                const savedDocs = (await this.model.insertMany(stringToObjectId(inputDocs), {
-                    session
-                })) as HydratedDocument<Doc>[]
+            const result = await session.withTransaction(callback)
 
-                Logger.log(`Completed saving ${savedDocs.length} documents`)
-
-                Assert.sameLength(
-                    inputDocs,
-                    savedDocs,
-                    'All requested data must be saved as documents.'
-                )
-
-                return savedDocs
-            })
-
-            return objectIdToString(docs.map((doc) => doc.toObject()))
-        } catch (error) {
-            Logger.error(`Failed to save documents: ${error.message}`)
-            throw error
+            return result
         } finally {
             session.endSession()
         }
     }
 
-    async deleteById(id: DocumentId): Promise<void> {
-        const deletedDocument = await this.model.findByIdAndDelete(id, { lean: true }).exec()
+    async create(docData: Partial<Doc>, session: SeesionArg = undefined): Promise<Doc> {
+        Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
+
+        const document = new this.model(stringToObjectId(docData))
+        const savedDocument = await document.save({ session })
+        const obj = savedDocument.toObject()
+
+        return objectIdToString(obj)
+    }
+
+    async createMany(inputDocs: Partial<Doc>[], session: ClientSession): Promise<Doc[]> {
+        Logger.log(`Starting to save ${inputDocs.length} documents`)
+
+        /* Using {lean: true} would result in omission of some fields like version */
+        const savedDocs = (await this.model.insertMany(stringToObjectId(inputDocs), {
+            session
+        })) as HydratedDocument<Doc>[]
+
+        Logger.log(`Completed saving ${savedDocs.length} documents`)
+
+        Assert.sameLength(inputDocs, savedDocs, 'All requested data must be saved as documents.')
+
+        return objectIdToString(savedDocs.map((doc) => doc.toObject()))
+    }
+
+    async deleteById(id: DocumentId, session: SeesionArg = undefined): Promise<void> {
+        const deletedDocument = await this.model
+            .findByIdAndDelete(id, { lean: true, session })
+            .exec()
 
         if (!deletedDocument) {
             throw new MongooseException(
@@ -58,51 +58,61 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         }
     }
 
-    async deleteByIds(ids: DocumentId[]) {
-        const result = await this.model.deleteMany({ _id: { $in: ids } as any }, { lean: true })
+    async deleteByIds(ids: DocumentId[], session: SeesionArg = undefined) {
+        const result = await this.model.deleteMany(
+            { _id: { $in: ids } as any },
+            { lean: true, session }
+        )
 
         return result.deletedCount
     }
 
-    async deleteByFilter(filter: Record<string, any>) {
+    async deleteByFilter(filter: Record<string, any>, session: SeesionArg = undefined) {
         if (Object.keys(filter).length === 0) {
             throw new MongooseException(
                 'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
             )
         }
 
-        const result = await this.model.deleteMany(stringToObjectId(filter))
+        const result = await this.model.deleteMany(stringToObjectId(filter), { session })
 
         Logger.log(`Deleted count: ${result.deletedCount}`)
 
         return result.deletedCount
     }
 
-    async existsById(id: DocumentId): Promise<boolean> {
-        const count = await this.model.countDocuments({ _id: { $in: [id] } } as any).lean()
+    async existsById(id: DocumentId, session: SeesionArg = undefined): Promise<boolean> {
+        const count = await this.model
+            .countDocuments({ _id: { $in: [id] } } as any, { session })
+            .lean()
 
         return count === 1
     }
 
-    async existsByIds(ids: DocumentId[]): Promise<boolean> {
-        const count = await this.model.countDocuments({ _id: { $in: ids } } as any).lean()
+    async existsByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<boolean> {
+        const count = await this.model
+            .countDocuments({ _id: { $in: ids } } as any, { session })
+            .lean()
 
         return count === ids.length
     }
 
-    async findById(id: DocumentId): Promise<Doc | null> {
-        const doc = await this.model.findById(id).lean()
+    async findById(id: DocumentId, session: SeesionArg = undefined): Promise<Doc | null> {
+        const doc = await this.model.findById(id, null, { session }).lean()
 
         return objectIdToString(doc) as Doc
     }
 
-    async findByIds(ids: DocumentId[]): Promise<Doc[]> {
-        const docs = await this.model.find({ _id: { $in: ids } as any }).lean()
+    async findByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<Doc[]> {
+        const docs = await this.model.find({ _id: { $in: ids } as any }, null, { session }).lean()
 
         return objectIdToString(docs) as Doc[]
     }
 
-    async findByFilter(filter: Record<string, any>): Promise<Doc[]> {
+    async findByFilter(
+        filter: Record<string, any>,
+        session: SeesionArg = undefined
+    ): Promise<Doc[]> {
         if (Object.keys(filter).length === 0) {
             throw new MongooseException(
                 'Filter cannot be empty. Use findAll() for retrieving all documents.'
@@ -110,18 +120,19 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         }
 
         const value = stringToObjectId(filter)
-        const docs = await this.model.find(value).lean()
+        const docs = await this.model.find(value, null, { session }).lean()
         return objectIdToString(docs) as Doc[]
     }
 
-    async findAll(): Promise<Doc[]> {
-        const docs = await this.model.find().lean()
+    async findAll(session: SeesionArg = undefined): Promise<Doc[]> {
+        const docs = await this.model.find({}, null, { session }).lean()
         return objectIdToString(docs) as Doc[]
     }
 
     async findWithPagination(
         pagination: PaginationOption,
-        queryCustomizer?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void
+        queryCustomizer?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void,
+        session: SeesionArg = undefined
     ): Promise<PaginationResult<Doc>> {
         const { take, skip, orderby } = pagination
 
@@ -129,7 +140,7 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
             throw new MongooseException('The ‘take’ parameter is required for pagination.')
         }
 
-        const helpers = this.model.find({})
+        const helpers = this.model.find({}, null, { session })
 
         helpers.skip(skip)
         helpers.limit(take)
