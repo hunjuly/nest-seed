@@ -3,6 +3,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { CacheService, comment, generateUUID, notUsed } from 'common'
 import { Config } from 'config'
+import { RefreshTokenPayload } from './interfaces'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
@@ -35,7 +36,7 @@ export class JwtAuthService {
         return null
     }
 
-    async getRefreshTokenPayload(token: string): Promise<any> {
+    async getRefreshTokenPayload(token: string): Promise<RefreshTokenPayload | undefined> {
         try {
             const secret = Config.auth.refreshSecret
 

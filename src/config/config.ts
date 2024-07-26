@@ -38,15 +38,6 @@ export const Config = {
         port: getNumber('REDIS_PORT')
         // ttl: defaults to 5
     },
-    psql: {
-        host: getString('POSTGRES_DB_HOST'),
-        port: getNumber('POSTGRES_DB_PORT'),
-        username: getString('POSTGRES_DB_USERNAME'),
-        password: getString('POSTGRES_DB_PASSWORD'),
-        database: getString('POSTGRES_DB_DATABASE'),
-        schema: getString('POSTGRES_DB_SCHEMA'),
-        poolSize: getNumber('POSTGRES_DB_POOL_SIZE')
-    },
     mongo: {
         host1: getString('MONGO_DB_HOST1'),
         host2: getString('MONGO_DB_HOST2'),

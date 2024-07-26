@@ -1,4 +1,4 @@
 export interface RefreshTokenPayload {
-    customerId: string
+    userId: string
     email: string
 }

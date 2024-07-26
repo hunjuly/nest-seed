@@ -3,10 +3,6 @@ set -e
 . "$(dirname "$0")"/common.cfg
 . $ENV_FILE
 
-run_psql() (
-  docker exec $POSTGRES_DB_HOST psql -U ${POSTGRES_DB_USERNAME} -d $POSTGRES_DB_DATABASE -w "$@"
-)
-
 run_mongo() (
   docker exec ${MONGO_DB_HOST1} mongosh -u ${MONGO_DB_USERNAME} -p ${MONGO_DB_PASSWORD} --authenticationDatabase admin --eval "$@"
 )
@@ -25,8 +21,5 @@ rs.initiate({
     ]
 })
 "
-
-wait_for_service $POSTGRES_DB_HOST "run_psql -c 'SELECT 1' >/dev/null 2>&1"
-run_psql -c "CREATE SCHEMA $POSTGRES_DB_SCHEMA AUTHORIZATION $POSTGRES_DB_USERNAME;"
 
 docker rm mongo-key-generator

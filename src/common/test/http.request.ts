@@ -1,7 +1,8 @@
 import { HttpStatus } from '@nestjs/common'
+import { createWriteStream } from 'fs'
+import { posix } from 'path'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
-import { createWriteStream } from 'fs'
 
 export class HttpRequest {
     private req: supertest.Test
@@ -11,23 +12,27 @@ export class HttpRequest {
         private prefix: string
     ) {}
 
+    private makeUrl(url: string) {
+        return posix.join(this.prefix, url)
+    }
+
     post(url: string): this {
-        this.req = supertest(this.server).post(this.prefix + url)
+        this.req = supertest(this.server).post(this.makeUrl(url))
         return this
     }
 
     patch(url: string): this {
-        this.req = supertest(this.server).patch(this.prefix + url)
+        this.req = supertest(this.server).patch(this.makeUrl(url))
         return this
     }
 
     get(url: string): this {
-        this.req = supertest(this.server).get(this.prefix + url)
+        this.req = supertest(this.server).get(this.makeUrl(url))
         return this
     }
 
     delete(url: string): this {
-        this.req = supertest(this.server).delete(this.prefix + url)
+        this.req = supertest(this.server).delete(this.makeUrl(url))
         return this
     }
 

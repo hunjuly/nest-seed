@@ -2,15 +2,16 @@ import { JwtService } from '@nestjs/jwt'
 import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomersModule, CustomersService } from 'app/services/customers'
-import { sleep } from 'common'
+import { nullObjectId, sleep } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 
-export interface UserCredentials {
+export interface Credentials {
+    customerId: string
     email: string
     password: string
 }
 
-export async function createCustomer(customersService: CustomersService): Promise<UserCredentials> {
+export async function createCustomer(customersService: CustomersService): Promise<Credentials> {
     const creationDto = {
         name: 'customer name',
         email: 'user@mail.com',
@@ -18,11 +19,11 @@ export async function createCustomer(customersService: CustomersService): Promis
         password: 'password'
     }
 
-    await customersService.createCustomer(creationDto)
+    const customer = await customersService.createCustomer(creationDto)
 
     const { email, password } = creationDto
 
-    return { email, password }
+    return { customerId: customer.id, email, password }
 }
 
 jest.mock('config', () => {
@@ -47,7 +48,7 @@ describe('/customers', () => {
     let req: HttpRequest
 
     let jwtService: JwtService
-    let credentials: UserCredentials
+    let credentials: Credentials
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -119,35 +120,40 @@ describe('/customers', () => {
 
             return req.post('/refresh').body({ refreshToken }).unauthorized()
         })
+    })
 
-        // it('Allows access when providing a valid accessToken', async () => {
-        //     return req
-        //         .get('/jwt-testing')
-        //         .headers({ Authorization: `Bearer ${accessToken}` })
-        //         .ok()
-        // })
+    describe('JWT', () => {
+        let accessToken: string
 
-        // it('Allows access when Public decorator', async () => {
-        //     return req.get('/public-testing').ok()
-        // })
+        beforeEach(async () => {
+            const { body } = await req.post('/login').body(credentials).created()
+            accessToken = body.accessToken
+        })
 
-        // it('Returns UNAUTHORIZED(401) status when providing an accessToken with an incorrect format', async () => {
-        //     return req
-        //         .get('/jwt-testing')
-        //         .headers({ Authorization: 'Bearer invalid_access_token' })
-        //         .unauthorized()
-        // })
+        it('Allows access when providing a valid accessToken', async () => {
+            await req
+                .get(credentials.customerId)
+                .headers({ Authorization: `Bearer ${accessToken}` })
+                .ok()
+        })
 
-        // it('Returns UNAUTHORIZED(401) status when providing an accessToken containing incorrect data', async () => {
-        //     const wrongUserIdToken = jwtService.sign(
-        //         { userId: nullUUID },
-        //         { secret: 'mockAccessSecret', expiresIn: '15m' }
-        //     )
+        it('Returns UNAUTHORIZED(401) status when providing an accessToken with an incorrect format', async () => {
+            return req
+                .get(credentials.customerId)
+                .headers({ Authorization: 'Bearer invalid_access_token' })
+                .unauthorized()
+        })
 
-        //     return req
-        //         .get('/jwt-testing')
-        //         .headers({ Authorization: `Bearer ${wrongUserIdToken}` })
-        //         .unauthorized()
-        // })
+        it('Returns UNAUTHORIZED(401) status when providing an accessToken containing incorrect data', async () => {
+            const wrongUserIdToken = jwtService.sign(
+                { userId: nullObjectId },
+                { secret: 'mockAccessSecret', expiresIn: '15m' }
+            )
+
+            return req
+                .get(credentials.customerId)
+                .headers({ Authorization: `Bearer ${wrongUserIdToken}` })
+                .unauthorized()
+        })
     })
 })
