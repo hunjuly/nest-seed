@@ -12,9 +12,9 @@ import {
 } from '@nestjs/common'
 import { UserCreationDto, UserUpdatingDto, UsersFilterDto, UsersService } from 'app/services/users'
 import { PaginationOption, PaginationPipe } from 'common'
-import { JwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
+import { UserJwtAuthGuard, Public, UserEmailNotExistsGuard, UserExistsGuard } from './guards'
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(UserJwtAuthGuard)
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}

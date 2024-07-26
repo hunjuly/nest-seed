@@ -1,14 +1,14 @@
 import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
-import { AccessTokenPayload, AuthService } from 'app/services/auth'
+import { AccessTokenPayload, UserAuthService } from 'app/services/auth'
 import { UserDto } from 'app/services/users'
 import { Assert } from 'common'
-import { JwtAuthGuard, LocalAuthGuard, Public } from './guards'
+import { UserJwtAuthGuard, UserLocalAuthGuard, Public } from './guards'
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: UserAuthService) {}
 
-    @UseGuards(LocalAuthGuard)
+    @UseGuards(UserLocalAuthGuard)
     @Post('login')
     async login(@Req() req: { user: UserDto }) {
         // req.user is the return value from LocalStrategy.validate
@@ -30,11 +30,11 @@ export class AuthController {
         return tokenPair
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(UserJwtAuthGuard)
     @Get('jwt-testing')
     async jwtTestring(@Req() _req: { user: AccessTokenPayload }) {}
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(UserJwtAuthGuard)
     @Public()
     @Get('public-testing')
     async publicTesting() {}

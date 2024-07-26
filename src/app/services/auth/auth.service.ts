@@ -8,7 +8,7 @@ import { AccessTokenPayload, AuthTokens, RefreshTokenPayload } from './interface
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
 @Injectable()
-export class AuthService {
+export class UserAuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,

@@ -1,2 +1,2 @@
-export * from './jwt.strategy'
-export * from './local.strategy'
+export * from './user-jwt.strategy'
+export * from './user-local.strategy'

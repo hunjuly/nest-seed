@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { JwtAuthGuard, LocalAuthGuard, UsersController } from 'app/controllers'
+import { UserJwtAuthGuard, UserLocalAuthGuard, UsersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { UserDto, UsersModule, UsersService } from 'app/services/users'
 import { nullUUID } from 'common'
@@ -15,7 +15,7 @@ describe('/users', () => {
         testContext = await createHttpTestContext({
             imports: [GlobalModule, UsersModule],
             controllers: [UsersController],
-            ignoreGuards: [LocalAuthGuard, JwtAuthGuard]
+            ignoreGuards: [UserLocalAuthGuard, UserJwtAuthGuard]
         })
 
         req = testContext.createRequest()
