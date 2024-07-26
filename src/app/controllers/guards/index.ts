@@ -1,5 +1,7 @@
 export * from './customer-email-not-exists.guard'
 export * from './customer-exists.guard'
+export * from './customer-jwt-auth.guard'
+export * from './customer-local-auth.guard'
 export * from './movie-exists.guard'
 export * from './public.decorator'
 export * from './showtime-exists.guard'

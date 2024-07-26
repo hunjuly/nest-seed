@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common'
-import { Customer, CustomerSchema } from './schemas'
+import { MongooseModule } from '@nestjs/mongoose'
+import { JwtAuthModule } from '../jwt-auth'
 import { CustomersRepository } from './customers.repository'
 import { CustomersService } from './customers.service'
-import { MongooseModule } from '@nestjs/mongoose'
+import { Customer, CustomerSchema } from './schemas'
+import { CustomerJwtStrategy, CustomerLocalStrategy } from './strategies'
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Customer.name, schema: CustomerSchema }])],
-    providers: [CustomersService, CustomersRepository],
+    imports: [
+        MongooseModule.forFeature([{ name: Customer.name, schema: CustomerSchema }]),
+        JwtAuthModule
+    ],
+    providers: [CustomersService, CustomersRepository, CustomerLocalStrategy, CustomerJwtStrategy],
     exports: [CustomersService]
 })
 export class CustomersModule {}

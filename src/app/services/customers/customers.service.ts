@@ -1,16 +1,27 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationOption, PaginationResult } from 'common'
+import { Assert, PaginationOption, PaginationResult, Password } from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CustomerCreationDto, CustomerDto, CustomersFilterDto, CustomerUpdatingDto } from './dto'
+import { JwtAuthService } from '../jwt-auth'
 
 @Injectable()
 export class CustomersService {
-    constructor(private customersRepository: CustomersRepository) {}
+    constructor(
+        private customersRepository: CustomersRepository,
+        private jwtAuthService: JwtAuthService
+    ) {}
 
-    async createCustomer(createCustomerDto: CustomerCreationDto) {
-        const savedCustomer = await this.customersRepository.create(createCustomerDto)
+    async createCustomer(creationDto: CustomerCreationDto) {
+        const { password, ...rest } = creationDto
 
-        return new CustomerDto(savedCustomer)
+        const hashedPassword = await Password.hash(password)
+
+        const customer = await this.customersRepository.create({
+            ...rest,
+            password: hashedPassword
+        })
+
+        return new CustomerDto(customer)
     }
 
     async customerExists(customerId: string): Promise<boolean> {
@@ -23,7 +34,10 @@ export class CustomersService {
         filterDto: CustomersFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<CustomerDto>> {
-        const paginatedCustomers = await this.customersRepository.findPagedCustomers(filterDto, pagination)
+        const paginatedCustomers = await this.customersRepository.findPagedCustomers(
+            filterDto,
+            pagination
+        )
 
         const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
 
@@ -56,5 +70,28 @@ export class CustomersService {
 
     async deleteCustomer(customerId: string) {
         await this.customersRepository.deleteById(customerId)
+    }
+
+    async login(customer: CustomerDto) {
+        return this.jwtAuthService.generateAuthTokens(customer.id, customer.email)
+    }
+
+    async refreshAuthTokens(refreshToken: string) {
+        const refreshTokenPayload = await this.jwtAuthService.getRefreshTokenPayload(refreshToken)
+
+        if (refreshTokenPayload) {
+            const storedRefreshToken = await this.jwtAuthService.getStoredRefreshToken(
+                refreshTokenPayload.userId
+            )
+
+            if (storedRefreshToken === refreshToken) {
+                return this.jwtAuthService.generateAuthTokens(
+                    refreshTokenPayload.userId,
+                    refreshTokenPayload.email
+                )
+            }
+        }
+
+        return null
     }
 }

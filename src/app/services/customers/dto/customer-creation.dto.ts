@@ -13,4 +13,7 @@ export class CustomerCreationDto {
     @IsDate()
     @Type(() => Date)
     birthday: Date
+
+    @IsString()
+    password: string
 }

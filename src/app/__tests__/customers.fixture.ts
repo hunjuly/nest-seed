@@ -5,7 +5,8 @@ export async function createCustomer(customersService: CustomersService): Promis
     return customersService.createCustomer({
         name: 'customer name',
         email: 'user@mail.com',
-        birthday: new Date('1999-12-12')
+        birthday: new Date('1999-12-12'),
+        password: 'password'
     })
 }
 
@@ -21,7 +22,8 @@ export async function createCustomers(
         const promise = customersService.createCustomer({
             name: `Customer-${tag}`,
             email: `user-${tag}@mail.com`,
-            birthday: new Date(2020, 1, i)
+            birthday: new Date(2020, 1, i),
+            password: 'password'
         })
 
         promises.push(promise)

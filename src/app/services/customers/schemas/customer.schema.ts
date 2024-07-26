@@ -11,6 +11,9 @@ export class Customer extends MongooseSchema {
 
     @Prop({ required: true })
     birthday: Date
+
+    @Prop({ required: true })
+    password: string
 }
 
 export const CustomerSchema = createMongooseSchema(Customer)
