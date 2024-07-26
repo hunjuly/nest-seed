@@ -2,7 +2,7 @@ import { JwtService } from '@nestjs/jwt'
 import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomersModule, CustomersService } from 'app/services/customers'
-import { nullUUID, sleep } from 'common'
+import { sleep } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 
 export interface UserCredentials {
