@@ -11,7 +11,7 @@ import {
     sleep,
     jsonToObject,
     waitForQueueToEmpty,
-    pick,
+    pickItems,
     pickIds
 } from '..'
 
@@ -208,7 +208,7 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('pick', () => {
+    describe('pickItems', () => {
         const items = [
             { id: '1', name: 'John', age: 30 },
             { id: '2', name: 'Jane', age: 25 },
@@ -216,12 +216,12 @@ describe('common/utils/etc', () => {
         ]
 
         it('should pick a single key from array of objects', () => {
-            const result = pick(items, 'name')
+            const result = pickItems(items, 'name')
             expect(result).toEqual(['John', 'Jane', 'Bob'])
         })
 
         it('should pick multiple keys from array of objects', () => {
-            const result = pick(items, ['id', 'name'])
+            const result = pickItems(items, ['id', 'name'])
             expect(result).toEqual([
                 { id: '1', name: 'John' },
                 { id: '2', name: 'Jane' },
@@ -230,12 +230,12 @@ describe('common/utils/etc', () => {
         })
 
         it('should return an empty array if input array is empty', () => {
-            const result = pick([], 'name')
+            const result = pickItems([], 'name')
             expect(result).toEqual([])
         })
 
         it('should handle non-existent keys gracefully', () => {
-            const result = pick(items, 'address' as any)
+            const result = pickItems(items, 'address' as any)
             expect(result).toEqual([undefined, undefined, undefined])
         })
     })

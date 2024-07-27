@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Assert, LatLong, latlongDistanceInMeters, pick, pickIds } from 'common'
+import { Assert, LatLong, latlongDistanceInMeters, pickItems, pickIds } from 'common'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
@@ -32,7 +32,7 @@ export class ShowingService {
         const ticketIds = payments.flatMap((payment) => payment.ticketIds)
         const tickets = await this.ticketsService.findTickets({ ticketIds })
 
-        const movieIds = uniq(pick(tickets, 'movieId'))
+        const movieIds = uniq(pickItems(tickets, 'movieId'))
 
         const watchedMovies = await this.moviesService.getMoviesByIds(movieIds)
 
