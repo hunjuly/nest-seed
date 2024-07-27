@@ -77,21 +77,8 @@ export class CustomersService {
     }
 
     async refreshAuthTokens(refreshToken: string) {
-        const refreshTokenPayload = await this.jwtAuthService.getRefreshTokenPayload(refreshToken)
+        const refreshTokenPayload = await this.jwtAuthService.refreshAuthTokens(refreshToken)
 
-        if (refreshTokenPayload) {
-            const storedRefreshToken = await this.jwtAuthService.getStoredRefreshToken(
-                refreshTokenPayload.userId
-            )
-
-            if (storedRefreshToken === refreshToken) {
-                return this.jwtAuthService.generateAuthTokens(
-                    refreshTokenPayload.userId,
-                    refreshTokenPayload.email
-                )
-            }
-        }
-
-        return null
+        return refreshTokenPayload
     }
 }

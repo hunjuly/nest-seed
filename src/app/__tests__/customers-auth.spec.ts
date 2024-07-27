@@ -3,28 +3,8 @@ import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId, sleep } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
-
-export interface Credentials {
-    customerId: string
-    email: string
-    password: string
-}
-
-export async function createCustomer(customersService: CustomersService): Promise<Credentials> {
-    const creationDto = {
-        name: 'customer name',
-        email: 'user@mail.com',
-        birthday: new Date('1999-12-12'),
-        password: 'password'
-    }
-
-    const customer = await customersService.createCustomer(creationDto)
-
-    const { email, password } = creationDto
-
-    return { customerId: customer.id, email, password }
-}
+import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
+import { createCredentials, Credentials } from './customers-auth.fixture'
 
 jest.mock('config', () => {
     const { Config, ...rest } = jest.requireActual('config')
@@ -58,11 +38,10 @@ describe('/customers', () => {
         req = testContext.createRequest('/customers')
 
         const module = testContext.module
-
         jwtService = module.get(JwtService)
-
         const usersService = module.get(CustomersService)
-        credentials = await createCustomer(usersService)
+
+        credentials = await createCredentials(usersService)
     })
 
     afterEach(async () => {
@@ -122,7 +101,7 @@ describe('/customers', () => {
         })
     })
 
-    describe('JWT', () => {
+    describe('JWT Authentication', () => {
         let accessToken: string
 
         beforeEach(async () => {
