@@ -1,18 +1,21 @@
 import * as bull from 'bull'
 import { LatLong } from 'common'
+import * as fs from 'fs/promises'
 import {
     Password,
+    Path,
     addQuotesToNumbers,
     comment,
-    latlongDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
-    notUsed,
-    sleep,
+    getChecksum,
     jsonToObject,
-    waitForQueueToEmpty,
+    latlongDistanceInMeters,
+    notUsed,
+    pickIds,
     pickItems,
-    pickIds
+    sleep,
+    waitForQueueToEmpty
 } from '..'
 
 jest.mock('bull')
@@ -255,6 +258,34 @@ describe('common/utils/etc', () => {
         it('should return an empty array if input array is empty', () => {
             const result = pickIds([])
             expect(result).toEqual([])
+        })
+    })
+
+    describe('getChecksum', () => {
+        const testContent = 'Hello, World!'
+        let tempDir: string
+        let helloWorld: string
+
+        beforeEach(async () => {
+            tempDir = await Path.createTempDirectory()
+            helloWorld = Path.join(tempDir, 'test-file.txt')
+            await fs.writeFile(helloWorld, testContent)
+        })
+
+        afterEach(async () => {
+            await Path.delete(tempDir)
+        })
+
+        it('should return correct MD5 checksum', async () => {
+            const checksum = await getChecksum(helloWorld, 'md5')
+            expect(checksum).toBe('65a8e27d8879283831b664bd8b7f0ad4')
+        })
+
+        it('should return correct SHA256 checksum', async () => {
+            const checksum = await getChecksum(helloWorld, 'sha256')
+            expect(checksum).toBe(
+                'dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f'
+            )
         })
     })
 

@@ -7,7 +7,7 @@ import {
     Logger,
     Param,
     Post,
-    Res,
+    StreamableFile,
     UploadedFiles,
     UseGuards,
     UseInterceptors
@@ -17,9 +17,9 @@ import { StorageFilesService } from 'app/services/storage-files'
 import { IsString } from 'class-validator'
 import { generateUUID } from 'common'
 import { Config } from 'config'
-import { Response } from 'express'
 import { diskStorage } from 'multer'
 import { StorageFileExistsGuard } from './guards/storage-file-exists.guard'
+import { createReadStream } from 'fs'
 
 class UploadFileDto {
     @IsString()
@@ -63,37 +63,15 @@ export class StorageFilesController {
 
     @Get(':fileId')
     @UseGuards(StorageFileExistsGuard)
-    async downloadFile(@Param('fileId') fileId: string, @Res() res: Response) {
+    async downloadFile(@Param('fileId') fileId: string) {
         const file = await this.storageFileService.getFile(fileId)
-        const fileStream = await this.storageFileService.getFileStream(fileId)
 
-        res.setHeader('Content-Type', file.mimetype)
-        res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${encodeURIComponent(file.originalname)}"`
-        )
-        res.setHeader('Content-Length', file.size)
+        const readStream = createReadStream(file.storedPath)
 
-        return new Promise((resolve, reject) => {
-            /* istanbul ignore next */
-            const errorHandler = (error: Error) => {
-                // 에러 발생 시에도 스트림 리소스 해제
-                fileStream!.destroy()
-                reject(error)
-            }
-
-            fileStream!
-                .pipe(res)
-                .on('finish', () => {
-                    // 명시적으로 스트림 리소스를 해제
-                    fileStream!.destroy()
-                    resolve(true)
-                })
-                .on('error', errorHandler)
-                .on('close', () => {
-                    // 클라이언트가 연결을 끊으면 스트림을 정리
-                    fileStream!.destroy()
-                })
+        return new StreamableFile(readStream, {
+            type: file.mimetype,
+            disposition: `attachment; filename="${encodeURIComponent(file.originalname)}"`,
+            length: file.size
         })
     }
 
