@@ -20,6 +20,7 @@ describe('/tickets', () => {
 
     afterEach(async () => {
         await testContext?.close()
+        jest.restoreAllMocks()
     })
 
     it('ShowtimesCreateCompletedEvent 이벤트를 수신해야 한다', async () => {
