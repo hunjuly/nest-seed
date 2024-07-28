@@ -80,7 +80,7 @@ export async function createSamples(
 
 export const baseFields = {
     _id: expect.anything(),
-    createdAt: expect.anything(),
-    updatedAt: expect.anything(),
-    version: expect.anything()
+    _c: expect.anything(),
+    _u: expect.anything(),
+    _v: expect.anything()
 }

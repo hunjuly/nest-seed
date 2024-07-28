@@ -282,7 +282,7 @@ describe('common/utils/etc', () => {
         })
 
         it('should return correct SHA256 checksum', async () => {
-            const checksum = await getChecksum(helloWorld, 'sha256')
+            const checksum = await getChecksum(helloWorld)
             expect(checksum).toBe(
                 'dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f'
             )
