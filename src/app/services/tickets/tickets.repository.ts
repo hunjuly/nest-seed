@@ -39,7 +39,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         filterDto: TicketsFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Ticket>> {
-        const paginated = await this.find(pagination, (helpers) => {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
             const query = this.makeQueryByFilter(filterDto)
 
             helpers.setQuery(query)

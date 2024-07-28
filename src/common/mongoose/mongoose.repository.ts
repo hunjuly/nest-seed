@@ -1,25 +1,27 @@
 import { Logger } from '@nestjs/common'
-import {
-    Assert,
-    DocumentId,
-    MongooseSchema,
-    OrderDirection,
-    PaginationOption,
-    PaginationResult
-} from 'common'
+import { Assert, DocumentId, MongooseSchema, PaginationOption, PaginationResult } from 'common'
 import { ClientSession, HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
 import { MongooseException } from './exceptions'
 import { objectIdToString, stringToObjectId } from './mongoose.util'
 
-export const DEFAULT_TAKE_SIZE = 100
-type SessionArg = ClientSession | undefined
-type QueryHelpers<Doc> = (helpers: QueryWithHelpers<Array<Doc>, Doc>) => Promise<void>
-export type UpdateResult = { matchedCount: number; modifiedCount: number }
+type SeesionArg = ClientSession | undefined
 
 export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    async create(docData: Partial<Doc>, session: SessionArg = undefined): Promise<Doc> {
+    async withTransaction<T>(callback: (session: ClientSession) => Promise<T>) {
+        const session = await this.model.startSession()
+
+        try {
+            const result = await session.withTransaction(callback)
+
+            return result
+        } finally {
+            session.endSession()
+        }
+    }
+
+    async create(docData: Partial<Doc>, session: SeesionArg = undefined): Promise<Doc> {
         Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
 
         const document = new this.model(stringToObjectId(docData))
@@ -44,7 +46,42 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return objectIdToString(savedDocs.map((doc) => doc.toObject()))
     }
 
-    async existsById(id: DocumentId, session: SessionArg = undefined): Promise<boolean> {
+    async deleteById(id: DocumentId, session: SeesionArg = undefined): Promise<void> {
+        const deletedDocument = await this.model
+            .findByIdAndDelete(id, { lean: true, session })
+            .exec()
+
+        if (!deletedDocument) {
+            throw new MongooseException(
+                `Failed to delete document with id: ${id}. Document not found.`
+            )
+        }
+    }
+
+    async deleteByIds(ids: DocumentId[], session: SeesionArg = undefined) {
+        const result = await this.model.deleteMany(
+            { _id: { $in: ids } as any },
+            { lean: true, session }
+        )
+
+        return result.deletedCount
+    }
+
+    async deleteByFilter(filter: Record<string, any>, session: SeesionArg = undefined) {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
+            )
+        }
+
+        const result = await this.model.deleteMany(stringToObjectId(filter), { session })
+
+        Logger.log(`Deleted count: ${result.deletedCount}`)
+
+        return result.deletedCount
+    }
+
+    async existsById(id: DocumentId, session: SeesionArg = undefined): Promise<boolean> {
         const count = await this.model
             .countDocuments({ _id: { $in: [id] } } as any, { session })
             .lean()
@@ -52,7 +89,7 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return count === 1
     }
 
-    async existsByIds(ids: DocumentId[], session: SessionArg = undefined): Promise<boolean> {
+    async existsByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<boolean> {
         const count = await this.model
             .countDocuments({ _id: { $in: ids } } as any, { session })
             .lean()
@@ -60,13 +97,13 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         return count === ids.length
     }
 
-    async findById(id: DocumentId, session: SessionArg = undefined): Promise<Doc | null> {
+    async findById(id: DocumentId, session: SeesionArg = undefined): Promise<Doc | null> {
         const doc = await this.model.findById(id, null, { session }).lean()
 
         return objectIdToString(doc) as Doc
     }
 
-    async findByIds(ids: DocumentId[], session: SessionArg = undefined): Promise<Doc[]> {
+    async findByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<Doc[]> {
         const docs = await this.model.find({ _id: { $in: ids } as any }, null, { session }).lean()
 
         return objectIdToString(docs) as Doc[]
@@ -74,167 +111,48 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
     async findByFilter(
         filter: Record<string, any>,
-        pagination: PaginationOption,
-        session: SessionArg = undefined
-    ): Promise<PaginationResult<Doc>> {
+        session: SeesionArg = undefined
+    ): Promise<Doc[]> {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Use findAll() for retrieving all documents.'
+            )
+        }
+
         const value = stringToObjectId(filter)
-
-        const helpers = this.model.find(value, null, { session })
-        const { skip, take } = this.setPaginationOption(pagination, helpers)
-
-        // TODO items -> docs
-        const items: Doc[] = await helpers.lean()
-        const total = await this.model.countDocuments(helpers.getQuery()).exec()
-
-        return { skip, take, total, items: objectIdToString(items) }
+        const docs = await this.model.find(value, null, { session }).lean()
+        return objectIdToString(docs) as Doc[]
     }
 
-    async find(
-        queryCustomizer: QueryHelpers<Doc>,
+    async findAll(session: SeesionArg = undefined): Promise<Doc[]> {
+        const docs = await this.model.find({}, null, { session }).lean()
+        return objectIdToString(docs) as Doc[]
+    }
+
+    async findWithPagination(
         pagination: PaginationOption,
-        session: SessionArg = undefined
+        queryCustomizer?: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void,
+        session: SeesionArg = undefined
     ): Promise<PaginationResult<Doc>> {
+        const { take, skip, orderby } = pagination
+
+        if (!take) {
+            throw new MongooseException('The ‘take’ parameter is required for pagination.')
+        }
+
         const helpers = this.model.find({}, null, { session })
-        const { skip, take } = this.setPaginationOption(pagination, helpers)
-
-        await queryCustomizer(helpers)
-
-        const items: Doc[] = await helpers.lean()
-        const total = await this.model.countDocuments(helpers.getQuery()).exec()
-
-        return { skip, take, total, items: objectIdToString(items) }
-    }
-
-    private setPaginationOption(
-        pagination: PaginationOption,
-        helpers: QueryWithHelpers<Array<Doc>, Doc>
-    ) {
-        const skip = pagination.skip ?? 0
-        const take = pagination.take ?? DEFAULT_TAKE_SIZE
-        const { orderby } = pagination
 
         helpers.skip(skip)
         helpers.limit(take)
-
         if (orderby) {
             helpers.sort({ [orderby.name]: orderby.direction })
-        } else {
-            helpers.sort({ createdAt: OrderDirection.asc })
         }
 
-        return { skip, take }
-    }
+        queryCustomizer && queryCustomizer(helpers)
 
-    async deleteById(id: DocumentId, session: SessionArg = undefined): Promise<Doc> {
-        const deletedDocument = await this.model
-            .findByIdAndDelete(id, { lean: true, session })
-            .exec()
+        const items: Doc[] = await helpers.lean()
+        const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
-        if (deletedDocument) {
-            return objectIdToString(deletedDocument)
-        }
-
-        throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
-    }
-
-    async deleteByIds(ids: DocumentId[], session: SessionArg = undefined) {
-        const result = await this.deleteByFilter({ _id: { $in: ids } as any }, session)
-
-        return result
-    }
-
-    async deleteByFilter(filter: Record<string, any>, session: SessionArg = undefined) {
-        if (Object.keys(filter).length === 0) {
-            throw new MongooseException(
-                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
-            )
-        }
-
-        const { acknowledged, deletedCount } = await this.model.deleteMany(
-            stringToObjectId(filter),
-            { session }
-        )
-
-        Assert.truthy(
-            acknowledged,
-            'The delete operation must be acknowledged to ensure data consistency.'
-        )
-
-        Logger.log(`Deleted count: ${deletedCount}`)
-
-        return deletedCount
-    }
-
-    async updateById(
-        id: DocumentId,
-        updateData: Partial<Doc>,
-        session: SessionArg = undefined
-    ): Promise<Doc> {
-        const document = await this.model.findByIdAndUpdate(
-            stringToObjectId(id),
-            stringToObjectId(updateData),
-            { upsert: false, session }
-        )
-
-        return objectIdToString(document)
-    }
-
-    async updateByIds(
-        ids: DocumentId[],
-        updateData: Partial<Doc>,
-        session: SessionArg = undefined
-    ) {
-        const result = await this.updateByFilter({ _id: { $in: ids } as any }, updateData, session)
-
-        return result
-    }
-
-    async updateByFilter(
-        filter: Record<string, any>,
-        updateData: Partial<Doc>,
-        session: SessionArg = undefined
-    ): Promise<UpdateResult> {
-        if (Object.keys(filter).length === 0) {
-            throw new MongooseException(
-                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
-            )
-        }
-
-        const result = await this.model.updateMany(
-            stringToObjectId(filter),
-            stringToObjectId(updateData),
-            { upsert: false, session }
-        )
-
-        Assert.truthy(
-            result.acknowledged,
-            'The write operation must be acknowledged to ensure data consistency.'
-        )
-
-        return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount }
-    }
-
-    async withTransaction<T>(callback: (session: ClientSession) => Promise<T>) {
-        const session = await this.model.startSession()
-
-        try {
-            const result = await session.withTransaction(callback)
-
-            return result
-        } finally {
-            session.endSession()
-        }
+        return { skip, take, total, items: objectIdToString(items) }
     }
 }
-
-// async executeUpdate(id: DocumentId, callback: (doc: Doc) => void): Promise<Doc> {
-//     const document = await this.model.findById(id).exec()
-//     if (!document) {
-//         throw new MongooseException(
-//             `Failed to update document with id: ${id}. Document not found.`
-//         )
-//     }
-//     callback(document)
-//     await document.save()
-//     return document.toObject()
-// }

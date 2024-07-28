@@ -1,23 +1,24 @@
 import { expect } from '@jest/globals'
+import { MongooseModule } from '@nestjs/mongoose'
+import { TestingModule } from '@nestjs/testing'
 import { Exception, MongooseException, OrderDirection, nullObjectId } from 'common'
-import { TeardownFunction } from 'common/test'
+import { createTestingModule } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
+import { Connection } from 'mongoose'
 import {
     Sample,
+    SampleModule,
     SamplesRepository,
-    createFixture,
+    baseFields,
     createSample,
     createSamples,
-    generated,
     sortByName,
     sortByNameDescending
 } from './mongoose.repository.fixture'
-import { TestingModule } from '@nestjs/testing'
 
 describe('MongooseRepository', () => {
     let mongod: MongoMemoryReplSet
     let module: TestingModule
-    let teardown: TeardownFunction
     let repository: SamplesRepository
 
     beforeAll(async () => {
@@ -25,25 +26,36 @@ describe('MongooseRepository', () => {
     })
 
     afterAll(async () => {
-        await mongod.stop()
+        await mongod?.stop()
     })
 
     beforeEach(async () => {
-        const fixture = await createFixture(mongod.getUri())
-        module = fixture.module
-        teardown = fixture.teardown
-        repository = fixture.repository
+        module = await createTestingModule({
+            imports: [
+                MongooseModule.forRoot(mongod.getUri(), {
+                    connectionFactory: async (connection: Connection) => {
+                        await connection.dropDatabase()
+                        return connection
+                    }
+                }),
+                SampleModule
+            ]
+        })
+        repository = module.get(SamplesRepository)
     })
 
     afterEach(async () => {
-        await teardown()
+        if (module) await module.close()
     })
 
     describe('create', () => {
         it('should successfully create a document', async () => {
             const doc = await repository.create({ name: 'document name' })
 
-            expect(doc).toEqual({ ...generated, name: 'document name' })
+            expect(doc).toEqual({
+                ...baseFields,
+                name: 'document name'
+            })
         })
 
         it('should throw an exception if required fields are missing', async () => {
@@ -63,8 +75,8 @@ describe('MongooseRepository', () => {
             )
 
             expect(doc).toEqual([
-                { ...generated, name: 'document-1 name' },
-                { ...generated, name: 'document-2 name' }
+                { ...baseFields, name: 'document-1 name' },
+                { ...baseFields, name: 'document-2 name' }
             ])
         })
 
@@ -79,7 +91,7 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('updateById', () => {
+    describe('update', () => {
         let sample: Sample
 
         beforeEach(async () => {
@@ -87,15 +99,15 @@ describe('MongooseRepository', () => {
         })
 
         it('should successfully update a document', async () => {
-            const doc = await repository.updateById(sample._id, {
+            const doc = await repository.update(sample._id, {
                 name: 'new name'
             })
 
-            expect(doc).toEqual({ ...generated, name: 'new name' })
+            expect(doc).toEqual({ ...baseFields, name: 'new name' })
         })
 
         it('should throw an exception if the ID does not exist', async () => {
-            const promise = repository.updateById(nullObjectId, {})
+            const promise = repository.update(nullObjectId, {})
 
             await expect(promise).rejects.toThrow(Exception)
         })
@@ -127,11 +139,11 @@ describe('MongooseRepository', () => {
         let samples: Sample[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            samples = await createSamples(repository, 10)
         })
 
         it('should delete multiple documents successfully', async () => {
-            const ids = samples.slice(0, 10).map((doc) => doc._id)
+            const ids = samples.map((doc) => doc._id)
 
             const deletedCount = await repository.deleteByIds(ids)
             expect(deletedCount).toEqual(10)
@@ -194,7 +206,7 @@ describe('MongooseRepository', () => {
         let samples: Sample[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            samples = await createSamples(repository, 10)
         })
 
         it('should return true if the IDs does exist', async () => {
@@ -236,7 +248,7 @@ describe('MongooseRepository', () => {
         let samples: Sample[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            samples = await createSamples(repository, 10)
         })
 
         it('should find documents by multiple IDs', async () => {
@@ -258,19 +270,22 @@ describe('MongooseRepository', () => {
         let samples: Sample[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            samples = await createSamples(repository, 20)
         })
 
-        it('should return all documents if no filter is specified', async () => {
-            const paginated = await repository.findByFilter({}, {})
+        it('should return all documents when using findAll()', async () => {
+            const docs = await repository.findAll()
+            expect(docs).toEqual(expect.arrayContaining(samples))
+        })
 
-            expect(paginated.items).toEqual(expect.arrayContaining(samples))
+        it('should throw an exception when findByFilter is called with an empty filter', async () => {
+            await expect(repository.findByFilter({})).rejects.toThrow()
         })
 
         it('should query using a regular expression', async () => {
-            const paginated = await repository.findByFilter({ name: /Sample-00/i }, {})
+            const docs = await repository.findByFilter({ name: /Sample-00/i })
 
-            const names = paginated.items.map((doc) => doc.name)
+            const names = docs.map((doc) => doc.name)
 
             expect(names).toEqual(
                 expect.arrayContaining([
@@ -293,13 +308,13 @@ describe('MongooseRepository', () => {
         let samples: Sample[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            samples = await createSamples(repository, 20)
         })
 
         it('should set the pagination correctly', async () => {
             const skip = 10
             const take = 50
-            const paginated = await repository.find(async () => {}, {
+            const paginated = await repository.findWithPagination({
                 skip,
                 take,
                 orderby: { name: 'name', direction: OrderDirection.asc }
@@ -316,7 +331,9 @@ describe('MongooseRepository', () => {
         })
 
         it('should sort in ascending order', async () => {
-            const paginated = await repository.find(async () => {}, {
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
                 orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
@@ -326,7 +343,9 @@ describe('MongooseRepository', () => {
         })
 
         it('should sort in descending order', async () => {
-            const paginated = await repository.find(async () => {}, {
+            const paginated = await repository.findWithPagination({
+                skip: 0,
+                take: samples.length,
                 orderby: { name: 'name', direction: OrderDirection.desc }
             })
 
@@ -335,10 +354,22 @@ describe('MongooseRepository', () => {
             expect(paginated.items).toEqual(samples)
         })
 
+        it('should throw an exception if ‘take’ is absent or zero', async () => {
+            const promise = repository.findWithPagination({ skip: 0, take: 0 })
+
+            await expect(promise).rejects.toThrow(MongooseException)
+        })
+
         it('Should set conditions using the QueryHelper', async () => {
-            const paginated = await repository.find(
-                async (helpers) => helpers.setQuery({ name: /Sample-00/i }),
-                { orderby: { name: 'name', direction: OrderDirection.asc } }
+            const paginated = await repository.findWithPagination(
+                {
+                    skip: 0,
+                    take: samples.length,
+                    orderby: { name: 'name', direction: OrderDirection.asc }
+                },
+                (helpers) => {
+                    helpers.setQuery({ name: /Sample-00/i })
+                }
             )
 
             const names = paginated.items.map((item) => item.name)

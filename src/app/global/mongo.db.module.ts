@@ -12,7 +12,6 @@ const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
 
     const options = {
         ...mongoDatasource,
-        // TODO autoIndex false로 변경해라
         autoIndex: isDevelopment(),
         autoCreate: isDevelopment(),
         bufferCommands: true,

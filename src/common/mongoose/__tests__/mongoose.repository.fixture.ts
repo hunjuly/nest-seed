@@ -1,9 +1,14 @@
-import { expect } from '@jest/globals'
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { MongooseRepository, MongooseSchema, createMongooseSchema, padNumber } from 'common'
-import { createTestingModule } from 'common/test'
-import { Connection, Model } from 'mongoose'
+import {
+    DocumentId,
+    Exception,
+    MongooseRepository,
+    MongooseSchema,
+    createMongooseSchema,
+    padNumber
+} from 'common'
+import { Model } from 'mongoose'
 
 @Schema()
 export class Sample extends MongooseSchema {
@@ -19,11 +24,19 @@ export class SamplesRepository extends MongooseRepository<Sample> {
         super(model)
     }
 
-    // async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
-    //     return await this.executeUpdate(id, (doc: Sample) => {
-    //         if (updateDto.name) doc.name = updateDto.name
-    //     })
-    // }
+    async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
+        const document = await this.model.findById(id).exec()
+
+        if (!document) {
+            throw new Exception(`Failed to update document with id: ${id}. Document not found.`)
+        }
+
+        if (updateDto.name) document.name = updateDto.name
+
+        await document.save()
+
+        return document.toObject()
+    }
 }
 
 @Module({
@@ -41,44 +54,33 @@ export function sortByNameDescending(documents: Sample[]) {
 }
 
 export async function createSample(repository: SamplesRepository): Promise<Sample> {
-    return repository.create({ name: `Sample-Name` })
+    const document = await repository.create({ name: `Sample-Name` })
+
+    return document
 }
 
-export async function createSamples(repository: SamplesRepository): Promise<Sample[]> {
-    return Promise.all(
-        Array.from({ length: 20 }, (_, index) =>
-            repository.create({ name: `Sample-${padNumber(index, 3)}` })
-        )
-    )
+export async function createSamples(
+    repository: SamplesRepository,
+    count: number
+): Promise<Sample[]> {
+    const promises = []
+
+    for (let i = 0; i < count; i++) {
+        const promise = repository.create({
+            name: `Sample-${padNumber(i, 3)}`
+        })
+
+        promises.push(promise)
+    }
+
+    const documents = await Promise.all(promises)
+
+    return documents
 }
 
-export const generated = {
+export const baseFields = {
     _id: expect.anything(),
     createdAt: expect.anything(),
     updatedAt: expect.anything(),
     version: expect.anything()
-}
-
-export async function createFixture(mongoUri: string) {
-    const module = await createTestingModule({
-        imports: [
-            MongooseModule.forRoot(mongoUri, {
-                connectionFactory: async (connection: Connection) => {
-                    await connection.dropDatabase()
-                    return connection
-                }
-            }),
-            SampleModule
-        ]
-    })
-
-    const repository = module.get(SamplesRepository)
-
-    return {
-        repository,
-        module,
-        teardown: async () => {
-            await module.close()
-        }
-    }
 }

@@ -53,7 +53,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         filterDto: ShowtimesFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Showtime>> {
-        const paginated = await this.find(pagination, (helpers) => {
+        const paginated = await this.findWithPagination(pagination, (helpers) => {
             const query = this.makeQueryByFilter(filterDto)
 
             helpers.setQuery(query)

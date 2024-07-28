@@ -24,5 +24,3 @@ export async function createDummyFile(filePath: string, sizeInBytes: number) {
 
     return filePath
 }
-
-export type TeardownFunction = () => void
