@@ -20,13 +20,13 @@ export class MongooseSchema {
     readonly _id: DocumentId
 
     @Prop()
-    createdAt?: Date
+    createdAt: Date
 
     @Prop()
-    updatedAt?: Date
+    updatedAt: Date
 
     @Prop()
-    version?: number
+    version: number
 }
 
 const BaseSchemaClass = SchemaFactory.createForClass(MongooseSchema)

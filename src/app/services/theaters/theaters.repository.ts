@@ -30,7 +30,7 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         filterDto: TheatersFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Theater>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
+        const paginated = await this.find(pagination, (helpers) => {
             const query: Record<string, any> = filterDto
 
             if (query.name) {

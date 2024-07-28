@@ -34,7 +34,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         filterDto: MoviesFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Movie>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
+        const paginated = await this.find(pagination, (helpers) => {
             const query: Record<string, any> = filterDto
 
             if (query.title) {

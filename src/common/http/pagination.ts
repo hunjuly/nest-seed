@@ -19,12 +19,12 @@ export class PaginationOption {
     @IsOptional()
     @IsInt()
     @Min(0)
-    take: number = 0
+    take?: number = 0
 
     @IsOptional()
     @IsInt()
     @Min(0)
-    skip: number = 0
+    skip?: number
 
     @IsOptional()
     @Transform(({ value }) => {
@@ -47,10 +47,10 @@ export class PaginationOption {
 
 export class PaginationResult<E> {
     @IsInt()
-    skip: number | undefined
+    skip: number
 
     @IsInt()
-    take: number | undefined
+    take: number
 
     @IsInt()
     total: number

@@ -2,7 +2,6 @@ import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
 import {
     DocumentId,
-    Exception,
     MongooseRepository,
     MongooseSchema,
     createMongooseSchema,
@@ -25,17 +24,9 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     }
 
     async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
-        const document = await this.model.findById(id).exec()
-
-        if (!document) {
-            throw new Exception(`Failed to update document with id: ${id}. Document not found.`)
-        }
-
-        if (updateDto.name) document.name = updateDto.name
-
-        await document.save()
-
-        return document.toObject()
+        return await this.executeUpdate(id, (doc: Sample) => {
+            if (updateDto.name) doc.name = updateDto.name
+        })
     }
 }
 
@@ -54,31 +45,18 @@ export function sortByNameDescending(documents: Sample[]) {
 }
 
 export async function createSample(repository: SamplesRepository): Promise<Sample> {
-    const document = await repository.create({ name: `Sample-Name` })
-
-    return document
+    return repository.create({ name: `Sample-Name` })
 }
 
-export async function createSamples(
-    repository: SamplesRepository,
-    count: number
-): Promise<Sample[]> {
-    const promises = []
-
-    for (let i = 0; i < count; i++) {
-        const promise = repository.create({
-            name: `Sample-${padNumber(i, 3)}`
-        })
-
-        promises.push(promise)
-    }
-
-    const documents = await Promise.all(promises)
-
-    return documents
+export async function createSamples(repository: SamplesRepository): Promise<Sample[]> {
+    return Promise.all(
+        Array.from({ length: 20 }, (_, index) =>
+            repository.create({ name: `Sample-${padNumber(index, 3)}` })
+        )
+    )
 }
 
-export const baseFields = {
+export const generated = {
     _id: expect.anything(),
     createdAt: expect.anything(),
     updatedAt: expect.anything(),

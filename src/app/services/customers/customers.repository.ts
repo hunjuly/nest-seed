@@ -30,7 +30,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         filterDto: CustomersFilterDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Customer>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
+        const paginated = await this.find(pagination, (helpers) => {
             const query: Record<string, any> = filterDto
 
             if (query.name) {
