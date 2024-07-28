@@ -58,7 +58,7 @@ export class MoviesService {
     }
 
     async updateMovie(movieId: string, updateMovieDto: MovieUpdatingDto) {
-        const savedMovie = await this.moviesRepository.update(movieId, updateMovieDto)
+        const savedMovie = await this.moviesRepository.updateById(movieId, updateMovieDto)
 
         return new MovieDto(savedMovie)
     }

@@ -1,13 +1,9 @@
+import { expect } from '@jest/globals'
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import {
-    DocumentId,
-    MongooseRepository,
-    MongooseSchema,
-    createMongooseSchema,
-    padNumber
-} from 'common'
-import { Model } from 'mongoose'
+import { MongooseRepository, MongooseSchema, createMongooseSchema, padNumber } from 'common'
+import { createTestingModule } from 'common/test'
+import { Connection, Model } from 'mongoose'
 
 @Schema()
 export class Sample extends MongooseSchema {
@@ -23,11 +19,11 @@ export class SamplesRepository extends MongooseRepository<Sample> {
         super(model)
     }
 
-    async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
-        return await this.executeUpdate(id, (doc: Sample) => {
-            if (updateDto.name) doc.name = updateDto.name
-        })
-    }
+    // async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
+    //     return await this.executeUpdate(id, (doc: Sample) => {
+    //         if (updateDto.name) doc.name = updateDto.name
+    //     })
+    // }
 }
 
 @Module({
@@ -61,4 +57,28 @@ export const generated = {
     createdAt: expect.anything(),
     updatedAt: expect.anything(),
     version: expect.anything()
+}
+
+export async function createFixture(mongoUri: string) {
+    const module = await createTestingModule({
+        imports: [
+            MongooseModule.forRoot(mongoUri, {
+                connectionFactory: async (connection: Connection) => {
+                    await connection.dropDatabase()
+                    return connection
+                }
+            }),
+            SampleModule
+        ]
+    })
+
+    const repository = module.get(SamplesRepository)
+
+    return {
+        repository,
+        module,
+        teardown: async () => {
+            await module.close()
+        }
+    }
 }

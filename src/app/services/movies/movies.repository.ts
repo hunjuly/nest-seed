@@ -12,23 +12,23 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         super(model)
     }
 
-    async update(id: string, updateDto: MovieUpdatingDto): Promise<Movie> {
-        const movie = (await this.model.findById(id).exec())!
+    // async update(id: string, updateDto: MovieUpdatingDto): Promise<Movie> {
+    //     const movie = (await this.model.findById(id).exec())!
 
-        Assert.defined(movie, `Movie with id ${id} must exist`)
+    //     Assert.defined(movie, `Movie with id ${id} must exist`)
 
-        if (updateDto.title) movie.title = updateDto.title
-        if (updateDto.genre) movie.genre = updateDto.genre
-        if (updateDto.releaseDate) movie.releaseDate = updateDto.releaseDate
-        if (updateDto.plot) movie.plot = updateDto.plot
-        if (updateDto.durationMinutes) movie.durationMinutes = updateDto.durationMinutes
-        if (updateDto.director) movie.director = updateDto.director
-        if (updateDto.rating) movie.rating = updateDto.rating
+    //     if (updateDto.title) movie.title = updateDto.title
+    //     if (updateDto.genre) movie.genre = updateDto.genre
+    //     if (updateDto.releaseDate) movie.releaseDate = updateDto.releaseDate
+    //     if (updateDto.plot) movie.plot = updateDto.plot
+    //     if (updateDto.durationMinutes) movie.durationMinutes = updateDto.durationMinutes
+    //     if (updateDto.director) movie.director = updateDto.director
+    //     if (updateDto.rating) movie.rating = updateDto.rating
 
-        await movie.save()
+    //     await movie.save()
 
-        return movie.toObject()
-    }
+    //     return movie.toObject()
+    // }
 
     async findPagedMovies(
         filterDto: MoviesFilterDto,

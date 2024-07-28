@@ -1,24 +1,23 @@
 import { expect } from '@jest/globals'
-import { MongooseModule } from '@nestjs/mongoose'
-import { TestingModule } from '@nestjs/testing'
 import { Exception, MongooseException, OrderDirection, nullObjectId } from 'common'
-import { createTestingModule } from 'common/test'
+import { TeardownFunction } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
-import { Connection } from 'mongoose'
 import {
     Sample,
-    SampleModule,
     SamplesRepository,
-    generated,
+    createFixture,
     createSample,
     createSamples,
+    generated,
     sortByName,
     sortByNameDescending
 } from './mongoose.repository.fixture'
+import { TestingModule } from '@nestjs/testing'
 
 describe('MongooseRepository', () => {
     let mongod: MongoMemoryReplSet
     let module: TestingModule
+    let teardown: TeardownFunction
     let repository: SamplesRepository
 
     beforeAll(async () => {
@@ -26,26 +25,18 @@ describe('MongooseRepository', () => {
     })
 
     afterAll(async () => {
-        await mongod?.stop()
+        await mongod.stop()
     })
 
     beforeEach(async () => {
-        module = await createTestingModule({
-            imports: [
-                MongooseModule.forRoot(mongod.getUri(), {
-                    connectionFactory: async (connection: Connection) => {
-                        await connection.dropDatabase()
-                        return connection
-                    }
-                }),
-                SampleModule
-            ]
-        })
-        repository = module.get(SamplesRepository)
+        const fixture = await createFixture(mongod.getUri())
+        module = fixture.module
+        teardown = fixture.teardown
+        repository = fixture.repository
     })
 
     afterEach(async () => {
-        if (module) await module.close()
+        await teardown()
     })
 
     describe('create', () => {
@@ -88,7 +79,7 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('update', () => {
+    describe('updateById', () => {
         let sample: Sample
 
         beforeEach(async () => {
@@ -96,7 +87,7 @@ describe('MongooseRepository', () => {
         })
 
         it('should successfully update a document', async () => {
-            const doc = await repository.update(sample._id, {
+            const doc = await repository.updateById(sample._id, {
                 name: 'new name'
             })
 
@@ -104,7 +95,7 @@ describe('MongooseRepository', () => {
         })
 
         it('should throw an exception if the ID does not exist', async () => {
-            const promise = repository.update(nullObjectId, {})
+            const promise = repository.updateById(nullObjectId, {})
 
             await expect(promise).rejects.toThrow(Exception)
         })

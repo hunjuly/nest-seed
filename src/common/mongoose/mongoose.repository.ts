@@ -14,21 +14,10 @@ import { objectIdToString, stringToObjectId } from './mongoose.util'
 export const DEFAULT_TAKE_SIZE = 100
 type SessionArg = ClientSession | undefined
 type QueryHelpers<Doc> = (helpers: QueryWithHelpers<Array<Doc>, Doc>) => Promise<void>
+export type UpdateResult = { matchedCount: number; modifiedCount: number }
 
 export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
-
-    async withTransaction<T>(callback: (session: ClientSession) => Promise<T>) {
-        const session = await this.model.startSession()
-
-        try {
-            const result = await session.withTransaction(callback)
-
-            return result
-        } finally {
-            session.endSession()
-        }
-    }
 
     async create(docData: Partial<Doc>, session: SessionArg = undefined): Promise<Doc> {
         Assert.undefined(docData._id, `The id ${docData._id} should not be defined.`)
@@ -54,89 +43,6 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
         return objectIdToString(savedDocs.map((doc) => doc.toObject()))
     }
-
-    async deleteById(id: DocumentId, session: SessionArg = undefined): Promise<void> {
-        const deletedDocument = await this.model
-            .findByIdAndDelete(id, { lean: true, session })
-            .exec()
-
-        if (!deletedDocument) {
-            throw new MongooseException(
-                `Failed to delete document with id: ${id}. Document not found.`
-            )
-        }
-    }
-
-    async deleteByIds(ids: DocumentId[], session: SessionArg = undefined) {
-        const result = await this.model.deleteMany({ _id: { $in: ids } as any }, { session })
-
-        return result.deletedCount
-    }
-
-    async deleteByFilter(filter: Record<string, any>, session: SessionArg = undefined) {
-        if (Object.keys(filter).length === 0) {
-            throw new MongooseException(
-                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
-            )
-        }
-
-        const result = await this.model.deleteMany(stringToObjectId(filter), { session })
-
-        Logger.log(`Deleted count: ${result.deletedCount}`)
-
-        return result.deletedCount
-    }
-
-    async updateById(
-        id: DocumentId,
-        updateData: Partial<Doc>,
-        session: SessionArg = undefined
-    ): Promise<Doc> {
-        const document = await this.model.findByIdAndUpdate(
-            stringToObjectId(id),
-            stringToObjectId(updateData),
-            { upsert: false, session }
-        )
-
-        return objectIdToString(document)
-    }
-
-    async updateByFilter(
-        filter: Record<string, any>,
-        updateData: Partial<Doc>,
-        session: SessionArg = undefined
-    ): Promise<any> {
-        if (Object.keys(filter).length === 0) {
-            throw new MongooseException(
-                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
-            )
-        }
-
-        const result = await this.model.updateMany(
-            stringToObjectId(filter),
-            stringToObjectId(updateData),
-            { upsert: false, session }
-        )
-
-        Assert.truthy(
-            result.acknowledged,
-            'The write operation must be acknowledged to ensure data consistency.'
-        )
-
-        return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount }
-    }
-
-    // async executeUpdate(id: DocumentId, callback: (doc: Doc) => void): Promise<Doc> {
-    //     const document = await this.model.findById(id).exec()
-    //     if (!document) {
-    //         throw new MongooseException(
-    //             `Failed to update document with id: ${id}. Document not found.`
-    //         )
-    //     }
-    //     callback(document)
-    //     await document.save()
-    //     return document.toObject()
-    // }
 
     async existsById(id: DocumentId, session: SessionArg = undefined): Promise<boolean> {
         const count = await this.model
@@ -218,4 +124,117 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
 
         return { skip, take }
     }
+
+    async deleteById(id: DocumentId, session: SessionArg = undefined): Promise<Doc> {
+        const deletedDocument = await this.model
+            .findByIdAndDelete(id, { lean: true, session })
+            .exec()
+
+        if (deletedDocument) {
+            return objectIdToString(deletedDocument)
+        }
+
+        throw new MongooseException(`Failed to delete document with id: ${id}. Document not found.`)
+    }
+
+    async deleteByIds(ids: DocumentId[], session: SessionArg = undefined) {
+        const result = await this.deleteByFilter({ _id: { $in: ids } as any }, session)
+
+        return result
+    }
+
+    async deleteByFilter(filter: Record<string, any>, session: SessionArg = undefined) {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
+            )
+        }
+
+        const { acknowledged, deletedCount } = await this.model.deleteMany(
+            stringToObjectId(filter),
+            { session }
+        )
+
+        Assert.truthy(
+            acknowledged,
+            'The delete operation must be acknowledged to ensure data consistency.'
+        )
+
+        Logger.log(`Deleted count: ${deletedCount}`)
+
+        return deletedCount
+    }
+
+    async updateById(
+        id: DocumentId,
+        updateData: Partial<Doc>,
+        session: SessionArg = undefined
+    ): Promise<Doc> {
+        const document = await this.model.findByIdAndUpdate(
+            stringToObjectId(id),
+            stringToObjectId(updateData),
+            { upsert: false, session }
+        )
+
+        return objectIdToString(document)
+    }
+
+    async updateByIds(
+        ids: DocumentId[],
+        updateData: Partial<Doc>,
+        session: SessionArg = undefined
+    ) {
+        const result = await this.updateByFilter({ _id: { $in: ids } as any }, updateData, session)
+
+        return result
+    }
+
+    async updateByFilter(
+        filter: Record<string, any>,
+        updateData: Partial<Doc>,
+        session: SessionArg = undefined
+    ): Promise<UpdateResult> {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
+            )
+        }
+
+        const result = await this.model.updateMany(
+            stringToObjectId(filter),
+            stringToObjectId(updateData),
+            { upsert: false, session }
+        )
+
+        Assert.truthy(
+            result.acknowledged,
+            'The write operation must be acknowledged to ensure data consistency.'
+        )
+
+        return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount }
+    }
+
+    async withTransaction<T>(callback: (session: ClientSession) => Promise<T>) {
+        const session = await this.model.startSession()
+
+        try {
+            const result = await session.withTransaction(callback)
+
+            return result
+        } finally {
+            session.endSession()
+        }
+    }
 }
+
+// async executeUpdate(id: DocumentId, callback: (doc: Doc) => void): Promise<Doc> {
+//     const document = await this.model.findById(id).exec()
+//     if (!document) {
+//         throw new MongooseException(
+//             `Failed to update document with id: ${id}. Document not found.`
+//         )
+//     }
+//     callback(document)
+//     await document.save()
+//     return document.toObject()
+// }
