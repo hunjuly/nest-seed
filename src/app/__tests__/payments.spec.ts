@@ -17,7 +17,7 @@ describe('/payments', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = fixture.testContext.request
+        req = fixture.testContext.createRequest()
         paymentsService = fixture.paymentsService
         ticketsService = fixture.ticketsService
         customerId = fixture.customer.id

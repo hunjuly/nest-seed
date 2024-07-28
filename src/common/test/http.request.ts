@@ -1,30 +1,38 @@
 import { HttpStatus } from '@nestjs/common'
+import { createWriteStream } from 'fs'
+import { posix } from 'path'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
-import { createWriteStream } from 'fs'
 
 export class HttpRequest {
     private req: supertest.Test
 
-    constructor(private server: any) {}
+    constructor(
+        private server: any,
+        private prefix: string
+    ) {}
+
+    private makeUrl(url: string) {
+        return posix.join(this.prefix, url)
+    }
 
     post(url: string): this {
-        this.req = supertest(this.server).post(url)
+        this.req = supertest(this.server).post(this.makeUrl(url))
         return this
     }
 
     patch(url: string): this {
-        this.req = supertest(this.server).patch(url)
+        this.req = supertest(this.server).patch(this.makeUrl(url))
         return this
     }
 
     get(url: string): this {
-        this.req = supertest(this.server).get(url)
+        this.req = supertest(this.server).get(this.makeUrl(url))
         return this
     }
 
     delete(url: string): this {
-        this.req = supertest(this.server).delete(url)
+        this.req = supertest(this.server).delete(this.makeUrl(url))
         return this
     }
 

@@ -7,7 +7,7 @@ describe('common/http/pipes', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [TestModule] })
-        req = testContext.request
+        req = testContext.createRequest()
     })
 
     afterEach(async () => {

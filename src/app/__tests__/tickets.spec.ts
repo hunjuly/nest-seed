@@ -13,13 +13,14 @@ describe('/tickets', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = fixture.testContext.request
+        req = fixture.testContext.createRequest()
         factory = fixture.factory
         ticketsService = fixture.ticketsService
     })
 
     afterEach(async () => {
         await testContext?.close()
+        jest.restoreAllMocks()
     })
 
     it('ShowtimesCreateCompletedEvent 이벤트를 수신해야 한다', async () => {

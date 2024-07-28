@@ -1,7 +1,10 @@
 import { compare, hash } from 'bcrypt'
 import { Queue } from 'bull'
 import { LatLong } from 'common'
-import { randomUUID } from 'crypto'
+import { createHash, Hash, randomUUID } from 'crypto'
+import { createReadStream } from 'fs'
+import { pipeline, Writable } from 'stream'
+import { promisify } from 'util'
 
 export async function sleep(timeoutInMS: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, timeoutInMS))
@@ -133,9 +136,9 @@ export async function waitForQueueToEmpty(queue: Queue, count: number = 60): Pro
     return false
 }
 
-export function pick<T, K extends keyof T>(items: T[], key: K): T[K][]
-export function pick<T, K extends keyof T>(items: T[], keys: K[]): Pick<T, K>[]
-export function pick<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any {
+export function pickItems<T, K extends keyof T>(items: T[], key: K): T[K][]
+export function pickItems<T, K extends keyof T>(items: T[], keys: K[]): Pick<T, K>[]
+export function pickItems<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any {
     if (Array.isArray(keyOrKeys)) {
         return items.map((item) =>
             keyOrKeys.reduce(
@@ -153,4 +156,17 @@ export function pick<T, K extends keyof T>(items: T[], keyOrKeys: K | K[]): any 
 
 export function pickIds<T extends { id: string }>(items: T[]): string[] {
     return items.map((item) => item.id)
+}
+
+export async function getChecksum(
+    filePath: string,
+    algorithm: 'md5' | 'sha1' | 'sha256' | 'sha512' = 'sha256'
+): Promise<string> {
+    const readStream = createReadStream(filePath)
+    const hash: Hash = createHash(algorithm)
+
+    const promisifiedPipeline = promisify(pipeline)
+    await promisifiedPipeline(readStream, hash as unknown as Writable)
+
+    return hash.digest('hex')
 }

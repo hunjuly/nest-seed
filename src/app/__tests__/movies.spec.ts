@@ -16,7 +16,7 @@ describe('/movies', () => {
             imports: [GlobalModule, MoviesModule],
             controllers: [MoviesController]
         })
-        req = testContext.request
+        req = testContext.createRequest()
 
         moviesService = testContext.module.get(MoviesService)
     })

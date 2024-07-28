@@ -11,6 +11,8 @@ export class StorageFile extends MongooseSchema {
     mimetype: string
     @Prop({ required: true })
     size: number
+    @Prop({ required: true })
+    checksum: string
 }
 
 export const StorageFileSchema = createMongooseSchema(StorageFile)

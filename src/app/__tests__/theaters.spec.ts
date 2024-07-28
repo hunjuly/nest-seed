@@ -16,7 +16,7 @@ describe('/theaters', () => {
             imports: [GlobalModule, TheatersModule],
             controllers: [TheatersController]
         })
-        req = testContext.request
+        req = testContext.createRequest()
 
         theatersService = testContext.module.get(TheatersService)
     })

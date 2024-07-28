@@ -1,18 +1,21 @@
 import * as bull from 'bull'
 import { LatLong } from 'common'
+import * as fs from 'fs/promises'
 import {
     Password,
+    Path,
     addQuotesToNumbers,
     comment,
-    latlongDistanceInMeters,
     equalsIgnoreCase,
     generateUUID,
-    notUsed,
-    sleep,
+    getChecksum,
     jsonToObject,
-    waitForQueueToEmpty,
-    pick,
-    pickIds
+    latlongDistanceInMeters,
+    notUsed,
+    pickIds,
+    pickItems,
+    sleep,
+    waitForQueueToEmpty
 } from '..'
 
 jest.mock('bull')
@@ -208,7 +211,7 @@ describe('common/utils/etc', () => {
         })
     })
 
-    describe('pick', () => {
+    describe('pickItems', () => {
         const items = [
             { id: '1', name: 'John', age: 30 },
             { id: '2', name: 'Jane', age: 25 },
@@ -216,12 +219,12 @@ describe('common/utils/etc', () => {
         ]
 
         it('should pick a single key from array of objects', () => {
-            const result = pick(items, 'name')
+            const result = pickItems(items, 'name')
             expect(result).toEqual(['John', 'Jane', 'Bob'])
         })
 
         it('should pick multiple keys from array of objects', () => {
-            const result = pick(items, ['id', 'name'])
+            const result = pickItems(items, ['id', 'name'])
             expect(result).toEqual([
                 { id: '1', name: 'John' },
                 { id: '2', name: 'Jane' },
@@ -230,12 +233,12 @@ describe('common/utils/etc', () => {
         })
 
         it('should return an empty array if input array is empty', () => {
-            const result = pick([], 'name')
+            const result = pickItems([], 'name')
             expect(result).toEqual([])
         })
 
         it('should handle non-existent keys gracefully', () => {
-            const result = pick(items, 'address' as any)
+            const result = pickItems(items, 'address' as any)
             expect(result).toEqual([undefined, undefined, undefined])
         })
     })
@@ -255,6 +258,34 @@ describe('common/utils/etc', () => {
         it('should return an empty array if input array is empty', () => {
             const result = pickIds([])
             expect(result).toEqual([])
+        })
+    })
+
+    describe('getChecksum', () => {
+        const testContent = 'Hello, World!'
+        let tempDir: string
+        let helloWorld: string
+
+        beforeEach(async () => {
+            tempDir = await Path.createTempDirectory()
+            helloWorld = Path.join(tempDir, 'test-file.txt')
+            await fs.writeFile(helloWorld, testContent)
+        })
+
+        afterEach(async () => {
+            await Path.delete(tempDir)
+        })
+
+        it('should return correct MD5 checksum', async () => {
+            const checksum = await getChecksum(helloWorld, 'md5')
+            expect(checksum).toBe('65a8e27d8879283831b664bd8b7f0ad4')
+        })
+
+        it('should return correct SHA256 checksum', async () => {
+            const checksum = await getChecksum(helloWorld, 'sha256')
+            expect(checksum).toBe(
+                'dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f'
+            )
         })
     })
 

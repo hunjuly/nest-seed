@@ -4,7 +4,7 @@ import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
-import { convertDateToString, pick, pickIds } from 'common'
+import { convertDateToString, pickItems, pickIds } from 'common'
 import { expectEqualUnsorted, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture, filterMoviesByGenre } from './showing.fixture'
 
@@ -26,7 +26,7 @@ describe('/showing', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = testContext.request
+        req = testContext.createRequest()
         customer = fixture.customer
         movies = fixture.movies
         theaters = fixture.theaters
@@ -138,7 +138,7 @@ describe('/showing', () => {
             .ok()
 
         const showtimes = body as ShowtimeDto[]
-        const salesStatuses = pick(showtimes as any[], 'salesStatus')
+        const salesStatuses = pickItems(showtimes as any[], 'salesStatus')
         const seatCount = getSeatCount(theaters[0].seatmap)
         const expectedStatuses = [
             { total: seatCount, sold: 0, available: seatCount },

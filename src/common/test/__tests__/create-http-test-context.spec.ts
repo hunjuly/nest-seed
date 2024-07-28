@@ -20,7 +20,7 @@ describe('Service Mocking', () => {
             ]
         })
 
-        req = testContext.request
+        req = testContext.createRequest()
     })
 
     afterEach(async () => {

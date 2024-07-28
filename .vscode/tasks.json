@@ -32,18 +32,6 @@
             "detail": "개발 환경을 초기화하고 모든 데이터를 제거합니다.",
             "type": "shell",
             "command": "bash scripts/workspace_cleanup.sh"
-        },
-        {
-            "label": "Launch psql",
-            "detail": "개발 데이터베이스(POSTGRES_DB_HOST)에서 psql 쉘을 실행합니다.",
-            "type": "shell",
-            "command": "bash scripts/launch_psql.sh"
-        },
-        {
-            "label": "Generate Migration",
-            "detail": "새로운 마이그레이션 파일을 생성합니다.",
-            "type": "shell",
-            "command": "npm run migration:generate"
         }
     ],
     "inputs": [

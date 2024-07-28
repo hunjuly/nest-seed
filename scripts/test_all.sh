@@ -5,6 +5,5 @@ set -e
 npm run test:all --prefix $WORKSPACE_ROOT
 
 npm run build --prefix $WORKSPACE_ROOT
-npm run migration:show --prefix $WORKSPACE_ROOT
 
 bash test/e2e/run.sh

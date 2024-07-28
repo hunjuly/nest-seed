@@ -1,13 +1,7 @@
-import { createHash, Hash } from 'crypto'
 import * as syncFs from 'fs'
-import { ReadStream } from 'fs'
 import * as fs from 'fs/promises'
 import { tmpdir } from 'os'
 import * as p from 'path'
-import { pipeline, Writable } from 'stream'
-import { promisify } from 'util'
-
-const promisifiedPipeline = promisify(pipeline)
 
 export class Path {
     static async getAbsolute(src: string): Promise<string> {
@@ -56,11 +50,6 @@ export class Path {
         return stats.isDirectory()
     }
 
-    static async getFileSize(filePath: string) {
-        const stats = await fs.stat(filePath)
-        return stats.size
-    }
-
     static async mkdir(path: string): Promise<void> {
         await fs.mkdir(path, { recursive: true })
     }
@@ -106,44 +95,13 @@ export class Path {
         return p.sep
     }
 
-    static async getFileChecksum(
-        readStream: ReadStream,
-        algorithm: 'md5' | 'sha1' | 'sha256' | 'sha512' = 'md5'
-    ): Promise<string> {
-        const hash: Hash = createHash(algorithm)
-
-        await promisifiedPipeline(readStream, hash as unknown as Writable)
-
-        return hash.digest('hex')
-    }
-
-    static async createDummyFile(filePath: string, sizeInBytes: number) {
-        const file = await fs.open(filePath, 'w')
-
-        let remainingBytes = sizeInBytes
-
-        const buffer = Buffer.alloc(
-            1024 * 1024,
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZ가나다라마바사아자차카타파하~!@#$%^&*()_+'
-        )
-
-        try {
-            while (remainingBytes > 0) {
-                const currentChunkSize = Math.min(buffer.byteLength, remainingBytes)
-
-                await file.write(buffer, 0, currentChunkSize)
-                remainingBytes -= currentChunkSize
-            }
-        } finally {
-            await file.sync()
-            await file.close()
-        }
-
-        return filePath
-    }
-
     static async move(src: string, dest: string): Promise<void> {
         // rename may fail if moving to a different file-system
         await fs.rename(src, dest)
+    }
+
+    static async getSize(filePath: string): Promise<number> {
+        const stats = await fs.stat(filePath)
+        return stats.size
     }
 }

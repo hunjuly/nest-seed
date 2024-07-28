@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { CustomersController } from 'app/controllers'
+import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, CustomersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
@@ -14,9 +14,10 @@ describe('/customers', () => {
     beforeEach(async () => {
         testContext = await createHttpTestContext({
             imports: [GlobalModule, CustomersModule],
-            controllers: [CustomersController]
+            controllers: [CustomersController],
+            ignoreGuards: [CustomerLocalAuthGuard, CustomerJwtAuthGuard]
         })
-        req = testContext.request
+        req = testContext.createRequest()
 
         customersService = testContext.module.get(CustomersService)
     })
@@ -32,22 +33,24 @@ describe('/customers', () => {
             customer = await createCustomer(customersService)
         })
 
-        const createDto = {
+        const creationDto = {
             name: 'name',
             email: 'name@mail.com',
-            birthday: new Date('2020-12-12')
+            birthday: new Date('2020-12-12'),
+            password: 'password'
         }
 
         it('should create a customer and return CREATED status', async () => {
-            const res = await req.post('/customers').body(createDto).created()
+            const res = await req.post('/customers').body(creationDto).created()
 
-            expect(res.body).toEqual({ id: expect.anything(), ...createDto })
+            const { password: _, ...rest } = creationDto
+            expect(res.body).toEqual({ id: expect.anything(), ...rest })
         })
 
         it('CONFLICT(409) if email already exists', async () => {
             return req
                 .post('/customers')
-                .body({ ...createDto, email: customer.email })
+                .body({ ...creationDto, email: customer.email })
                 .conflict()
         })
 

@@ -20,6 +20,7 @@ describe('AppEvent', () => {
 
     afterEach(async () => {
         await module?.close()
+        jest.restoreAllMocks()
     })
 
     it('emits and receives a specific event', async () => {
