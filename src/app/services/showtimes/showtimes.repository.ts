@@ -108,7 +108,11 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return showdates.map((item) => new Date(item._id))
     }
 
-    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date): Promise<Showtime[]> {
+    async findShowtimesByShowdate(
+        movieId: string,
+        theaterId: string,
+        showdate: Date
+    ): Promise<Showtime[]> {
         const startOfDay = new Date(showdate)
         startOfDay.setHours(0, 0, 0, 0)
 

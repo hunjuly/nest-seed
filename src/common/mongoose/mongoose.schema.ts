@@ -1,10 +1,10 @@
 import { Type } from '@nestjs/common'
 import { Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Types, UpdateQuery } from 'mongoose'
+import { Types } from 'mongoose'
 
 export class ObjectId extends Types.ObjectId {}
 export type DocumentId = ObjectId | string
-export class RepositoryUpdateStatus {
+export class MongooseUpdateResult {
     modifiedCount: number
     matchedCount: number
 }

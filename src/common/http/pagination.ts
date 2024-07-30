@@ -18,13 +18,13 @@ export class OrderOption {
 export class PaginationOption {
     @IsOptional()
     @IsInt()
-    @Min(0)
-    take: number = 0
+    @Min(1)
+    take?: number
 
     @IsOptional()
     @IsInt()
     @Min(0)
-    skip: number = 0
+    skip?: number
 
     @IsOptional()
     @Transform(({ value }) => {
@@ -47,10 +47,10 @@ export class PaginationOption {
 
 export class PaginationResult<E> {
     @IsInt()
-    skip: number | undefined
+    skip: number
 
     @IsInt()
-    take: number | undefined
+    take: number
 
     @IsInt()
     total: number
@@ -64,14 +64,20 @@ export class PaginationPipe implements PipeTransform {
 
     transform(value: any, metadata: ArgumentMetadata) {
         if (metadata.type === 'query') {
-            if (0 < value.take) {
-                if (this.takeLimit < value.take) {
-                    throw new BadRequestException(
-                        `The 'take' parameter exceeds the maximum allowed limit of ${this.takeLimit}.`
-                    )
+            if (value instanceof PaginationOption) {
+                if (!value.skip) {
+                    value.skip = 0
                 }
-            } else if (0 === value.take) {
-                value.take = this.takeLimit
+
+                if (value.take) {
+                    if (this.takeLimit < value.take) {
+                        throw new BadRequestException(
+                            `The 'take' parameter exceeds the maximum allowed limit of ${this.takeLimit}.`
+                        )
+                    }
+                } else {
+                    value.take = this.takeLimit
+                }
             }
         }
 

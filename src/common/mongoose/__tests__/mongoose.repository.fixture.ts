@@ -1,14 +1,10 @@
+import { expect } from '@jest/globals'
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import {
-    DocumentId,
-    Exception,
-    MongooseRepository,
-    MongooseSchema,
-    createMongooseSchema,
-    padNumber
-} from 'common'
-import { Model } from 'mongoose'
+import { createMongooseSchema, MongooseRepository, MongooseSchema, padNumber } from 'common'
+import { createTestingModule } from 'common/test'
+import { Connection, Model } from 'mongoose'
+import { Repository } from 'typeorm'
 
 @Schema()
 export class Sample extends MongooseSchema {
@@ -23,20 +19,6 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     constructor(@InjectModel(Sample.name) model: Model<Sample>) {
         super(model)
     }
-
-    async update(id: DocumentId, updateDto: Partial<Sample>): Promise<Sample> {
-        const document = await this.model.findById(id).exec()
-
-        if (!document) {
-            throw new Exception(`Failed to update document with id: ${id}. Document not found.`)
-        }
-
-        if (updateDto.name) document.name = updateDto.name
-
-        await document.save()
-
-        return document.toObject()
-    }
 }
 
 @Module({
@@ -45,42 +27,55 @@ export class SamplesRepository extends MongooseRepository<Sample> {
 })
 export class SampleModule {}
 
-export function sortByName(documents: Sample[]) {
-    return documents.sort((a, b) => a.name.localeCompare(b.name))
-}
+export const sortByName = (documents: Sample[]) =>
+    documents.sort((a, b) => a.name.localeCompare(b.name))
 
-export function sortByNameDescending(documents: Sample[]) {
-    return documents.sort((a, b) => b.name.localeCompare(a.name))
-}
+export const sortByNameDescending = (documents: Sample[]) =>
+    documents.sort((a, b) => b.name.localeCompare(a.name))
 
-export async function createSample(repository: SamplesRepository): Promise<Sample> {
-    const document = await repository.create({ name: `Sample-Name` })
+export const createSample = (repository: SamplesRepository): Promise<Sample> =>
+    repository.create((doc) => {
+        doc.name = 'Sample-Name'
+    })
 
-    return document
-}
+export const createSamples = async (repository: SamplesRepository) =>
+    Promise.all(
+        Array.from({ length: 20 }, (_, index) =>
+            repository.create((doc) => {
+                doc.name = `Sample-${padNumber(index, 3)}`
+            })
+        )
+    )
 
-export async function createSamples(
-    repository: SamplesRepository,
-    count: number
-): Promise<Sample[]> {
-    const promises = []
-
-    for (let i = 0; i < count; i++) {
-        const promise = repository.create({
-            name: `Sample-${padNumber(i, 3)}`
-        })
-
-        promises.push(promise)
-    }
-
-    const documents = await Promise.all(promises)
-
-    return documents
-}
-
-export const baseFields = {
+export const generated = {
     _id: expect.anything(),
     _c: expect.anything(),
     _u: expect.anything(),
     _v: expect.anything()
+}
+
+export async function createFixture(uri: string) {
+    const module = await createTestingModule({
+        imports: [
+            MongooseModule.forRoot(uri, {
+                // autoCreate: false 하지 않으면 await session.commitTransaction() 할 때 아래 오류가 발생한다.
+                // MongoServerError: Caused by :: Collection namespace 'test.samples' is already in use. :: Please retry your operation or multi-document transaction.
+                // autoCreate: false의 실제 영향:
+                // 이 설정은 Mongoose 레벨에서의 자동 컬렉션 생성을 비활성화합니다.
+                // 그러나 MongoDB 서버 레벨에서의 자동 컬렉션 생성은 여전히 활성화되어 있습니다.
+                autoCreate: false,
+                connectionFactory: async (connection: Connection) => {
+                    await connection.dropDatabase()
+                    return connection
+                }
+            }),
+            SampleModule
+        ]
+    })
+    const repository = module.get(SamplesRepository)
+    const teardown = async () => {
+        await module.close()
+    }
+
+    return { module, repository, teardown }
 }

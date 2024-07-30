@@ -4,7 +4,7 @@ import {
     MongooseRepository,
     PaginationOption,
     PaginationResult,
-    RepositoryUpdateStatus,
+    MongooseUpdateResult,
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
@@ -57,7 +57,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     async updateTicketStatus(
         ticketIds: string[],
         status: TicketStatus
-    ): Promise<RepositoryUpdateStatus> {
+    ): Promise<MongooseUpdateResult> {
         this.logger.log(`${ticketIds}의 status를 ${status}으로 업데이트 시작`)
 
         const result = await this.model.updateMany(
