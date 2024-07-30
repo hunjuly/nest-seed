@@ -6,12 +6,10 @@ jest.mock('@nestjs/common', () => {
         static log = jest.fn()
         static error = jest.fn()
         static warn = jest.fn()
-        static verbose = jest.fn()
+        static verbose = jest.fn().mockReturnValue('Mocked verbose')
     }
 
-    const originalModule = jest.requireActual('@nestjs/common')
-
-    return { ...originalModule, Logger }
+    return { ...jest.requireActual('@nestjs/common'), Logger }
 })
 
 describe('TypeormLogger', () => {

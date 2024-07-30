@@ -30,7 +30,7 @@ describe('MongooseRepository - withTransaction', () => {
         const createData = [{ name: 'document-1 name' }, { name: 'document-2 name' }]
 
         const createdCount = await repository.withTransaction(async (session) => {
-            await repository.createMany(
+            return await repository.createMany(
                 createData.length,
                 (doc, index) => {
                     doc.name = createData[index].name

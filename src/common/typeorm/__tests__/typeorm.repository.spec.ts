@@ -212,8 +212,6 @@ describe('TypeormRepository', () => {
 
         it('should sort in ascending order', async () => {
             const paginated = await repository.findWithPagination({
-                skip: 0,
-                take: samples.length,
                 orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
@@ -224,8 +222,6 @@ describe('TypeormRepository', () => {
 
         it('should sort in descending order', async () => {
             const paginated = await repository.findWithPagination({
-                skip: 0,
-                take: samples.length,
                 orderby: { name: 'name', direction: OrderDirection.desc }
             })
 
@@ -235,21 +231,15 @@ describe('TypeormRepository', () => {
         })
 
         it('should throw an exception if ‘take’ is absent or zero', async () => {
-            const promise = repository.findWithPagination({ skip: 0, take: 0 })
+            const promise = repository.findWithPagination({ take: 0 })
 
             await expect(promise).rejects.toThrow(TypeormException)
         })
 
         it('Should set conditions using the QueryBuilder', async () => {
-            const paginated = await repository.findWithPagination(
-                {
-                    skip: 0,
-                    take: samples.length
-                },
-                (qb) => {
-                    qb.where('entity.name LIKE :name', { name: '%Sample-00%' })
-                }
-            )
+            const paginated = await repository.findWithPagination({}, (qb) => {
+                qb.where('entity.name LIKE :name', { name: '%Sample-00%' })
+            })
 
             const names = paginated.items.map((item) => item.name)
 
