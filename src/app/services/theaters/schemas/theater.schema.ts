@@ -37,7 +37,7 @@ export function getSeatCount(seatmap: Seatmap) {
     return count
 }
 
-export function mapSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
+export function forEachSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
     const results: any[] = []
 
     for (const block of seatmap.blocks) {
@@ -46,13 +46,7 @@ export function mapSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
                 const seat = row.seats[i]
 
                 if (seat !== 'X') {
-                    results.push(
-                        callback({
-                            block: block.name,
-                            row: row.name,
-                            seatnum: i + 1
-                        })
-                    )
+                    results.push(callback({ block: block.name, row: row.name, seatnum: i + 1 }))
                 }
             }
         }
@@ -67,7 +61,10 @@ export class Theater extends MongooseSchema {
     name: string
 
     @Prop({
-        type: { latitude: { type: Number, required: true }, longitude: { type: Number, required: true } },
+        type: {
+            latitude: { type: Number, required: true },
+            longitude: { type: Number, required: true }
+        },
         required: true,
         _id: false
     })

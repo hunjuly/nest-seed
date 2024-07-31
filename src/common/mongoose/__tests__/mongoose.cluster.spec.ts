@@ -1,4 +1,3 @@
-import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
 import { createTestingModule } from 'common/test'

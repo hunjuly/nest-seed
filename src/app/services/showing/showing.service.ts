@@ -1,17 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { Assert, LatLong, latlongDistanceInMeters, pickItems, pickIds } from 'common'
+import { Injectable } from '@nestjs/common'
+import {
+    Assert,
+    LatLong,
+    latlongDistanceInMeters,
+    MethodLog,
+    OrderDirection,
+    pickIds,
+    pickItems
+} from 'common'
+import { uniq } from 'lodash'
 import { MovieDto, MoviesService } from '../movies'
 import { PaymentsService } from '../payments'
 import { ShowtimesService } from '../showtimes'
 import { TheaterDto, TheatersService } from '../theaters'
 import { TicketsService } from '../tickets'
-import { uniq } from 'lodash'
-import { ShowtimeSalesStatus } from './showtime-sales-status.dto'
+import { ShowtimeSalesStatus } from './dto'
 
 @Injectable()
 export class ShowingService {
-    private readonly logger = new Logger(this.constructor.name)
-
     constructor(
         private moviesService: MoviesService,
         private showtimesService: ShowtimesService,
@@ -20,14 +26,16 @@ export class ShowingService {
         private theatersService: TheatersService
     ) {}
 
+    @MethodLog('verbose')
     async getRecommendedMovies(customerId: string) {
-        this.logger.log(`Generating recommended movies for customer: ${customerId}`)
-
         const showingMovieIds = await this.showtimesService.findShowingMovieIds()
 
         const showingMovies = await this.moviesService.getMoviesByIds(showingMovieIds)
 
-        const payments = await this.paymentsService.findPayments({ customerId })
+        const { items: payments } = await this.paymentsService.findPayments(
+            { customerId },
+            { take: 100, orderby: { name: 'createAt', direction: OrderDirection.desc } }
+        )
 
         const ticketIds = payments.flatMap((payment) => payment.ticketIds)
         const tickets = await this.ticketsService.findTickets({ ticketIds })
@@ -38,14 +46,14 @@ export class ShowingService {
 
         const recommendedMovies = this.generateRecommendedMovies(showingMovies, watchedMovies)
 
-        this.logger.log(
-            `Generated ${recommendedMovies.length} movie recommendations for customer: ${customerId}`
-        )
-
         return recommendedMovies
     }
 
-    private generateRecommendedMovies(showingMovies: MovieDto[], watchedMovies: MovieDto[]): MovieDto[] {
+    @MethodLog('debug')
+    private generateRecommendedMovies(
+        showingMovies: MovieDto[],
+        watchedMovies: MovieDto[]
+    ): MovieDto[] {
         // 1. 시청한 영화들의 장르 빈도수 계산
         const genreFrequency: { [key: string]: number } = {}
         watchedMovies.forEach((movie) => {
@@ -74,10 +82,11 @@ export class ShowingService {
         return recommendedMovies
     }
 
+    @MethodLog('verbose')
     async findShowingTheaters(movieId: string, userLocation: LatLong) {
         const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
         const theaters = await this.theatersService.findByIds(theaterIds)
-        Assert.sameLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
+        Assert.equalLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
 
         return this.sortTheatersByDistance(theaters, userLocation)
     }
@@ -90,14 +99,20 @@ export class ShowingService {
         )
     }
 
+    @MethodLog('verbose')
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
 
         return showdates
     }
 
+    @MethodLog('verbose')
     async findShowtimes(movieId: string, theaterId: string, showdate: Date) {
-        const showtimes = await this.showtimesService.findShowtimesByShowdate(movieId, theaterId, showdate)
+        const showtimes = await this.showtimesService.findShowtimesByShowdate(
+            movieId,
+            theaterId,
+            showdate
+        )
         const salesStatuses = await this.ticketsService.getSalesStatuses(pickIds(showtimes))
         const salesStatusMap = new Map(salesStatuses.map((status) => [status.showtimeId, status]))
 
@@ -117,6 +132,7 @@ export class ShowingService {
         return showtimeSalesStatuses
     }
 
+    @MethodLog('verbose')
     async findTickets(showtimeId: string) {
         const tickets = await this.ticketsService.findTickets({ showtimeId })
 

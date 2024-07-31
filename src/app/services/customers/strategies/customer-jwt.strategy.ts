@@ -16,7 +16,7 @@ export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jw
     }
 
     async validate(payload: AuthTokenPayload): Promise<AuthTokenPayload | null> {
-        const exists = await this.customersRepository.existsById(payload.userId)
+        const exists = await this.customersRepository.existsByIds([payload.userId])
 
         return exists ? payload : null
     }

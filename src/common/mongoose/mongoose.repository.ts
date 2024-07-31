@@ -1,4 +1,5 @@
 import {
+    Assert,
     DocumentId,
     MongooseSchema,
     MongooseUpdateResult,
@@ -41,17 +42,15 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
             docs.push(doc)
         }
 
-        const result = await this.model.bulkSave(docs, { session })
+        const { insertedCount } = await this.model.bulkSave(docs, { session })
 
-        return result.insertedCount
-    }
+        Assert.equals(
+            count,
+            insertedCount,
+            `The number of inserted documents should match the requested count`
+        )
 
-    async existsById(id: DocumentId, session: SeesionArg = undefined): Promise<boolean> {
-        const count = await this.model
-            .countDocuments({ _id: { $in: [id] } } as any, { session })
-            .lean()
-
-        return count === 1
+        return insertedCount
     }
 
     async existsByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<boolean> {

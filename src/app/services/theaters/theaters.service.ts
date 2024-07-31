@@ -1,64 +1,59 @@
 import { Injectable } from '@nestjs/common'
-import { AppException, Assert, PaginationOption, PaginationResult } from 'common'
-import { TheaterCreationDto, TheaterDto, TheatersFilterDto, TheaterUpdatingDto } from './dto'
+import { Assert, MethodLog, PaginationOption, PaginationResult } from 'common'
+import { TheaterCreationDto, TheaterDto, TheatersQueryDto, TheaterUpdatingDto } from './dto'
 import { TheatersRepository } from './theaters.repository'
 
 @Injectable()
 export class TheatersService {
-    constructor(private theatersRepository: TheatersRepository) {}
+    constructor(private repository: TheatersRepository) {}
 
-    async createTheater(createTheaterDto: TheaterCreationDto) {
-        const savedTheater = await this.theatersRepository.create(createTheaterDto)
+    @MethodLog()
+    async createTheater(createDto: TheaterCreationDto) {
+        const theater = await this.repository.createTheater(createDto)
 
-        return new TheaterDto(savedTheater)
+        return new TheaterDto(theater)
     }
 
-    async theaterExists(theaterId: string): Promise<boolean> {
-        const theaterExists = await this.theatersRepository.existsById(theaterId)
+    @MethodLog()
+    async updateTheater(theaterId: string, updateTheaterDto: TheaterUpdatingDto) {
+        const theater = await this.repository.updateTheater(theaterId, updateTheaterDto)
 
-        return theaterExists
+        return new TheaterDto(theater)
     }
 
-    async theatersExist(theaterIds: string[]): Promise<boolean> {
-        const theaterExists = await this.theatersRepository.existsByIds(theaterIds)
-
-        return theaterExists
+    @MethodLog()
+    async deleteTheater(theaterId: string) {
+        await this.repository.deleteById(theaterId)
     }
 
-    async findByIds(theaterIds: string[]) {
-        const foundTheaters = await this.theatersRepository.findByIds(theaterIds)
-
-        const theaterDtos = foundTheaters.map((theater) => new TheaterDto(theater))
-
-        return theaterDtos
-    }
-
-    async findPagedTheaters(
-        filterDto: TheatersFilterDto,
+    @MethodLog('verbose')
+    async findTheaters(
+        queryDto: TheatersQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<TheaterDto>> {
-        const paginatedTheaters = await this.theatersRepository.findPagedTheaters(filterDto, pagination)
+        const paginated = await this.repository.findTheaters(queryDto, pagination)
 
-        const items = paginatedTheaters.items.map((theater) => new TheaterDto(theater))
-
-        return { ...paginatedTheaters, items }
+        return { ...paginated, items: paginated.items.map((item) => new TheaterDto(item)) }
     }
 
+    @MethodLog('verbose')
+    async findByIds(theaterIds: string[]) {
+        const theaters = await this.repository.findByIds(theaterIds)
+
+        return theaters.map((theater) => new TheaterDto(theater))
+    }
+
+    @MethodLog('verbose')
     async getTheater(theaterId: string) {
-        const theater = await this.theatersRepository.findById(theaterId)
+        const theater = await this.repository.findById(theaterId)
 
         Assert.defined(theater, `Theater with ID ${theaterId} should exist`)
 
         return new TheaterDto(theater!)
     }
 
-    async updateTheater(theaterId: string, updateTheaterDto: TheaterUpdatingDto) {
-        const savedTheater = await this.theatersRepository.update(theaterId, updateTheaterDto)
-
-        return new TheaterDto(savedTheater)
-    }
-
-    async deleteTheater(theaterId: string) {
-        await this.theatersRepository.deleteById(theaterId)
+    async theatersExist(theaterIds: string[]): Promise<boolean> {
+        const theaterExists = await this.repository.existsByIds(theaterIds)
+        return theaterExists
     }
 }

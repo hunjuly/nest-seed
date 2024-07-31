@@ -21,18 +21,20 @@ export class MongooseUpdateResult {
     minimize: false,
     strict: 'throw',
     strictQuery: 'throw',
-    timestamps: { createdAt: '_c', updatedAt: '_u' },
-    versionKey: '_v',
+    timestamps: true,
+    // versionKey: true,
     validateBeforeSave: true,
     // https://mongoosejs.com/docs/guide.html#collation
     collation: { locale: 'en_US', strength: 1 }
 })
 export class MongooseSchema {
     _id: DocumentId
-    _c: Date
-    _u: Date
-    _v: number
+    createdAt: Date
+    updatedAt: Date
+    __v: number
 }
+
+export type SchemeBody<T> = Omit<T, keyof MongooseSchema>
 
 const BaseSchemaClass = SchemaFactory.createForClass(MongooseSchema)
 

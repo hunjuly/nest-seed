@@ -8,7 +8,7 @@ import {
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { ShowtimesFilterDto } from './dto'
+import { ShowtimesQueryDto } from './dto'
 import { Showtime } from './schemas'
 
 @Injectable()
@@ -37,8 +37,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return objectIdToString(showtimes)
     }
 
-    private makeQueryByFilter(filterDto: ShowtimesFilterDto) {
-        const { showtimeIds, ...rest } = stringToObjectId(filterDto)
+    private makeQueryByFilter(queryDto: ShowtimesQueryDto) {
+        const { showtimeIds, ...rest } = stringToObjectId(queryDto)
 
         const query: Record<string, any> = rest
 
@@ -50,11 +50,11 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     }
 
     async findPagedShowtimes(
-        filterDto: ShowtimesFilterDto,
+        queryDto: ShowtimesQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Showtime>> {
         const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const query = this.makeQueryByFilter(filterDto)
+            const query = this.makeQueryByFilter(queryDto)
 
             helpers.setQuery(query)
         })
@@ -62,8 +62,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return paginated
     }
 
-    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<Showtime[]> {
-        const query = this.makeQueryByFilter(filterDto)
+    async findShowtimes(queryDto: ShowtimesQueryDto): Promise<Showtime[]> {
+        const query = this.makeQueryByFilter(queryDto)
 
         return super.findByFilter(query)
     }

@@ -1,84 +1,71 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, PaginationOption, PaginationResult, Password } from 'common'
-import { CustomersRepository } from './customers.repository'
-import { CustomerCreationDto, CustomerDto, CustomersFilterDto, CustomerUpdatingDto } from './dto'
+import { Assert, MethodLog, PaginationOption, PaginationResult, Password } from 'common'
 import { JwtAuthService } from '../jwt-auth'
+import { CustomersRepository } from './customers.repository'
+import { CustomerCreationDto, CustomerDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
 
 @Injectable()
 export class CustomersService {
     constructor(
-        private customersRepository: CustomersRepository,
+        private repository: CustomersRepository,
         private jwtAuthService: JwtAuthService
     ) {}
 
-    async createCustomer(creationDto: CustomerCreationDto) {
-        const { password, ...rest } = creationDto
-
-        const hashedPassword = await Password.hash(password)
-
-        const customer = await this.customersRepository.create({
-            ...rest,
-            password: hashedPassword
+    @MethodLog()
+    async createCustomer(createDto: CustomerCreationDto) {
+        const customer = await this.repository.createCustomer({
+            ...createDto,
+            password: await Password.hash(createDto.password)
         })
 
         return new CustomerDto(customer)
     }
 
-    async customerExists(customerId: string): Promise<boolean> {
-        const customerExists = await this.customersRepository.existsById(customerId)
-
-        return customerExists
+    @MethodLog()
+    async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+        const customer = await this.repository.updateCustomer(customerId, updateDto)
+        return new CustomerDto(customer)
     }
 
-    async findPagedCustomers(
-        filterDto: CustomersFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<CustomerDto>> {
-        const paginatedCustomers = await this.customersRepository.findPagedCustomers(
-            filterDto,
-            pagination
-        )
-
-        const items = paginatedCustomers.items.map((customer) => new CustomerDto(customer))
-
-        return { ...paginatedCustomers, items }
-    }
-
-    async findByEmail(email: string): Promise<CustomerDto | null> {
-        const customer = await this.customersRepository.findByEmail(email)
-
-        if (customer) {
-            return new CustomerDto(customer)
-        }
-
-        return null
-    }
-
-    async getCustomer(customerId: string) {
-        const customer = await this.customersRepository.findById(customerId)
-
-        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
-
-        return new CustomerDto(customer!)
-    }
-
-    async updateCustomer(customerId: string, updateCustomerDto: CustomerUpdatingDto) {
-        const savedCustomer = await this.customersRepository.update(customerId, updateCustomerDto)
-
-        return new CustomerDto(savedCustomer)
-    }
-
+    @MethodLog()
     async deleteCustomer(customerId: string) {
-        await this.customersRepository.deleteById(customerId)
+        await this.repository.deleteById(customerId)
     }
 
+    @MethodLog()
     async login(customer: CustomerDto) {
         return this.jwtAuthService.generateAuthTokens(customer.id, customer.email)
     }
 
+    @MethodLog()
     async refreshAuthTokens(refreshToken: string) {
-        const refreshTokenPayload = await this.jwtAuthService.refreshAuthTokens(refreshToken)
+        return this.jwtAuthService.refreshAuthTokens(refreshToken)
+    }
 
-        return refreshTokenPayload
+    @MethodLog('verbose')
+    async findCustomers(
+        queryDto: CustomersQueryDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<CustomerDto>> {
+        const paginated = await this.repository.findCustomers(queryDto, pagination)
+
+        return { ...paginated, items: paginated.items.map((item) => new CustomerDto(item)) }
+    }
+
+    @MethodLog('verbose')
+    async findByEmail(email: string): Promise<CustomerDto | null> {
+        const customer = await this.repository.findByEmail(email)
+        return customer ? new CustomerDto(customer) : null
+    }
+
+    @MethodLog('verbose')
+    async getCustomer(customerId: string) {
+        const customer = await this.repository.findById(customerId)
+        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
+        return new CustomerDto(customer!)
+    }
+
+    async customerExists(customerId: string): Promise<boolean> {
+        return this.repository.existsByIds([customerId])
     }
 }

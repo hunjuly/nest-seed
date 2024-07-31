@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { PaymentCreationDto, PaymentsFilterDto, PaymentsService } from 'app/services/payments'
+import { PaymentCreationDto, PaymentsQueryDto, PaymentsService } from 'app/services/payments'
 
 @Controller('payments')
 export class PaymentsController {
@@ -11,7 +11,7 @@ export class PaymentsController {
     }
 
     @Get()
-    async findByCustomerId(@Query() filter: PaymentsFilterDto) {
+    async findByCustomerId(@Query() filter: PaymentsQueryDto) {
         return this.paymentsService.findPayments(filter)
     }
 }

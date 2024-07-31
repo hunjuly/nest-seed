@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common'
 import {
     TheaterCreationDto,
-    TheatersFilterDto,
+    TheatersQueryDto,
     TheatersService,
     TheaterUpdatingDto
 } from 'app/services/theaters'
@@ -31,10 +31,10 @@ export class TheatersController {
     @Get()
     @UsePipes(new PaginationPipe(50))
     async findPagedTheaters(
-        @Query() filter: TheatersFilterDto,
+        @Query() filter: TheatersQueryDto,
         @Query() pagination: PaginationOption
     ) {
-        return this.theatersService.findPagedTheaters(filter, pagination)
+        return this.theatersService.findTheaters(filter, pagination)
     }
 
     @UseGuards(TheaterExistsGuard)

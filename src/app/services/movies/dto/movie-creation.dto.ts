@@ -25,6 +25,6 @@ export class MovieCreationDto {
     @IsString()
     director: string
 
-    @IsEnum(MovieRating, { each: true })
+    @IsEnum(MovieRating)
     rating: MovieRating
 }

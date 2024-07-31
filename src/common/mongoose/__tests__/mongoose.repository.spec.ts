@@ -72,24 +72,6 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('existsById', () => {
-        let sample: Sample
-
-        beforeEach(async () => {
-            sample = await createSample(repository)
-        })
-
-        it('should return true if the ID does exist', async () => {
-            const exists = await repository.existsById(sample._id)
-            expect(exists).toBeTruthy()
-        })
-
-        it('should return false if the ID does not exist', async () => {
-            const exists = await repository.existsById(nullObjectId)
-            expect(exists).toBeFalsy()
-        })
-    })
-
     describe('existsByIds', () => {
         let samples: Sample[]
 

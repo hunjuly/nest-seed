@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common'
 import {
     MovieCreationDto,
-    MoviesFilterDto,
+    MoviesQueryDto,
     MoviesService,
     MovieUpdatingDto
 } from 'app/services/movies'
@@ -31,10 +31,10 @@ export class MoviesController {
     @Get()
     @UsePipes(new PaginationPipe(100))
     async findPagedCustomers(
-        @Query() filter: MoviesFilterDto,
+        @Query() filter: MoviesQueryDto,
         @Query() pagination: PaginationOption
     ) {
-        return this.moviesService.findPagedMovies(filter, pagination)
+        return this.moviesService.findMovies(filter, pagination)
     }
 
     @UseGuards(MovieExistsGuard)

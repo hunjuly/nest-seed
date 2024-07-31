@@ -4,7 +4,6 @@ import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
 import { createMongooseSchema, MongooseRepository, MongooseSchema, padNumber } from 'common'
 import { createTestingModule } from 'common/test'
 import { Connection, Model } from 'mongoose'
-import { Repository } from 'typeorm'
 
 @Schema()
 export class Sample extends MongooseSchema {
@@ -49,9 +48,9 @@ export const createSamples = async (repository: SamplesRepository) =>
 
 export const generated = {
     _id: expect.anything(),
-    _c: expect.anything(),
-    _u: expect.anything(),
-    _v: expect.anything()
+    createdAt: expect.anything(),
+    updatedAt: expect.anything(),
+    __v: expect.anything()
 }
 
 export async function createFixture(uri: string) {
