@@ -22,20 +22,20 @@ describe('/showtimes', () => {
     describe('Showtimes Creation Request', () => {
         it('상영 시간 생성을 요청하면 batchId를 반환해야 한다', async () => {
             const creationDto = factory.makeCreationDto({})
-            const res = await req.post('/showtimes').body(creationDto).accepted()
+            const { body } = await req.post('/showtimes').body(creationDto).accepted()
 
-            expect(res.body.batchId).toBeDefined()
-            await factory.waitComplete(res.body.batchId)
+            expect(body.batchId).toBeDefined()
+            await factory.waitComplete(body.batchId)
         })
 
         it('생성 요청에 따라 정확하게 showtimes을 생성하고 완료될 때까지 기다려야 한다', async () => {
             const creationDto = factory.makeCreationDto({
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
             })
-            const res = await req.post('/showtimes').body(creationDto).accepted()
+            const { body } = await req.post('/showtimes').body(creationDto).accepted()
 
-            const result = await factory.waitComplete(res.body.batchId)
-            expectEqualUnsorted(result.createdShowtimes, factory.makeExpectedShowtimes(creationDto))
+            const { createdShowtimes } = await factory.waitComplete(body.batchId)
+            expectEqualUnsorted(createdShowtimes, factory.makeExpectedShowtimes(creationDto))
         })
     })
 
@@ -62,22 +62,16 @@ describe('/showtimes', () => {
         let batchId: string
 
         beforeEach(async () => {
-            const result = await factory.createShowtimes({
-                startTimes: [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
-            })
-
-            batchId = result.batchId
-            createdShowtimes = result.createdShowtimes
+            const startTimes = [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
+            batchId = await factory.createShowtimes({ startTimes })
+            const res = await factory.waitComplete(batchId)
+            createdShowtimes = res.createdShowtimes
         })
 
-        // const requestGet = async (query = {}) => {
-        //     return req.get('/showtimes').query(query).ok()
-        // }
-
         it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const res = await req.get('/showtimes').query({ batchId }).ok()
+            const { body } = await req.get('/showtimes').query({ batchId }).ok()
 
-            expectEqualUnsorted(res.body.items, createdShowtimes)
+            expectEqualUnsorted(body.items, createdShowtimes)
         })
 
         it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
@@ -124,7 +118,7 @@ describe('/showtimes', () => {
 
     describe('Conflict Checking', () => {
         it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
-            const { createdShowtimes } = await factory.createShowtimes({
+            const createBatchId = await factory.createShowtimes({
                 durationMinutes: 90,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -133,8 +127,9 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T18:30')
                 ]
             })
+            const { createdShowtimes } = await factory.waitComplete(createBatchId)
 
-            const { conflictShowtimes } = await factory.createShowtimes({
+            const conflictBatchId = await factory.createShowtimes({
                 durationMinutes: 30,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -142,6 +137,8 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T20:00')
                 ]
             })
+
+            const { conflictShowtimes } = await factory.waitFail(conflictBatchId)
 
             const expectedShowtimes = createdShowtimes.filter((showtime: ShowtimeDto) =>
                 [
@@ -161,10 +158,10 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
-                    const dto = { startTimes: [new Date(1900, index)] }
-
-                    const { createdShowtimes } = await factory.createShowtimes(dto)
-                    const expectedShowtimes = factory.makeExpectedShowtimes(dto)
+                    const startTimes = [new Date(1900, index)]
+                    const batchId = await factory.createShowtimes({ startTimes })
+                    const { createdShowtimes } = await factory.waitComplete(batchId)
+                    const expectedShowtimes = factory.makeExpectedShowtimes({ startTimes })
 
                     return { createdShowtimes, expectedShowtimes }
                 })
@@ -181,15 +178,17 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async () => {
-                    return factory.createShowtimes()
+                    const batchId = await factory.createShowtimes()
+                    return await factory.waitFinish(batchId)
                 })
             )
 
-            const createdResponse = results.filter((result) => result.createdShowtimes)
-            expect(createdResponse).toHaveLength(1)
-
-            const conflictResponse = results.filter((result) => result.conflictShowtimes)
-            expect(conflictResponse).toHaveLength(length - 1)
+            expect(
+                results.filter((result) => result.name === 'showtimes.create.complete')
+            ).toHaveLength(1)
+            expect(
+                results.filter((result) => result.name === 'showtimes.create.fail')
+            ).toHaveLength(length - 1)
         })
     })
 })

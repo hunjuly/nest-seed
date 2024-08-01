@@ -3,6 +3,8 @@ import { DeepPartial, FindOptionsWhere, In, Repository, SelectQueryBuilder } fro
 import { TypeormEntity } from '.'
 import { EntityNotFoundTypeormException, ParameterTypeormException } from './exceptions'
 
+const DEFAULT_TAKE_SIZE = 100
+
 export abstract class TypeormRepository<Entity extends TypeormEntity> {
     constructor(protected repo: Repository<Entity>) {}
 
@@ -84,7 +86,9 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
         pagination: PaginationOption,
         queryCustomizer?: (qb: SelectQueryBuilder<Entity>) => void
     ): Promise<PaginationResult<Entity>> {
-        const { take, skip, orderby } = pagination
+        const take = pagination.take ?? DEFAULT_TAKE_SIZE
+        const skip = pagination.skip ?? 0
+        const { orderby } = pagination
 
         if (!take) {
             throw new ParameterTypeormException('The ‘take’ parameter is required for pagination.')

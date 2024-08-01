@@ -8,7 +8,14 @@ import { TicketsModule } from '../tickets'
 import { TheatersModule } from '../theaters'
 
 @Module({
-    imports: [CustomersModule, MoviesModule, ShowtimesModule, PaymentsModule, TicketsModule, TheatersModule],
+    imports: [
+        CustomersModule,
+        MoviesModule,
+        ShowtimesModule,
+        PaymentsModule,
+        TicketsModule,
+        TheatersModule
+    ],
     providers: [ShowingService],
     exports: [ShowingService]
 })

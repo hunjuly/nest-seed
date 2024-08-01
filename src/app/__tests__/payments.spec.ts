@@ -21,7 +21,7 @@ describe('/payments', () => {
         paymentsService = fixture.paymentsService
         ticketsService = fixture.ticketsService
         customerId = fixture.customer.id
-        ticketIds = pickIds(fixture.tickets)
+        ticketIds = pickIds(fixture.createdTickets)
     })
 
     afterEach(async () => {
@@ -48,7 +48,7 @@ describe('/payments', () => {
         it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
             await req.post('/payments').body(paymentCreationDto()).created()
 
-            const tickets = await ticketsService.findTickets({ ticketIds })
+            const tickets = await ticketsService.findTicketsByIds(ticketIds)
             const notSoldTickets = tickets.filter((ticket) => ticket.status !== 'sold')
             expect(notSoldTickets).toHaveLength(0)
         })
@@ -64,13 +64,13 @@ describe('/payments', () => {
         it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
             const res = await req.get('/payments').query({ paymentId: payment.id }).ok()
 
-            expect(res.body).toEqual([payment])
+            expect(res.body.items).toEqual([payment])
         })
 
         it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
             const res = await req.get('/payments').query({ customerId }).ok()
 
-            expect(res.body).toEqual([payment])
+            expect(res.body.items).toEqual([payment])
         })
     })
 })

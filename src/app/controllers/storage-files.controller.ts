@@ -4,7 +4,6 @@ import {
     Controller,
     Delete,
     Get,
-    Logger,
     Param,
     Post,
     StreamableFile,
@@ -17,9 +16,9 @@ import { StorageFilesService } from 'app/services/storage-files'
 import { IsString } from 'class-validator'
 import { generateUUID } from 'common'
 import { Config } from 'config'
+import { createReadStream } from 'fs'
 import { diskStorage } from 'multer'
 import { StorageFileExistsGuard } from './guards/storage-file-exists.guard'
-import { createReadStream } from 'fs'
 
 class UploadFileDto {
     @IsString()
@@ -28,8 +27,6 @@ class UploadFileDto {
 
 @Controller('storage-files')
 export class StorageFilesController {
-    private readonly logger = new Logger(this.constructor.name)
-
     constructor(private storageFileService: StorageFilesService) {}
 
     @Post()
@@ -55,9 +52,7 @@ export class StorageFilesController {
             }
         })
     )
-    async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() body: UploadFileDto) {
-        this.logger.log(body)
-
+    async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() _body: UploadFileDto) {
         return this.storageFileService.saveFiles(files)
     }
 

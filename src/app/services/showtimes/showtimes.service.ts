@@ -1,86 +1,110 @@
 import { InjectQueue } from '@nestjs/bull'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Queue } from 'bull'
-import { Assert, createObjectId, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
-import { ShowtimeDto, ShowtimesCreationDto, ShowtimesCreationResponse, ShowtimesFilterDto } from './dto'
+import {
+    Assert,
+    createObjectId,
+    MethodLog,
+    PaginationOption,
+    PaginationResult,
+    waitForQueueToEmpty
+} from 'common'
+import {
+    ShowtimeDto,
+    ShowtimesCreationDto,
+    ShowtimesCreationResponse,
+    ShowtimesQueryDto
+} from './dto'
 import { ShowtimesCreateRequestEvent } from './showtimes.events'
 import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
 export class ShowtimesService {
-    private readonly logger = new Logger(this.constructor.name)
-
     constructor(
         @InjectQueue('showtimes') private showtimesQueue: Queue,
-        private showtimesRepository: ShowtimesRepository
+        private repository: ShowtimesRepository
     ) {}
 
     async onModuleDestroy() {
         await waitForQueueToEmpty(this.showtimesQueue)
     }
 
+    @MethodLog()
     async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResponse> {
         const batchId = createObjectId()
 
         const event = new ShowtimesCreateRequestEvent(batchId, createDto)
         await this.showtimesQueue.add(event.name, event)
 
-        this.logger.log(`Showtimes 생성 요청. batchId=${batchId}`)
-
         return { batchId }
     }
 
-    async showtimeExists(showtimeId: string): Promise<boolean> {
-        const showtimeExists = await this.showtimesRepository.existsById(showtimeId)
+    @MethodLog({ level: 'verbose' })
+    async findShowtimes(
+        queryDto: ShowtimesQueryDto,
+        pagination: PaginationOption
+    ): Promise<PaginationResult<ShowtimeDto>> {
+        const paginatedShowtimes = await this.repository.findShowtimes(queryDto, pagination)
 
-        return showtimeExists
+        return {
+            ...paginatedShowtimes,
+            items: paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
+        }
     }
 
+    @MethodLog({ level: 'verbose' })
+    async findShowtimesByBatchId(batchId: string) {
+        const showtimes = await this.repository.findShowtimesByBatchId(batchId)
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
+        const showtimes = await this.repository.findShowtimesByShowdate(
+            movieId,
+            theaterId,
+            showdate
+        )
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findShowingMovieIds(): Promise<string[]> {
+        const currentTime = new Date()
+        const movieIds = await this.repository.findMovieIdsShowingAfter(currentTime)
+
+        return movieIds
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findTheaterIdsShowingMovie(movieId: string) {
+        const theaterIds = await this.repository.findTheaterIdsShowingMovie(movieId)
+
+        return theaterIds
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findShowdates(movieId: string, theaterId: string) {
+        const showdates = await this.repository.findShowdates(movieId, theaterId)
+
+        return showdates
+    }
+
+    @MethodLog({ level: 'verbose' })
     async getShowtime(showtimeId: string) {
-        const showtime = await this.showtimesRepository.findById(showtimeId)
+        const showtime = await this.repository.findById(showtimeId)
 
         Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
 
         return new ShowtimeDto(showtime!)
     }
 
-    async findPagedShowtimes(
-        filterDto: ShowtimesFilterDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<ShowtimeDto>> {
-        const paginatedShowtimes = await this.showtimesRepository.findPagedShowtimes(filterDto, pagination)
+    @MethodLog({ level: 'verbose' })
+    async showtimesExist(showtimeIds: string[]): Promise<boolean> {
+        const showtimeExists = await this.repository.existsByIds(showtimeIds)
 
-        const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
-
-        return { ...paginatedShowtimes, items }
-    }
-
-    async findShowtimes(filterDto: ShowtimesFilterDto): Promise<ShowtimeDto[]> {
-        const showtimes = await this.showtimesRepository.findShowtimes(filterDto)
-
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
-    }
-
-    async findShowingMovieIds(): Promise<string[]> {
-        const currentTime = new Date()
-        const movieIds = await this.showtimesRepository.findMovieIdsShowingAfter(currentTime)
-
-        return movieIds
-    }
-
-    async findTheaterIdsShowingMovie(movieId: string) {
-        return this.showtimesRepository.findTheaterIdsShowingMovie(movieId)
-    }
-
-    async findShowdates(movieId: string, theaterId: string) {
-        const showdates = await this.showtimesRepository.findShowdates(movieId, theaterId)
-
-        return showdates
-    }
-
-    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
-        const showtimes = await this.showtimesRepository.findShowtimesByShowdate(movieId, theaterId, showdate)
-
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+        return showtimeExists
     }
 }

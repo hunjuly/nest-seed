@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
+import {
+    MethodLog,
+    MongooseRepository,
+    PaginationOption,
+    PaginationResult,
+    stringToObjectId
+} from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { TheatersFilterDto, TheaterUpdatingDto } from './dto'
+import { TheaterCreationDto, TheatersQueryDto, TheaterUpdatingDto } from './dto'
 import { Theater } from './schemas'
 
 @Injectable()
@@ -12,33 +18,44 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         super(model)
     }
 
-    async update(id: string, updateDto: TheaterUpdatingDto): Promise<Theater> {
-        const theater = (await this.model.findById(id).exec())!
+    @MethodLog()
+    async createTheater(createDto: TheaterCreationDto) {
+        const dto = stringToObjectId(createDto)
 
-        Assert.defined(theater, `Theater with id ${id} must exist`)
+        const customer = await this.create((doc) => {
+            doc.name = dto.name
+            doc.latlong = dto.latlong
+            doc.seatmap = dto.seatmap
+        })
 
-        if (updateDto.name) theater.name = updateDto.name
-        if (updateDto.latlong) theater.latlong = updateDto.latlong
-        if (updateDto.seatmap) theater.seatmap = updateDto.seatmap
-
-        await theater.save()
-
-        return theater.toObject()
+        return customer
     }
 
-    async findPagedTheaters(
-        filterDto: TheatersFilterDto,
+    @MethodLog()
+    async updateTheater(movieId: string, updateDto: TheaterUpdatingDto): Promise<Theater> {
+        const dto = stringToObjectId(updateDto)
+
+        const customer = await this.updateById(movieId, (doc) => {
+            if (dto.name) doc.name = dto.name
+            if (dto.latlong) doc.latlong = dto.latlong
+            if (dto.seatmap) doc.seatmap = dto.seatmap
+        })
+
+        return customer
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findTheaters(
+        queryDto: TheatersQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Theater>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const query: Record<string, any> = filterDto
+        const paginated = await this.find((helpers) => {
+            const { name, ...query } = stringToObjectId(queryDto)
 
-            if (query.name) {
-                query['name'] = new RegExp(escapeRegExp(query.name), 'i')
-            }
+            if (name) query.name = new RegExp(escapeRegExp(name), 'i')
 
             helpers.setQuery(query)
-        })
+        }, pagination)
 
         return paginated
     }

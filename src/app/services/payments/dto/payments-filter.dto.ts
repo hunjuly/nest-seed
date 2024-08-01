@@ -1,6 +1,6 @@
 import { IsOptional } from 'class-validator'
 
-export class PaymentsFilterDto {
+export class PaymentsQueryDto {
     @IsOptional()
     paymentId?: string
 

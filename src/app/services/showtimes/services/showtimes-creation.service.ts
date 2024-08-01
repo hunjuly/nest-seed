@@ -1,15 +1,24 @@
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Job } from 'bull'
-import { AppEvent, Assert, addMinutes, findMaxDate, findMinDate, jsonToObject } from 'common'
-import { ShowtimesCreationDto, ShowtimeDto } from '../dto'
+import {
+    AppEvent,
+    Assert,
+    MethodLog,
+    SchemeBody,
+    addMinutes,
+    findMaxDate,
+    findMinDate,
+    jsonToObject
+} from 'common'
+import { ShowtimeDto, ShowtimesCreationDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
     ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
-    ShowtimesCreateRequestEvent,
-    ShowtimesCreateFailEvent
+    ShowtimesCreateFailEvent,
+    ShowtimesCreateRequestEvent
 } from '../showtimes.events'
 import { ShowtimesRepository } from '../showtimes.repository'
 
@@ -18,29 +27,30 @@ type Timeslot = Map<number, Showtime>
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesCreationService {
-    private readonly logger = new Logger(this.constructor.name)
+    // private readonly logger = new Logger(this.constructor.name)
 
     constructor(
-        private showtimesRepository: ShowtimesRepository,
+        private repository: ShowtimesRepository,
         private eventEmitter: EventEmitter2
     ) {}
 
+    @MethodLog()
     private async emitEvent(event: AppEvent) {
         await this.eventEmitter.emitAsync(event.name, event)
     }
 
     /* istanbul ignore next */
     @OnQueueFailed()
+    @MethodLog()
     async onFailed(job: Job) {
-        this.logger.error(job.failedReason, job.data)
-
         await this.emitEvent(
             new ShowtimesCreateErrorEvent(job.data.batchId, job.failedReason ?? '')
         )
     }
 
     @Process(ShowtimesCreateRequestEvent.eventName)
-    async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
+    @MethodLog()
+    async onShowtimesCreateRequest(job: Job<ShowtimesCreateRequestEvent>) {
         const request = jsonToObject({ ...job.data })
 
         const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
@@ -53,47 +63,32 @@ export class ShowtimesCreationService {
                 )
             )
         } else {
-            const createdShowtimes = await this.saveShowtimes(request)
+            await this.createShowtimes(request)
 
-            await this.emitEvent(
-                new ShowtimesCreateCompleteEvent(
-                    request.batchId,
-                    createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-                )
-            )
+            await this.emitEvent(new ShowtimesCreateCompleteEvent(request.batchId))
         }
     }
 
-    private async saveShowtimes(event: ShowtimesCreateRequestEvent) {
+    @MethodLog()
+    private async createShowtimes(event: ShowtimesCreateRequestEvent) {
         const { batchId } = event
         const { movieId, theaterIds, durationMinutes, startTimes } = event.creationDto
 
-        this.logger.log('showtime 저장 요청', JSON.stringify(event))
-
-        const showtimeEntries: Partial<Showtime>[] = []
+        const createDtos: SchemeBody<Showtime>[] = []
 
         for (const theaterId of theaterIds) {
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
 
-                showtimeEntries.push({ movieId, theaterId, startTime, endTime, batchId })
+                createDtos.push({ movieId, theaterId, startTime, endTime, batchId })
             }
         }
 
-        this.logger.log(`${showtimeEntries.length}개의 showtime을 저장 시작`)
-
-        const createdShowtimes = await this.showtimesRepository.withTransaction((session) =>
-            this.showtimesRepository.createMany(showtimeEntries, session)
-        )
-
-        this.logger.log(`${createdShowtimes.length}개의 showtime을 저장 완료`)
-
-        return createdShowtimes
+        await this.repository.createShowtimes(createDtos)
     }
 
+    @MethodLog()
     async checkForTimeConflicts(request: ShowtimesCreationDto): Promise<Showtime[]> {
-        this.logger.log(`충돌 검사 시작: 극장 ID ${request.theaterIds.join(', ')}`)
-
         const { durationMinutes, startTimes, theaterIds } = request
 
         const timeslotsByTheater = await this.createTimeslotsByTheater(request)
@@ -113,14 +108,12 @@ export class ShowtimesCreationService {
 
                     if (showtime) {
                         conflictShowtimes.push(showtime)
-                        this.logger.debug(`충돌 발견: 상영 시간 ID ${showtime._id}`)
                         return false
                     }
                 })
             }
         }
 
-        this.logger.log(`충돌 검사 완료: 충돌 발생한 상영 시간 ${conflictShowtimes.length}개`)
         return conflictShowtimes
     }
 
@@ -136,7 +129,7 @@ export class ShowtimesCreationService {
         const timeslotsByTheater = new Map<string, Timeslot>()
 
         for (const theaterId of theaterIds) {
-            const fetchedShowtimes = await this.showtimesRepository.findShowtimesWithinDateRange({
+            const fetchedShowtimes = await this.repository.findShowtimesWithinDateRange({
                 theaterId,
                 startTime: startDate,
                 endTime: endDate
@@ -157,7 +150,7 @@ export class ShowtimesCreationService {
     }
 }
 
-function executeEvery10Mins(start: Date, end: Date, callback: (time: number) => boolean | void) {
+const executeEvery10Mins = (start: Date, end: Date, callback: (time: number) => boolean | void) => {
     for (let time = start.getTime(); time <= end.getTime(); time = time + 10 * 60 * 1000) {
         if (false === callback(time)) {
             break

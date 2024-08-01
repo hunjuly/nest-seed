@@ -19,10 +19,7 @@ export class ShowtimesCreateRequestEvent extends ShowtimesCreateEvent {
 
 @EventName('showtimes.create.complete')
 export class ShowtimesCreateCompleteEvent extends ShowtimesCreateEvent {
-    constructor(
-        batchId: string,
-        public createdShowtimes: ShowtimeDto[]
-    ) {
+    constructor(batchId: string) {
         super(batchId)
     }
 }

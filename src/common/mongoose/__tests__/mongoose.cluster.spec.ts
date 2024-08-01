@@ -1,4 +1,3 @@
-import { expect } from '@jest/globals'
 import { MongooseModule } from '@nestjs/mongoose'
 import { TestingModule } from '@nestjs/testing'
 import { createTestingModule } from 'common/test'
@@ -41,16 +40,14 @@ describe.skip('(Not Completed)MongoDB Cluster Testing', () => {
     })
 
     it('stress', async () => {
-        const length = 100
-
-        const samples = await Promise.all(
-            Array.from({ length }, async (_, index) => {
-                const sample = await repository.create({ name: `create-${index}` })
-                return repository.update(sample._id, { name: `update-${index}` })
-            })
-        )
-
-        console.log(samples.length)
-        expect(samples).toHaveLength(length)
+        // const length = 100
+        // const samples = await Promise.all(
+        //     Array.from({ length }, async (_, index) => {
+        //         const sample = await repository.create({ name: `create-${index}` })
+        //         return repository.update(sample._id, { name: `update-${index}` })
+        //     })
+        // )
+        // console.log(samples.length)
+        // expect(samples).toHaveLength(length)
     })
 })

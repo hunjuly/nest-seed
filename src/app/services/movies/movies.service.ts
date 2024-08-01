@@ -1,69 +1,70 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { Assert, Expect, PaginationOption, PaginationResult } from 'common'
-import { MovieCreationDto, MovieDto, MoviesFilterDto, MovieUpdatingDto } from './dto'
-import { MoviesRepository } from './movies.repository'
+import { Injectable } from '@nestjs/common'
+import { Assert, Expect, MethodLog, PaginationOption, PaginationResult } from 'common'
 import { uniq } from 'lodash'
+import { MovieCreationDto, MovieDto, MoviesQueryDto, MovieUpdatingDto } from './dto'
+import { MoviesRepository } from './movies.repository'
 
 @Injectable()
 export class MoviesService {
-    private readonly logger = new Logger(this.constructor.name)
+    constructor(private repository: MoviesRepository) {}
 
-    constructor(private moviesRepository: MoviesRepository) {}
+    @MethodLog()
+    async createMovie(createDto: MovieCreationDto) {
+        const movie = await this.repository.createMovie(createDto)
 
-    async createMovie(createMovieDto: MovieCreationDto) {
-        const savedMovie = await this.moviesRepository.create(createMovieDto)
-
-        return new MovieDto(savedMovie)
+        return new MovieDto(movie)
     }
 
-    async movieExists(movieId: string): Promise<boolean> {
-        const movieExists = await this.moviesRepository.existsById(movieId)
+    @MethodLog()
+    async updateMovie(movieId: string, updateMovieDto: MovieUpdatingDto) {
+        const movie = await this.repository.updateMovie(movieId, updateMovieDto)
 
-        return movieExists
+        return new MovieDto(movie)
     }
 
-    async getMoviesByIds(movieIds: string[]) {
-        this.logger.log('영화 ID로 검색 시작:', movieIds)
-
-        const uniqueMovieIds = uniq(movieIds)
-
-        Expect.sameLength(uniqueMovieIds, movieIds, `중복 요청된 영화 ID가 존재함: ${movieIds}`)
-
-        const movies = await this.moviesRepository.findByIds(uniqueMovieIds)
-
-        Assert.sameLength(movies, uniqueMovieIds, '모든 요청된 영화 ID에 대한 영화가 존재해야 합니다')
-
-        const movieDtos = movies.map((movie) => new MovieDto(movie))
-
-        return movieDtos
+    @MethodLog()
+    async deleteMovie(movieId: string) {
+        await this.repository.deleteById(movieId)
     }
 
-    async findPagedMovies(
-        filterDto: MoviesFilterDto,
+    @MethodLog({ level: 'verbose' })
+    async findMovies(
+        queryDto: MoviesQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<MovieDto>> {
-        const paginatedMovies = await this.moviesRepository.findPagedMovies(filterDto, pagination)
+        const paginated = await this.repository.findMovies(queryDto, pagination)
 
-        const items = paginatedMovies.items.map((movie) => new MovieDto(movie))
-
-        return { ...paginatedMovies, items }
+        return {
+            ...paginated,
+            items: paginated.items.map((item) => new MovieDto(item))
+        }
     }
 
+    @MethodLog({ level: 'verbose' })
+    async getMoviesByIds(movieIds: string[]) {
+        const uniqueMovieIds = uniq(movieIds)
+
+        Expect.equalLength(uniqueMovieIds, movieIds, `중복 요청된 영화 ID가 존재함: ${movieIds}`)
+
+        const movies = await this.repository.findByIds(uniqueMovieIds)
+
+        Assert.equalLength(movies, uniqueMovieIds, '요청된 모든 영화 ID가 존재해야 합니다')
+
+        return movies.map((movie) => new MovieDto(movie))
+    }
+
+    @MethodLog({ level: 'verbose' })
     async getMovie(movieId: string) {
-        const movie = await this.moviesRepository.findById(movieId)
+        const movie = await this.repository.findById(movieId)
 
         Assert.defined(movie, `Movie with id ${movieId} must exist`)
 
         return new MovieDto(movie!)
     }
 
-    async updateMovie(movieId: string, updateMovieDto: MovieUpdatingDto) {
-        const savedMovie = await this.moviesRepository.update(movieId, updateMovieDto)
-
-        return new MovieDto(savedMovie)
-    }
-
-    async deleteMovie(movieId: string) {
-        await this.moviesRepository.deleteById(movieId)
+    @MethodLog({ level: 'verbose' })
+    async moviesExist(movieIds: string[]): Promise<boolean> {
+        const movieExists = await this.repository.existsByIds(movieIds)
+        return movieExists
     }
 }

@@ -15,7 +15,7 @@ import {
 import {
     CustomerCreationDto,
     CustomerDto,
-    CustomersFilterDto,
+    CustomersQueryDto,
     CustomersService,
     CustomerUpdatingDto
 } from 'app/services/customers'
@@ -42,11 +42,8 @@ export class CustomersController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findPagedCustomers(
-        @Query() filter: CustomersFilterDto,
-        @Query() pagination: PaginationOption
-    ) {
-        return this.customersService.findPagedCustomers(filter, pagination)
+    async findCustomers(@Query() filter: CustomersQueryDto, @Query() pagination: PaginationOption) {
+        return this.customersService.findCustomers(filter, pagination)
     }
 
     @Get(':customerId')

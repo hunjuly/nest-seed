@@ -1,18 +1,7 @@
 import { HelloClass, getGreeting } from './mocking.fixture'
 import { Logger } from '@nestjs/common'
 
-jest.mock('./mocking.fixture', () => {
-    return {
-        HelloClass: jest.fn().mockImplementation(() => ({
-            getHello: jest.fn().mockReturnValue('Mocked getHello')
-        })),
-        getGreeting: jest.fn()
-    }
-})
-
 jest.mock('@nestjs/common', () => {
-    const originalModule = jest.requireActual('@nestjs/common')
-
     class Logger {
         static log = jest.fn()
         static error = jest.fn()
@@ -20,11 +9,18 @@ jest.mock('@nestjs/common', () => {
         static verbose = jest.fn().mockReturnValue('Mocked verbose')
     }
 
-    /**
-     * Keep the rest of the module and replace only the Logger.
-     * Otherwise, other source files that use '@nestjs/common' will not be able to use it.
-     */
-    return { ...originalModule, Logger }
+    return { ...jest.requireActual('@nestjs/common'), Logger }
+})
+
+const mockHelloClass = {
+    getHello: jest.fn().mockReturnValue('Mocked getHello')
+}
+
+jest.mock('./mocking.fixture', () => {
+    return {
+        HelloClass: jest.fn().mockImplementation(() => mockHelloClass),
+        getGreeting: jest.fn()
+    }
 })
 
 describe('mocking examples', () => {
@@ -42,6 +38,7 @@ describe('mocking examples', () => {
         const instance = new HelloClass()
         expect(instance.getHello()).toEqual('Mocked getHello')
         expect(HelloClass).toHaveBeenCalledTimes(1)
+        expect(mockHelloClass.getHello).toHaveBeenCalledTimes(1)
     })
 
     it('Ensures proper mocking and calling of an independent function', () => {

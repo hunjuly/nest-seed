@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assert, MongooseRepository, PaginationOption, PaginationResult } from 'common'
+import {
+    MethodLog,
+    MongooseRepository,
+    PaginationOption,
+    PaginationResult,
+    stringToObjectId
+} from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { MoviesFilterDto, MovieUpdatingDto } from './dto'
+import { MovieCreationDto, MoviesQueryDto, MovieUpdatingDto } from './dto'
 import { Movie } from './schemas'
 
 @Injectable()
@@ -12,37 +18,52 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         super(model)
     }
 
-    async update(id: string, updateDto: MovieUpdatingDto): Promise<Movie> {
-        const movie = (await this.model.findById(id).exec())!
+    @MethodLog()
+    async createMovie(createDto: MovieCreationDto) {
+        const dto = stringToObjectId(createDto)
 
-        Assert.defined(movie, `Movie with id ${id} must exist`)
+        const customer = await this.create((doc) => {
+            doc.title = dto.title
+            doc.genre = dto.genre
+            doc.releaseDate = dto.releaseDate
+            doc.plot = dto.plot
+            doc.durationMinutes = dto.durationMinutes
+            doc.director = dto.director
+            doc.rating = dto.rating
+        })
 
-        if (updateDto.title) movie.title = updateDto.title
-        if (updateDto.genre) movie.genre = updateDto.genre
-        if (updateDto.releaseDate) movie.releaseDate = updateDto.releaseDate
-        if (updateDto.plot) movie.plot = updateDto.plot
-        if (updateDto.durationMinutes) movie.durationMinutes = updateDto.durationMinutes
-        if (updateDto.director) movie.director = updateDto.director
-        if (updateDto.rating) movie.rating = updateDto.rating
-
-        await movie.save()
-
-        return movie.toObject()
+        return customer
     }
 
-    async findPagedMovies(
-        filterDto: MoviesFilterDto,
+    @MethodLog()
+    async updateMovie(movieId: string, updateDto: MovieUpdatingDto): Promise<Movie> {
+        const dto = stringToObjectId(updateDto)
+
+        const movie = await this.updateById(movieId, (doc) => {
+            if (dto.title) doc.title = dto.title
+            if (dto.genre) doc.genre = dto.genre
+            if (dto.releaseDate) doc.releaseDate = dto.releaseDate
+            if (dto.plot) doc.plot = dto.plot
+            if (dto.durationMinutes) doc.durationMinutes = dto.durationMinutes
+            if (dto.director) doc.director = dto.director
+            if (dto.rating) doc.rating = dto.rating
+        })
+
+        return movie
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findMovies(
+        queryDto: MoviesQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Movie>> {
-        const paginated = await this.findWithPagination(pagination, (helpers) => {
-            const query: Record<string, any> = filterDto
+        const paginated = await this.find((helpers) => {
+            const { title, ...query } = stringToObjectId(queryDto)
 
-            if (query.title) {
-                query['title'] = new RegExp(escapeRegExp(query.title), 'i')
-            }
+            if (title) query.title = new RegExp(escapeRegExp(title), 'i')
 
             helpers.setQuery(query)
-        })
+        }, pagination)
 
         return paginated
     }

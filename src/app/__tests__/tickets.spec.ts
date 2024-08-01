@@ -44,40 +44,40 @@ describe('/tickets', () => {
 
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
-                const dto = { startTimes: [new Date(1900, index)] }
-                await factory.createTickets(dto)
-
-                return factory.makeExpectedTickets(dto)
+                const startTimes = [new Date(1900, index)]
+                const { createdTickets } = await factory.createTickets({ startTimes })
+                const expectedTickets = factory.makeExpectedTickets({ startTimes })
+                return { createdTickets, expectedTickets }
             })
         )
 
-        const actual = await ticketsService.findAllTickets()
-        const expected = results.flatMap((result) => result)
+        const actual = results.flatMap((result) => result.createdTickets)
+        const expected = results.flatMap((result) => result.expectedTickets)
 
         expectEqualUnsorted(actual, expected)
     })
 
     describe('Tickets Retrieval', () => {
         let batchId: string
-        let expectedTickets: TicketDto[]
+        let createdTickets: TicketDto[]
 
         beforeEach(async () => {
             const res = await factory.createTickets()
             batchId = res.batchId
-            expectedTickets = factory.makeExpectedTickets()
+            createdTickets = res.createdTickets
         })
 
         it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const res = await req.get('/tickets').query({ batchId }).ok()
 
-            expectEqualUnsorted(res.body.items, expectedTickets)
+            expectEqualUnsorted(res.body.items, createdTickets)
         })
 
         it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const theaterId = factory.theaters[0].id
             const res = await req.get('/tickets').query({ theaterId }).ok()
 
-            const filteredTickets = expectedTickets.filter(
+            const filteredTickets = createdTickets.filter(
                 (ticket) => ticket.theaterId === theaterId
             )
             expectEqualUnsorted(res.body.items, filteredTickets)
@@ -87,27 +87,25 @@ describe('/tickets', () => {
             const theaterIds = pickIds(factory.theaters)
             const res = await req.get('/tickets').query({ theaterIds }).ok()
 
-            const filteredTickets = expectedTickets.filter((ticket) =>
+            const filteredTickets = createdTickets.filter((ticket) =>
                 theaterIds.includes(ticket.theaterId)
             )
             expectEqualUnsorted(res.body.items, filteredTickets)
         })
 
-        it('findTickets 메서드로 theaterIds을 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const theaterIds = pickIds(factory.theaters)
-            const actual = await ticketsService.findTickets({ theaterIds })
+        it('ticketIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
+            const partialTickets = createdTickets.slice(5, 10)
+            const ticketIds = pickIds(partialTickets)
+            const res = await req.get('/tickets').query({ ticketIds }).ok()
 
-            const filteredTickets = expectedTickets.filter((ticket) =>
-                theaterIds.includes(ticket.theaterId)
-            )
-            expectEqualUnsorted(actual, filteredTickets)
+            expectEqualUnsorted(res.body.items, partialTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const movieId = factory.movie.id
             const res = await req.get('/tickets').query({ movieId }).ok()
 
-            const filteredTickets = expectedTickets.filter((ticket) => ticket.movieId === movieId)
+            const filteredTickets = createdTickets.filter((ticket) => ticket.movieId === movieId)
             expectEqualUnsorted(res.body.items, filteredTickets)
         })
     })

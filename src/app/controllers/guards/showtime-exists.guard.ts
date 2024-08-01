@@ -9,7 +9,7 @@ export class ShowtimeExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const showtimeId = request.query.showtimeId || request.params.showtimeId
 
-        const showtimeExists = await this.showtimesService.showtimeExists(showtimeId)
+        const showtimeExists = await this.showtimesService.showtimesExist([showtimeId])
 
         if (!showtimeExists) {
             throw new NotFoundException(`Showtime with ID ${showtimeId} not found`)

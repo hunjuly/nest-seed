@@ -9,7 +9,7 @@ export class CustomerExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const customerId = request.query.customerId || request.params.customerId
 
-        const customerExists = await this.customersService.customerExists(customerId)
+        const customerExists = await this.customersService.customersExist([customerId])
 
         if (!customerExists) {
             throw new NotFoundException(`Customer with ID ${customerId} not found`)

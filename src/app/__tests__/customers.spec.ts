@@ -102,26 +102,6 @@ describe('/customers', () => {
         })
     })
 
-    describe('GET /customers', () => {
-        let customers: CustomerDto[] = []
-
-        beforeEach(async () => {
-            customers = await createCustomers(customersService, 20)
-        })
-
-        it('Retrieve all customers', async () => {
-            const res = await req.get('/customers').query({ orderby: 'name:asc' }).ok()
-
-            expect(res.body.items).toEqual(customers)
-        })
-
-        it('Retrieve customers by partial name', async () => {
-            const res = await req.get('/customers').query({ name: 'Customer-' }).ok()
-
-            expect(res.body.items).toEqual(expect.arrayContaining(customers))
-        })
-    })
-
     describe('GET /customers/:id', () => {
         let customer: CustomerDto
 
@@ -137,6 +117,29 @@ describe('/customers', () => {
 
         it('NOT_FOUND(404) if ID does not exist', async () => {
             return req.get(`/customers/${nullObjectId}`).notFound()
+        })
+    })
+
+    describe('GET /customers', () => {
+        let customers: CustomerDto[] = []
+
+        beforeEach(async () => {
+            customers = await createCustomers(customersService, 20)
+        })
+
+        it('should retrieve all customers', async () => {
+            const res = await req.get('/customers').query({ orderby: 'name:asc' }).ok()
+
+            expect(res.body.items).toEqual(customers)
+        })
+
+        it('should retrieve customers by partial name', async () => {
+            const partialName = 'Customer-01'
+            const res = await req.get('/customers').query({ name: partialName }).ok()
+
+            const expected = customers.filter((customer) => customer.name.startsWith(partialName))
+            expect(res.body.items).toEqual(expect.arrayContaining(expected))
+            expect(res.body.items.length).toBe(expected.length)
         })
     })
 })
