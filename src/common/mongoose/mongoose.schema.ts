@@ -10,19 +10,12 @@ export class MongooseUpdateResult {
 }
 
 @Schema({
-    // read: 'nearest',
-    // writeConcern: {
-    //     w: 'majority',
-    //     j: true,
-    //     wtimeout: 1000
-    // },
     // https://mongoosejs.com/docs/guide.html#optimisticConcurrency
     optimisticConcurrency: true,
     minimize: false,
     strict: 'throw',
     strictQuery: 'throw',
     timestamps: true,
-    // versionKey: true,
     validateBeforeSave: true,
     // https://mongoosejs.com/docs/guide.html#collation
     collation: { locale: 'en_US', strength: 1 }
@@ -41,28 +34,6 @@ const BaseSchemaClass = SchemaFactory.createForClass(MongooseSchema)
 export function createMongooseSchema<T extends Type<MongooseSchema>>(cls: T) {
     const schema = SchemaFactory.createForClass(cls)
     schema.add(BaseSchemaClass)
-
-    // schema.pre('findOneAndUpdate', function () {
-    //     const update = this.getUpdate() as UpdateQuery<MongooseSchema>
-    //     if (update._v != null) {
-    //         delete update._v
-    //     }
-    //     const keys = ['$set', '$setOnInsert'] as const
-    //     for (const key of keys) {
-    //         if (update[key] != null && typeof update[key] === 'object' && '_v' in update[key]) {
-    //             delete (update[key] as any)._v
-    //             if (Object.keys(update[key] as object).length === 0) {
-    //                 delete update[key]
-    //             }
-    //         }
-    //     }
-    //     if (!update.$inc) {
-    //         update.$inc = {}
-    //     }
-    //     if (typeof update.$inc === 'object') {
-    //         update.$inc._v = 1
-    //     }
-    // })
 
     return schema
 }
