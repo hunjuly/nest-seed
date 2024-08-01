@@ -16,8 +16,13 @@ const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
         autoCreate: isDevelopment(),
         bufferCommands: true,
         waitQueueTimeoutMS: 5000,
+        writeConcern: {
+            w: 'majority',
+            journal: true,
+            wtimeoutMS: 1000
+        },
         connectionFactory
-    }
+    } as const
 
     return options
 }
