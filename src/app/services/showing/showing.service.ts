@@ -26,7 +26,7 @@ export class ShowingService {
         private theatersService: TheatersService
     ) {}
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getRecommendedMovies(customerId: string) {
         const showingMovieIds = await this.showtimesService.findShowingMovieIds()
 
@@ -49,7 +49,7 @@ export class ShowingService {
         return recommendedMovies
     }
 
-    @MethodLog('debug')
+    @MethodLog({ level: 'debug' })
     private generateRecommendedMovies(
         showingMovies: MovieDto[],
         watchedMovies: MovieDto[]
@@ -82,7 +82,7 @@ export class ShowingService {
         return recommendedMovies
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowingTheaters(movieId: string, userLocation: LatLong) {
         const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
         const theaters = await this.theatersService.findByIds(theaterIds)
@@ -99,14 +99,14 @@ export class ShowingService {
         )
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
 
         return showdates
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimes(movieId: string, theaterId: string, showdate: Date) {
         const showtimes = await this.showtimesService.findShowtimesByShowdate(
             movieId,
@@ -132,7 +132,7 @@ export class ShowingService {
         return showtimeSalesStatuses
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTickets(showtimeId: string) {
         const tickets = await this.ticketsService.findTicketsByShowtimeId(showtimeId)
 

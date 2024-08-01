@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Assert, DocumentId, getChecksum, MethodLog, Path } from 'common'
 import { Config } from 'config'
+import { pick } from 'lodash'
 import { StorageFileDto } from './dto'
 import { StorageFile } from './schemas'
 import { StorageFilesRepository } from './storage-files.repository'
@@ -9,24 +10,37 @@ import { StorageFilesRepository } from './storage-files.repository'
 export class StorageFilesService {
     constructor(private repository: StorageFilesRepository) {}
 
-    @MethodLog()
     async saveFiles(files: Express.Multer.File[]) {
+        const createDtos = files.map((file) =>
+            pick(file, ['originalname', 'filename', 'mimetype', 'size', 'path'])
+        )
+
+        return this._saveFiles(createDtos)
+    }
+
+    @MethodLog()
+    private async _saveFiles(
+        createDtos: {
+            originalname: string
+            filename: string
+            mimetype: string
+            size: number
+            path: string
+        }[]
+    ) {
         const savedFiles = await this.repository.withTransaction(async (session) => {
             const storedFiles: StorageFile[] = []
 
-            for (const file of files) {
-                const storageFile = {
-                    originalname: file.originalname,
-                    filename: file.filename,
-                    mimetype: file.mimetype,
-                    size: file.size,
-                    checksum: await getChecksum(file.path)
-                }
+            for (const createDto of createDtos) {
+                const checksum = await getChecksum(createDto.path)
 
-                const storedFile = await this.repository.createStorageFile(storageFile, session)
+                const storedFile = await this.repository.createStorageFile(
+                    { ...createDto, checksum },
+                    session
+                )
 
                 const targetPath = this.getStoragePath(storedFile._id)
-                Path.move(file.path, targetPath)
+                Path.move(createDto.path, targetPath)
 
                 storedFiles.push(storedFile)
             }
@@ -44,7 +58,7 @@ export class StorageFilesService {
         await this.repository.deleteById(fileId)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getFile(fileId: string) {
         const file = await this.repository.findById(fileId)
 

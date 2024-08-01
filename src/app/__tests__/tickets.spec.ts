@@ -44,15 +44,15 @@ describe('/tickets', () => {
 
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
-                const dto = { startTimes: [new Date(1900, index)] }
-                await factory.createTickets(dto)
-
-                return factory.makeExpectedTickets(dto)
+                const startTimes = [new Date(1900, index)]
+                const { createdTickets } = await factory.createTickets({ startTimes })
+                const expectedTickets = factory.makeExpectedTickets({ startTimes })
+                return { createdTickets, expectedTickets }
             })
         )
 
-        const actual = await ticketsService.findAllTickets()
-        const expected = results.flatMap((result) => result)
+        const actual = results.flatMap((result) => result.createdTickets)
+        const expected = results.flatMap((result) => result.expectedTickets)
 
         expectEqualUnsorted(actual, expected)
     })
@@ -91,16 +91,6 @@ describe('/tickets', () => {
                 theaterIds.includes(ticket.theaterId)
             )
             expectEqualUnsorted(res.body.items, filteredTickets)
-        })
-
-        it('findTickets 메서드로 theaterIds을 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const theaterIds = pickIds(factory.theaters)
-            const actual = await ticketsService.findTickets({ theaterIds })
-
-            const filteredTickets = expectedTickets.filter((ticket) =>
-                theaterIds.includes(ticket.theaterId)
-            )
-            expectEqualUnsorted(actual, filteredTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {

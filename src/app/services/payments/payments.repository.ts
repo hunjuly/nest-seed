@@ -19,9 +19,11 @@ export class PaymentsRepository extends MongooseRepository<Payment> {
 
     @MethodLog()
     async createPayment(createDto: PaymentCreationDto) {
+        const dto = stringToObjectId(createDto)
+
         const customer = await this.create((doc) => {
-            doc.customerId = createDto.customerId
-            doc.ticketIds = createDto.ticketIds
+            doc.customerId = dto.customerId
+            doc.ticketIds = dto.ticketIds
         })
 
         return customer

@@ -27,7 +27,7 @@ export class MoviesService {
         await this.repository.deleteById(movieId)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findMovies(
         queryDto: MoviesQueryDto,
         pagination: PaginationOption
@@ -40,7 +40,7 @@ export class MoviesService {
         }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getMoviesByIds(movieIds: string[]) {
         const uniqueMovieIds = uniq(movieIds)
 
@@ -53,7 +53,7 @@ export class MoviesService {
         return movies.map((movie) => new MovieDto(movie))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getMovie(movieId: string) {
         const movie = await this.repository.findById(movieId)
 
@@ -62,7 +62,7 @@ export class MoviesService {
         return new MovieDto(movie!)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async moviesExist(movieIds: string[]): Promise<boolean> {
         const movieExists = await this.repository.existsByIds(movieIds)
         return movieExists

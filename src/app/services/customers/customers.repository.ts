@@ -33,16 +33,18 @@ export class CustomersRepository extends MongooseRepository<Customer> {
 
     @MethodLog()
     async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+        const dto = stringToObjectId(updateDto)
+
         const customer = await this.updateById(customerId, (doc) => {
-            if (updateDto.name) doc.name = updateDto.name
-            if (updateDto.email) doc.email = updateDto.email
-            if (updateDto.birthday) doc.birthday = updateDto.birthday
+            if (dto.name) doc.name = dto.name
+            if (dto.email) doc.email = dto.email
+            if (dto.birthday) doc.birthday = dto.birthday
         })
 
         return customer
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findCustomers(
         queryDto: CustomersQueryDto,
         pagination: PaginationOption
@@ -58,7 +60,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         return paginated
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findByEmail(email: string): Promise<Customer | null> {
         const { items } = await this.find((helpers) => {
             helpers.setQuery({ email })

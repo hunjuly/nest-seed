@@ -20,14 +20,16 @@ export class MoviesRepository extends MongooseRepository<Movie> {
 
     @MethodLog()
     async createMovie(createDto: MovieCreationDto) {
+        const dto = stringToObjectId(createDto)
+
         const customer = await this.create((doc) => {
-            doc.title = createDto.title
-            doc.genre = createDto.genre
-            doc.releaseDate = createDto.releaseDate
-            doc.plot = createDto.plot
-            doc.durationMinutes = createDto.durationMinutes
-            doc.director = createDto.director
-            doc.rating = createDto.rating
+            doc.title = dto.title
+            doc.genre = dto.genre
+            doc.releaseDate = dto.releaseDate
+            doc.plot = dto.plot
+            doc.durationMinutes = dto.durationMinutes
+            doc.director = dto.director
+            doc.rating = dto.rating
         })
 
         return customer
@@ -35,20 +37,22 @@ export class MoviesRepository extends MongooseRepository<Movie> {
 
     @MethodLog()
     async updateMovie(movieId: string, updateDto: MovieUpdatingDto): Promise<Movie> {
+        const dto = stringToObjectId(updateDto)
+
         const movie = await this.updateById(movieId, (doc) => {
-            if (updateDto.title) doc.title = updateDto.title
-            if (updateDto.genre) doc.genre = updateDto.genre
-            if (updateDto.releaseDate) doc.releaseDate = updateDto.releaseDate
-            if (updateDto.plot) doc.plot = updateDto.plot
-            if (updateDto.durationMinutes) doc.durationMinutes = updateDto.durationMinutes
-            if (updateDto.director) doc.director = updateDto.director
-            if (updateDto.rating) doc.rating = updateDto.rating
+            if (dto.title) doc.title = dto.title
+            if (dto.genre) doc.genre = dto.genre
+            if (dto.releaseDate) doc.releaseDate = dto.releaseDate
+            if (dto.plot) doc.plot = dto.plot
+            if (dto.durationMinutes) doc.durationMinutes = dto.durationMinutes
+            if (dto.director) doc.director = dto.director
+            if (dto.rating) doc.rating = dto.rating
         })
 
         return movie
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findMovies(
         queryDto: MoviesQueryDto,
         pagination: PaginationOption

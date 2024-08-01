@@ -26,7 +26,7 @@ export class TheatersService {
         await this.repository.deleteById(theaterId)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTheaters(
         queryDto: TheatersQueryDto,
         pagination: PaginationOption
@@ -36,14 +36,14 @@ export class TheatersService {
         return { ...paginated, items: paginated.items.map((item) => new TheaterDto(item)) }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findByIds(theaterIds: string[]) {
         const theaters = await this.repository.findByIds(theaterIds)
 
         return theaters.map((theater) => new TheaterDto(theater))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getTheater(theaterId: string) {
         const theater = await this.repository.findById(theaterId)
 

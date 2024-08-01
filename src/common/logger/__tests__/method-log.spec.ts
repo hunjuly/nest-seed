@@ -22,7 +22,7 @@ export class TestService {
         return 'return value'
     }
 
-    @MethodLog('debug')
+    @MethodLog({ level: 'debug' })
     async debugLog() {}
 
     @MethodLog()

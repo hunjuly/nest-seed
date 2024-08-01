@@ -39,7 +39,7 @@ export class ShowtimesService {
         return { batchId }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimes(
         queryDto: ShowtimesQueryDto,
         pagination: PaginationOption
@@ -52,14 +52,14 @@ export class ShowtimesService {
         }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimesByBatchId(batchId: string) {
         const showtimes = await this.repository.findShowtimesByBatchId(batchId)
 
         return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
         const showtimes = await this.repository.findShowtimesByShowdate(
             movieId,
@@ -70,7 +70,7 @@ export class ShowtimesService {
         return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowingMovieIds(): Promise<string[]> {
         const currentTime = new Date()
         const movieIds = await this.repository.findMovieIdsShowingAfter(currentTime)
@@ -78,21 +78,21 @@ export class ShowtimesService {
         return movieIds
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTheaterIdsShowingMovie(movieId: string) {
         const theaterIds = await this.repository.findTheaterIdsShowingMovie(movieId)
 
         return theaterIds
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.repository.findShowdates(movieId, theaterId)
 
         return showdates
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getShowtime(showtimeId: string) {
         const showtime = await this.repository.findById(showtimeId)
 
@@ -101,7 +101,7 @@ export class ShowtimesService {
         return new ShowtimeDto(showtime!)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async showtimesExist(showtimeIds: string[]): Promise<boolean> {
         const showtimeExists = await this.repository.existsByIds(showtimeIds)
 

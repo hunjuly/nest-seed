@@ -20,7 +20,7 @@ export class PaymentsService {
         return new PaymentDto(savedPayment)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findPayments(
         queryDto: PaymentsQueryDto,
         pagination: PaginationOption

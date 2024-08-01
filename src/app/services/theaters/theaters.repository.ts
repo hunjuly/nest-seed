@@ -20,10 +20,12 @@ export class TheatersRepository extends MongooseRepository<Theater> {
 
     @MethodLog()
     async createTheater(createDto: TheaterCreationDto) {
+        const dto = stringToObjectId(createDto)
+
         const customer = await this.create((doc) => {
-            doc.name = createDto.name
-            doc.latlong = createDto.latlong
-            doc.seatmap = createDto.seatmap
+            doc.name = dto.name
+            doc.latlong = dto.latlong
+            doc.seatmap = dto.seatmap
         })
 
         return customer
@@ -31,16 +33,18 @@ export class TheatersRepository extends MongooseRepository<Theater> {
 
     @MethodLog()
     async updateTheater(movieId: string, updateDto: TheaterUpdatingDto): Promise<Theater> {
+        const dto = stringToObjectId(updateDto)
+
         const customer = await this.updateById(movieId, (doc) => {
-            if (updateDto.name) doc.name = updateDto.name
-            if (updateDto.latlong) doc.latlong = updateDto.latlong
-            if (updateDto.seatmap) doc.seatmap = updateDto.seatmap
+            if (dto.name) doc.name = dto.name
+            if (dto.latlong) doc.latlong = dto.latlong
+            if (dto.seatmap) doc.seatmap = dto.seatmap
         })
 
         return customer
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTheaters(
         queryDto: TheatersQueryDto,
         pagination: PaginationOption

@@ -24,7 +24,6 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
 
     @MethodLog()
     async createTickets(createDtos: SchemeBody<Ticket>[]) {
-        // TODO 이름 개선, stringToObjectId 제거 테스트
         const dtos = stringToObjectId(createDtos)
 
         const insertedCount = await this.createMany(dtos.length, (doc, index) => {
@@ -52,7 +51,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         return result
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTickets(
         queryDto: TicketsQueryDto,
         pagination: PaginationOption
@@ -69,14 +68,21 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         return paginated
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTicketsByShowtimeId(showtimeId: string): Promise<Ticket[]> {
         const showtimes = await this.model.find({ showtimeId: stringToObjectId(showtimeId) }).lean()
 
         return objectIdToString(showtimes)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
+    async findByBatchId(batchId: string): Promise<Ticket[]> {
+        const showtimes = await this.model.find({ batchId: stringToObjectId(batchId) }).lean()
+
+        return objectIdToString(showtimes)
+    }
+
+    @MethodLog({ level: 'verbose' })
     async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatusDto[]> {
         const salesStatuses = await this.model.aggregate([
             { $match: { showtimeId: { $in: stringToObjectId(showtimeIds) } } },

@@ -20,8 +20,8 @@ export class TicketsService {
         await waitForQueueToEmpty(this.ticketsQueue)
     }
 
-    @MethodLog()
     @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
+    @MethodLog()
     async onShowtimesCreateComplete(showtimesEvent: ShowtimesCreateCompleteEvent) {
         const ticketsEvent = new TicketsCreateRequestEvent(showtimesEvent.batchId)
 
@@ -43,7 +43,7 @@ export class TicketsService {
         return tickets.map((ticket) => new TicketDto(ticket))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTickets(
         queryDto: TicketsQueryDto,
         pagination: PaginationOption
@@ -53,21 +53,28 @@ export class TicketsService {
         return { ...paginated, items: paginated.items.map((item) => new TicketDto(item)) }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTicketsByShowtimeId(showtimeId: string) {
         const tickets = await this.repository.findTicketsByShowtimeId(showtimeId)
 
         return tickets.map((ticket) => new TicketDto(ticket))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
+    async findTicketsByBatchId(batchId: string) {
+        const tickets = await this.repository.findByBatchId(batchId)
+
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
+
+    @MethodLog({ level: 'verbose' })
     async findTicketsByIds(ticketIds: string[]) {
         const tickets = await this.repository.findByIds(ticketIds)
 
         return tickets.map((ticket) => new TicketDto(ticket))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getSalesStatuses(showtimeIds: string[]) {
         const statuses = await this.repository.getSalesStatuses(showtimeIds)
 

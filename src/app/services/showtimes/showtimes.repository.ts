@@ -21,7 +21,6 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
     @MethodLog()
     async createShowtimes(createDtos: SchemeBody<Showtime>[]) {
-        // TODO 이름 개선, stringToObjectId 제거 테스트
         const dtos = stringToObjectId(createDtos)
 
         const insertedCount = await this.createMany(dtos.length, (doc, index) => {
@@ -35,7 +34,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return insertedCount
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimes(
         queryDto: ShowtimesQueryDto,
         pagination: PaginationOption
@@ -51,14 +50,14 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return paginated
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimesByBatchId(batchId: string): Promise<Showtime[]> {
         const showtimes = await this.model.find({ batchId: stringToObjectId(batchId) }).lean()
 
         return objectIdToString(showtimes)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimesByShowdate(
         movieId: string,
         theaterId: string,
@@ -85,14 +84,14 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return objectIdToString(showtimes)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findMovieIdsShowingAfter(time: Date): Promise<string[]> {
         const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).lean()
 
         return objectIdToString(movieIds)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findTheaterIdsShowingMovie(movieId: string): Promise<string[]> {
         const theaterIds = await this.model
             .distinct('theaterId', { movieId: stringToObjectId(movieId) })
@@ -101,7 +100,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return objectIdToString(theaterIds)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string): Promise<Date[]> {
         const showdates = await this.model.aggregate([
             {
@@ -128,7 +127,7 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         return showdates.map((item) => new Date(item._id))
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findShowtimesWithinDateRange(query: {
         theaterId: string
         startTime: Date

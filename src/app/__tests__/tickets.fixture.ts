@@ -4,7 +4,13 @@ import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
-import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeats } from 'app/services/theaters'
+import {
+    Seat,
+    TheaterDto,
+    TheatersModule,
+    TheatersService,
+    forEachSeats
+} from 'app/services/theaters'
 import {
     TicketsCreateCompleteEvent,
     TicketsCreateEvent,
@@ -22,7 +28,10 @@ export class TicketsFactory extends BatchEventListener {
     movie: MovieDto
     theaters: TheaterDto[] = []
 
-    constructor(private showtimesFactory: ShowtimesFactory) {
+    constructor(
+        private showtimesFactory: ShowtimesFactory,
+        private ticketsService: TicketsService
+    ) {
         super()
     }
 
@@ -53,9 +62,9 @@ export class TicketsFactory extends BatchEventListener {
     }
 
     async createTickets(overrides = {}) {
-        const { batchId } = await this.showtimesFactory.createShowtimesReturn(overrides)
-
-        return this.waitComplete(batchId)
+        const batchId = await this.showtimesFactory.createShowtimes(overrides)
+        await this.waitComplete(batchId)
+        return { batchId, createdTickets: await this.ticketsService.findTicketsByBatchId(batchId) }
     }
 
     makeExpectedTickets(overrides = {}) {

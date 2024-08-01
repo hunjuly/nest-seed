@@ -42,7 +42,7 @@ export class CustomersService {
         return this.jwtAuthService.refreshAuthTokens(refreshToken)
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findCustomers(
         queryDto: CustomersQueryDto,
         pagination: PaginationOption
@@ -52,13 +52,13 @@ export class CustomersService {
         return { ...paginated, items: paginated.items.map((item) => new CustomerDto(item)) }
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async findByEmail(email: string): Promise<CustomerDto | null> {
         const customer = await this.repository.findByEmail(email)
         return customer ? new CustomerDto(customer) : null
     }
 
-    @MethodLog('verbose')
+    @MethodLog({ level: 'verbose' })
     async getCustomer(customerId: string) {
         const customer = await this.repository.findById(customerId)
         Assert.defined(customer, `Customer with ID ${customerId} should exist`)

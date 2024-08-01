@@ -74,7 +74,8 @@ describe('/storage-files', () => {
     }
 
     describe('POST /storage-files', () => {
-        it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
+        // it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
+        it('tetsetadfadsf', async () => {
             const res = await uploadFile(largeFile)
             const uploadedFile = res.body.files[0]
             expect(uploadedFile.checksum).toEqual(await getChecksum(largeFile))
