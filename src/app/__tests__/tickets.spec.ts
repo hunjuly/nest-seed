@@ -59,25 +59,25 @@ describe('/tickets', () => {
 
     describe('Tickets Retrieval', () => {
         let batchId: string
-        let expectedTickets: TicketDto[]
+        let createdTickets: TicketDto[]
 
         beforeEach(async () => {
             const res = await factory.createTickets()
             batchId = res.batchId
-            expectedTickets = factory.makeExpectedTickets()
+            createdTickets = res.createdTickets
         })
 
         it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const res = await req.get('/tickets').query({ batchId }).ok()
 
-            expectEqualUnsorted(res.body.items, expectedTickets)
+            expectEqualUnsorted(res.body.items, createdTickets)
         })
 
         it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const theaterId = factory.theaters[0].id
             const res = await req.get('/tickets').query({ theaterId }).ok()
 
-            const filteredTickets = expectedTickets.filter(
+            const filteredTickets = createdTickets.filter(
                 (ticket) => ticket.theaterId === theaterId
             )
             expectEqualUnsorted(res.body.items, filteredTickets)
@@ -87,17 +87,25 @@ describe('/tickets', () => {
             const theaterIds = pickIds(factory.theaters)
             const res = await req.get('/tickets').query({ theaterIds }).ok()
 
-            const filteredTickets = expectedTickets.filter((ticket) =>
+            const filteredTickets = createdTickets.filter((ticket) =>
                 theaterIds.includes(ticket.theaterId)
             )
             expectEqualUnsorted(res.body.items, filteredTickets)
+        })
+
+        it('ticketIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
+            const partialTickets = createdTickets.slice(5, 10)
+            const ticketIds = pickIds(partialTickets)
+            const res = await req.get('/tickets').query({ ticketIds }).ok()
+
+            expectEqualUnsorted(res.body.items, partialTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const movieId = factory.movie.id
             const res = await req.get('/tickets').query({ movieId }).ok()
 
-            const filteredTickets = expectedTickets.filter((ticket) => ticket.movieId === movieId)
+            const filteredTickets = createdTickets.filter((ticket) => ticket.movieId === movieId)
             expectEqualUnsorted(res.body.items, filteredTickets)
         })
     })

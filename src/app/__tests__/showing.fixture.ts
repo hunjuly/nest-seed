@@ -47,7 +47,6 @@ export async function createFixture() {
     const watchedMovie = await createWatchedMovie(
         moviesService,
         ticketsFactory,
-        ticketsService,
         paymentsService,
         customer,
         theaters
@@ -108,7 +107,7 @@ async function createTickets(
 ) {
     const allTickets = await Promise.all(
         movies.map(async (movie, i) => {
-            const { batchId } = await ticketFactory.createTickets({
+            const { createdTickets } = await ticketFactory.createTickets({
                 movieId: movie.id,
                 theaterIds: pickIds(theaters),
                 startTimes: [
@@ -120,7 +119,7 @@ async function createTickets(
                 ]
             })
 
-            return ticketsService.findTickets({ batchId })
+            return createdTickets
         })
     )
 
@@ -130,7 +129,6 @@ async function createTickets(
 async function createWatchedMovie(
     moviesService: MoviesService,
     ticketsFactory: TicketsFactory,
-    ticketsService: TicketsService,
     paymentsService: PaymentsService,
     customer: CustomerDto,
     theaters: TheaterDto[]
@@ -139,11 +137,15 @@ async function createWatchedMovie(
         genre: [MovieGenre.Drama, MovieGenre.Fantasy]
     })
 
-    await ticketsFactory.createTickets({ movieId: movie.id, theaterIds: [theaters[0].id] })
+    const { createdTickets } = await ticketsFactory.createTickets({
+        movieId: movie.id,
+        theaterIds: [theaters[0].id]
+    })
 
-    const tickets = await ticketsService.findTickets({ movieId: movie.id })
-
-    await paymentsService.createPayment({ customerId: customer.id, ticketIds: [tickets[0].id] })
+    await paymentsService.createPayment({
+        customerId: customer.id,
+        ticketIds: [createdTickets[0].id]
+    })
 
     return movie
 }
