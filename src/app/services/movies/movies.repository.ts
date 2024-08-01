@@ -56,7 +56,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         const paginated = await this.find((helpers) => {
             const { title, ...query } = stringToObjectId(queryDto)
 
-            if (title) query.title = new RegExp(escapeRegExp(query.title), 'i')
+            if (title) query.title = new RegExp(escapeRegExp(title), 'i')
 
             helpers.setQuery(query)
         }, pagination)

@@ -48,7 +48,7 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         const paginated = await this.find((helpers) => {
             const { name, ...query } = stringToObjectId(queryDto)
 
-            if (name) query.name = new RegExp(escapeRegExp(query.name), 'i')
+            if (name) query.name = new RegExp(escapeRegExp(name), 'i')
 
             helpers.setQuery(query)
         }, pagination)

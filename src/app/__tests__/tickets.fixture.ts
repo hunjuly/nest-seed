@@ -53,7 +53,7 @@ export class TicketsFactory extends BatchEventListener {
     }
 
     async createTickets(overrides = {}) {
-        const { batchId } = await this.showtimesFactory.createShowtimes(overrides)
+        const { batchId } = await this.showtimesFactory.createShowtimesReturn(overrides)
 
         return this.waitComplete(batchId)
     }

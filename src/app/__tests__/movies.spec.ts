@@ -122,15 +122,10 @@ describe('/movies', () => {
             movies = await createMovies(moviesService)
         })
 
-        const getMovies = async (query: Record<string, any> = {}) => {
-            const res = await req.get('/movies').query(query).ok()
-            return res.body
-        }
-
         it('should retrieve all movies', async () => {
-            const result = await getMovies()
+            const { body } = await req.get('/movies').ok()
 
-            expect(result).toEqual({
+            expect(body).toEqual({
                 skip: 0,
                 take: expect.any(Number),
                 total: movies.length,
@@ -140,31 +135,31 @@ describe('/movies', () => {
 
         it('should retrieve movies by partial title', async () => {
             const partialTitle = 'title-01'
-            const result = await getMovies({ title: partialTitle })
+            const { body } = await req.get('/movies').query({ title: partialTitle }).ok()
 
             const expected = movies.filter((movie) => movie.title.startsWith(partialTitle))
-            expect(result.items).toEqual(expect.arrayContaining(expected))
-            expect(result.items.length).toBe(expected.length)
+            expect(body.items).toEqual(expect.arrayContaining(expected))
+            expect(body.items.length).toBe(expected.length)
         })
 
         it('should retrieve movies by releaseDate', async () => {
             const targetDate = movies[0].releaseDate
-            const result = await getMovies({ releaseDate: targetDate })
+            const { body } = await req.get('/movies').query({ releaseDate: targetDate }).ok()
 
             const expected = movies.filter(
                 (movie) => movie.releaseDate.getTime() === targetDate.getTime()
             )
-            expect(result.items).toEqual(expect.arrayContaining(expected))
-            expect(result.items.length).toBe(expected.length)
+            expect(body.items).toEqual(expect.arrayContaining(expected))
+            expect(body.items.length).toBe(expected.length)
         })
 
         it('should retrieve movies by genre', async () => {
             const targetGenre = MovieGenre.Drama
-            const result = await getMovies({ genre: targetGenre })
+            const { body } = await req.get('/movies').query({ genre: targetGenre }).ok()
 
             const expected = movies.filter((movie) => movie.genre.includes(targetGenre))
-            expect(result.items).toEqual(expect.arrayContaining(expected))
-            expect(result.items.length).toBe(expected.length)
+            expect(body.items).toEqual(expect.arrayContaining(expected))
+            expect(body.items.length).toBe(expected.length)
         })
     })
 })

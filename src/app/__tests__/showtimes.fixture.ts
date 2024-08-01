@@ -6,7 +6,6 @@ import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
     ShowtimesCreateCompleteEvent,
-    ShowtimesCreateErrorEvent,
     ShowtimesCreateEvent,
     ShowtimesCreateFailEvent,
     ShowtimesCreationDto,
@@ -34,8 +33,17 @@ export class ShowtimesFactory extends BatchEventListener {
         this.handleEvent(event)
     }
 
-    waitComplete = (batchId: string) => {
-        return this.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
+    waitComplete = async (batchId: string) => {
+        await this.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
+        const createdShowtimes = await this.showtimesService.findShowtimesByBatchId(batchId)
+        return { createdShowtimes }
+    }
+
+    waitFail = async (batchId: string) => {
+        const { conflictShowtimes } = await this.awaitEvent(batchId, [
+            ShowtimesCreateFailEvent.eventName
+        ])
+        return { conflictShowtimes }
     }
 
     waitFinish = (batchId: string) => {
@@ -43,10 +51,6 @@ export class ShowtimesFactory extends BatchEventListener {
             ShowtimesCreateCompleteEvent.eventName,
             ShowtimesCreateFailEvent.eventName
         ])
-    }
-
-    waitError = (batchId: string) => {
-        return this.awaitEvent(batchId, [ShowtimesCreateErrorEvent.eventName])
     }
 
     setupTestData(movie: MovieDto, theaters: TheaterDto[]) {
@@ -59,7 +63,7 @@ export class ShowtimesFactory extends BatchEventListener {
             this.makeCreationDto(overrides)
         )
 
-        return this.waitFinish(batchId)
+        return batchId
     }
 
     makeCreationDto(overrides = {}) {
