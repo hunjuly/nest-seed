@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { PaymentCreationDto, PaymentsQueryDto, PaymentsService } from 'app/services/payments'
+import { PaginationOption } from 'common'
 
 @Controller('payments')
 export class PaymentsController {
@@ -11,7 +12,7 @@ export class PaymentsController {
     }
 
     @Get()
-    async findByCustomerId(@Query() filter: PaymentsQueryDto) {
-        return this.paymentsService.findPayments(filter)
+    async findPayments(@Query() filter: PaymentsQueryDto, @Query() pagination: PaginationOption) {
+        return this.paymentsService.findPayments(filter, pagination)
     }
 }

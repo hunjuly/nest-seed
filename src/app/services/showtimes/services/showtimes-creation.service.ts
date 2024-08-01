@@ -6,6 +6,7 @@ import {
     AppEvent,
     Assert,
     MethodLog,
+    SchemeBody,
     addMinutes,
     findMaxDate,
     findMinDate,
@@ -29,10 +30,11 @@ export class ShowtimesCreationService {
     // private readonly logger = new Logger(this.constructor.name)
 
     constructor(
-        private showtimesRepository: ShowtimesRepository,
+        private repository: ShowtimesRepository,
         private eventEmitter: EventEmitter2
     ) {}
 
+    @MethodLog()
     private async emitEvent(event: AppEvent) {
         await this.eventEmitter.emitAsync(event.name, event)
     }
@@ -48,7 +50,7 @@ export class ShowtimesCreationService {
 
     @Process(ShowtimesCreateRequestEvent.eventName)
     @MethodLog()
-    async createShowtimes(job: Job<ShowtimesCreateRequestEvent>) {
+    async onShowtimesCreateRequest(job: Job<ShowtimesCreateRequestEvent>) {
         const request = jsonToObject({ ...job.data })
 
         const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
@@ -61,37 +63,28 @@ export class ShowtimesCreationService {
                 )
             )
         } else {
-            const createdShowtimes = await this.saveShowtimes(request)
+            await this.createShowtimes(request)
 
-            await this.emitEvent(
-                new ShowtimesCreateCompleteEvent(
-                    request.batchId,
-                    createdShowtimes.map((showtime) => new ShowtimeDto(showtime))
-                )
-            )
+            await this.emitEvent(new ShowtimesCreateCompleteEvent(request.batchId))
         }
     }
 
     @MethodLog()
-    private async saveShowtimes(event: ShowtimesCreateRequestEvent) {
+    private async createShowtimes(event: ShowtimesCreateRequestEvent) {
         const { batchId } = event
         const { movieId, theaterIds, durationMinutes, startTimes } = event.creationDto
 
-        const showtimeEntries: Partial<Showtime>[] = []
+        const createDtos: SchemeBody<Showtime>[] = []
 
         for (const theaterId of theaterIds) {
             for (const startTime of startTimes) {
                 const endTime = addMinutes(startTime, durationMinutes)
 
-                showtimeEntries.push({ movieId, theaterId, startTime, endTime, batchId })
+                createDtos.push({ movieId, theaterId, startTime, endTime, batchId })
             }
         }
 
-        const createdShowtimes = await this.showtimesRepository.withTransaction((session) =>
-            this.showtimesRepository.createMany(showtimeEntries, session)
-        )
-
-        return createdShowtimes
+        await this.repository.createShowtimes(createDtos)
     }
 
     @MethodLog()
@@ -115,7 +108,6 @@ export class ShowtimesCreationService {
 
                     if (showtime) {
                         conflictShowtimes.push(showtime)
-                        this.logger.debug(`충돌 발견: 상영 시간 ID ${showtime._id}`)
                         return false
                     }
                 })
@@ -137,7 +129,7 @@ export class ShowtimesCreationService {
         const timeslotsByTheater = new Map<string, Timeslot>()
 
         for (const theaterId of theaterIds) {
-            const fetchedShowtimes = await this.showtimesRepository.findShowtimesWithinDateRange({
+            const fetchedShowtimes = await this.repository.findShowtimesWithinDateRange({
                 theaterId,
                 startTime: startDate,
                 endTime: endDate

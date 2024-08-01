@@ -38,10 +38,10 @@ export class TicketsCreationService {
 
     @Process(TicketsCreateRequestEvent.eventName)
     @MethodLog()
-    async createTickets(job: Job<TicketsCreationData>): Promise<void> {
+    async onTicketsCreateRequest(job: Job<TicketsCreationData>): Promise<void> {
         const { batchId } = job.data
 
-        const showtimes = await this.showtimesService.findShowtimes({ batchId })
+        const showtimes = await this.showtimesService.findShowtimesByBatchId(batchId)
 
         const createDtos: SchemeBody<Ticket>[] = []
 

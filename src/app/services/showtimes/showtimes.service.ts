@@ -39,36 +39,33 @@ export class ShowtimesService {
         return { batchId }
     }
 
-    async showtimeExists(showtimeId: string): Promise<boolean> {
-        const showtimeExists = await this.repository.existsByIds([showtimeId])
-
-        return showtimeExists
-    }
-
     @MethodLog('verbose')
-    async getShowtime(showtimeId: string) {
-        const showtime = await this.repository.findById(showtimeId)
-
-        Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
-
-        return new ShowtimeDto(showtime!)
-    }
-
-    @MethodLog('verbose')
-    async findPagedShowtimes(
+    async findShowtimes(
         queryDto: ShowtimesQueryDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<ShowtimeDto>> {
-        const paginatedShowtimes = await this.repository.findPagedShowtimes(queryDto, pagination)
+        const paginatedShowtimes = await this.repository.findShowtimes(queryDto, pagination)
 
-        const items = paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
-
-        return { ...paginatedShowtimes, items }
+        return {
+            ...paginatedShowtimes,
+            items: paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
+        }
     }
 
     @MethodLog('verbose')
-    async findShowtimes(queryDto: ShowtimesQueryDto): Promise<ShowtimeDto[]> {
-        const showtimes = await this.repository.findShowtimes(queryDto)
+    async findShowtimesByBatchId(batchId: string) {
+        const showtimes = await this.repository.findShowtimesByBatchId(batchId)
+
+        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+    }
+
+    @MethodLog('verbose')
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
+        const showtimes = await this.repository.findShowtimesByShowdate(
+            movieId,
+            theaterId,
+            showdate
+        )
 
         return showtimes.map((showtime) => new ShowtimeDto(showtime))
     }
@@ -83,7 +80,9 @@ export class ShowtimesService {
 
     @MethodLog('verbose')
     async findTheaterIdsShowingMovie(movieId: string) {
-        return this.repository.findTheaterIdsShowingMovie(movieId)
+        const theaterIds = await this.repository.findTheaterIdsShowingMovie(movieId)
+
+        return theaterIds
     }
 
     @MethodLog('verbose')
@@ -94,13 +93,18 @@ export class ShowtimesService {
     }
 
     @MethodLog('verbose')
-    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
-        const showtimes = await this.repository.findShowtimesByShowdate(
-            movieId,
-            theaterId,
-            showdate
-        )
+    async getShowtime(showtimeId: string) {
+        const showtime = await this.repository.findById(showtimeId)
 
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+        Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
+
+        return new ShowtimeDto(showtime!)
+    }
+
+    @MethodLog('verbose')
+    async showtimesExist(showtimeIds: string[]): Promise<boolean> {
+        const showtimeExists = await this.repository.existsByIds(showtimeIds)
+
+        return showtimeExists
     }
 }

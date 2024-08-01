@@ -6,7 +6,10 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { TicketsModule } from '../tickets'
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]), TicketsModule],
+    imports: [
+        MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
+        TicketsModule
+    ],
     providers: [PaymentsService, PaymentsRepository],
     exports: [PaymentsService]
 })

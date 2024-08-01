@@ -28,7 +28,7 @@ export class ShowtimesController {
     @Post()
     @HttpCode(HttpStatus.ACCEPTED)
     async createShowtimes(@Body() request: ShowtimesCreationDto) {
-        const movieExists = await this.moviesService.movieExists(request.movieId)
+        const movieExists = await this.moviesService.moviesExist([request.movieId])
 
         if (!movieExists) {
             throw new NotFoundException(`Movie with ID ${request.movieId} not found`)
@@ -51,7 +51,7 @@ export class ShowtimesController {
         @Query() filter: ShowtimesQueryDto,
         @Query() pagination: PaginationOption
     ) {
-        return this.showtimesService.findPagedShowtimes(filter, pagination)
+        return this.showtimesService.findShowtimes(filter, pagination)
     }
 
     @UseGuards(ShowtimeExistsGuard)

@@ -42,10 +42,7 @@ export class CustomersController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findPagedCustomers(
-        @Query() filter: CustomersQueryDto,
-        @Query() pagination: PaginationOption
-    ) {
+    async findCustomers(@Query() filter: CustomersQueryDto, @Query() pagination: PaginationOption) {
         return this.customersService.findCustomers(filter, pagination)
     }
 

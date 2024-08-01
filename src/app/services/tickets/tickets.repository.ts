@@ -4,6 +4,7 @@ import {
     MethodLog,
     MongooseRepository,
     MongooseUpdateResult,
+    objectIdToString,
     PaginationOption,
     PaginationResult,
     SchemeBody,
@@ -66,6 +67,13 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         }, pagination)
 
         return paginated
+    }
+
+    @MethodLog('verbose')
+    async findTicketsByShowtimeId(showtimeId: string): Promise<Ticket[]> {
+        const showtimes = await this.model.find({ showtimeId: stringToObjectId(showtimeId) }).lean()
+
+        return objectIdToString(showtimes)
     }
 
     @MethodLog('verbose')

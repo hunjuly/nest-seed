@@ -38,7 +38,7 @@ export class ShowingService {
         )
 
         const ticketIds = payments.flatMap((payment) => payment.ticketIds)
-        const tickets = await this.ticketsService.findTickets({ ticketIds })
+        const tickets = await this.ticketsService.findTicketsByIds(ticketIds)
 
         const movieIds = uniq(pickItems(tickets, 'movieId'))
 
@@ -134,7 +134,7 @@ export class ShowingService {
 
     @MethodLog('verbose')
     async findTickets(showtimeId: string) {
-        const tickets = await this.ticketsService.findTickets({ showtimeId })
+        const tickets = await this.ticketsService.findTicketsByShowtimeId(showtimeId)
 
         return tickets
     }

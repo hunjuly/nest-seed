@@ -30,10 +30,7 @@ export class MoviesController {
 
     @Get()
     @UsePipes(new PaginationPipe(100))
-    async findPagedCustomers(
-        @Query() filter: MoviesQueryDto,
-        @Query() pagination: PaginationOption
-    ) {
+    async findMovies(@Query() filter: MoviesQueryDto, @Query() pagination: PaginationOption) {
         return this.moviesService.findMovies(filter, pagination)
     }
 

@@ -9,7 +9,7 @@ export class MovieExistsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const movieId = request.query.movieId || request.params.movieId
 
-        const movieExists = await this.moviesService.movieExists(movieId)
+        const movieExists = await this.moviesService.moviesExist([movieId])
 
         if (!movieExists) {
             throw new NotFoundException(`Movie with ID ${movieId} not found`)

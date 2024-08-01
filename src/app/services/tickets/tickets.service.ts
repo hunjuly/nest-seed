@@ -53,19 +53,19 @@ export class TicketsService {
         return { ...paginated, items: paginated.items.map((item) => new TicketDto(item)) }
     }
 
-    // @MethodLog('verbose')
-    // async findAllTickets(): Promise<TicketDto[]> {
-    //     const tickets = await this.repository.findAll()
+    @MethodLog('verbose')
+    async findTicketsByShowtimeId(showtimeId: string) {
+        const tickets = await this.repository.findTicketsByShowtimeId(showtimeId)
 
-    //     return tickets.map((ticket) => new TicketDto(ticket))
-    // }
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
 
-    // @MethodLog('verbose')
-    // async findTickets(queryDto: TicketsQueryDto): Promise<TicketDto[]> {
-    //     const tickets = await this.repository.findTickets(queryDto)
+    @MethodLog('verbose')
+    async findTicketsByIds(ticketIds: string[]) {
+        const tickets = await this.repository.findByIds(ticketIds)
 
-    //     return tickets.map((ticket) => new TicketDto(ticket))
-    // }
+        return tickets.map((ticket) => new TicketDto(ticket))
+    }
 
     @MethodLog('verbose')
     async getSalesStatuses(showtimeIds: string[]) {

@@ -53,8 +53,8 @@ export class StorageFilesService {
         return this.makeStorageFileDto(file!)
     }
 
-    async fileExists(fileId: string): Promise<boolean> {
-        const fileExists = await this.repository.existsByIds([fileId])
+    async filesExist(fileIds: string[]): Promise<boolean> {
+        const fileExists = await this.repository.existsByIds(fileIds)
         return fileExists
     }
 

@@ -8,10 +8,7 @@ export class TicketsController {
 
     @Get()
     @UsePipes(new PaginationPipe(100))
-    async findPagedTickets(
-        @Query() filter: TicketsQueryDto,
-        @Query() pagination: PaginationOption
-    ) {
-        return this.ticketsService.findPagedTickets(filter, pagination)
+    async findTickets(@Query() filter: TicketsQueryDto, @Query() pagination: PaginationOption) {
+        return this.ticketsService.findTickets(filter, pagination)
     }
 }

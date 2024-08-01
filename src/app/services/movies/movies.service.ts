@@ -62,8 +62,9 @@ export class MoviesService {
         return new MovieDto(movie!)
     }
 
-    async movieExists(movieId: string): Promise<boolean> {
-        const movieExists = await this.repository.existsByIds([movieId])
+    @MethodLog('verbose')
+    async moviesExist(movieIds: string[]): Promise<boolean> {
+        const movieExists = await this.repository.existsByIds(movieIds)
         return movieExists
     }
 }

@@ -65,7 +65,7 @@ export class CustomersService {
         return new CustomerDto(customer!)
     }
 
-    async customerExists(customerId: string): Promise<boolean> {
-        return this.repository.existsByIds([customerId])
+    async customersExist(customerIds: string[]): Promise<boolean> {
+        return this.repository.existsByIds(customerIds)
     }
 }
