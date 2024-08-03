@@ -1,5 +1,7 @@
 # NEST-SEED
 
+작성중...
+
 NestJS를 사용한 프로젝트 개발을 위한 시작점으로, 필수 기능 및 구성을 포함한 template입니다. 이 문서는 프로젝트 설정, 실행 및 관리에 필요한 상세 지침을 제공합니다.
 
 ## Project Setup Guide
