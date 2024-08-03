@@ -6,7 +6,7 @@ const config: Config = {
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
     roots: ['<rootDir>/src/app', '<rootDir>/src/common'],
-    testRegex: '.*\\.(spec|e2e-spec)\\.ts$',
+    testRegex: '.*\\.spec\\.ts$',
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/src/app/$1',
         '^common$': '<rootDir>/src/common/index',

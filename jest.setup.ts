@@ -1,18 +1,3 @@
-/**
- * import 'reflect-metadata'을 하지 않으면 .spec.ts에서 'class-transformer' 코드를 포함하면
- * 'TypeError: Reflect.getMetadata is not a function' 에러 발생함
- *
- * import { Type } from 'class-transformer'
- *
- * class Dto {
- *     @Type()
- *     times: Date
- * }
- *
- * describe('...', () => {})
- */
-import 'reflect-metadata'
-
 if (process.env.NODE_ENV !== 'development') {
     throw new Error('Cannot run tests in not development mode')
 }
