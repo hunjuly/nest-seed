@@ -8,32 +8,30 @@
         "allowSyntheticDefaultImports": true,
         "target": "ES2021",
         "sourceMap": true,
-        "outDir": "./dist",
         "baseUrl": "./",
-        "paths": {
-            "app/*": [
-                "src/app/*"
-            ],
-            "common": [
-                "src/common/index"
-            ],
-            "common/test": [
-                "src/common/test/index"
-            ],
-            "config": [
-                "src/config/index"
-            ],
-            "databases/*": [
-                "src/databases/*"
-            ]
-        },
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
         "noImplicitAny": true,
         "strictBindCallApply": true,
         "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true
-    },
-    "include":["src/**/*"]
+        "noFallthroughCasesInSwitch": true,
+        "paths": {
+            "app/*": [
+                "projects/apps/gateway/src/*"
+            ],
+            "common": [
+                "projects/libs/common/src/index"
+            ],
+            "common/test": [
+                "projects/libs/common/src/test/index"
+            ],
+            "config": [
+                "projects/apps/config/index"
+            ],
+            "databases/*": [
+                "projects/apps/databases/*"
+            ]
+        },
+    }
 }

@@ -10,3 +10,4 @@ import { QueueModule } from './queue.module'
     imports: [CacheModule, EventModule, QueueModule, HttpModule, LoggerModule, MongoDbModule]
 })
 export class GlobalModule {}
+// TODO CoreModule

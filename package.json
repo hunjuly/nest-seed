@@ -7,8 +7,8 @@
         "start:prod": "node dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
         "test:all": "IGNORE_LOGGING_DURING_TESTING=true jest --coverage",
-        "test:app": "IGNORE_LOGGING_DURING_TESTING=true jest --config ./jest.config.app.ts",
-        "test:common": "IGNORE_LOGGING_DURING_TESTING=true jest --config ./jest.config.common.ts",
+        "test:app": "IGNORE_LOGGING_DURING_TESTING=true jest --coverage --config projects/apps/gateway/jest.config.ts",
+        "test:common": "IGNORE_LOGGING_DURING_TESTING=true jest --coverage --config projects/libs/common/jest.config.ts",
         "build": "nest build",
         "lint": "eslint src/**/*/*.ts --fix",
         "format": "prettier --write src/**/*/*.ts"
