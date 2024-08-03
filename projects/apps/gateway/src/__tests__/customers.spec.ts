@@ -1,6 +1,6 @@
 import { expect } from '@jest/globals'
 import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, CustomersController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { GlobalModule } from 'core'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'

@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt'
 import { CustomersController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { GlobalModule } from 'core'
 import { CustomersModule, CustomersService } from 'app/services/customers'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'

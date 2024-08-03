@@ -1,5 +1,5 @@
 import { PaymentsController, ShowingController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { GlobalModule } from 'core'
 import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentsModule, PaymentsService } from 'app/services/payments'

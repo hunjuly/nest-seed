@@ -9,6 +9,7 @@
         "target": "ES2021",
         "sourceMap": true,
         "baseUrl": "./",
+        "outDir": "./dist",
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
@@ -26,11 +27,14 @@
             "common/test": [
                 "projects/libs/common/src/test/index"
             ],
+            "core": [
+                "projects/libs/core/src/index"
+            ],
             "config": [
-                "projects/apps/config/index"
+                "projects/libs/config/index"
             ],
             "databases/*": [
-                "projects/apps/databases/*"
+                "projects/libs/databases/*"
             ]
         },
     }

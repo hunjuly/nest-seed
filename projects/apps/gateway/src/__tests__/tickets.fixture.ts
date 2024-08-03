@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { TicketsController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { GlobalModule } from 'core'
 import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
 import {

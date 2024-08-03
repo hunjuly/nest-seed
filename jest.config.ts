@@ -31,8 +31,9 @@ const config: Config = {
         '^app/(.*)$': `${projects}/apps/gateway/src/$1`,
         '^common$': `${projects}/libs/common/src/index`,
         '^common/test$': `${projects}/libs/common/src/test/index`,
-        '^config$': `${projects}/apps/config/index`,
-        '^databases/(.*)$': `${projects}/apps/databases/$1`
+        '^core$': `${projects}/libs/core/src/index`,
+        '^config$': `${projects}/libs/config/index`,
+        '^databases/(.*)$': `${projects}/libs/databases/$1`
     },
     collectCoverageFrom: [
         `${projects}/apps/*/src/**/*.ts`,

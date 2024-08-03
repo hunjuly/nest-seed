@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { GlobalModule } from 'app/global'
+import { GlobalModule } from 'core'
 import {
     CustomersController,
     MoviesController,
