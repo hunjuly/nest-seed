@@ -1,21 +1,14 @@
+import { notUsed } from 'common'
 import { existsSync } from 'fs'
 import * as dotenv from 'dotenv'
-import { getNumber, getString } from './utils'
-import { exit } from 'process'
+import { assert, getNumber, getString } from './utils'
 
-export function isProduction() {
-    return process.env.NODE_ENV === 'production'
-}
-
-export function isDevelopment() {
-    return process.env.NODE_ENV === 'development'
-}
-
-if (isDevelopment()) {
+if (process.env.NODE_ENV === 'development') {
     dotenv.config({ path: '.env.development' })
 }
 
 export const Config = {
+    env: getString('NODE_ENV') as 'production' | 'development',
     http: {
         requestPayloadLimit: getString('HTTP_REQUEST_PAYLOAD_LIMIT'),
         paginationMaxSize: getNumber('HTTP_PAGINATION_MAX_SIZE'),
@@ -56,12 +49,19 @@ export const Config = {
     }
 }
 
-if (!existsSync(Config.fileUpload.directory)) {
-    console.log(`File upload directory does not exist: ${Config.fileUpload.directory}`)
-    exit(1)
-}
+assert(
+    Config.env === 'development' || Config.env === 'production',
+    'Config.env should be set to either "development" or "production".'
+)
 
-if (!existsSync(Config.log.directory)) {
-    console.log(`Log directory does not exist: ${Config.log.directory}`)
-    exit(1)
-}
+assert(
+    existsSync(Config.fileUpload.directory),
+    `File upload directory should exist at: ${Config.fileUpload.directory}`
+)
+
+assert(existsSync(Config.log.directory), `Log directory should exist at: ${Config.log.directory}`)
+
+const { user, pass, host1, host2, host3, port, replica, database: dbName } = Config.mongo
+notUsed(host3, '3개를 다 적을 필요는 없다')
+const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
+export const mongoDatasource = { uri, dbName }

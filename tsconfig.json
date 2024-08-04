@@ -35,9 +35,6 @@
             ],
             "config": [
                 "projects/libs/config/index"
-            ],
-            "databases/*": [
-                "projects/libs/databases/*"
             ]
         },
     },

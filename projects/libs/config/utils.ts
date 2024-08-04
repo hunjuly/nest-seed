@@ -33,3 +33,10 @@ export function getBoolean(key: string): boolean {
     console.log(`${key}  not boolean`)
     exit(1)
 }
+
+export function assert(condition: boolean, message: string) {
+    if (!condition) {
+        console.error(message)
+        exit(1)
+    }
+}
