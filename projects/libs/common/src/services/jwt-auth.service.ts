@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { CacheService, comment, generateUUID, notUsed } from 'common'
-import { Config } from 'config'
+import { comment, generateUUID, notUsed } from 'common'
+import { CacheService } from './cache.service'
 
 const REFRESH_TOKEN_PREFIX = 'refreshToken:'
 
@@ -15,64 +15,60 @@ export interface JwtAuthTokens {
     refreshToken: string
 }
 
+export interface AuthConfig {
+    accessSecret: string
+    refreshSecret: string
+    accessTokenExpiration: string
+    refreshTokenExpiration: string
+}
+
 @Injectable()
 export class JwtAuthService {
     constructor(
         private readonly jwtService: JwtService,
-        private readonly cache: CacheService
+        private readonly cache: CacheService,
+        @Inject('AuthConfig') private readonly config: AuthConfig
     ) {}
 
     async generateAuthTokens(userId: string, email: string): Promise<JwtAuthTokens> {
         const commonPayload = { userId, email }
-
         const accessToken = await this.createToken(
             commonPayload,
-            Config.auth.accessSecret,
-            Config.auth.accessTokenExpiration
+            this.config.accessSecret,
+            this.config.accessTokenExpiration
         )
-
         const refreshToken = await this.createToken(
             commonPayload,
-            Config.auth.refreshSecret,
-            Config.auth.refreshTokenExpiration
+            this.config.refreshSecret,
+            this.config.refreshTokenExpiration
         )
-
         await this.storeRefreshToken(userId, refreshToken)
-
         return { accessToken, refreshToken }
     }
 
     async refreshAuthTokens(refreshToken: string) {
-        const refreshTokenPayload = await this.getAuthTokenPayload(refreshToken)
+        const payload = await this.getAuthTokenPayload(refreshToken)
 
-        if (refreshTokenPayload) {
-            const storedRefreshToken = await this.getStoredRefreshToken(refreshTokenPayload.userId)
+        if (!payload) return null
 
-            if (storedRefreshToken === refreshToken) {
-                return this.generateAuthTokens(
-                    refreshTokenPayload.userId,
-                    refreshTokenPayload.email
-                )
-            }
+        const storedRefreshToken = await this.getStoredRefreshToken(payload.userId)
+
+        if (storedRefreshToken === refreshToken) {
+            return this.generateAuthTokens(payload.userId, payload.email)
         }
-
-        return null
     }
 
     private async getAuthTokenPayload(token: string): Promise<AuthTokenPayload | undefined> {
         try {
-            const secret = Config.auth.refreshSecret
-
+            const secret = this.config.refreshSecret
             const { exp, iat, jti, ...payload } = await this.jwtService.verifyAsync(token, {
                 secret
             })
             notUsed(exp, iat, jti)
-
             return payload
         } catch (error) {
-            comment('Ignore exceptions that are thrown because an unformatted token comes in')
+            comment('Ignore exceptions that are thrown because an unformatted or expired token comes in')
         }
-
         return undefined
     }
 
@@ -81,7 +77,6 @@ export class JwtAuthService {
             { ...payload, jti: generateUUID() },
             { secret, expiresIn }
         )
-
         return token
     }
 
@@ -89,7 +84,7 @@ export class JwtAuthService {
         await this.cache.set(
             `${REFRESH_TOKEN_PREFIX}${userId}`,
             refreshToken,
-            Config.auth.refreshTokenExpiration
+            this.config.refreshTokenExpiration
         )
     }
 

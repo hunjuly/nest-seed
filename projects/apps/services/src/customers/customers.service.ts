@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, MethodLog, PaginationOption, PaginationResult, Password } from 'common'
+import {
+    Assert,
+    JwtAuthService,
+    MethodLog,
+    PaginationOption,
+    PaginationResult,
+    Password
+} from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CustomerCreationDto, CustomerDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
-import { JwtAuthService } from 'services/jwt-auth'
 
 @Injectable()
 export class CustomersService {
