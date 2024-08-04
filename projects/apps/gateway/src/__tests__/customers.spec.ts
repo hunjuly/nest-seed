@@ -1,6 +1,6 @@
 import { expect } from '@jest/globals'
 import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, CustomersController } from 'app/controllers'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import { CustomerDto, CustomersModule, CustomersService } from 'services/customers'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
@@ -13,7 +13,7 @@ describe('/customers', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [GlobalModule, CustomersModule],
+            imports: [CoreModule, CustomersModule],
             controllers: [CustomersController],
             ignoreGuards: [CustomerLocalAuthGuard, CustomerJwtAuthGuard]
         })

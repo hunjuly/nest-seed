@@ -1,6 +1,6 @@
 import { expect } from '@jest/globals'
 import { MoviesController } from 'app/controllers'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
@@ -13,7 +13,7 @@ describe('/movies', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [GlobalModule, MoviesModule],
+            imports: [CoreModule, MoviesModule],
             controllers: [MoviesController]
         })
         req = testContext.createRequest()

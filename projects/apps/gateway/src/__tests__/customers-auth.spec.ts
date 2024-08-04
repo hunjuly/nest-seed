@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt'
 import { CustomersController } from 'app/controllers'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import { CustomersModule, CustomersService } from 'services/customers'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
@@ -32,7 +32,7 @@ describe('/customers', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [GlobalModule, CustomersModule],
+            imports: [CoreModule, CustomersModule],
             controllers: [CustomersController]
         })
         req = testContext.createRequest('/customers')

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import {
     CustomersController,
     MoviesController,
@@ -15,7 +15,7 @@ import { TicketsModule } from 'services/tickets'
 
 @Module({
     imports: [
-        GlobalModule,
+        CoreModule,
         CustomersModule,
         MoviesModule,
         TheatersModule,

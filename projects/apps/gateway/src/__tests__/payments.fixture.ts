@@ -1,5 +1,5 @@
 import { PaymentsController } from 'app/controllers'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import { CustomersModule, CustomersService } from 'services/customers'
 import { MoviesModule, MoviesService } from 'services/movies'
 import { PaymentsModule, PaymentsService } from 'services/payments'
@@ -17,7 +17,7 @@ import { pickIds } from 'common'
 export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [
-            GlobalModule,
+            CoreModule,
             PaymentsModule,
             CustomersModule,
             MoviesModule,

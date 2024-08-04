@@ -19,15 +19,7 @@ import { CustomerJwtStrategy, CustomerLocalStrategy } from './strategies'
         CustomerLocalStrategy,
         CustomerJwtStrategy,
         JwtAuthService,
-        {
-            provide: 'AuthConfig',
-            useValue: {
-                accessSecret: Config.auth.accessSecret,
-                refreshSecret: Config.auth.refreshSecret,
-                accessTokenExpiration: Config.auth.accessTokenExpiration,
-                refreshTokenExpiration: Config.auth.refreshTokenExpiration
-            }
-        }
+        { provide: 'AuthConfig', useValue: Config.auth }
     ],
     exports: [CustomersService]
 })

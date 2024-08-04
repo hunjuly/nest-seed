@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimesController } from 'app/controllers'
-import { GlobalModule } from 'core'
+import { CoreModule } from 'core'
 import { MovieDto, MoviesModule, MoviesService } from 'services/movies'
 import {
     ShowtimeDto,
@@ -98,7 +98,7 @@ export class ShowtimesFactory extends BatchEventListener {
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
-        imports: [GlobalModule, MoviesModule, TheatersModule, ShowtimesModule],
+        imports: [CoreModule, MoviesModule, TheatersModule, ShowtimesModule],
         controllers: [ShowtimesController],
         providers: [ShowtimesFactory]
     })
