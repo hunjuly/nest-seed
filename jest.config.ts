@@ -9,9 +9,7 @@ const config: Config = {
     transform: {
         '^.+\\.(t|j)s$': 'ts-jest'
     },
-    // 60s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
-    // memory-mongodb 다운로드가 느린 경우가 있다.
-    testTimeout: 60000,
+    testTimeout: 10000, // 10s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
     collectCoverage: false,
     coverageThreshold: {
         global: {
@@ -23,7 +21,7 @@ const config: Config = {
     },
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],
-    coverageDirectory: '<rootDir>/coverage',
+    coverageDirectory: '<rootDir>/_output/coverage',
     rootDir: '.',
     roots: [projects],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

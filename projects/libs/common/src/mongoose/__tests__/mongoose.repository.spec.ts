@@ -20,7 +20,7 @@ describe('MongooseRepository', () => {
 
     beforeAll(async () => {
         mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
-    })
+    }, 120000) //memory-mongodb 다운로드가 느린 경우가 있다.
 
     afterAll(async () => {
         await mongod?.stop()

@@ -3,7 +3,8 @@
     "compilerOptions": {
         "declaration": false,
     },
-    "include": [
-        "src/**/*"
+    "exclude": [
+        "**/__tests__/**",
+        "jest.config.ts"
     ]
 }

@@ -3,7 +3,7 @@
     "collection": "@nestjs/schematics",
     "compilerOptions": {
         "deleteOutDir": true,
-        "webpack": true
+        "webpack": false
     },
     "monorepo": true,
     "projects": {
@@ -14,24 +14,6 @@
             "sourceRoot": "projects/apps/gateway/src",
             "compilerOptions": {
                 "tsConfigPath": "projects/apps/gateway/tsconfig.json"
-            }
-        },
-        "common": {
-            "type": "library",
-            "root": "projects/libs/common",
-            "entryFile": "index",
-            "sourceRoot": "projects/libs/common/src",
-            "compilerOptions": {
-                "tsConfigPath": "projects/libs/common/tsconfig.json"
-            }
-        },
-        "core": {
-            "type": "library",
-            "root": "projects/libs/core",
-            "entryFile": "index",
-            "sourceRoot": "projects/libs/core/src",
-            "compilerOptions": {
-                "tsConfigPath": "projects/libs/core/tsconfig.json"
             }
         }
     }

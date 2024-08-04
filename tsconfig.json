@@ -9,7 +9,7 @@
         "target": "ES2021",
         "sourceMap": true,
         "baseUrl": "./",
-        "outDir": "./dist",
+        "outDir": "./_output/build",
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
@@ -37,5 +37,8 @@
                 "projects/libs/databases/*"
             ]
         },
-    }
+    },
+    "include": [
+        "projects/**/*"
+    ]
 }
