@@ -12,7 +12,7 @@ import {
     UseInterceptors
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { StorageFilesService } from 'app/services/storage-files'
+import { StorageFilesService } from 'services/storage-files'
 import { IsString } from 'class-validator'
 import { generateUUID } from 'common'
 import { Config } from 'config'

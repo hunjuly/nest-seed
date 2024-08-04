@@ -1,4 +1,4 @@
-import { CustomersService } from 'app/services/customers'
+import { CustomersService } from 'services/customers'
 
 export interface Credentials {
     customerId: string

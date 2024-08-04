@@ -27,6 +27,7 @@ const config: Config = {
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     moduleNameMapper: {
         '^app/(.*)$': `${projects}/apps/gateway/src/$1`,
+        '^services/(.*)$': `${projects}/apps/services/src/$1`,
         '^common$': `${projects}/libs/common/src/index`,
         '^common/test$': `${projects}/libs/common/src/test/index`,
         '^core$': `${projects}/libs/core/src/index`,

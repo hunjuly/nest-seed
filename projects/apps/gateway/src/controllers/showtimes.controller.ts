@@ -11,9 +11,9 @@ import {
     Query,
     UsePipes
 } from '@nestjs/common'
-import { MoviesService } from 'app/services/movies'
-import { ShowtimesCreationDto, ShowtimesQueryDto, ShowtimesService } from 'app/services/showtimes'
-import { TheatersService } from 'app/services/theaters'
+import { MoviesService } from 'services/movies'
+import { ShowtimesCreationDto, ShowtimesQueryDto, ShowtimesService } from 'services/showtimes'
+import { TheatersService } from 'services/theaters'
 import { PaginationOption, PaginationPipe } from 'common'
 import { ShowtimeExistsGuard } from './guards'
 

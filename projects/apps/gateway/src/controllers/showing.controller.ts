@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
-import { ShowingService } from 'app/services/showing'
+import { ShowingService } from 'services/showing'
 import { convertStringToDate, LatLong, LatLongQuery } from 'common'
 import {
     CustomerExistsGuard,

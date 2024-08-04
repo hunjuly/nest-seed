@@ -2,21 +2,21 @@ import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { TicketsController } from 'app/controllers'
 import { GlobalModule } from 'core'
-import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
-import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'app/services/showtimes'
+import { MovieDto, MoviesModule, MoviesService } from 'services/movies'
+import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'services/showtimes'
 import {
     Seat,
     TheaterDto,
     TheatersModule,
     TheatersService,
     forEachSeats
-} from 'app/services/theaters'
+} from 'services/theaters'
 import {
     TicketsCreateCompleteEvent,
     TicketsCreateEvent,
     TicketsModule,
     TicketsService
-} from 'app/services/tickets'
+} from 'services/tickets'
 import { createHttpTestContext } from 'common/test'
 import { createMovie } from './movies.fixture'
 import { ShowtimesFactory } from './showtimes.fixture'

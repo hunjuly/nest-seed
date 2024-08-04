@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { StorageFilesService } from 'app/services/storage-files'
+import { StorageFilesService } from 'services/storage-files'
 
 @Injectable()
 export class StorageFileExistsGuard implements CanActivate {

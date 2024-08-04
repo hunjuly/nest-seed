@@ -15,7 +15,7 @@ import {
     TheatersQueryDto,
     TheatersService,
     TheaterUpdatingDto
-} from 'app/services/theaters'
+} from 'services/theaters'
 import { PaginationOption, PaginationPipe } from 'common'
 import { TheaterExistsGuard } from './guards'
 

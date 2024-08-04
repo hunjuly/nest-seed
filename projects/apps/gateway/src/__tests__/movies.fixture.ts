@@ -1,4 +1,4 @@
-import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'app/services/movies'
+import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'services/movies'
 import { padNumber } from 'common'
 
 export async function createMovie(moviesService: MoviesService, overrides = {}): Promise<MovieDto> {

@@ -7,11 +7,11 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { CustomersModule } from './services/customers'
-import { MoviesModule } from './services/movies'
-import { ShowtimesModule } from './services/showtimes'
-import { TheatersModule } from './services/theaters'
-import { TicketsModule } from './services/tickets'
+import { CustomersModule } from 'services/customers'
+import { MoviesModule } from 'services/movies'
+import { ShowtimesModule } from 'services/showtimes'
+import { TheatersModule } from 'services/theaters'
+import { TicketsModule } from 'services/tickets'
 
 @Module({
     imports: [

@@ -13,7 +13,7 @@
             "entryFile": "main",
             "sourceRoot": "projects/apps/gateway/src",
             "compilerOptions": {
-                "tsConfigPath": "projects/apps/gateway/tsconfig.json"
+                "tsConfigPath": "projects/apps/gateway/tsconfig.build.json"
             }
         }
     }

@@ -1,4 +1,4 @@
-import { CustomerDto, CustomersService } from 'app/services/customers'
+import { CustomerDto, CustomersService } from 'services/customers'
 import { padNumber } from 'common'
 
 export async function createCustomer(customersService: CustomersService): Promise<CustomerDto> {

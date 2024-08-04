@@ -1,4 +1,4 @@
-import { TicketDto, TicketsService } from 'app/services/tickets'
+import { TicketDto, TicketsService } from 'services/tickets'
 import { pickIds } from 'common'
 import { expectEqualUnsorted, HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture, TicketsFactory } from './tickets.fixture'

@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { TheatersService } from 'app/services/theaters'
+import { TheatersService } from 'services/theaters'
 
 @Injectable()
 export class TheaterExistsGuard implements CanActivate {

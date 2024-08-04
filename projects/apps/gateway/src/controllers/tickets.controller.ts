@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UsePipes } from '@nestjs/common'
-import { TicketsQueryDto, TicketsService } from 'app/services/tickets'
+import { TicketsQueryDto, TicketsService } from 'services/tickets'
 import { PaginationOption, PaginationPipe } from 'common'
 
 @Controller('tickets')

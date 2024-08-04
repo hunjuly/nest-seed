@@ -1,4 +1,4 @@
-import { ShowtimeDto } from 'app/services/showtimes'
+import { ShowtimeDto } from 'services/showtimes'
 import { nullObjectId, pickIds } from 'common'
 import { HttpRequest, HttpTestContext, expectEqualUnsorted } from 'common/test'
 import { ShowtimesFactory, createFixture } from './showtimes.fixture'

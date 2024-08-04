@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { TheatersController } from 'app/controllers'
 import { GlobalModule } from 'core'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
+import { TheaterDto, TheatersModule, TheatersService } from 'services/theaters'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createTheater, createTheaters } from './theaters.fixture'

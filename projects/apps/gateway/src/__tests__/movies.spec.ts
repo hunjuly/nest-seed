@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { MoviesController } from 'app/controllers'
 import { GlobalModule } from 'core'
-import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
+import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'services/movies'
 import { nullObjectId } from 'common'
 import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createMovie, createMovies } from './movies.fixture'

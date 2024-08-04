@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { MoviesService } from 'app/services/movies'
+import { MoviesService } from 'services/movies'
 
 @Injectable()
 export class MovieExistsGuard implements CanActivate {

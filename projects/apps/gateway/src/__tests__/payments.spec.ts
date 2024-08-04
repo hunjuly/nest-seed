@@ -1,6 +1,6 @@
 import { expect } from '@jest/globals'
-import { PaymentDto, PaymentsService } from 'app/services/payments'
-import { TicketsService } from 'app/services/tickets'
+import { PaymentDto, PaymentsService } from 'services/payments'
+import { TicketsService } from 'services/tickets'
 import { pickIds } from 'common'
 import { HttpRequest, HttpTestContext } from 'common/test'
 import { createFixture } from './payments.fixture'

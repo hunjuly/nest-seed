@@ -18,7 +18,7 @@ import {
     CustomersQueryDto,
     CustomersService,
     CustomerUpdatingDto
-} from 'app/services/customers'
+} from 'services/customers'
 import { Assert, PaginationOption, PaginationPipe } from 'common'
 import {
     CustomerEmailNotExistsGuard,

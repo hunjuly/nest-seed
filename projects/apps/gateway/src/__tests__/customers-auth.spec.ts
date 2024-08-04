@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt'
 import { CustomersController } from 'app/controllers'
 import { GlobalModule } from 'core'
-import { CustomersModule, CustomersService } from 'app/services/customers'
+import { CustomersModule, CustomersService } from 'services/customers'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
 import { createCredentials, Credentials } from './customers-auth.fixture'

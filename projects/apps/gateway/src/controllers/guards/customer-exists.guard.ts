@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common'
-import { CustomersService } from 'app/services/customers'
+import { CustomersService } from 'services/customers'
 
 @Injectable()
 export class CustomerExistsGuard implements CanActivate {

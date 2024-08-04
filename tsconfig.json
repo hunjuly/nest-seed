@@ -21,6 +21,9 @@
             "app/*": [
                 "projects/apps/gateway/src/*"
             ],
+            "services/*": [
+                "projects/apps/services/src/*"
+            ],
             "common": [
                 "projects/libs/common/src/index"
             ],

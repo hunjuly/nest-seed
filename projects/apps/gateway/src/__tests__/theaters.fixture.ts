@@ -1,4 +1,4 @@
-import { TheaterDto, TheatersService } from 'app/services/theaters'
+import { TheaterDto, TheatersService } from 'services/theaters'
 import { padNumber } from 'common'
 
 export async function createTheater(

@@ -15,7 +15,7 @@ import {
     MoviesQueryDto,
     MoviesService,
     MovieUpdatingDto
-} from 'app/services/movies'
+} from 'services/movies'
 import { PaginationOption, PaginationPipe } from 'common'
 import { MovieExistsGuard } from './guards'
 

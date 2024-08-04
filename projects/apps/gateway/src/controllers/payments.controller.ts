@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { PaymentCreationDto, PaymentsQueryDto, PaymentsService } from 'app/services/payments'
+import { PaymentCreationDto, PaymentsQueryDto, PaymentsService } from 'services/payments'
 import { PaginationOption } from 'common'
 
 @Controller('payments')
