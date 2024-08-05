@@ -1,4 +1,4 @@
-import { StorageFilesController } from 'app/controllers'
+import { StorageFilesController } from '../controllers'
 import { CoreModule } from 'core'
 import { StorageFilesModule } from 'services/storage-files'
 import { StorageFileDto } from 'services/storage-files/dto'

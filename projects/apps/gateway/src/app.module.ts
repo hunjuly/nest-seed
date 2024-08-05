@@ -1,33 +1,31 @@
 import { Module } from '@nestjs/common'
+import { ClientsModule, Transport } from '@nestjs/microservices'
 import { CoreModule } from 'core'
-import {
-    CustomersController,
-    MoviesController,
-    ShowtimesController,
-    TheatersController,
-    TicketsController
-} from 'app/controllers'
-import { CustomersModule } from 'services/customers'
-import { MoviesModule } from 'services/movies'
-import { ShowtimesModule } from 'services/showtimes'
-import { TheatersModule } from 'services/theaters'
-import { TicketsModule } from 'services/tickets'
+import { CustomersController } from './controllers'
+import { CustomerJwtStrategy, CustomerLocalStrategy } from './strategies'
 
 @Module({
     imports: [
-        CoreModule,
-        CustomersModule,
-        MoviesModule,
-        TheatersModule,
-        TicketsModule,
-        ShowtimesModule
+        ClientsModule.register([
+            {
+                name: 'CUSTOMERS_SERVICE',
+                transport: Transport.TCP,
+                options: { host: '0.0.0.0', port: 3000 }
+            }
+        ]),
+        CoreModule
+        // MoviesModule,
+        // TheatersModule,
+        // TicketsModule,
+        // ShowtimesModule
     ],
+    providers: [CustomerLocalStrategy, CustomerJwtStrategy],
     controllers: [
-        CustomersController,
-        MoviesController,
-        TheatersController,
-        TicketsController,
-        ShowtimesController
+        CustomersController
+        // MoviesController,
+        // TheatersController,
+        // TicketsController,
+        // ShowtimesController
     ]
 })
 export class AppModule {}

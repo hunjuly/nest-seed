@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { TicketsController } from 'app/controllers'
+import { TicketsController } from '../controllers'
 import { CoreModule } from 'core'
 import { MovieDto, MoviesModule, MoviesService } from 'services/movies'
 import { ShowtimesCreateFailEvent, ShowtimesModule, ShowtimesService } from 'services/showtimes'
-import {
-    Seat,
-    TheaterDto,
-    TheatersModule,
-    TheatersService,
-    forEachSeats
-} from 'services/theaters'
+import { Seat, TheaterDto, TheatersModule, TheatersService, forEachSeats } from 'services/theaters'
 import {
     TicketsCreateCompleteEvent,
     TicketsCreateEvent,

@@ -1,4 +1,4 @@
-import { PaymentsController } from 'app/controllers'
+import { PaymentsController } from '../controllers'
 import { CoreModule } from 'core'
 import { CustomersModule, CustomersService } from 'services/customers'
 import { MoviesModule, MoviesService } from 'services/movies'

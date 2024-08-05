@@ -1,10 +1,8 @@
 import { JwtService } from '@nestjs/jwt'
-import { CustomersController } from 'app/controllers'
-import { CoreModule } from 'core'
-import { CustomersModule, CustomersService } from 'services/customers'
+import { AppModule } from '../app.module'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
-import { createCredentials, Credentials } from './customers-auth.fixture'
+import { Credentials } from './customers-auth.fixture'
 
 jest.mock('config', () => {
     const { Config, ...rest } = jest.requireActual('config')
@@ -32,16 +30,15 @@ describe('/customers', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [CoreModule, CustomersModule],
-            controllers: [CustomersController]
+            imports: [AppModule]
         })
         req = testContext.createRequest('/customers')
 
-        const module = testContext.module
-        jwtService = module.get(JwtService)
-        const usersService = module.get(CustomersService)
+        // const module = testContext.module
+        // jwtService = module.get(JwtService)
+        // const usersService = module.get(CustomersService)
 
-        credentials = await createCredentials(usersService)
+        // credentials = await createCredentials(usersService)
     })
 
     afterEach(async () => {

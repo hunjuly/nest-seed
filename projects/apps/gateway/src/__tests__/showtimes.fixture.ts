@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { ShowtimesController } from 'app/controllers'
+import { ShowtimesController } from '../controllers'
 import { CoreModule } from 'core'
 import { MovieDto, MoviesModule, MoviesService } from 'services/movies'
 import {

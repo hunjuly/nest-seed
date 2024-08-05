@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { Config } from 'config'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { CustomersRepository } from '../customers.repository'
 import { AuthTokenPayload } from 'common'
+import { ClientProxy } from '@nestjs/microservices'
 
 @Injectable()
 export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jwt') {
-    constructor(private customersRepository: CustomersRepository) {
+    constructor(@Inject('CUSTOMERS_SERVICE') private readonly client: ClientProxy) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
@@ -15,9 +15,7 @@ export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jw
         })
     }
 
-    async validate(payload: AuthTokenPayload): Promise<AuthTokenPayload | null> {
-        const exists = await this.customersRepository.existsByIds([payload.userId])
-
-        return exists ? payload : null
+    async validate(payload: AuthTokenPayload) {
+        return this.client.send({ cmd: 'customersExist' }, [payload.userId])
     }
 }

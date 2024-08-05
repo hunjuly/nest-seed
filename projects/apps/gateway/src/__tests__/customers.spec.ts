@@ -1,37 +1,40 @@
 import { expect } from '@jest/globals'
-import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, CustomersController } from 'app/controllers'
-import { CoreModule } from 'core'
-import { CustomerDto, CustomersModule, CustomersService } from 'services/customers'
 import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import {
+    HttpRequest,
+    HttpTestContext,
+    MicroserviceTestContext,
+    createHttpTestContext
+} from 'common/test'
+import { CustomerDto, CustomersService } from 'services/customers'
+import { AppModule } from '../app.module'
+// import { CustomerJwtAuthGuard, CustomerLocalAuthGuard } from '../controllers'
 import { createCustomer, createCustomers } from './customers.fixture'
+import { CustomerLocalAuthGuard, CustomerJwtAuthGuard } from '../controllers'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
     let req: HttpRequest
     let customersService: CustomersService
+    let microsvcContext: MicroserviceTestContext
 
     beforeEach(async () => {
+        // microsvcContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
+
         testContext = await createHttpTestContext({
-            imports: [CoreModule, CustomersModule],
-            controllers: [CustomersController],
+            imports: [AppModule],
             ignoreGuards: [CustomerLocalAuthGuard, CustomerJwtAuthGuard]
         })
         req = testContext.createRequest()
-
-        customersService = testContext.module.get(CustomersService)
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
+        await microsvcContext.close()
     })
 
     describe('POST /customers', () => {
         let customer: CustomerDto
-
-        beforeEach(async () => {
-            customer = await createCustomer(customersService)
-        })
 
         const creationDto = {
             name: 'name',

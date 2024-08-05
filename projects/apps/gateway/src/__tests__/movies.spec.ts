@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { MoviesController } from 'app/controllers'
+import { MoviesController } from '../controllers'
 import { CoreModule } from 'core'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'services/movies'
 import { nullObjectId } from 'common'

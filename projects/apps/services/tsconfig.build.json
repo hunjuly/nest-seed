@@ -1,0 +1,10 @@
+{
+    "extends": "../../../tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+    },
+    "exclude": [
+        "**/__tests__/**",
+        "jest.config.ts"
+    ]
+}

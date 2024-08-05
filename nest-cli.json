@@ -15,6 +15,15 @@
             "compilerOptions": {
                 "tsConfigPath": "projects/apps/gateway/tsconfig.build.json"
             }
+        },
+        "services": {
+            "type": "application",
+            "root": "projects/apps/services",
+            "entryFile": "main",
+            "sourceRoot": "projects/apps/services/src",
+            "compilerOptions": {
+                "tsConfigPath": "projects/apps/services/tsconfig.build.json"
+            }
         }
     }
 }

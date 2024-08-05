@@ -71,7 +71,19 @@ export class CustomersService {
         return new CustomerDto(customer!)
     }
 
+    @MethodLog({ level: 'verbose' })
     async customersExist(customerIds: string[]): Promise<boolean> {
         return this.repository.existsByIds(customerIds)
+    }
+
+    async validatePassword(payload: { email: string; password: string }) {
+        const { email, password } = payload
+
+        const customer = await this.repository.findByEmail(email)
+
+        if (customer && (await Password.validate(password, customer.password)))
+            return new CustomerDto(customer)
+
+        return null
     }
 }

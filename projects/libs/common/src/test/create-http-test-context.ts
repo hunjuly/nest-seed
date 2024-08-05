@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
-import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpRequest } from './http.request'
 
@@ -31,17 +30,19 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
         }
     }
 
-    if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
-        const limit = process.env.HTTP_REQUEST_PAYLOAD_LIMIT
+    // TODO 아니 이걸 여기에 왜 했지?
+    // if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
+    //     const limit = process.env.HTTP_REQUEST_PAYLOAD_LIMIT
 
-        app.use(express.json({ limit }))
-        app.use(express.urlencoded({ limit, extended: true }))
-    }
+    //     app.use(express.json({ limit }))
+    //     app.use(express.urlencoded({ limit, extended: true }))
+    // }
 
     await app.init()
 
     const server = app.getHttpServer()
 
+    // TODO 이거 await 안 되나? 될거 같은데?
     await new Promise<void>((resolve) => {
         server.listen(() => {
             resolve()

@@ -1,16 +1,23 @@
-import { CanActivate, ExecutionContext, Injectable, ConflictException } from '@nestjs/common'
-import { CustomersService } from 'services/customers'
+import {
+    CanActivate,
+    ConflictException,
+    ExecutionContext,
+    Inject,
+    Injectable
+} from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
+import { firstValueFrom } from 'rxjs'
 
 @Injectable()
 export class CustomerEmailNotExistsGuard implements CanActivate {
-    constructor(private readonly customersService: CustomersService) {}
+    constructor(@Inject('CUSTOMERS_SERVICE') private client: ClientProxy) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
         const email = request.body.email
 
         if (email) {
-            const customer = await this.customersService.findByEmail(email)
+            const customer = await firstValueFrom(this.client.send({ cmd: 'findByEmail' }, email))
 
             if (customer) {
                 throw new ConflictException(`Customer with email ${email} already exists`)

@@ -18,9 +18,6 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "paths": {
-            "app/*": [
-                "projects/apps/gateway/src/*"
-            ],
             "services/*": [
                 "projects/apps/services/src/*"
             ],

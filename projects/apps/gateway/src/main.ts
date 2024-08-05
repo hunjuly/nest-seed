@@ -17,7 +17,7 @@ async function bootstrap() {
     const logger = app.get(AppLoggerService)
     app.useLogger(logger)
 
-    const port = 3000
+    const port = 3001
 
     await app.listen(port)
 
