@@ -4,13 +4,15 @@ import {
     HttpRequest,
     HttpTestContext,
     MicroserviceTestContext,
-    createHttpTestContext
+    createHttpTestContext,
+    createMicroserviceTestContext
 } from 'common/test'
 import { CustomerDto, CustomersService } from 'services/customers'
 import { AppModule } from '../app.module'
 // import { CustomerJwtAuthGuard, CustomerLocalAuthGuard } from '../controllers'
 import { createCustomer, createCustomers } from './customers.fixture'
 import { CustomerLocalAuthGuard, CustomerJwtAuthGuard } from '../controllers'
+import { ServicesModule } from 'services/services.module'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -19,7 +21,7 @@ describe('/customers', () => {
     let microsvcContext: MicroserviceTestContext
 
     beforeEach(async () => {
-        // microsvcContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
+        microsvcContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
 
         testContext = await createHttpTestContext({
             imports: [AppModule],

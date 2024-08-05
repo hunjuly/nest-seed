@@ -29,13 +29,12 @@ import {
 } from './guards'
 import { ClientProxy } from '@nestjs/microservices'
 import { firstValueFrom } from 'rxjs'
-
-// export const CUSTOMERS_SERVICE = 'CUSTOMERS_SERVICE'
+import { CUSTOMERS_SERVICE } from '../constants'
 
 @Controller('customers')
 @UseGuards(CustomerJwtAuthGuard)
 export class CustomersController {
-    constructor(@Inject('CUSTOMERS_SERVICE') private readonly client: ClientProxy) {}
+    constructor(@Inject(CUSTOMERS_SERVICE) private readonly client: ClientProxy) {}
 
     @Post()
     @Public()

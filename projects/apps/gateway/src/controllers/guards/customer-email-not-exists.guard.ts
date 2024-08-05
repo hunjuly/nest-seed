@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices'
 import { firstValueFrom } from 'rxjs'
+import { CUSTOMERS_SERVICE } from '../../constants'
 
 @Injectable()
 export class CustomerEmailNotExistsGuard implements CanActivate {
-    constructor(@Inject('CUSTOMERS_SERVICE') private client: ClientProxy) {}
+    constructor(@Inject(CUSTOMERS_SERVICE) private client: ClientProxy) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest()
