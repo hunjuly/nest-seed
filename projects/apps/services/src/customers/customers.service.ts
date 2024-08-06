@@ -8,7 +8,7 @@ import {
     Password
 } from 'common'
 import { CustomersRepository } from './customers.repository'
-import { CustomerCreationDto, CustomerDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
+import { CreateCustomerDto, CustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 
 @Injectable()
 export class CustomersService {
@@ -18,7 +18,7 @@ export class CustomersService {
     ) {}
 
     @MethodLog()
-    async createCustomer(createDto: CustomerCreationDto) {
+    async createCustomer(createDto: CreateCustomerDto) {
         await this.checkEmailExists(createDto.email)
 
         const customer = await this.repository.createCustomer({
@@ -30,7 +30,7 @@ export class CustomersService {
     }
 
     @MethodLog()
-    async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+    async updateCustomer(customerId: string, updateDto: UpdateCustomerDto) {
         await this.checkCustomerExists(customerId)
 
         const customer = await this.repository.updateCustomer(customerId, updateDto)
@@ -56,7 +56,7 @@ export class CustomersService {
 
     @MethodLog({ level: 'verbose' })
     async findCustomers(
-        queryDto: CustomersQueryDto,
+        queryDto: QueryCustomersDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<CustomerDto>> {
         const paginated = await this.repository.findCustomers(queryDto, pagination)

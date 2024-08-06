@@ -10,7 +10,7 @@ import {
 } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { CustomerCreationDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
+import { CreateCustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 import { Customer } from './schemas'
 
 @Injectable()
@@ -20,7 +20,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     }
 
     @MethodLog()
-    async createCustomer(createDto: CustomerCreationDto) {
+    async createCustomer(createDto: CreateCustomerDto) {
         const customer = await this.create((doc) => {
             doc.name = createDto.name
             doc.email = createDto.email
@@ -32,7 +32,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     }
 
     @MethodLog()
-    async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+    async updateCustomer(customerId: string, updateDto: UpdateCustomerDto) {
         const dto = stringToObjectId(updateDto)
 
         const customer = await this.updateById(customerId, (doc) => {
@@ -46,7 +46,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
 
     @MethodLog({ level: 'verbose' })
     async findCustomers(
-        queryDto: CustomersQueryDto,
+        queryDto: QueryCustomersDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Customer>> {
         const paginated = await this.find((helpers) => {

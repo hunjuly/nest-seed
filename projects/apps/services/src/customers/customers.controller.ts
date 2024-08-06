@@ -2,19 +2,19 @@ import { Controller } from '@nestjs/common'
 import { MessagePattern } from '@nestjs/microservices'
 import { PaginationOption } from 'common'
 import { CustomersService } from './customers.service'
-import { CustomerCreationDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
+import { CreateCustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 
 @Controller()
 export class CustomersController {
     constructor(private readonly service: CustomersService) {}
 
     @MessagePattern({ cmd: 'createCustomer' })
-    async createCustomer(createDto: CustomerCreationDto) {
+    async createCustomer(createDto: CreateCustomerDto) {
         return this.service.createCustomer(createDto)
     }
 
     @MessagePattern({ cmd: 'updateCustomer' })
-    updateCustomer(p: { customerId: string; updateDto: CustomerUpdatingDto }) {
+    updateCustomer(p: { customerId: string; updateDto: UpdateCustomerDto }) {
         return this.service.updateCustomer(p.customerId, p.updateDto)
     }
 
@@ -29,7 +29,7 @@ export class CustomersController {
     }
 
     @MessagePattern({ cmd: 'findCustomers' })
-    findCustomers(p: { query: CustomersQueryDto; pagination: PaginationOption }) {
+    findCustomers(p: { query: QueryCustomersDto; pagination: PaginationOption }) {
         return this.service.findCustomers(p.query, p.pagination)
     }
 

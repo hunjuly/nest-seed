@@ -17,9 +17,9 @@ import { ClientProxy } from '@nestjs/microservices'
 import { Assert, PaginationOption, PaginationPipe } from 'common'
 import { lastValueFrom } from 'rxjs'
 import {
-    CustomerCreationDto,
+    CreateCustomerDto,
     CustomerDto,
-    CustomersQueryDto,
+    QueryCustomersDto,
     CustomerUpdatingDto
 } from 'services/customers'
 import { CUSTOMERS_SERVICE } from '../constants'
@@ -32,14 +32,14 @@ export class CustomersController {
 
     @Public()
     @Post()
-    async createCustomer(@Body() createDto: CustomerCreationDto) {
+    async createCustomer(@Body() createDto: CreateCustomerDto) {
         return this.client.send({ cmd: 'createCustomer' }, createDto)
     }
 
     @Get()
     @UsePipes(new PaginationPipe(50))
     async findCustomers(
-        @Query() queryDto: CustomersQueryDto,
+        @Query() queryDto: QueryCustomersDto,
         @Query() pagination: PaginationOption
     ) {
         return this.client.send({ cmd: 'findCustomers' }, { queryDto, pagination })

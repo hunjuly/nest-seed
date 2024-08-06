@@ -1,4 +1,4 @@
-export * from './customer-creation.dto'
-export * from './customer-updating.dto'
+export * from './create-customer.dto'
 export * from './customer.dto'
-export * from './customers-filter.dto'
+export * from './query-customers.dto'
+export * from './update-customer.dto'
