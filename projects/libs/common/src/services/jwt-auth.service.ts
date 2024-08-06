@@ -10,7 +10,7 @@ export interface AuthTokenPayload {
     email: string
 }
 
-export interface JwtAuthTokens {
+export class JwtAuthTokens {
     accessToken: string
     refreshToken: string
 }
@@ -67,7 +67,9 @@ export class JwtAuthService {
             notUsed(exp, iat, jti)
             return payload
         } catch (error) {
-            comment('Ignore exceptions that are thrown because an unformatted or expired token comes in')
+            comment(
+                'Ignore exceptions that are thrown because an unformatted or expired token comes in'
+            )
         }
         return undefined
     }

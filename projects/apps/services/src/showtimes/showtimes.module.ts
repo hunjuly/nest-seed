@@ -5,6 +5,7 @@ import { ShowtimesRepository } from './showtimes.repository'
 import { ShowtimesService } from './showtimes.service'
 import { BullModule } from '@nestjs/bull'
 import { ShowtimesCreationService } from './services'
+import { ShowtimesController } from './showtimes.controller'
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { ShowtimesCreationService } from './services'
         BullModule.registerQueue({ name: 'showtimes' })
     ],
     providers: [ShowtimesService, ShowtimesRepository, ShowtimesCreationService],
+    controllers: [ShowtimesController],
     exports: [ShowtimesService]
 })
 export class ShowtimesModule {}

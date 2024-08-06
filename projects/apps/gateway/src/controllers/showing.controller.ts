@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
-import { ShowingService } from 'services/showing'
+import { Controller, Get, Inject, Param, Query, UseGuards } from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
 import { convertStringToDate, LatLong, LatLongQuery } from 'common'
+import { SHOWING_SERVICE } from '../constants'
 import {
     CustomerExistsGuard,
     MovieExistsGuard,
@@ -10,12 +11,12 @@ import {
 
 @Controller('showing')
 export class ShowingController {
-    constructor(private showingService: ShowingService) {}
+    constructor(@Inject(SHOWING_SERVICE) private client: ClientProxy) {}
 
     @Get('movies/recommended')
     @UseGuards(CustomerExistsGuard)
     async getRecommendedMovies(@Query('customerId') customerId: string) {
-        return this.showingService.getRecommendedMovies(customerId)
+        return this.client.send({ cmd: 'getRecommendedMovies' }, customerId)
     }
 
     @Get('movies/:movieId/theaters')
@@ -24,14 +25,14 @@ export class ShowingController {
         @Param('movieId') movieId: string,
         @LatLongQuery('userLocation') userLocation: LatLong
     ) {
-        return this.showingService.findShowingTheaters(movieId, userLocation)
+        return this.client.send({ cmd: 'findShowingTheaters' }, { movieId, userLocation })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates')
     @UseGuards(MovieExistsGuard)
     @UseGuards(TheaterExistsGuard)
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
-        return this.showingService.findShowdates(movieId, theaterId)
+        return this.client.send({ cmd: 'findShowdates' }, { movieId, theaterId })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
@@ -42,12 +43,15 @@ export class ShowingController {
         @Param('theaterId') theaterId: string,
         @Param('showdate') showdate: string
     ) {
-        return this.showingService.findShowtimes(movieId, theaterId, convertStringToDate(showdate))
+        return this.client.send(
+            { cmd: 'findShowtimes' },
+            { movieId, theaterId, showdate: convertStringToDate(showdate) }
+        )
     }
 
     @Get('showtimes/:showtimeId/tickets')
     @UseGuards(ShowtimeExistsGuard)
     async findTickets(@Param('showtimeId') showtimeId: string) {
-        return this.showingService.findTickets(showtimeId)
+        return this.client.send({ cmd: 'findTickets' }, showtimeId)
     }
 }

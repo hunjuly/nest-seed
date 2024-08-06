@@ -7,12 +7,12 @@ import {
     createHttpTestContext,
     createMicroserviceTestContext
 } from 'common/test'
-import { CustomerDto, CustomersService } from 'services/customers'
-import { AppModule } from '../app.module'
-// import { CustomerJwtAuthGuard, CustomerLocalAuthGuard } from '../controllers'
-import { createCustomer, createCustomers } from './customers.fixture'
-import { CustomerLocalAuthGuard, CustomerJwtAuthGuard } from '../controllers'
+import { CustomerDto } from 'services/customers'
+import { GatewayModule } from '../gateway.module'
 import { ServicesModule } from 'services/services.module'
+import { CustomerJwtAuthGuard, CustomerLocalAuthGuard } from '../controllers'
+import { createCustomer, createCustomers } from './customers.fixture'
+import { CustomersService } from 'services/customers/customers.service'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -24,7 +24,7 @@ describe('/customers', () => {
         microsvcContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
 
         testContext = await createHttpTestContext({
-            imports: [AppModule],
+            imports: [GatewayModule],
             ignoreGuards: [CustomerLocalAuthGuard, CustomerJwtAuthGuard]
         })
         req = testContext.createRequest()

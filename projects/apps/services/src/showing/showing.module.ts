@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
 import { CustomersModule } from '../customers'
 import { MoviesModule } from '../movies'
-import { ShowtimesModule } from '../showtimes'
-import { ShowingService } from './showing.service'
 import { PaymentsModule } from '../payments'
-import { TicketsModule } from '../tickets'
+import { ShowtimesModule } from '../showtimes'
 import { TheatersModule } from '../theaters'
+import { TicketsModule } from '../tickets'
+import { ShowingController } from './showing.controller'
+import { ShowingService } from './showing.service'
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { TheatersModule } from '../theaters'
         TheatersModule
     ],
     providers: [ShowingService],
+    controllers: [ShowingController],
     exports: [ShowingService]
 })
 export class ShowingModule {}

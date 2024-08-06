@@ -13,59 +13,52 @@ import {
     UseGuards,
     UsePipes
 } from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
 import { Assert, PaginationOption, PaginationPipe } from 'common'
+import { lastValueFrom } from 'rxjs'
 import {
     CustomerCreationDto,
     CustomerDto,
     CustomersQueryDto,
     CustomerUpdatingDto
 } from 'services/customers'
-import {
-    CustomerEmailNotExistsGuard,
-    CustomerExistsGuard,
-    CustomerJwtAuthGuard,
-    CustomerLocalAuthGuard,
-    Public
-} from './guards'
-import { ClientProxy } from '@nestjs/microservices'
-import { firstValueFrom } from 'rxjs'
 import { CUSTOMERS_SERVICE } from '../constants'
+import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, Public } from './guards'
 
 @Controller('customers')
 @UseGuards(CustomerJwtAuthGuard)
 export class CustomersController {
-    constructor(@Inject(CUSTOMERS_SERVICE) private readonly client: ClientProxy) {}
+    constructor(@Inject(CUSTOMERS_SERVICE) private client: ClientProxy) {}
 
-    @Post()
     @Public()
-    @UseGuards(CustomerEmailNotExistsGuard)
-    async createCustomer(@Body() createCustomerDto: CustomerCreationDto) {
-        return this.client.send({ cmd: 'createCustomer' }, createCustomerDto)
+    @Post()
+    async createCustomer(@Body() createDto: CustomerCreationDto) {
+        return this.client.send({ cmd: 'createCustomer' }, createDto)
     }
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findCustomers(@Query() filter: CustomersQueryDto, @Query() pagination: PaginationOption) {
-        return this.client.send({ cmd: 'findCustomers' }, { filter, pagination })
+    async findCustomers(
+        @Query() queryDto: CustomersQueryDto,
+        @Query() pagination: PaginationOption
+    ) {
+        return this.client.send({ cmd: 'findCustomers' }, { queryDto, pagination })
     }
 
     @Get(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async getCustomer(@Param('customerId') customerId: string) {
         return this.client.send({ cmd: 'getCustomer' }, { customerId })
     }
 
     @Patch(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async updateCustomer(
         @Param('customerId') customerId: string,
-        @Body() updateCustomerDto: CustomerUpdatingDto
+        @Body() updateDto: CustomerUpdatingDto
     ) {
-        return this.client.send({ cmd: 'updateCustomer' }, { customerId, updateCustomerDto })
+        return this.client.send({ cmd: 'updateCustomer' }, { customerId, updateDto })
     }
 
     @Delete(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async deleteCustomer(@Param('customerId') customerId: string) {
         return this.client.send({ cmd: 'deleteCustomer' }, { customerId })
     }
@@ -82,8 +75,8 @@ export class CustomersController {
 
     @Post('refresh')
     @Public()
-    async refreshToken(@Body('refreshToken') refreshToken: string) {
-        const tokenPair = await firstValueFrom(
+    async refreshAuthTokens(@Body('refreshToken') refreshToken: string) {
+        const tokenPair = await lastValueFrom(
             this.client.send({ cmd: 'refreshAuthTokens' }, { refreshToken })
         )
 

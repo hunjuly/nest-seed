@@ -1,18 +1,20 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { PaymentCreationDto, PaymentsQueryDto, PaymentsService } from 'services/payments'
+import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
 import { PaginationOption } from 'common'
+import { PaymentCreationDto, PaymentsQueryDto } from 'services/payments'
+import { PAYMENTS_SERVICE } from '../constants'
 
 @Controller('payments')
 export class PaymentsController {
-    constructor(private readonly paymentsService: PaymentsService) {}
+    constructor(@Inject(PAYMENTS_SERVICE) private client: ClientProxy) {}
 
     @Post()
-    async createPayment(@Body() createCustomerDto: PaymentCreationDto) {
-        return this.paymentsService.createPayment(createCustomerDto)
+    async createPayment(@Body() createDto: PaymentCreationDto) {
+        return this.client.send({ cmd: 'createPayment' }, createDto)
     }
 
     @Get()
-    async findPayments(@Query() filter: PaymentsQueryDto, @Query() pagination: PaginationOption) {
-        return this.paymentsService.findPayments(filter, pagination)
+    async findPayments(@Query() queryDto: PaymentsQueryDto, @Query() pagination: PaginationOption) {
+        return this.client.send({ cmd: 'findPayments' }, { queryDto, pagination })
     }
 }

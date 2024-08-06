@@ -4,6 +4,7 @@ import {
     Controller,
     Delete,
     Get,
+    Inject,
     Param,
     Post,
     StreamableFile,
@@ -11,13 +12,15 @@ import {
     UseGuards,
     UseInterceptors
 } from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { StorageFilesService } from 'services/storage-files'
 import { IsString } from 'class-validator'
 import { generateUUID } from 'common'
 import { Config } from 'config'
 import { createReadStream } from 'fs'
 import { diskStorage } from 'multer'
+import { lastValueFrom } from 'rxjs'
+import { STORAGE_FILES_SERVICE } from '../constants'
 import { StorageFileExistsGuard } from './guards/storage-file-exists.guard'
 
 class UploadFileDto {
@@ -27,7 +30,7 @@ class UploadFileDto {
 
 @Controller('storage-files')
 export class StorageFilesController {
-    constructor(private storageFileService: StorageFilesService) {}
+    constructor(@Inject(STORAGE_FILES_SERVICE) private client: ClientProxy) {}
 
     @Post()
     @UseInterceptors(
@@ -53,13 +56,14 @@ export class StorageFilesController {
         })
     )
     async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() _body: UploadFileDto) {
-        return this.storageFileService.saveFiles(files)
+        return this.client.send({ cmd: 'saveFiles' }, files)
     }
 
     @Get(':fileId')
     @UseGuards(StorageFileExistsGuard)
     async downloadFile(@Param('fileId') fileId: string) {
-        const file = await this.storageFileService.getFile(fileId)
+        // 이거 stream으로 받아보자
+        const file = await lastValueFrom(this.client.send({ cmd: 'getFile' }, fileId))
 
         const readStream = createReadStream(file.storedPath)
 
@@ -73,6 +77,6 @@ export class StorageFilesController {
     @Delete(':fileId')
     @UseGuards(StorageFileExistsGuard)
     async deleteMovie(@Param('fileId') fileId: string) {
-        return this.storageFileService.deleteFile(fileId)
+        return this.client.send({ cmd: 'deleteFile' }, fileId)
     }
 }

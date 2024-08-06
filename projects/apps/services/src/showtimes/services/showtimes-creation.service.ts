@@ -27,8 +27,6 @@ type Timeslot = Map<number, Showtime>
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesCreationService {
-    // private readonly logger = new Logger(this.constructor.name)
-
     constructor(
         private repository: ShowtimesRepository,
         private eventEmitter: EventEmitter2

@@ -17,6 +17,7 @@ export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jw
     }
 
     async validate(payload: AuthTokenPayload) {
-        return this.client.send({ cmd: 'customersExist' }, [payload.userId])
+        const exists = await this.client.send({ cmd: 'customersExist' }, [payload.userId])
+        return exists ? payload : null
     }
 }

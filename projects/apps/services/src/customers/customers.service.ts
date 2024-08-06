@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import {
     Assert,
     JwtAuthService,
@@ -19,6 +19,8 @@ export class CustomersService {
 
     @MethodLog()
     async createCustomer(createDto: CustomerCreationDto) {
+        await this.checkEmailExists(createDto.email)
+
         const customer = await this.repository.createCustomer({
             ...createDto,
             password: await Password.hash(createDto.password)
@@ -29,23 +31,27 @@ export class CustomersService {
 
     @MethodLog()
     async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+        await this.checkCustomerExists(customerId)
+
         const customer = await this.repository.updateCustomer(customerId, updateDto)
         return new CustomerDto(customer)
     }
 
     @MethodLog()
     async deleteCustomer(customerId: string) {
+        await this.checkCustomerExists(customerId)
+
         await this.repository.deleteById(customerId)
+        return true
     }
 
-    @MethodLog()
-    async login(customer: CustomerDto) {
-        return this.jwtAuthService.generateAuthTokens(customer.id, customer.email)
-    }
+    @MethodLog({ level: 'verbose' })
+    async getCustomer(customerId: string) {
+        await this.checkCustomerExists(customerId)
 
-    @MethodLog()
-    async refreshAuthTokens(refreshToken: string) {
-        return this.jwtAuthService.refreshAuthTokens(refreshToken)
+        const customer = await this.repository.findById(customerId)
+        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
+        return new CustomerDto(customer!)
     }
 
     @MethodLog({ level: 'verbose' })
@@ -59,31 +65,39 @@ export class CustomersService {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findByEmail(email: string): Promise<CustomerDto | null> {
-        const customer = await this.repository.findByEmail(email)
-        return customer ? new CustomerDto(customer) : null
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async getCustomer(customerId: string) {
-        const customer = await this.repository.findById(customerId)
-        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
-        return new CustomerDto(customer!)
-    }
-
-    @MethodLog({ level: 'verbose' })
     async customersExist(customerIds: string[]): Promise<boolean> {
         return this.repository.existsByIds(customerIds)
     }
 
-    async validatePassword(payload: { email: string; password: string }) {
-        const { email, password } = payload
-
+    @MethodLog({ level: 'verbose' })
+    async getCustomerByCredentials(email: string, password: string) {
         const customer = await this.repository.findByEmail(email)
 
         if (customer && (await Password.validate(password, customer.password)))
             return new CustomerDto(customer)
 
         return null
+    }
+
+    @MethodLog()
+    async login(customerId: string, email: string) {
+        return this.jwtAuthService.generateAuthTokens(customerId, email)
+    }
+
+    @MethodLog()
+    async refreshAuthTokens(refreshToken: string) {
+        return this.jwtAuthService.refreshAuthTokens(refreshToken)
+    }
+
+    private async checkEmailExists(email: string): Promise<void> {
+        if (await this.repository.findByEmail(email)) {
+            throw new ConflictException(`Customer with email ${email} already exists`)
+        }
+    }
+
+    private async checkCustomerExists(customerId: string): Promise<void> {
+        if (!(await this.repository.existsByIds([customerId]))) {
+            throw new NotFoundException(`Customer with ID ${customerId} not found`)
+        }
     }
 }

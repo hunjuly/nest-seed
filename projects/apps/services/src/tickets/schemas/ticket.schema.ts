@@ -1,5 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { Seat } from 'services/theaters'
+import { Seat } from '../../theaters'
 import { DocumentId, MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 
 export enum TicketStatus {

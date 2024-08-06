@@ -1,46 +1,50 @@
 import {
-    Param,
-    UseGuards,
-    HttpCode,
-    HttpStatus,
     Body,
     Controller,
     Get,
+    HttpCode,
+    HttpStatus,
+    Inject,
     NotFoundException,
+    Param,
     Post,
     Query,
+    UseGuards,
     UsePipes
 } from '@nestjs/common'
-import { MoviesService } from 'services/movies'
-import { ShowtimesCreationDto, ShowtimesQueryDto, ShowtimesService } from 'services/showtimes'
-import { TheatersService } from 'services/theaters'
+import { ClientProxy } from '@nestjs/microservices'
 import { PaginationOption, PaginationPipe } from 'common'
+import { ShowtimesCreationDto, ShowtimesQueryDto } from 'services/showtimes'
+import { MOVIES_SERVICE, SHOWTIMES_SERVICE, THEATERS_SERVICE } from '../constants'
 import { ShowtimeExistsGuard } from './guards'
 
 @Controller('showtimes')
 export class ShowtimesController {
     constructor(
-        private readonly showtimesService: ShowtimesService,
-        private readonly moviesService: MoviesService,
-        private readonly theatersService: TheatersService
+        @Inject(SHOWTIMES_SERVICE) private showtimesClient: ClientProxy,
+        @Inject(MOVIES_SERVICE) private moviesClient: ClientProxy,
+        @Inject(THEATERS_SERVICE) private theatersClient: ClientProxy
     ) {}
 
     @Post()
     @HttpCode(HttpStatus.ACCEPTED)
     async createShowtimes(@Body() request: ShowtimesCreationDto) {
-        const movieExists = await this.moviesService.moviesExist([request.movieId])
+        const movieExists = await this.moviesClient.send({ cmd: 'moviesExist' }, [request.movieId])
 
         if (!movieExists) {
             throw new NotFoundException(`Movie with ID ${request.movieId} not found`)
         }
 
-        const theaterExists = await this.theatersService.theatersExist(request.theaterIds)
+        const theaterExists = await this.theatersClient.send(
+            { cmd: 'theatersExist' },
+            request.theaterIds
+        )
 
         if (!theaterExists) {
             throw new NotFoundException(`Theater with ID ${request.theaterIds} not found`)
         }
 
-        const result = await this.showtimesService.createShowtimes(request)
+        const result = await this.showtimesClient.send({ cmd: 'createShowtimes' }, request)
 
         return result
     }
@@ -48,15 +52,15 @@ export class ShowtimesController {
     @Get()
     @UsePipes(new PaginationPipe(50))
     async findPagedShowtimes(
-        @Query() filter: ShowtimesQueryDto,
+        @Query() queryDto: ShowtimesQueryDto,
         @Query() pagination: PaginationOption
     ) {
-        return this.showtimesService.findShowtimes(filter, pagination)
+        return this.showtimesClient.send({ cmd: 'findShowtimes' }, { queryDto, pagination })
     }
 
     @UseGuards(ShowtimeExistsGuard)
     @Get(':showtimeId')
     async getShowtime(@Param('showtimeId') showtimeId: string) {
-        return this.showtimesService.getShowtime(showtimeId)
+        return this.showtimesClient.send({ cmd: 'getShowtime' }, showtimeId)
     }
 }

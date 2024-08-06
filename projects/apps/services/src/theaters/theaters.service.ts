@@ -15,8 +15,8 @@ export class TheatersService {
     }
 
     @MethodLog()
-    async updateTheater(theaterId: string, updateTheaterDto: TheaterUpdatingDto) {
-        const theater = await this.repository.updateTheater(theaterId, updateTheaterDto)
+    async updateTheater(theaterId: string, updateDto: TheaterUpdatingDto) {
+        const theater = await this.repository.updateTheater(theaterId, updateDto)
 
         return new TheaterDto(theater)
     }

@@ -29,4 +29,4 @@ import { CustomerJwtStrategy, CustomerLocalStrategy } from './strategies'
         // ShowtimesController
     ]
 })
-export class AppModule {}
+export class GatewayModule {}

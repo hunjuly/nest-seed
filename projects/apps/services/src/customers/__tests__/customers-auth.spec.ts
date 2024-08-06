@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt'
-import { GatewayModule } from '../gateway.module'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
+import { GatewayModule } from '../gateway.module'
 import { Credentials } from './customers-auth.fixture'
 
 jest.mock('config', () => {

@@ -4,9 +4,10 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { ShowtimesModule } from '../showtimes'
 import { TheatersModule } from '../theaters'
 import { Ticket, TicketSchema } from './schemas'
+import { TicketsCreationService } from './services'
+import { TicketsController } from './tickets.controller'
 import { TicketsRepository } from './tickets.repository'
 import { TicketsService } from './tickets.service'
-import { TicketsCreationService } from './services'
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { TicketsCreationService } from './services'
         BullModule.registerQueue({ name: 'tickets' })
     ],
     providers: [TicketsService, TicketsRepository, TicketsCreationService],
+    controllers: [TicketsController],
     exports: [TicketsService]
 })
 export class TicketsModule {}

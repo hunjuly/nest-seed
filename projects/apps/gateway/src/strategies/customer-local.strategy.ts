@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices'
 import { PassportStrategy } from '@nestjs/passport'
 import { Strategy } from 'passport-local'
-import { firstValueFrom } from 'rxjs'
+import { lastValueFrom } from 'rxjs'
 import { CustomerDto } from 'services/customers'
 import { CUSTOMERS_SERVICE } from '../constants'
 
@@ -17,8 +17,11 @@ export class CustomerLocalStrategy extends PassportStrategy(Strategy, 'customer-
 
     async validate(email: string, password: string) {
         /* customer is passed to the corresponding @UseGuards (LocalAuthGuard). */
-        return firstValueFrom(
-            this.client.send<CustomerDto | null>({ cmd: 'validatePassword' }, { email, password })
+        return lastValueFrom(
+            this.client.send<CustomerDto | null>(
+                { cmd: 'getCustomerByCredentials' },
+                { email, password }
+            )
         )
     }
 }

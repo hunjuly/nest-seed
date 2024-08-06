@@ -3,10 +3,10 @@ import { AppLoggerService } from 'common'
 import * as compression from 'compression'
 import { Config } from 'config'
 import * as express from 'express'
-import { AppModule } from './app.module'
+import { GatewayModule } from './gateway.module'
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule)
+    const app = await NestFactory.create(GatewayModule)
 
     app.use(compression())
 

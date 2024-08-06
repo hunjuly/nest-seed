@@ -1,9 +1,11 @@
-import { INestMicroservice } from '@nestjs/common'
+import { HttpStatus, INestMicroservice } from '@nestjs/common'
 import { ClientProxy, ClientsModule, MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
-import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { lastValueFrom } from 'rxjs'
+import { AppLoggerService } from '../logger'
 import { jsonToObject } from '../utils'
-import { firstValueFrom } from 'rxjs'
+import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { AllExceptionsFilter } from '../microservice'
 
 export interface MicroserviceTestContext {
     module: TestingModule
@@ -16,14 +18,19 @@ export class MicroserviceClient {
     constructor(private client: ClientProxy) {}
 
     async send(cmd: string, payload: any) {
-        return jsonToObject(await firstValueFrom(this.client.send({ cmd }, payload)))
+        return jsonToObject(await lastValueFrom(this.client.send({ cmd }, payload)))
+    }
+
+    async error(cmd: string, payload: any, status: HttpStatus) {
+        const res = lastValueFrom(this.client.send({ cmd }, payload))
+        await expect(res).rejects.toMatchObject({ status, message: expect.any(String) })
     }
 }
 
 export async function createMicroserviceTestContext(
     metadata: ModuleMetadataEx
 ): Promise<MicroserviceTestContext> {
-    const module = await createTestingModule({
+    const metadataWithTestClient = {
         ...metadata,
         imports: [
             ...(metadata.imports ?? []),
@@ -35,34 +42,37 @@ export async function createMicroserviceTestContext(
                 }
             ])
         ]
-    })
+    }
+
+    const module = await createTestingModule(metadataWithTestClient)
 
     const app = module.createNestMicroservice<MicroserviceOptions>({
         transport: Transport.TCP,
         options: { host: '0.0.0.0', port: 3000 }
     })
 
-    // const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
+    app.useGlobalFilters(new AllExceptionsFilter())
 
-    // if (ignoreLogging) {
-    //     app.useLogger(false)
-    // } else {
-    //     try {
-    //         const logger = app.get(AppLoggerService)
-    //         app.useLogger(logger)
-    //     } catch (error) {
-    //         app.useLogger(console)
-    //     }
-    // }
+    const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
 
-    await app.init()
+    if (ignoreLogging) {
+        app.useLogger(false)
+    } else {
+        try {
+            const logger = app.get(AppLoggerService)
+            app.useLogger(logger)
+        } catch (error) {
+            app.useLogger(console)
+        }
+    }
+
     await app.listen()
 
     const client = app.get('TEST_SERVICE')
     await client.connect()
 
     const close = async () => {
-        client.close()
+        await client.close()
         await app.close()
     }
 

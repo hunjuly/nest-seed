@@ -8,6 +8,7 @@ export enum OrderDirection {
 }
 
 export class OrderOption {
+    // TODO name -> field
     @IsString()
     name: string
 
