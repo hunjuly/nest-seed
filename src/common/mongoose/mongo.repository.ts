@@ -12,7 +12,7 @@ import { MongooseException } from './exceptions'
 type SeesionArg = ClientSession | undefined
 const DEFAULT_TAKE_SIZE = 100
 
-export abstract class MongooseRepository<Doc extends MongooseSchema> {
+export abstract class MongoRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
     newDocument(): HydratedDocument<Doc> {
