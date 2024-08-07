@@ -91,23 +91,6 @@ describe('CustomersModule', () => {
         })
     })
 
-    describe('getCustomer', () => {
-        let customer: CustomerDto
-
-        beforeEach(async () => {
-            customer = await createCustomer(client)
-        })
-
-        it('should get a customer', async () => {
-            const getCustomer = await client.send('getCustomer', customer.id)
-            expect(getCustomer).toEqual(customer)
-        })
-
-        it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            await client.error('getCustomer', nullObjectId, HttpStatus.NOT_FOUND)
-        })
-    })
-
     describe('findCustomers', () => {
         let customers: CustomerDto[]
 
@@ -135,7 +118,24 @@ describe('CustomersModule', () => {
         })
     })
 
-    describe('customersExist', () => {
+    describe('getCustomer', () => {
+        let customer: CustomerDto
+
+        beforeEach(async () => {
+            customer = await createCustomer(client)
+        })
+
+        it('should get a customer', async () => {
+            const getCustomer = await client.send('getCustomer', customer.id)
+            expect(getCustomer).toEqual(customer)
+        })
+
+        it('should return NOT_FOUND(404) when customer does not exist', async () => {
+            await client.error('getCustomer', nullObjectId, HttpStatus.NOT_FOUND)
+        })
+    })
+
+    describe('customersExist(삭제할까고민중)', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {

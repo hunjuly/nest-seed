@@ -23,14 +23,14 @@ export class CustomersController {
         return this.service.deleteCustomer(customerId)
     }
 
-    @MessagePattern({ cmd: 'getCustomer' })
-    getCustomer(customerId: string) {
-        return this.service.getCustomer(customerId)
-    }
-
     @MessagePattern({ cmd: 'findCustomers' })
     findCustomers(p: { query: QueryCustomersDto; pagination: PaginationOption }) {
         return this.service.findCustomers(p.query, p.pagination)
+    }
+
+    @MessagePattern({ cmd: 'getCustomer' })
+    getCustomer(customerId: string) {
+        return this.service.getCustomer(customerId)
     }
 
     @MessagePattern({ cmd: 'customersExist' })

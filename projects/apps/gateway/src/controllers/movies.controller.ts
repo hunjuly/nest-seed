@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices'
 import { PaginationOption, PaginationPipe } from 'common'
-import { MovieCreationDto, MoviesQueryDto, MovieUpdatingDto } from 'services/movies'
+import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from 'services/movies'
 import { MOVIES_SERVICE } from '../constants'
 import { MovieExistsGuard } from './guards'
 
@@ -22,13 +22,13 @@ export class MoviesController {
     constructor(@Inject(MOVIES_SERVICE) private client: ClientProxy) {}
 
     @Post()
-    async createMovie(@Body() createDto: MovieCreationDto) {
+    async createMovie(@Body() createDto: CreateMovieDto) {
         return this.client.send({ cmd: 'createMovie' }, createDto)
     }
 
     @Get()
     @UsePipes(new PaginationPipe(100))
-    async findMovies(@Query() queryDto: MoviesQueryDto, @Query() pagination: PaginationOption) {
+    async findMovies(@Query() queryDto: QueryMoviesDto, @Query() pagination: PaginationOption) {
         return this.client.send({ cmd: 'findMovies' }, { queryDto, pagination })
     }
 
@@ -40,7 +40,7 @@ export class MoviesController {
 
     @UseGuards(MovieExistsGuard)
     @Patch(':movieId')
-    async updateMovie(@Param('movieId') movieId: string, @Body() updateDto: MovieUpdatingDto) {
+    async updateMovie(@Param('movieId') movieId: string, @Body() updateDto: UpdateMovieDto) {
         return this.client.send({ cmd: 'updateMovie' }, { movieId, updateDto })
     }
 

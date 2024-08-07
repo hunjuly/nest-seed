@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common'
 import { MessagePattern } from '@nestjs/microservices'
-import { PaginationOption, PaginationResult } from 'common'
-import { MovieCreationDto, MovieDto, MovieUpdatingDto, MoviesQueryDto } from './dto'
+import { PaginationOption } from 'common'
+import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { MoviesService } from './movies.service'
 
 @Controller()
@@ -9,13 +9,13 @@ export class MoviesController {
     constructor(private readonly service: MoviesService) {}
 
     @MessagePattern({ cmd: 'createMovie' })
-    async createMovie(createDto: MovieCreationDto) {
+    async createMovie(createDto: CreateMovieDto) {
         return this.service.createMovie(createDto)
     }
 
     @MessagePattern({ cmd: 'updateMovie' })
-    async updateMovie({ movieId, updateDto }: { movieId: string; updateDto: MovieUpdatingDto }) {
-        return this.service.updateMovie(movieId, updateDto)
+    async updateMovie(p: { movieId: string; updateDto: UpdateMovieDto }) {
+        return this.service.updateMovie(p.movieId, p.updateDto)
     }
 
     @MessagePattern({ cmd: 'deleteMovie' })
@@ -24,19 +24,8 @@ export class MoviesController {
     }
 
     @MessagePattern({ cmd: 'findMovies' })
-    async findMovies({
-        queryDto,
-        pagination
-    }: {
-        queryDto: MoviesQueryDto
-        pagination: PaginationOption
-    }): Promise<PaginationResult<MovieDto>> {
-        return this.service.findMovies(queryDto, pagination)
-    }
-
-    @MessagePattern({ cmd: 'getMoviesByIds' })
-    async getMoviesByIds(movieIds: string[]) {
-        return this.service.getMoviesByIds(movieIds)
+    async findMovies(p: { query: QueryMoviesDto; pagination: PaginationOption }) {
+        return this.service.findMovies(p.query, p.pagination)
     }
 
     @MessagePattern({ cmd: 'getMovie' })
@@ -44,8 +33,8 @@ export class MoviesController {
         return this.service.getMovie(movieId)
     }
 
-    @MessagePattern({ cmd: 'moviesExist' })
-    async moviesExist(movieIds: string[]): Promise<boolean> {
-        return this.service.moviesExist(movieIds)
+    @MessagePattern({ cmd: 'getMoviesByIds' })
+    async getMoviesByIds(movieIds: string[]) {
+        return this.service.getMoviesByIds(movieIds)
     }
 }

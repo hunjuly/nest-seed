@@ -1,31 +1,34 @@
 import { MicroserviceClient } from 'common/test'
-import { omit } from 'lodash'
+import { MovieGenre, MovieRating } from '../schemas'
 
-export const makeCustomerDtos = (override = {}) => {
+export const makeMovieDtos = (override = {}) => {
     const createDto = {
-        name: 'name',
-        email: 'name@mail.com',
-        birthday: new Date('2020-12-12'),
-        password: 'password',
+        title: `MovieTitle`,
+        genre: [MovieGenre.Action],
+        releaseDate: new Date('1900-01-01'),
+        plot: `MoviePlot`,
+        durationMinutes: 90,
+        director: 'James Cameron',
+        rating: MovieRating.PG,
         ...override
     }
 
-    const expectedDto = { id: expect.anything(), ...omit(createDto, 'password') }
+    const expectedDto = { id: expect.anything(), ...createDto }
 
     return { createDto, expectedDto }
 }
 
-export const createCustomer = (client: MicroserviceClient, override = {}) => {
-    const { createDto } = makeCustomerDtos(override)
-    return client.send('createCustomer', createDto)
+export const createMovie = (client: MicroserviceClient, override = {}) => {
+    const { createDto } = makeMovieDtos(override)
+    return client.send('createMovie', createDto)
 }
 
-export const createCustomers = async (client: MicroserviceClient, length: number) => {
+export const createMovies = async (client: MicroserviceClient, length: number) => {
     return Promise.all(
         Array.from({ length }, async (_, index) =>
-            createCustomer(client, {
-                name: `Customer-${index}`,
-                email: `user-${index}@mail.com`
+            createMovie(client, {
+                title: `Movie-${index}`,
+                releaseDate: new Date(1999, 0, index)
             })
         )
     )

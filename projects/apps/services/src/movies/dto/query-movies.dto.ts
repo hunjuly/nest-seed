@@ -1,6 +1,6 @@
 import { IsOptional } from 'class-validator'
 
-export class MoviesQueryDto {
+export class QueryMoviesDto {
     @IsOptional()
     title?: string
 

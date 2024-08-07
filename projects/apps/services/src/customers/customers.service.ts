@@ -1,12 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
-import {
-    Assert,
-    JwtAuthService,
-    MethodLog,
-    PaginationOption,
-    PaginationResult,
-    Password
-} from 'common'
+import { JwtAuthService, MethodLog, PaginationOption, PaginationResult, Password } from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CreateCustomerDto, CustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 
@@ -31,7 +24,7 @@ export class CustomersService {
 
     @MethodLog()
     async updateCustomer(customerId: string, updateDto: UpdateCustomerDto) {
-        await this.checkCustomerExists(customerId)
+        await this.checkCustomersExist([customerId])
 
         const customer = await this.repository.updateCustomer(customerId, updateDto)
         return new CustomerDto(customer)
@@ -39,33 +32,33 @@ export class CustomersService {
 
     @MethodLog()
     async deleteCustomer(customerId: string) {
-        await this.checkCustomerExists(customerId)
+        await this.checkCustomersExist([customerId])
 
         await this.repository.deleteById(customerId)
         return true
     }
 
     @MethodLog({ level: 'verbose' })
+    async findCustomers(queryDto: QueryCustomersDto, pagination: PaginationOption) {
+        const paginated = await this.repository.findCustomers(queryDto, pagination)
+
+        return {
+            ...paginated,
+            items: paginated.items.map((item) => new CustomerDto(item))
+        } as PaginationResult<CustomerDto>
+    }
+
+    @MethodLog({ level: 'verbose' })
     async getCustomer(customerId: string) {
-        await this.checkCustomerExists(customerId)
+        await this.checkCustomersExist([customerId])
 
         const customer = await this.repository.findById(customerId)
-        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
+
         return new CustomerDto(customer!)
     }
 
     @MethodLog({ level: 'verbose' })
-    async findCustomers(
-        queryDto: QueryCustomersDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<CustomerDto>> {
-        const paginated = await this.repository.findCustomers(queryDto, pagination)
-
-        return { ...paginated, items: paginated.items.map((item) => new CustomerDto(item)) }
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async customersExist(customerIds: string[]): Promise<boolean> {
+    async customersExist(customerIds: string[]) {
         return this.repository.existsByIds(customerIds)
     }
 
@@ -95,9 +88,11 @@ export class CustomersService {
         }
     }
 
-    private async checkCustomerExists(customerId: string): Promise<void> {
-        if (!(await this.repository.existsByIds([customerId]))) {
-            throw new NotFoundException(`Customer with ID ${customerId} not found`)
+    private async checkCustomersExist(customerIds: string[]): Promise<void> {
+        if (!(await this.repository.existsByIds(customerIds))) {
+            throw new NotFoundException(
+                `One or more customers with IDs ${customerIds.join(', ')} not found`
+            )
         }
     }
 }

@@ -8,10 +8,10 @@ import {
     MicroserviceTestContext
 } from 'common/test'
 import { ServicesModule } from '../../services.module'
-import { CustomerDto } from '../dto'
-import { createCustomer, createCustomers, makeCustomerDtos } from './customers.fixture'
+import { MovieDto } from '../dto'
+import { createMovie, createMovies, makeMovieDtos } from './movies.fixture'
 
-describe('CustomersModule', () => {
+describe('MoviesModule', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
 
@@ -24,132 +24,127 @@ describe('CustomersModule', () => {
         await testContext.close()
     })
 
-    describe('createCustomer', () => {
-        it('should create a customer', async () => {
-            const { createDto, expectedDto } = makeCustomerDtos()
+    describe('createMovie', () => {
+        it('should create a movie', async () => {
+            const { createDto, expectedDto } = makeMovieDtos()
 
-            const customer = await client.send('createCustomer', createDto)
+            const movie = await client.send('createMovie', createDto)
 
-            expect(customer).toEqual(expectedDto)
-        })
-
-        it('should return CONFLICT(409) when email already exists', async () => {
-            const { createDto } = makeCustomerDtos()
-
-            await client.send('createCustomer', createDto)
-            await client.error('createCustomer', createDto, HttpStatus.CONFLICT)
+            expect(movie).toEqual(expectedDto)
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            await client.error('createCustomer', {}, HttpStatus.BAD_REQUEST)
+            await client.error('createMovie', {}, HttpStatus.BAD_REQUEST)
         })
     })
 
-    describe('updateCustomer', () => {
-        let customer: CustomerDto
+    describe('updateMovie', () => {
+        let movie: MovieDto
 
         beforeEach(async () => {
-            customer = await createCustomer(client)
+            movie = await createMovie(client)
         })
 
-        it('should update a customer', async () => {
-            const customerId = customer.id
+        it('should update a movie', async () => {
+            const movieId = movie.id
             const updateDto = { name: 'update name', email: 'new@mail.com' }
 
-            const updateCustomer = await client.send('updateCustomer', { customerId, updateDto })
-            expect(updateCustomer).toEqual({ ...customer, ...updateDto })
+            const updateMovie = await client.send('updateMovie', { movieId, updateDto })
+            expect(updateMovie).toEqual({ ...movie, ...updateDto })
 
-            const getCustomer = await client.send('getCustomer', customerId)
-            expect(getCustomer).toEqual(updateCustomer)
+            const getMovie = await client.send('getMovie', movieId)
+            expect(getMovie).toEqual(updateMovie)
         })
 
-        it('should return NOT_FOUND(404) when customer does not exist', async () => {
+        it('should return NOT_FOUND(404) when movie does not exist', async () => {
             await client.error(
-                'updateCustomer',
-                { customerId: nullObjectId, updateDto: {} },
+                'updateMovie',
+                { movieId: nullObjectId, updateDto: {} },
                 HttpStatus.NOT_FOUND
             )
         })
     })
 
-    describe('deleteCustomer', () => {
-        let customer: CustomerDto
+    describe('deleteMovie', () => {
+        let movie: MovieDto
 
         beforeEach(async () => {
-            customer = await createCustomer(client)
+            movie = await createMovie(client)
         })
 
-        it('should delete a customer', async () => {
-            const customerId = customer.id
+        it('should delete a movie', async () => {
+            const movieId = movie.id
 
-            await client.send('deleteCustomer', customerId)
-            await client.error('getCustomer', customerId, HttpStatus.NOT_FOUND)
+            await client.send('deleteMovie', movieId)
+            await client.error('getMovie', movieId, HttpStatus.NOT_FOUND)
         })
 
-        it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            await client.error('deleteCustomer', nullObjectId, HttpStatus.NOT_FOUND)
+        it('should return NOT_FOUND(404) when movie does not exist', async () => {
+            await client.error('deleteMovie', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('getCustomer', () => {
-        let customer: CustomerDto
+    describe('findMovies', () => {
+        let movies: MovieDto[]
 
         beforeEach(async () => {
-            customer = await createCustomer(client)
+            movies = await createMovies(client, 20)
         })
 
-        it('should get a customer', async () => {
-            const getCustomer = await client.send('getCustomer', customer.id)
-            expect(getCustomer).toEqual(customer)
-        })
-
-        it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            await client.error('getCustomer', nullObjectId, HttpStatus.NOT_FOUND)
-        })
-    })
-
-    describe('findCustomers', () => {
-        let customers: CustomerDto[]
-
-        beforeEach(async () => {
-            customers = await createCustomers(client, 20)
-        })
-
-        it('should retrieve all customers', async () => {
-            const res = await client.send('findCustomers', {
+        it('should retrieve all movies', async () => {
+            const res = await client.send('findMovies', {
                 query: {},
                 pagination: { orderby: { name: 'name', direction: OrderDirection.asc } }
             })
 
-            expectEqualUnsorted(res.items, customers)
+            expectEqualUnsorted(res.items, movies)
         })
 
-        it('should retrieve customers by partial name', async () => {
-            const partialName = 'Customer-1'
-            const res = await client.send('findCustomers', {
-                query: { name: partialName }
+        it('should retrieve movies by partial title', async () => {
+            const partialName = 'Movie-1'
+            const res = await client.send('findMovies', {
+                query: { title: partialName }
             })
 
-            const expected = customers.filter((customer) => customer.name.startsWith(partialName))
+            const expected = movies.filter((movie) => movie.title.startsWith(partialName))
             expectEqualUnsorted(res.items, expected)
         })
+
+        // it('should retrieve movies by releaseDate', async () => {
+        //     const targetDate = movies[0].releaseDate
+        //     const { body } = await req.get('/movies').query({ releaseDate: targetDate }).ok()
+
+        //     const expected = movies.filter(
+        //         (movie) => movie.releaseDate.getTime() === targetDate.getTime()
+        //     )
+        //     expect(body.items).toEqual(expect.arrayContaining(expected))
+        //     expect(body.items.length).toBe(expected.length)
+        // })
+
+        // it('should retrieve movies by genre', async () => {
+        //     const targetGenre = MovieGenre.Drama
+        //     const { body } = await req.get('/movies').query({ genre: targetGenre }).ok()
+
+        //     const expected = movies.filter((movie) => movie.genre.includes(targetGenre))
+        //     expect(body.items).toEqual(expect.arrayContaining(expected))
+        //     expect(body.items.length).toBe(expected.length)
+        // })
     })
 
-    describe('customersExist', () => {
-        let customer: CustomerDto
+    describe('getMovie', () => {
+        let movie: MovieDto
 
         beforeEach(async () => {
-            customer = await createCustomer(client)
+            movie = await createMovie(client)
         })
 
-        it('should return true when customer does exist', async () => {
-            const res = await client.send('customersExist', [customer.id])
-            expect(res).toBeTruthy()
+        it('should get a movie', async () => {
+            const getMovie = await client.send('getMovie', movie.id)
+            expect(getMovie).toEqual(movie)
         })
 
-        it('should return false when customer does not exist', async () => {
-            const res = await client.send('customersExist', [nullObjectId])
-            expect(res).toBeFalsy()
+        it('should return NOT_FOUND(404) when movie does not exist', async () => {
+            await client.error('getMovie', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 })

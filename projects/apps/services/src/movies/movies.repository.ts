@@ -9,7 +9,7 @@ import {
 } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { MovieCreationDto, MoviesQueryDto, MovieUpdatingDto } from './dto'
+import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { Movie } from './schemas'
 
 @Injectable()
@@ -19,7 +19,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     }
 
     @MethodLog()
-    async createMovie(createDto: MovieCreationDto) {
+    async createMovie(createDto: CreateMovieDto) {
         const dto = stringToObjectId(createDto)
 
         const customer = await this.create((doc) => {
@@ -36,7 +36,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     }
 
     @MethodLog()
-    async updateMovie(movieId: string, updateDto: MovieUpdatingDto): Promise<Movie> {
+    async updateMovie(movieId: string, updateDto: UpdateMovieDto): Promise<Movie> {
         const dto = stringToObjectId(updateDto)
 
         const movie = await this.updateById(movieId, (doc) => {
@@ -54,7 +54,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
 
     @MethodLog({ level: 'verbose' })
     async findMovies(
-        queryDto: MoviesQueryDto,
+        queryDto: QueryMoviesDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Movie>> {
         const paginated = await this.find((helpers) => {
