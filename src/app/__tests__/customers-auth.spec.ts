@@ -28,7 +28,7 @@ describe('/customers', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [AppModule] })
-        client = testContext.createClient('/customers')
+        client = testContext.createClient()
         credentials = await createCredentials(client)
     })
 
@@ -38,7 +38,7 @@ describe('/customers', () => {
 
     describe('POST /login', () => {
         it('should return CREATED(201) status and AuthTokens on successful login', async () => {
-            const res = await client.post('/login').body(credentials).created()
+            const res = await client.post('/customers/login').body(credentials).created()
 
             expect(res.body).toEqual({
                 accessToken: expect.anything(),
@@ -48,14 +48,14 @@ describe('/customers', () => {
 
         it('should return UNAUTHORIZED(401) status when providing an incorrect password', async () => {
             return client
-                .post('/login')
+                .post('/customers/login')
                 .body({ email: credentials.email, password: 'wrong password' })
                 .unauthorized()
         })
 
         it('should return UNAUTHORIZED(401) status when providing a non-existent email', async () => {
             return client
-                .post('/login')
+                .post('/customers/login')
                 .body({ email: 'unknown@mail.com', password: '' })
                 .unauthorized()
         })
@@ -66,26 +66,32 @@ describe('/customers', () => {
         let refreshToken: string
 
         beforeEach(async () => {
-            const { body } = await client.post('/login').body(credentials).created()
+            const { body } = await client.post('/customers/login').body(credentials).created()
             accessToken = body.accessToken
             refreshToken = body.refreshToken
         })
 
         it('should return new AuthTokens when providing a valid refreshToken', async () => {
-            const { body } = await client.post('/refresh').body({ refreshToken }).created()
+            const { body } = await client
+                .post('/customers/refresh')
+                .body({ refreshToken })
+                .created()
 
             expect(body.accessToken).not.toEqual(accessToken)
             expect(body.refreshToken).not.toEqual(refreshToken)
         })
 
         it('should return UNAUTHORIZED(401) status when providing an incorrect refreshToken', async () => {
-            return client.post('/refresh').body({ refreshToken: 'invalid-token' }).unauthorized()
+            return client
+                .post('/customers/refresh')
+                .body({ refreshToken: 'invalid-token' })
+                .unauthorized()
         })
 
         it('should return UNAUTHORIZED(401) status when providing an expired refreshToken', async () => {
             await sleep(3500)
 
-            return client.post('/refresh').body({ refreshToken }).unauthorized()
+            return client.post('/customers/refresh').body({ refreshToken }).unauthorized()
         })
     })
 
@@ -93,20 +99,20 @@ describe('/customers', () => {
         let accessToken: string
 
         beforeEach(async () => {
-            const { body } = await client.post('/login').body(credentials).created()
+            const { body } = await client.post('/customers/login').body(credentials).created()
             accessToken = body.accessToken
         })
 
         it('should allow access when providing a valid accessToken', async () => {
             await client
-                .get(credentials.customerId)
+                .get('/customers/' + credentials.customerId)
                 .headers({ Authorization: `Bearer ${accessToken}` })
                 .ok()
         })
 
         it('should return UNAUTHORIZED(401) status when providing an accessToken with an incorrect format', async () => {
             return client
-                .get(credentials.customerId)
+                .get('/customers/' + credentials.customerId)
                 .headers({ Authorization: 'Bearer invalid_access_token' })
                 .unauthorized()
         })
@@ -120,7 +126,7 @@ describe('/customers', () => {
             )
 
             return client
-                .get(credentials.customerId)
+                .get('/customers/' + credentials.customerId)
                 .headers({ Authorization: `Bearer ${wrongUserIdToken}` })
                 .unauthorized()
         })

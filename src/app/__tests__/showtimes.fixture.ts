@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { ShowtimesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
-import { MovieDto, MoviesModule, MoviesService } from 'app/services/movies'
 import {
     ShowtimeDto,
     ShowtimesCreateCompleteEvent,
@@ -12,9 +11,10 @@ import {
     ShowtimesModule,
     ShowtimesService
 } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { addMinutes, pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
+import { MovieDto, MoviesModule, MoviesService } from '../services/movies'
+import { TheaterDto, TheatersModule, TheatersService } from '../services/theaters'
 import { createMovie } from './movies.fixture'
 import { createTheater } from './theaters.fixture'
 import { BatchEventListener } from './utils'

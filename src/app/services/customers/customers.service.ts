@@ -53,12 +53,6 @@ export class CustomersService {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findByEmail(email: string): Promise<CustomerDto | null> {
-        const customer = await this.repository.findByEmail(email)
-        return customer ? new CustomerDto(customer) : null
-    }
-
-    @MethodLog({ level: 'verbose' })
     async getCustomer(customerId: string) {
         const customer = await this.repository.getCustomer(customerId)
         return new CustomerDto(customer)

@@ -1,6 +1,14 @@
-import { PaymentsController, ShowingController } from 'app/controllers'
+import {
+    CustomersController,
+    MoviesController,
+    PaymentsController,
+    ShowingController,
+    ShowtimesController,
+    TheatersController,
+    TicketsController
+} from 'app/controllers'
 import { GlobalModule } from 'app/global'
-import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
+import { CustomerDto, CustomersModule } from 'app/services/customers'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentsModule, PaymentsService } from 'app/services/payments'
 import { ShowingModule } from 'app/services/showing'
@@ -19,28 +27,36 @@ export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [
             GlobalModule,
-            PaymentsModule,
-            ShowingModule,
             CustomersModule,
             MoviesModule,
-            ShowtimesModule,
             TheatersModule,
-            TicketsModule
+            TicketsModule,
+            ShowtimesModule,
+            PaymentsModule,
+            ShowingModule
         ],
-        controllers: [ShowingController, PaymentsController],
+        controllers: [
+            CustomersController,
+            MoviesController,
+            TheatersController,
+            TicketsController,
+            ShowtimesController,
+            PaymentsController,
+            ShowingController
+        ],
         providers: [TicketsFactory, ShowtimesFactory]
     })
 
     const module = testContext.module
 
-    const customersService = module.get(CustomersService)
     const moviesService = module.get(MoviesService)
     const theatersService = module.get(TheatersService)
     const ticketsService = testContext.module.get(TicketsService)
     const paymentsService = testContext.module.get(PaymentsService)
     const ticketsFactory = module.get(TicketsFactory)
 
-    const customer = await createCustomer(customersService)
+    const client = testContext.createClient()
+    const customer = await createCustomer(client)
     const theaters = await createTheaters(theatersService)
     const movies = await createMovies(moviesService)
     const tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)

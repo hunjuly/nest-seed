@@ -9,6 +9,7 @@ export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
+    // TODO to client
     createClient: (prefix?: string) => HttpClient
     close: () => Promise<void>
 }
