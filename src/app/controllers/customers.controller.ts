@@ -8,7 +8,6 @@ import {
     Post,
     Query,
     Req,
-    UnauthorizedException,
     UseGuards,
     UsePipes
 } from '@nestjs/common'
@@ -20,13 +19,7 @@ import {
     CustomerUpdatingDto
 } from 'app/services/customers'
 import { Assert, PaginationOption, PaginationPipe } from 'common'
-import {
-    CustomerEmailNotExistsGuard,
-    CustomerExistsGuard,
-    CustomerJwtAuthGuard,
-    CustomerLocalAuthGuard,
-    Public
-} from './guards'
+import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, Public } from './guards'
 
 @Controller('customers')
 @UseGuards(CustomerJwtAuthGuard)
@@ -35,7 +28,6 @@ export class CustomersController {
 
     @Post()
     @Public()
-    @UseGuards(CustomerEmailNotExistsGuard)
     async createCustomer(@Body() createCustomerDto: CustomerCreationDto) {
         return this.customersService.createCustomer(createCustomerDto)
     }
@@ -47,13 +39,11 @@ export class CustomersController {
     }
 
     @Get(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async getCustomer(@Param('customerId') customerId: string) {
         return this.customersService.getCustomer(customerId)
     }
 
     @Patch(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async updateCustomer(
         @Param('customerId') customerId: string,
         @Body() updateCustomerDto: CustomerUpdatingDto
@@ -62,7 +52,6 @@ export class CustomersController {
     }
 
     @Delete(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async deleteCustomer(@Param('customerId') customerId: string) {
         return this.customersService.deleteCustomer(customerId)
     }
@@ -82,12 +71,6 @@ export class CustomersController {
     @Post('refresh')
     @Public()
     async refreshToken(@Body('refreshToken') refreshToken: string) {
-        const tokenPair = await this.customersService.refreshAuthTokens(refreshToken)
-
-        if (!tokenPair) {
-            throw new UnauthorizedException('refresh failed.')
-        }
-
-        return tokenPair
+        return this.customersService.refreshAuthTokens(refreshToken)
     }
 }

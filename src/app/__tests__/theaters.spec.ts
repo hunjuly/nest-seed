@@ -3,12 +3,12 @@ import { TheatersController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
 import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createTheater, createTheaters } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let theatersService: TheatersService
 
     beforeEach(async () => {
@@ -16,7 +16,7 @@ describe('/theaters', () => {
             imports: [GlobalModule, TheatersModule],
             controllers: [TheatersController]
         })
-        req = testContext.createRequest()
+        req = testContext.createClient()
 
         theatersService = testContext.module.get(TheatersService)
     })

@@ -3,13 +3,13 @@ import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
-import { HttpRequest } from './http.request'
+import { HttpClient } from './http.client'
 
 export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
-    createRequest: (prefix?: string) => HttpRequest
+    createClient: (prefix?: string) => HttpClient
     close: () => Promise<void>
 }
 
@@ -48,12 +48,12 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
         })
     })
 
-    const createRequest = (prefix: string = '') => new HttpRequest(server, prefix)
+    const createClient = (prefix: string = '') => new HttpClient(server, prefix)
 
     const close = async () => {
         if (server) await server.close()
         if (module) await module.close()
     }
 
-    return { server, module, app, createRequest, close }
+    return { server, module, app, createClient, close }
 }

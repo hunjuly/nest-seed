@@ -1,17 +1,17 @@
 import { ShowtimeDto } from 'app/services/showtimes'
 import { nullObjectId, pickIds } from 'common'
-import { HttpRequest, HttpTestContext, expectEqualUnsorted } from 'common/test'
+import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common/test'
 import { ShowtimesFactory, createFixture } from './showtimes.fixture'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let factory: ShowtimesFactory
 
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        req = fixture.testContext.createRequest()
+        req = fixture.testContext.createClient()
         factory = fixture.factory
     })
 

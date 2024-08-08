@@ -3,12 +3,12 @@ import { MoviesController } from 'app/controllers'
 import { GlobalModule } from 'app/global'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
 import { createMovie, createMovies } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let moviesService: MoviesService
 
     beforeEach(async () => {
@@ -16,7 +16,7 @@ describe('/movies', () => {
             imports: [GlobalModule, MoviesModule],
             controllers: [MoviesController]
         })
-        req = testContext.createRequest()
+        req = testContext.createClient()
 
         moviesService = testContext.module.get(MoviesService)
     })

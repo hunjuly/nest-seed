@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, MethodLog, PaginationOption, PaginationResult, Password } from 'common'
+import { MethodLog, PaginationOption, PaginationResult, Password } from 'common'
 import { JwtAuthService } from '../jwt-auth'
 import { CustomersRepository } from './customers.repository'
 import { CustomerCreationDto, CustomerDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
@@ -29,7 +29,7 @@ export class CustomersService {
 
     @MethodLog()
     async deleteCustomer(customerId: string) {
-        await this.repository.deleteById(customerId)
+        return this.repository.deleteCustomer(customerId)
     }
 
     @MethodLog()
@@ -43,13 +43,13 @@ export class CustomersService {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findCustomers(
-        queryDto: CustomersQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<CustomerDto>> {
-        const paginated = await this.repository.findCustomers(queryDto, pagination)
+    async findCustomers(queryDto: CustomersQueryDto, pagination: PaginationOption) {
+        const { items, ...paginated } = await this.repository.findCustomers(queryDto, pagination)
 
-        return { ...paginated, items: paginated.items.map((item) => new CustomerDto(item)) }
+        return {
+            ...paginated,
+            items: items.map((item) => new CustomerDto(item))
+        } as PaginationResult<CustomerDto>
     }
 
     @MethodLog({ level: 'verbose' })
@@ -60,12 +60,7 @@ export class CustomersService {
 
     @MethodLog({ level: 'verbose' })
     async getCustomer(customerId: string) {
-        const customer = await this.repository.findById(customerId)
-        Assert.defined(customer, `Customer with ID ${customerId} should exist`)
-        return new CustomerDto(customer!)
-    }
-
-    async customersExist(customerIds: string[]): Promise<boolean> {
-        return this.repository.existsByIds(customerIds)
+        const customer = await this.repository.getCustomer(customerId)
+        return new CustomerDto(customer)
     }
 }

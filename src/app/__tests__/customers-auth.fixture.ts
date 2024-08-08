@@ -1,4 +1,5 @@
-import { CustomersService } from 'app/services/customers'
+import { createCustomer } from './customers.fixture'
+import { HttpClient } from 'common/test'
 
 export interface Credentials {
     customerId: string
@@ -6,17 +7,17 @@ export interface Credentials {
     password: string
 }
 
-export async function createCredentials(customersService: CustomersService): Promise<Credentials> {
-    const creationDto = {
-        name: 'customer name',
+export async function createCredentials(client: HttpClient): Promise<Credentials> {
+    const createDto = {
         email: 'user@mail.com',
-        birthday: new Date('1999-12-12'),
         password: 'password'
     }
 
-    const customer = await customersService.createCustomer(creationDto)
+    const customer = await createCustomer(client, createDto)
 
-    const { email, password } = creationDto
-
-    return { customerId: customer.id, email, password }
+    return {
+        customerId: customer.id,
+        email: createDto.email,
+        password: createDto.password
+    }
 }

@@ -3,7 +3,7 @@ import { GlobalModule } from 'app/global'
 import { StorageFilesModule } from 'app/services/storage-files'
 import { StorageFileDto } from 'app/services/storage-files/dto'
 import { getChecksum, nullObjectId, Path } from 'common'
-import { createDummyFile, createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
+import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } from 'common/test'
 import { Config } from 'config'
 import { writeFile } from 'fs/promises'
 
@@ -22,7 +22,7 @@ jest.mock('config', () => ({
 
 describe('/storage-files', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
 
     let tempDir: string
     let notAllowFile: string
@@ -57,7 +57,7 @@ describe('/storage-files', () => {
             imports: [GlobalModule, StorageFilesModule],
             controllers: [StorageFilesController]
         })
-        req = testContext.createRequest()
+        req = testContext.createClient()
     })
 
     afterEach(async () => {

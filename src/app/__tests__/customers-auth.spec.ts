@@ -1,9 +1,7 @@
 import { JwtService } from '@nestjs/jwt'
-import { CustomersController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { CustomersModule, CustomersService } from 'app/services/customers'
+import { AppModule } from 'app/app.module'
 import { nullObjectId, sleep } from 'common'
-import { createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
+import { createHttpTestContext, HttpClient, HttpTestContext } from 'common/test'
 import { createCredentials, Credentials } from './customers-auth.fixture'
 
 jest.mock('config', () => {
@@ -25,23 +23,13 @@ jest.mock('config', () => {
 
 describe('/customers', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
-
-    let jwtService: JwtService
+    let client: HttpClient
     let credentials: Credentials
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [GlobalModule, CustomersModule],
-            controllers: [CustomersController]
-        })
-        req = testContext.createRequest('/customers')
-
-        const module = testContext.module
-        jwtService = module.get(JwtService)
-        const usersService = module.get(CustomersService)
-
-        credentials = await createCredentials(usersService)
+        testContext = await createHttpTestContext({ imports: [AppModule] })
+        client = testContext.createClient('/customers')
+        credentials = await createCredentials(client)
     })
 
     afterEach(async () => {
@@ -49,8 +37,8 @@ describe('/customers', () => {
     })
 
     describe('POST /login', () => {
-        it('Returns CREATED(201) status and AuthTokens on successful login', async () => {
-            const res = await req.post('/login').body(credentials).created()
+        it('should return CREATED(201) status and AuthTokens on successful login', async () => {
+            const res = await client.post('/login').body(credentials).created()
 
             expect(res.body).toEqual({
                 accessToken: expect.anything(),
@@ -58,15 +46,15 @@ describe('/customers', () => {
             })
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing an incorrect password', async () => {
-            return req
+        it('should return UNAUTHORIZED(401) status when providing an incorrect password', async () => {
+            return client
                 .post('/login')
                 .body({ email: credentials.email, password: 'wrong password' })
                 .unauthorized()
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing a non-existent email', async () => {
-            return req
+        it('should return UNAUTHORIZED(401) status when providing a non-existent email', async () => {
+            return client
                 .post('/login')
                 .body({ email: 'unknown@mail.com', password: '' })
                 .unauthorized()
@@ -78,26 +66,26 @@ describe('/customers', () => {
         let refreshToken: string
 
         beforeEach(async () => {
-            const { body } = await req.post('/login').body(credentials).created()
+            const { body } = await client.post('/login').body(credentials).created()
             accessToken = body.accessToken
             refreshToken = body.refreshToken
         })
 
-        it('Returns a new AuthTokens when providing a valid refreshToken', async () => {
-            const { body } = await req.post('/refresh').body({ refreshToken }).created()
+        it('should return new AuthTokens when providing a valid refreshToken', async () => {
+            const { body } = await client.post('/refresh').body({ refreshToken }).created()
 
             expect(body.accessToken).not.toEqual(accessToken)
             expect(body.refreshToken).not.toEqual(refreshToken)
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing an incorrect refreshToken', async () => {
-            return req.post('/refresh').body({ refreshToken: 'invalid-token' }).unauthorized()
+        it('should return UNAUTHORIZED(401) status when providing an incorrect refreshToken', async () => {
+            return client.post('/refresh').body({ refreshToken: 'invalid-token' }).unauthorized()
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing an expired refreshToken', async () => {
+        it('should return UNAUTHORIZED(401) status when providing an expired refreshToken', async () => {
             await sleep(3500)
 
-            return req.post('/refresh').body({ refreshToken }).unauthorized()
+            return client.post('/refresh').body({ refreshToken }).unauthorized()
         })
     })
 
@@ -105,31 +93,33 @@ describe('/customers', () => {
         let accessToken: string
 
         beforeEach(async () => {
-            const { body } = await req.post('/login').body(credentials).created()
+            const { body } = await client.post('/login').body(credentials).created()
             accessToken = body.accessToken
         })
 
-        it('Allows access when providing a valid accessToken', async () => {
-            await req
+        it('should allow access when providing a valid accessToken', async () => {
+            await client
                 .get(credentials.customerId)
                 .headers({ Authorization: `Bearer ${accessToken}` })
                 .ok()
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing an accessToken with an incorrect format', async () => {
-            return req
+        it('should return UNAUTHORIZED(401) status when providing an accessToken with an incorrect format', async () => {
+            return client
                 .get(credentials.customerId)
                 .headers({ Authorization: 'Bearer invalid_access_token' })
                 .unauthorized()
         })
 
-        it('Returns UNAUTHORIZED(401) status when providing an accessToken containing incorrect data', async () => {
+        it('should return UNAUTHORIZED(401) status when providing an accessToken containing incorrect data', async () => {
+            const jwtService = new JwtService()
+
             const wrongUserIdToken = jwtService.sign(
                 { userId: nullObjectId },
                 { secret: 'mockAccessSecret', expiresIn: '15m' }
             )
 
-            return req
+            return client
                 .get(credentials.customerId)
                 .headers({ Authorization: `Bearer ${wrongUserIdToken}` })
                 .unauthorized()

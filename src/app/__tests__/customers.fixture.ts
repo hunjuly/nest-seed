@@ -1,35 +1,33 @@
-import { CustomerDto, CustomersService } from 'app/services/customers'
-import { padNumber } from 'common'
+import { HttpClient } from 'common/test'
+import { omit } from 'lodash'
 
-export async function createCustomer(customersService: CustomersService): Promise<CustomerDto> {
-    return customersService.createCustomer({
-        name: 'customer name',
-        email: 'user@mail.com',
-        birthday: new Date('1999-12-12'),
-        password: 'password'
-    })
-}
-
-export async function createCustomers(
-    customersService: CustomersService,
-    count: number
-): Promise<CustomerDto[]> {
-    const promises = []
-
-    for (let i = 0; i < count; i++) {
-        const tag = padNumber(i, 3)
-
-        const promise = customersService.createCustomer({
-            name: `Customer-${tag}`,
-            email: `user-${tag}@mail.com`,
-            birthday: new Date(2020, 1, i),
-            password: 'password'
-        })
-
-        promises.push(promise)
+export const makeCustomerDtos = (override = {}) => {
+    const createDto = {
+        name: 'name',
+        email: 'name@mail.com',
+        birthday: new Date('2020-12-12'),
+        password: 'password',
+        ...override
     }
 
-    const customers = await Promise.all(promises)
+    const expectedDto = { id: expect.anything(), ...omit(createDto, 'password') }
 
-    return customers
+    return { createDto, expectedDto }
+}
+
+export const createCustomer = async (client: HttpClient, override = {}) => {
+    const { createDto } = makeCustomerDtos(override)
+    const { body } = await client.post().body(createDto).created()
+    return body
+}
+
+export const createCustomers = async (client: HttpClient, length: number = 20) => {
+    return Promise.all(
+        Array.from({ length }, async (_, index) =>
+            createCustomer(client, {
+                name: `Customer-${index}`,
+                email: `user-${index}@mail.com`
+            })
+        )
+    )
 }

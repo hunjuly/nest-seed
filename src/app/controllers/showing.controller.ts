@@ -1,19 +1,13 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
 import { ShowingService } from 'app/services/showing'
 import { convertStringToDate, LatLong, LatLongQuery } from 'common'
-import {
-    CustomerExistsGuard,
-    MovieExistsGuard,
-    ShowtimeExistsGuard,
-    TheaterExistsGuard
-} from './guards'
+import { MovieExistsGuard, ShowtimeExistsGuard, TheaterExistsGuard } from './guards'
 
 @Controller('showing')
 export class ShowingController {
     constructor(private showingService: ShowingService) {}
 
     @Get('movies/recommended')
-    @UseGuards(CustomerExistsGuard)
     async getRecommendedMovies(@Query('customerId') customerId: string) {
         return this.showingService.getRecommendedMovies(customerId)
     }

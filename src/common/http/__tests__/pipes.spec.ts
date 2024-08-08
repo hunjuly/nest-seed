@@ -1,13 +1,13 @@
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
 import { TestModule } from './pipes.fixture'
 
 describe('common/http/pipes', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [TestModule] })
-        req = testContext.createRequest()
+        req = testContext.createClient()
     })
 
     afterEach(async () => {

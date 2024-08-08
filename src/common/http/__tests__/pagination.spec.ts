@@ -1,11 +1,11 @@
 import { ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
 import { SamplesModule } from './pagination.fixture'
 
 describe('Pagination', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
@@ -23,7 +23,7 @@ describe('Pagination', () => {
             ]
         })
 
-        req = testContext.createRequest()
+        req = testContext.createClient()
     })
 
     afterEach(async () => {

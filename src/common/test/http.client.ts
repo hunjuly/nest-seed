@@ -4,8 +4,8 @@ import { posix } from 'path'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
 
-export class HttpRequest {
-    private req: supertest.Test
+export class HttpClient {
+    private client: supertest.Test
 
     constructor(
         private server: any,
@@ -16,40 +16,40 @@ export class HttpRequest {
         return posix.join(this.prefix, url)
     }
 
-    post(url: string): this {
-        this.req = supertest(this.server).post(this.makeUrl(url))
+    post(url: string = ''): this {
+        this.client = supertest(this.server).post(this.makeUrl(url))
         return this
     }
 
-    patch(url: string): this {
-        this.req = supertest(this.server).patch(this.makeUrl(url))
+    patch(url: string = ''): this {
+        this.client = supertest(this.server).patch(this.makeUrl(url))
         return this
     }
 
-    get(url: string): this {
-        this.req = supertest(this.server).get(this.makeUrl(url))
+    get(url: string = ''): this {
+        this.client = supertest(this.server).get(this.makeUrl(url))
         return this
     }
 
-    delete(url: string): this {
-        this.req = supertest(this.server).delete(this.makeUrl(url))
+    delete(url: string = ''): this {
+        this.client = supertest(this.server).delete(this.makeUrl(url))
         return this
     }
 
     query(query: Record<string, any>): this {
-        this.req = this.req.query(query)
+        this.client = this.client.query(query)
         return this
     }
 
     headers(headers: Record<string, string>): this {
         Object.entries(headers).forEach(([key, value]) => {
-            this.req = this.req.set(key, value)
+            this.client = this.client.set(key, value)
         })
         return this
     }
 
     body(body: Record<string, any>): this {
-        this.req = this.req.send(body)
+        this.client = this.client.send(body)
         return this
     }
 
@@ -61,14 +61,14 @@ export class HttpRequest {
         }>
     ): this {
         attachs.forEach(({ name, file, options }) => {
-            this.req = this.req.attach(name, file, options)
+            this.client = this.client.attach(name, file, options)
         })
         return this
     }
 
     fields(fields: Array<{ name: string; value: string }>): this {
         fields.forEach(({ name, value }) => {
-            this.req = this.req.field(name, value)
+            this.client = this.client.field(name, value)
         })
         return this
     }
@@ -76,7 +76,7 @@ export class HttpRequest {
     download(downloadFilePath: string): this {
         const writeStream = createWriteStream(downloadFilePath)
 
-        this.req.buffer().parse((res, callback) => {
+        this.client.buffer().parse((res, callback) => {
             res.on('data', (chunk: any) => {
                 writeStream.write(chunk)
             })
@@ -90,7 +90,7 @@ export class HttpRequest {
     }
 
     async send(status: HttpStatus): Promise<supertest.Test> {
-        const res = await this.req
+        const res = await this.client
         if (res.status !== status) {
             console.log(res.body)
         }

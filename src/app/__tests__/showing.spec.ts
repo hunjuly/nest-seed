@@ -5,12 +5,12 @@ import { ShowtimeDto } from 'app/services/showtimes'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
 import { convertDateToString, pickItems, pickIds } from 'common'
-import { expectEqualUnsorted, HttpRequest, HttpTestContext } from 'common/test'
+import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
 import { createFixture, filterMoviesByGenre } from './showing.fixture'
 
 describe('/showing', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let customer: CustomerDto
     let movies: MovieDto[]
     let theaters: TheaterDto[]
@@ -26,7 +26,7 @@ describe('/showing', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = testContext.createRequest()
+        req = testContext.createClient()
         customer = fixture.customer
         movies = fixture.movies
         theaters = fixture.theaters

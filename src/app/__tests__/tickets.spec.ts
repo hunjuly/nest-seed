@@ -1,11 +1,11 @@
 import { TicketDto, TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { expectEqualUnsorted, HttpRequest, HttpTestContext } from 'common/test'
+import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
 import { createFixture, TicketsFactory } from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let factory: TicketsFactory
     let ticketsService: TicketsService
 
@@ -13,7 +13,7 @@ describe('/tickets', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = fixture.testContext.createRequest()
+        req = fixture.testContext.createClient()
         factory = fixture.factory
         ticketsService = fixture.ticketsService
     })

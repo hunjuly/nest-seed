@@ -2,12 +2,12 @@ import { expect } from '@jest/globals'
 import { PaymentDto, PaymentsService } from 'app/services/payments'
 import { TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { HttpRequest, HttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext } from 'common/test'
 import { createFixture } from './payments.fixture'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let req: HttpClient
     let paymentsService: PaymentsService
     let customerId: string
     let ticketIds: string[]
@@ -17,7 +17,7 @@ describe('/payments', () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = fixture.testContext.createRequest()
+        req = fixture.testContext.createClient()
         paymentsService = fixture.paymentsService
         ticketsService = fixture.ticketsService
         customerId = fixture.customer.id
