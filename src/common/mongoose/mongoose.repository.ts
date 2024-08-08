@@ -2,68 +2,127 @@ import {
     Assert,
     DocumentId,
     MongooseSchema,
+    MongooseUpdateResult,
     OrderDirection,
     PaginationOption,
     PaginationResult
 } from 'common'
+import { pick } from 'lodash'
 import { ClientSession, HydratedDocument, Model, QueryWithHelpers } from 'mongoose'
 import { MongooseException } from './exceptions'
+import { objectIdToString, stringToObjectId } from './mongoose.util'
 
 type SeesionArg = ClientSession | undefined
+type SingleCallback<T> = (doc: T) => void
+type MultipleCallback<T> = (doc: T, index: number) => void
 const DEFAULT_TAKE_SIZE = 100
 
 export abstract class MongooseRepository<Doc extends MongooseSchema> {
     constructor(protected model: Model<Doc>) {}
 
-    newDocument(): HydratedDocument<Doc> {
-        return new this.model()
+    async create(callback: SingleCallback<Doc>, session: SeesionArg = undefined): Promise<Doc> {
+        const document = new this.model()
+        await callback(document)
+        const savedDocument = await document.save({ session })
+        const obj = savedDocument.toObject()
+
+        return objectIdToString(obj)
     }
 
-    async saveAll(docs: HydratedDocument<Doc>[], session: SeesionArg = undefined) {
-        const { insertedCount, matchedCount, deletedCount } = await this.model.bulkSave(docs, {
-            session
-        })
+    async createMany(
+        count: number,
+        callback: MultipleCallback<Doc>,
+        session: SeesionArg = undefined
+    ): Promise<number> {
+        const docs: HydratedDocument<Doc>[] = []
+
+        for (let index = 0; index < count; index++) {
+            const doc = new this.model()
+            await callback(doc, index)
+            docs.push(doc)
+        }
+
+        const { insertedCount } = await this.model.bulkSave(docs, { session })
 
         Assert.equals(
-            docs.length,
-            insertedCount + matchedCount + deletedCount,
+            count,
+            insertedCount,
             `The number of inserted documents should match the requested count`
         )
 
-        return true
-    }
-
-    async findById(
-        id: DocumentId,
-        session: SeesionArg = undefined
-    ): Promise<HydratedDocument<Doc> | null> {
-        return this.model.findById(id, null, { session })
-    }
-
-    async findByIds(
-        ids: DocumentId[],
-        session: SeesionArg = undefined
-    ): Promise<HydratedDocument<Doc>[]> {
-        return this.model.find({ _id: { $in: ids } as any }, null, { session })
-    }
-
-    async deleteByIds(ids: DocumentId[], session: SeesionArg = undefined) {
-        const result = await this.model.deleteMany({ _id: { $in: ids } as any }, { session })
-
-        return result.deletedCount
+        return insertedCount
     }
 
     async existsByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<boolean> {
-        const count = await this.model.countDocuments({ _id: { $in: ids } } as any, { session })
+        const count = await this.model
+            .countDocuments({ _id: { $in: ids } } as any, { session })
+            .lean()
 
         return count === ids.length
     }
 
-    async findWithPagination(
+    async updateById(
+        id: DocumentId,
+        callback: SingleCallback<Doc>,
+        session: SeesionArg = undefined
+    ): Promise<Doc> {
+        const doc = await this.model.findById(id).exec()
+
+        if (!doc) {
+            throw new MongooseException(
+                `Failed to update document with id: ${id}. Document not found.`
+            )
+        }
+
+        callback(doc)
+
+        await doc.save({ session })
+
+        return doc.toObject()
+    }
+
+    async updateByIds(
+        ids: DocumentId[],
+        callback: MultipleCallback<Doc>,
+        session: SeesionArg = undefined
+    ): Promise<MongooseUpdateResult> {
+        const docs = await Promise.all(
+            ids.map(async (id, index) => {
+                const doc = await this.model.findById(id).exec()
+
+                if (!doc) {
+                    throw new MongooseException(
+                        `Failed to update document with id: ${id}. Document not found.`
+                    )
+                }
+                await callback(doc, index)
+
+                return doc
+            })
+        )
+
+        const result = await this.model.bulkSave(docs, { session })
+
+        return pick(result, ['matchedCount', 'modifiedCount'])
+    }
+
+    async findById(id: DocumentId, session: SeesionArg = undefined): Promise<Doc | null> {
+        const doc = await this.model.findById(id, null, { session }).lean()
+
+        return objectIdToString(doc)
+    }
+
+    async findByIds(ids: DocumentId[], session: SeesionArg = undefined): Promise<Doc[]> {
+        const docs = await this.model.find({ _id: { $in: ids } as any }, null, { session }).lean()
+
+        return objectIdToString(docs)
+    }
+
+    async find(
         callback: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void = () => {},
         pagination: PaginationOption = {},
         session: SeesionArg = undefined
-    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+    ): Promise<PaginationResult<Doc>> {
         const take = pagination.take ?? DEFAULT_TAKE_SIZE
         const skip = pagination.skip ?? 0
         const { orderby } = pagination
@@ -82,15 +141,48 @@ export abstract class MongooseRepository<Doc extends MongooseSchema> {
         if (orderby) {
             helpers.sort({ [orderby.name]: orderby.direction })
         } else {
-            helpers.sort({ createdAt: OrderDirection.asc })
+            helpers.sort({ _c: OrderDirection.asc })
         }
 
         await callback(helpers)
 
-        const items = await helpers.exec()
+        const items: Doc[] = await helpers.lean()
         const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
-        return { skip, take, total, items }
+        return { skip, take, total, items: objectIdToString(items) }
+    }
+
+    async deleteById(id: DocumentId, session: SeesionArg = undefined): Promise<Doc> {
+        const doc = await this.model.findByIdAndDelete(id, { lean: true, session }).exec()
+
+        if (!doc) {
+            throw new MongooseException(
+                `Failed to delete document with id: ${id}. Document not found.`
+            )
+        }
+
+        return objectIdToString(doc)
+    }
+
+    async deleteByIds(ids: DocumentId[], session: SeesionArg = undefined) {
+        const result = await this.model.deleteMany(
+            { _id: { $in: ids } as any },
+            { lean: true, session }
+        )
+
+        return result.deletedCount
+    }
+
+    async delete(filter: Record<string, any>, session: SeesionArg = undefined) {
+        if (Object.keys(filter).length === 0) {
+            throw new MongooseException(
+                'Filter cannot be empty. Deletion aborted to prevent unintentional data loss.'
+            )
+        }
+
+        const result = await this.model.deleteMany(stringToObjectId(filter), { session })
+
+        return result.deletedCount
     }
 
     async withTransaction<T>(
