@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { Assert, Expect, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
-import { uniq } from 'lodash'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { Expect, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
+import { differenceWith, uniq } from 'lodash'
 import { CreateMovieDto, MovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
@@ -15,8 +15,8 @@ export class MoviesService {
     }
 
     @MethodLog()
-    async updateMovie(movieId: string, updateMovieDto: UpdateMovieDto) {
-        const movie = await this.repository.updateMovie(movieId, updateMovieDto)
+    async updateMovie(movieId: string, updateDto: UpdateMovieDto) {
+        const movie = await this.repository.updateMovie(movieId, updateDto)
         return new MovieDto(movie)
     }
 
@@ -40,20 +40,19 @@ export class MoviesService {
 
     @MethodLog({ level: 'verbose' })
     async getMoviesByIds(movieIds: string[]) {
-        const uniqueMovieIds = uniq(movieIds)
+        const uniqueIds = uniq(movieIds)
 
-        Expect.equalLength(uniqueMovieIds, movieIds, `중복 요청된 영화 ID가 존재함: ${movieIds}`)
+        Expect.equalLength(uniqueIds, movieIds, `Duplicate movie IDs are not allowed:${movieIds}`)
 
-        const movies = await this.repository.findByIds(uniqueMovieIds)
+        const movies = await this.repository.findByIds(uniqueIds)
+        const notFoundIds = differenceWith(uniqueIds, movies, (id, movie) => id === movie.id)
 
-        Assert.equalLength(movies, uniqueMovieIds, '요청된 모든 영화 ID가 존재해야 합니다')
+        if (notFoundIds.length > 0) {
+            throw new NotFoundException(
+                `One or more movies with IDs ${notFoundIds.join(', ')} not found`
+            )
+        }
 
-        return movies.map((movie) => new MovieDto(movie))
+        return maps(movies, MovieDto)
     }
-
-    // @MethodLog({ level: 'verbose' })
-    // async moviesExist(movieIds: string[]): Promise<boolean> {
-    //     const movieExists = await this.repository.existsByIds(movieIds)
-    //     return movieExists
-    // }
 }

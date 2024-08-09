@@ -1,12 +1,10 @@
 import {
-    Param,
-    UseGuards,
-    HttpCode,
-    HttpStatus,
     Body,
     Controller,
     Get,
-    NotFoundException,
+    HttpCode,
+    HttpStatus,
+    Param,
     Post,
     Query,
     UsePipes
@@ -15,7 +13,6 @@ import { MoviesService } from 'app/services/movies'
 import { ShowtimesCreationDto, ShowtimesQueryDto, ShowtimesService } from 'app/services/showtimes'
 import { TheatersService } from 'app/services/theaters'
 import { PaginationOption, PaginationPipe } from 'common'
-import { ShowtimeExistsGuard } from './guards'
 
 @Controller('showtimes')
 export class ShowtimesController {
@@ -54,7 +51,7 @@ export class ShowtimesController {
         return this.showtimesService.findShowtimes(filter, pagination)
     }
 
-    @UseGuards(ShowtimeExistsGuard)
+    // @UseGuards(ShowtimeExistsGuard)
     @Get(':showtimeId')
     async getShowtime(@Param('showtimeId') showtimeId: string) {
         return this.showtimesService.getShowtime(showtimeId)

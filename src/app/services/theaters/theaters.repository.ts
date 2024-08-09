@@ -1,55 +1,62 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongooseRepository,
+    MongoRepository,
     PaginationOption,
     PaginationResult,
     stringToObjectId
 } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { TheaterCreationDto, TheatersQueryDto, TheaterUpdatingDto } from './dto'
+import { CreateTheaterDto, QueryTheatersDto, UpdateTheaterDto } from './dto'
 import { Theater } from './schemas'
 
 @Injectable()
-export class TheatersRepository extends MongooseRepository<Theater> {
+export class TheatersRepository extends MongoRepository<Theater> {
     constructor(@InjectModel(Theater.name) model: Model<Theater>) {
         super(model)
     }
 
     @MethodLog()
-    async createTheater(createDto: TheaterCreationDto) {
-        const dto = stringToObjectId(createDto)
+    async createTheater(createDto: CreateTheaterDto) {
+        const theater = this.newDocument()
+        theater.name = createDto.name
+        theater.latlong = createDto.latlong
+        theater.seatmap = createDto.seatmap
 
-        const customer = await this.create((doc) => {
-            doc.name = dto.name
-            doc.latlong = dto.latlong
-            doc.seatmap = dto.seatmap
-        })
-
-        return customer
+        return theater.save()
     }
 
     @MethodLog()
-    async updateTheater(movieId: string, updateDto: TheaterUpdatingDto): Promise<Theater> {
-        const dto = stringToObjectId(updateDto)
+    async updateTheater(theaterId: string, updateDto: UpdateTheaterDto) {
+        const theater = await this.getTheater(theaterId)
 
-        const customer = await this.updateById(movieId, (doc) => {
-            if (dto.name) doc.name = dto.name
-            if (dto.latlong) doc.latlong = dto.latlong
-            if (dto.seatmap) doc.seatmap = dto.seatmap
-        })
+        if (updateDto.name) theater.name = updateDto.name
+        if (updateDto.latlong) theater.latlong = updateDto.latlong
+        if (updateDto.seatmap) theater.seatmap = updateDto.seatmap
 
-        return customer
+        return theater.save()
+    }
+
+    @MethodLog()
+    async deleteTheater(theaterId: string) {
+        const theater = await this.getTheater(theaterId)
+        await theater.deleteOne()
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTheaters(
-        queryDto: TheatersQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Theater>> {
-        const paginated = await this.find((helpers) => {
+    async getTheater(theaterId: string) {
+        const theater = await this.findById(theaterId)
+
+        if (!theater) throw new NotFoundException(`Theater with ID ${theaterId} not found`)
+
+        return theater
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findTheaters(queryDto: QueryTheatersDto, pagination: PaginationOption) {
+        const paginated = await this.findWithPagination((helpers) => {
             const { name, ...query } = stringToObjectId(queryDto)
 
             if (name) query.name = new RegExp(escapeRegExp(name), 'i')
@@ -57,6 +64,6 @@ export class TheatersRepository extends MongooseRepository<Theater> {
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Theater>
     }
 }

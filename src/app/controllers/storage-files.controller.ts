@@ -8,7 +8,6 @@ import {
     Post,
     StreamableFile,
     UploadedFiles,
-    UseGuards,
     UseInterceptors
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
@@ -18,7 +17,6 @@ import { generateUUID } from 'common'
 import { Config } from 'config'
 import { createReadStream } from 'fs'
 import { diskStorage } from 'multer'
-import { StorageFileExistsGuard } from './guards/storage-file-exists.guard'
 
 class UploadFileDto {
     @IsString()
@@ -57,7 +55,7 @@ export class StorageFilesController {
     }
 
     @Get(':fileId')
-    @UseGuards(StorageFileExistsGuard)
+    // @UseGuards(StorageFileExistsGuard)
     async downloadFile(@Param('fileId') fileId: string) {
         const file = await this.storageFileService.getFile(fileId)
 
@@ -71,7 +69,7 @@ export class StorageFilesController {
     }
 
     @Delete(':fileId')
-    @UseGuards(StorageFileExistsGuard)
+    // @UseGuards(StorageFileExistsGuard)
     async deleteMovie(@Param('fileId') fileId: string) {
         return this.storageFileService.deleteFile(fileId)
     }
