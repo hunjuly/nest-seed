@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { nullObjectId, OrderDirection, pickIds, pickItems } from 'common'
+import { maps, nullObjectId, OrderDirection, pickIds, pickItems } from 'common'
 import { expectEqualUnsorted } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import { MongooseException } from '../exceptions'
@@ -98,7 +98,7 @@ describe('MongoRepository', () => {
 
         beforeEach(async () => {
             const docs = await createSamples(repository)
-            samples = SampleDto.fromArray(docs)
+            samples = maps(docs, SampleDto)
         })
 
         it('should set the pagination correctly', async () => {
@@ -111,7 +111,7 @@ describe('MongoRepository', () => {
             })
 
             sortByName(samples)
-            expect(samples.slice(skip, skip + take)).toEqual(SampleDto.fromArray(items))
+            expect(samples.slice(skip, skip + take)).toEqual(maps(items, SampleDto))
             expect(paginated).toEqual({ total: samples.length, skip, take })
         })
 
@@ -121,7 +121,7 @@ describe('MongoRepository', () => {
             })
 
             sortByName(samples)
-            expect(SampleDto.fromArray(items)).toEqual(samples)
+            expect(maps(items, SampleDto)).toEqual(samples)
         })
 
         it('should sort in descending order', async () => {
@@ -130,7 +130,7 @@ describe('MongoRepository', () => {
             })
 
             sortByNameDescending(samples)
-            expect(SampleDto.fromArray(items)).toEqual(samples)
+            expect(maps(items, SampleDto)).toEqual(samples)
         })
 
         it('should throw an exception if ‘take’ is absent or zero', async () => {
@@ -144,7 +144,7 @@ describe('MongoRepository', () => {
                 helpers.setQuery({ name: /Sample-00/i })
             })
 
-            const sorted = sortByName(SampleDto.fromArray(items))
+            const sorted = sortByName(maps(items, SampleDto))
 
             expect(pickItems(sorted, 'name')).toEqual([
                 'Sample-000',
@@ -166,7 +166,7 @@ describe('MongoRepository', () => {
 
         beforeEach(async () => {
             const docs = await createSamples(repository)
-            samples = SampleDto.fromArray(docs)
+            samples = maps(docs, SampleDto)
         })
 
         it('should return true if the IDs does exist', async () => {
@@ -206,14 +206,14 @@ describe('MongoRepository', () => {
 
         beforeEach(async () => {
             const docs = await createSamples(repository)
-            samples = SampleDto.fromArray(docs)
+            samples = maps(docs, SampleDto)
         })
 
         it('should find documents by multiple IDs', async () => {
             const ids = pickIds(samples)
             const docs = await repository.findByIds(ids)
 
-            expectEqualUnsorted(SampleDto.fromArray(docs), samples)
+            expectEqualUnsorted(maps(docs, SampleDto), samples)
         })
 
         it('should ignore non-existent IDs', async () => {
@@ -227,7 +227,7 @@ describe('MongoRepository', () => {
 
         beforeEach(async () => {
             const docs = await createSamples(repository)
-            samples = SampleDto.fromArray(docs)
+            samples = maps(docs, SampleDto)
         })
 
         it('should delete multiple documents successfully', async () => {

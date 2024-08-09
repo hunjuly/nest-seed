@@ -11,6 +11,7 @@ import {
     getChecksum,
     jsonToObject,
     latlongDistanceInMeters,
+    maps,
     notUsed,
     pickIds,
     pickItems,
@@ -289,6 +290,39 @@ describe('common/utils/etc', () => {
         })
     })
 
+    describe('maps', () => {
+        class Source {
+            constructor(
+                public id: number,
+                public name: string
+            ) {}
+        }
+
+        class Target {
+            id: number
+            upperName: string
+
+            constructor(source: Source) {
+                this.id = source.id
+                this.upperName = source.name.toUpperCase()
+            }
+        }
+
+        it('should correctly map an array of objects to target class instances', () => {
+            const sources = [new Source(1, 'alice'), new Source(2, 'bob')]
+
+            const results = maps(sources, Target)
+
+            expect(results).toHaveLength(2)
+            expect(results[0]).toBeInstanceOf(Target)
+            expect(results[0]).toEqual({ id: 1, upperName: 'ALICE' })
+            expect(results[1]).toEqual({ id: 2, upperName: 'BOB' })
+        })
+
+        it('should return an empty array when given an empty array', () => {
+            expect(maps([], Target)).toEqual([])
+        })
+    })
     describe('for coverage', () => {
         notUsed()
         comment()

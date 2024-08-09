@@ -21,8 +21,6 @@ export class SampleDto {
 
         Object.assign(this, { id: id.toString(), name })
     }
-
-    static fromArray = (samples: Sample[]) => samples.map((sample) => new SampleDto(sample))
 }
 
 @Injectable()

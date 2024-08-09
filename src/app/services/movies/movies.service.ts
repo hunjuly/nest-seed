@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, Expect, MethodLog, PaginationOption, PaginationResult } from 'common'
+import { Assert, Expect, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
 import { uniq } from 'lodash'
-import { MovieCreationDto, MovieDto, MoviesQueryDto, MovieUpdatingDto } from './dto'
+import { CreateMovieDto, MovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
 @Injectable()
@@ -9,35 +9,33 @@ export class MoviesService {
     constructor(private repository: MoviesRepository) {}
 
     @MethodLog()
-    async createMovie(createDto: MovieCreationDto) {
+    async createMovie(createDto: CreateMovieDto) {
         const movie = await this.repository.createMovie(createDto)
-
         return new MovieDto(movie)
     }
 
     @MethodLog()
-    async updateMovie(movieId: string, updateMovieDto: MovieUpdatingDto) {
+    async updateMovie(movieId: string, updateMovieDto: UpdateMovieDto) {
         const movie = await this.repository.updateMovie(movieId, updateMovieDto)
+        return new MovieDto(movie)
+    }
 
+    @MethodLog({ level: 'verbose' })
+    async getMovie(movieId: string) {
+        const movie = await this.repository.getMovie(movieId)
         return new MovieDto(movie)
     }
 
     @MethodLog()
     async deleteMovie(movieId: string) {
-        await this.repository.deleteById(movieId)
+        await this.repository.deleteMovie(movieId)
     }
 
     @MethodLog({ level: 'verbose' })
-    async findMovies(
-        queryDto: MoviesQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<MovieDto>> {
-        const paginated = await this.repository.findMovies(queryDto, pagination)
+    async findMovies(queryDto: QueryMoviesDto, pagination: PaginationOption) {
+        const { items, ...paginated } = await this.repository.findMovies(queryDto, pagination)
 
-        return {
-            ...paginated,
-            items: paginated.items.map((item) => new MovieDto(item))
-        }
+        return { ...paginated, items: maps(items, MovieDto) } as PaginationResult<MovieDto>
     }
 
     @MethodLog({ level: 'verbose' })
@@ -53,18 +51,9 @@ export class MoviesService {
         return movies.map((movie) => new MovieDto(movie))
     }
 
-    @MethodLog({ level: 'verbose' })
-    async getMovie(movieId: string) {
-        const movie = await this.repository.findById(movieId)
-
-        Assert.defined(movie, `Movie with id ${movieId} must exist`)
-
-        return new MovieDto(movie!)
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async moviesExist(movieIds: string[]): Promise<boolean> {
-        const movieExists = await this.repository.existsByIds(movieIds)
-        return movieExists
-    }
+    // @MethodLog({ level: 'verbose' })
+    // async moviesExist(movieIds: string[]): Promise<boolean> {
+    //     const movieExists = await this.repository.existsByIds(movieIds)
+    //     return movieExists
+    // }
 }

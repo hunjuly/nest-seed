@@ -170,3 +170,7 @@ export async function getChecksum(
 
     return hash.digest('hex')
 }
+
+export function maps<S, T>(items: S[], Target: new (item: S) => T): T[] {
+    return items.map((item) => new Target(item))
+}

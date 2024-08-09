@@ -9,30 +9,30 @@ export class HttpClient {
 
     constructor(
         private server: any,
-        private prefix: string
+        private defaultPath: string = ''
     ) {}
 
-    private makeUrl(url: string) {
-        return posix.join(this.prefix, url)
+    private makeUrl(url: string, usePrefix = true) {
+        return usePrefix ? posix.join(this.defaultPath, url) : url
     }
 
-    post(url: string = ''): this {
-        this.client = supertest(this.server).post(this.makeUrl(url))
+    post(url: string = '', usePrefix = true): this {
+        this.client = supertest(this.server).post(this.makeUrl(url, usePrefix))
         return this
     }
 
-    patch(url: string = ''): this {
-        this.client = supertest(this.server).patch(this.makeUrl(url))
+    patch(url: string = '', usePrefix = true): this {
+        this.client = supertest(this.server).patch(this.makeUrl(url, usePrefix))
         return this
     }
 
-    get(url: string = ''): this {
-        this.client = supertest(this.server).get(this.makeUrl(url))
+    get(url: string = '', usePrefix = true): this {
+        this.client = supertest(this.server).get(this.makeUrl(url, usePrefix))
         return this
     }
 
-    delete(url: string = ''): this {
-        this.client = supertest(this.server).delete(this.makeUrl(url))
+    delete(url: string = '', usePrefix = true): this {
+        this.client = supertest(this.server).delete(this.makeUrl(url, usePrefix))
         return this
     }
 

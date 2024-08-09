@@ -1,8 +1,9 @@
-import { MovieDto, MovieGenre, MovieRating, MoviesService } from 'app/services/movies'
+import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
 import { padNumber } from 'common'
+import { HttpClient } from 'common/test'
 
-export async function createMovie(moviesService: MoviesService, overrides = {}): Promise<MovieDto> {
-    const body = {
+export const makeMovieDtos = (overrides = {}) => {
+    const createDto = {
         title: `MovieTitle`,
         genre: [MovieGenre.Action],
         releaseDate: new Date('1900-01-01'),
@@ -13,13 +14,18 @@ export async function createMovie(moviesService: MoviesService, overrides = {}):
         ...overrides
     }
 
-    return moviesService.createMovie(body)
+    const expectedDto = { id: expect.anything(), ...createDto }
+
+    return { createDto, expectedDto }
 }
 
-export async function createMovies(
-    moviesService: MoviesService,
-    overrides = {}
-): Promise<MovieDto[]> {
+export const createMovie = async (client: HttpClient, override = {}) => {
+    const { createDto } = makeMovieDtos(override)
+    const { body } = await client.post('/movies', false).body(createDto).created()
+    return body
+}
+
+export const createMovies = async (client: HttpClient, overrides = {}) => {
     const promises: Promise<MovieDto>[] = []
 
     const genres = [
@@ -36,16 +42,7 @@ export async function createMovies(
             const title = `title-${tag}`
             const plot = `plot-${tag}`
 
-            const promise = moviesService.createMovie({
-                title,
-                plot,
-                genre,
-                releaseDate: new Date('1999-01-31'),
-                durationMinutes: 120,
-                director,
-                rating: MovieRating.NC17,
-                ...overrides
-            })
+            const promise = createMovie(client, { title, plot, genre, director, ...overrides })
 
             promises.push(promise)
         })

@@ -7,10 +7,10 @@ export class CustomerDto {
     birthday: Date
 
     constructor(customer: Customer) {
-        const { _id, name, email, birthday } = customer
+        const { id, name, email, birthday } = customer
 
         Object.assign(this, {
-            id: _id.toString(),
+            id: id.toString(),
             name,
             email,
             birthday

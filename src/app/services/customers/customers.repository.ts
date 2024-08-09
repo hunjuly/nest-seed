@@ -1,7 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
-    Assert,
     MethodLog,
     MongoRepository,
     PaginationOption,
@@ -10,7 +9,7 @@ import {
 } from 'common'
 import { escapeRegExp } from 'lodash'
 import { Model } from 'mongoose'
-import { CustomerCreationDto, CustomersQueryDto, CustomerUpdatingDto } from './dto'
+import { CreateCustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 import { Customer } from './schemas'
 
 @Injectable()
@@ -20,7 +19,7 @@ export class CustomersRepository extends MongoRepository<Customer> {
     }
 
     @MethodLog()
-    async createCustomer(createDto: CustomerCreationDto) {
+    async createCustomer(createDto: CreateCustomerDto) {
         if (await this.findByEmail(createDto.email))
             throw new ConflictException(`Customer with email ${createDto.email} already exists`)
 
@@ -30,28 +29,23 @@ export class CustomersRepository extends MongoRepository<Customer> {
         customer.birthday = createDto.birthday
         customer.password = createDto.password
 
-        await customer.save()
-
-        return customer
+        return customer.save()
     }
 
     @MethodLog()
-    async updateCustomer(customerId: string, updateDto: CustomerUpdatingDto) {
+    async updateCustomer(customerId: string, updateDto: UpdateCustomerDto) {
         const customer = await this.getCustomer(customerId)
 
         if (updateDto.name) customer.name = updateDto.name
         if (updateDto.email) customer.email = updateDto.email
         if (updateDto.birthday) customer.birthday = updateDto.birthday
 
-        await customer.save()
-
-        return customer
+        return customer.save()
     }
 
     @MethodLog()
     async deleteCustomer(customerId: string) {
         const customer = await this.getCustomer(customerId)
-
         await customer.deleteOne()
     }
 
@@ -65,10 +59,7 @@ export class CustomersRepository extends MongoRepository<Customer> {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findCustomers(
-        queryDto: CustomersQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Customer>> {
+    async findCustomers(queryDto: QueryCustomersDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
             const { name, ...query } = stringToObjectId(queryDto)
 
@@ -77,17 +68,11 @@ export class CustomersRepository extends MongoRepository<Customer> {
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Customer>
     }
 
     @MethodLog({ level: 'verbose' })
     async findByEmail(email: string): Promise<Customer | null> {
-        const { items } = await this.findWithPagination((helpers) => {
-            helpers.setQuery({ email })
-        })
-
-        Assert.unique(items, `Customer의 email은 유일해야 한다`)
-
-        return items.length === 1 ? items[0] : null
+        return this.model.findOne({ email })
     }
 }

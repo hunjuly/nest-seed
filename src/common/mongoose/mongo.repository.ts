@@ -63,7 +63,7 @@ export abstract class MongoRepository<Doc extends MongooseSchema> {
         callback: (helpers: QueryWithHelpers<Array<Doc>, Doc>) => void = () => {},
         pagination: PaginationOption = {},
         session: SeesionArg = undefined
-    ): Promise<PaginationResult<HydratedDocument<Doc>>> {
+    ) {
         const take = pagination.take ?? DEFAULT_TAKE_SIZE
         const skip = pagination.skip ?? 0
         const { orderby } = pagination
@@ -90,7 +90,7 @@ export abstract class MongoRepository<Doc extends MongooseSchema> {
         const items = await helpers.exec()
         const total = await this.model.countDocuments(helpers.getQuery()).exec()
 
-        return { skip, take, total, items }
+        return { skip, take, total, items } as PaginationResult<HydratedDocument<Doc>>
     }
 
     async withTransaction<T>(

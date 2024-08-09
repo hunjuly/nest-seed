@@ -28,17 +28,17 @@ export class ShowtimesController {
     @Post()
     @HttpCode(HttpStatus.ACCEPTED)
     async createShowtimes(@Body() request: ShowtimesCreationDto) {
-        const movieExists = await this.moviesService.moviesExist([request.movieId])
+        // const movieExists = await this.moviesService.moviesExist([request.movieId])
 
-        if (!movieExists) {
-            throw new NotFoundException(`Movie with ID ${request.movieId} not found`)
-        }
+        // if (!movieExists) {
+        //     throw new NotFoundException(`Movie with ID ${request.movieId} not found`)
+        // }
 
-        const theaterExists = await this.theatersService.theatersExist(request.theaterIds)
+        // const theaterExists = await this.theatersService.theatersExist(request.theaterIds)
 
-        if (!theaterExists) {
-            throw new NotFoundException(`Theater with ID ${request.theaterIds} not found`)
-        }
+        // if (!theaterExists) {
+        //     throw new NotFoundException(`Theater with ID ${request.theaterIds} not found`)
+        // }
 
         const result = await this.showtimesService.createShowtimes(request)
 
