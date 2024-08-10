@@ -8,10 +8,10 @@ export class ShowtimeDto {
     movieId: string
 
     constructor(showtime: Showtime) {
-        const { _id, startTime, endTime, theaterId, movieId } = showtime
+        const { id, startTime, endTime, theaterId, movieId } = showtime
 
         Object.assign(this, {
-            id: _id.toString(),
+            id: id.toString(),
             startTime,
             endTime,
             theaterId: theaterId.toString(),

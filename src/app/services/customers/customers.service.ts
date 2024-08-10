@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common'
-import { maps, MethodLog, PaginationOption, PaginationResult, Password } from 'common'
-import { JwtAuthService } from '../jwt-auth'
+import {
+    JwtAuthService,
+    maps,
+    MethodLog,
+    PaginationOption,
+    PaginationResult,
+    Password
+} from 'common'
 import { CustomersRepository } from './customers.repository'
 import { CreateCustomerDto, CustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 

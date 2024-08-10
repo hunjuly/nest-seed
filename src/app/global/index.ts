@@ -1,1 +1,1 @@
-export * from './global.module'
+export * from './core.module'

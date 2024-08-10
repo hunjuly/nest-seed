@@ -12,7 +12,6 @@ export class ShowingController {
     }
 
     @Get('movies/:movieId/theaters')
-    // @UseGuards(MovieExistsGuard)
     async findShowingTheaters(
         @Param('movieId') movieId: string,
         @LatLongQuery('userLocation') userLocation: LatLong
@@ -21,15 +20,11 @@ export class ShowingController {
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates')
-    // @UseGuards(MovieExistsGuard)
-    // @UseGuards(TheaterExistsGuard)
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
         return this.showingService.findShowdates(movieId, theaterId)
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
-    // @UseGuards(MovieExistsGuard)
-    // @UseGuards(TheaterExistsGuard)
     async findShowtimes(
         @Param('movieId') movieId: string,
         @Param('theaterId') theaterId: string,
@@ -39,7 +34,6 @@ export class ShowingController {
     }
 
     @Get('showtimes/:showtimeId/tickets')
-    // @UseGuards(ShowtimeExistsGuard)
     async findTickets(@Param('showtimeId') showtimeId: string) {
         return this.showingService.findTickets(showtimeId)
     }

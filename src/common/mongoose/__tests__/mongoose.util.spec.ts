@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { createObjectId, ObjectId, objectIdToString, stringToObjectId } from 'common'
+import { newObjectId, ObjectId, objectIdToString, stringToObjectId } from 'common'
 import { Types } from 'mongoose'
 
 describe('MongooseRepository Utils', () => {
@@ -42,7 +42,7 @@ describe('MongooseRepository Utils', () => {
     })
 
     it('createObjectId', async () => {
-        const objectId = createObjectId()
+        const objectId = newObjectId()
 
         expect(Types.ObjectId.isValid(objectId)).toBeTruthy()
     })

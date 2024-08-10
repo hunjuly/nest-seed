@@ -12,15 +12,17 @@ export class BatchEventListener {
     protected handleEvent(event: AppEvent & { batchId: string }): void {
         const promise = this.promises.get(event.batchId)
 
-        if (promise) {
-            if (promise.eventNames.includes(event.name)) {
-                promise.resolve(event)
-            } else {
-                promise.reject(event)
-            }
-
-            this.promises.delete(event.batchId)
+        if (!promise) {
+            throw new Error(`${event}를 찾지 못함. 동기화 오류 가능성 있음`)
         }
+
+        if (promise.eventNames.includes(event.name)) {
+            promise.resolve(event)
+        } else {
+            promise.reject(event)
+        }
+
+        this.promises.delete(event.batchId)
     }
 
     awaitEvent(batchId: string, eventNames: string[]): Promise<any> {

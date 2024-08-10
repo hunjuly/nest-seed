@@ -39,7 +39,7 @@ export class StorageFilesService {
                     session
                 )
 
-                const targetPath = this.getStoragePath(storedFile._id)
+                const targetPath = this.getStoragePath(storedFile.id)
                 Path.move(createDto.path, targetPath)
 
                 storedFiles.push(storedFile)
@@ -73,7 +73,7 @@ export class StorageFilesService {
     }
 
     private makeStorageFileDto(file: StorageFile) {
-        const dto = new StorageFileDto(file, this.getStoragePath(file._id))
+        const dto = new StorageFileDto(file, this.getStoragePath(file.id))
         return dto
     }
 

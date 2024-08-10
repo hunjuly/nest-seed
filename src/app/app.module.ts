@@ -8,7 +8,7 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { CoreModule } from 'app/global'
 import { CustomersModule } from './services/customers'
 import { MoviesModule } from './services/movies'
 import { PaymentsModule } from './services/payments'
@@ -19,7 +19,7 @@ import { ShowingModule } from './services/showing'
 
 @Module({
     imports: [
-        GlobalModule,
+        CoreModule,
         CustomersModule,
         MoviesModule,
         TheatersModule,

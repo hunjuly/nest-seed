@@ -55,4 +55,9 @@ export class MoviesService {
 
         return maps(movies, MovieDto)
     }
+
+    @MethodLog({ level: 'verbose' })
+    async moviesExist(movieIds: string[]): Promise<boolean> {
+        return this.repository.existsByIds(movieIds)
+    }
 }

@@ -7,7 +7,7 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { CoreModule } from 'app/global'
 import { CustomerDto, CustomersModule } from 'app/services/customers'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentsModule, PaymentsService } from 'app/services/payments'
@@ -26,7 +26,7 @@ import { TicketsFactory } from './tickets.fixture'
 export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [
-            GlobalModule,
+            CoreModule,
             CustomersModule,
             MoviesModule,
             TheatersModule,

@@ -78,6 +78,10 @@ function isDataObject(value: unknown): boolean {
     )
 }
 
-export function createObjectId(): string {
+export function newObjectId() {
     return new ObjectId().toString()
+}
+
+export function objectId(id: string) {
+    return new ObjectId(id)
 }

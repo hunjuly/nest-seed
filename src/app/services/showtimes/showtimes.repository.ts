@@ -1,45 +1,53 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongooseRepository,
-    objectIdToString,
+    MongoRepository,
+    objectId,
+    ObjectId,
     PaginationOption,
     PaginationResult,
     SchemeBody,
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { ShowtimesQueryDto } from './dto'
+import { QueryShowtimesDto } from './dto'
 import { Showtime } from './schemas'
 
 @Injectable()
-export class ShowtimesRepository extends MongooseRepository<Showtime> {
+export class ShowtimesRepository extends MongoRepository<Showtime> {
     constructor(@InjectModel(Showtime.name) model: Model<Showtime>) {
         super(model)
     }
 
     @MethodLog()
     async createShowtimes(createDtos: SchemeBody<Showtime>[]) {
-        const dtos = stringToObjectId(createDtos)
+        const showtimes = createDtos.map((dto) => {
+            const showtime = this.newDocument()
+            showtime.batchId = new ObjectId(dto.batchId)
+            showtime.theaterId = new ObjectId(dto.theaterId)
+            showtime.movieId = new ObjectId(dto.movieId)
+            showtime.startTime = dto.startTime
+            showtime.endTime = dto.endTime
 
-        const insertedCount = await this.createMany(dtos.length, (doc, index) => {
-            doc.theaterId = dtos[index].theaterId
-            doc.movieId = dtos[index].movieId
-            doc.startTime = dtos[index].startTime
-            doc.endTime = dtos[index].endTime
-            doc.batchId = dtos[index].batchId
+            return showtime
         })
 
-        return insertedCount
+        return this.saveAll(showtimes)
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowtimes(
-        queryDto: ShowtimesQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Showtime>> {
-        const paginated = await this.find((helpers) => {
+    async getShowtime(showtimeId: string) {
+        const showtime = await this.findById(showtimeId)
+
+        if (!showtime) throw new NotFoundException(`Showtime with ID ${showtimeId} not found`)
+
+        return showtime
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async findShowtimes(queryDto: QueryShowtimesDto, pagination: PaginationOption) {
+        const paginated = await this.findWithPagination((helpers) => {
             const { showtimeIds, ...query } = stringToObjectId(queryDto)
 
             if (showtimeIds) query._id = { $in: showtimeIds }
@@ -47,22 +55,17 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Showtime>
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowtimesByBatchId(batchId: string): Promise<Showtime[]> {
-        const showtimes = await this.model.find({ batchId: stringToObjectId(batchId) }).lean()
-
-        return objectIdToString(showtimes)
+    async findShowtimesByBatchId(batchId: string) {
+        const showtimes = await this.model.find({ batchId: new ObjectId(batchId) }).exec()
+        return showtimes as Showtime[]
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowtimesByShowdate(
-        movieId: string,
-        theaterId: string,
-        showdate: Date
-    ): Promise<Showtime[]> {
+    async findShowtimesByShowdate(movieId: string, theaterId: string, showdate: Date) {
         const startOfDay = new Date(showdate)
         startOfDay.setHours(0, 0, 0, 0)
 
@@ -71,80 +74,54 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
         const showtimes = await this.model
             .find({
-                movieId: stringToObjectId(movieId),
-                theaterId: stringToObjectId(theaterId),
-                startTime: {
-                    $gte: startOfDay,
-                    $lte: endOfDay
-                }
+                movieId: new ObjectId(movieId),
+                theaterId: new ObjectId(theaterId),
+                startTime: { $gte: startOfDay, $lte: endOfDay }
             })
             .sort({ startTime: 1 })
-            .lean()
+            .exec()
 
-        return objectIdToString(showtimes)
+        return showtimes as Showtime[]
     }
 
     @MethodLog({ level: 'verbose' })
-    async findMovieIdsShowingAfter(time: Date): Promise<string[]> {
-        const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).lean()
-
-        return objectIdToString(movieIds)
+    async findMovieIdsShowingAfter(time: Date) {
+        const movieIds = await this.model.distinct('movieId', { startTime: { $gt: time } }).exec()
+        return movieIds.map((id) => id.toString())
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTheaterIdsShowingMovie(movieId: string): Promise<string[]> {
+    async findTheaterIdsShowingMovie(movieId: string) {
         const theaterIds = await this.model
-            .distinct('theaterId', { movieId: stringToObjectId(movieId) })
-            .lean()
-
-        return objectIdToString(theaterIds)
+            .distinct('theaterId', { movieId: objectId(movieId) })
+            .exec()
+        return theaterIds.map((id) => id.toString())
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowdates(movieId: string, theaterId: string): Promise<Date[]> {
+    async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.model.aggregate([
-            {
-                $match: {
-                    movieId: stringToObjectId(movieId),
-                    theaterId: stringToObjectId(theaterId)
-                }
-            },
-            {
-                $project: {
-                    date: { $dateToString: { format: '%Y-%m-%d', date: '$startTime' } }
-                }
-            },
-            {
-                $group: {
-                    _id: '$date'
-                }
-            },
-            {
-                $sort: { _id: 1 }
-            }
+            { $match: { movieId: objectId(movieId), theaterId: objectId(theaterId) } },
+            { $project: { date: { $dateToString: { format: '%Y-%m-%d', date: '$startTime' } } } },
+            { $group: { _id: '$date' } },
+            { $sort: { _id: 1 } }
         ])
-
-        return showdates.map((item) => new Date(item._id))
+        // TODO id to date
+        return showdates.map((item) => new Date(item.id))
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowtimesWithinDateRange(query: {
-        theaterId: string
-        startTime: Date
-        endTime: Date
-    }): Promise<Showtime[]> {
-        const converted = stringToObjectId(query)
+    async findShowtimesWithinDateRange(theaterId: string, startTime: Date, endTime: Date) {
         /**
          * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
          * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
          */
         const showtimes = await this.model
             .find({
-                theaterId: converted.theaterId,
-                startTime: { $gte: converted.startTime, $lte: converted.endTime }
+                theaterId: objectId(theaterId),
+                startTime: { $gte: startTime, $lte: endTime }
             })
-            .lean()
-
-        return objectIdToString(showtimes)
+            .exec()
+        return showtimes as Showtime[]
     }
 }

@@ -1,3 +1,6 @@
+import { Injectable } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+
 export abstract class AppEvent {
     static eventName: string
     public name: string
@@ -16,5 +19,14 @@ export function EventName(name: string) {
                 this.name = name // AppEvent의 eventName 설정
             }
         }
+    }
+}
+
+@Injectable()
+export class EventService {
+    constructor(private eventEmitter: EventEmitter2) {}
+
+    async emit(event: AppEvent) {
+        await this.eventEmitter.emitAsync(event.name, event)
     }
 }

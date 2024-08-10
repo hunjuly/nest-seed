@@ -1,18 +1,20 @@
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
-import { Injectable } from '@nestjs/common'
-import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { MoviesService } from 'app/services/movies'
+import { TheatersService } from 'app/services/theaters'
 import { Job } from 'bull'
 import {
-    AppEvent,
     Assert,
+    EventService,
     MethodLog,
     SchemeBody,
     addMinutes,
     findMaxDate,
     findMinDate,
-    jsonToObject
+    jsonToObject,
+    maps
 } from 'common'
-import { ShowtimeDto, ShowtimesCreationDto } from '../dto'
+import { CreateShowtimesDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
 import {
     ShowtimesCreateCompleteEvent,
@@ -27,24 +29,19 @@ type Timeslot = Map<number, Showtime>
 @Injectable()
 @Processor('showtimes')
 export class ShowtimesCreationService {
-    // private readonly logger = new Logger(this.constructor.name)
-
     constructor(
         private repository: ShowtimesRepository,
-        private eventEmitter: EventEmitter2
+        private eventService: EventService,
+        private theatersService: TheatersService,
+        private moviesService: MoviesService
     ) {}
-
-    @MethodLog()
-    private async emitEvent(event: AppEvent) {
-        await this.eventEmitter.emitAsync(event.name, event)
-    }
 
     /* istanbul ignore next */
     @OnQueueFailed()
     @MethodLog()
-    async onFailed(job: Job) {
-        await this.emitEvent(
-            new ShowtimesCreateErrorEvent(job.data.batchId, job.failedReason ?? '')
+    async onFailed({ data, failedReason }: Job) {
+        await this.eventService.emit(
+            new ShowtimesCreateErrorEvent(data.batchId, failedReason ?? '')
         )
     }
 
@@ -53,26 +50,24 @@ export class ShowtimesCreationService {
     async onShowtimesCreateRequest(job: Job<ShowtimesCreateRequestEvent>) {
         const request = jsonToObject({ ...job.data })
 
-        const conflictShowtimes = await this.checkForTimeConflicts(request.creationDto)
+        await this.checkMovieExists(request.createDto.movieId)
+        await this.checkTheatersExist(request.createDto.theaterIds)
+
+        const conflictShowtimes = await this.checkForTimeConflicts(request.createDto)
 
         if (0 < conflictShowtimes.length) {
-            await this.emitEvent(
-                new ShowtimesCreateFailEvent(
-                    request.batchId,
-                    conflictShowtimes.map((showtime) => new ShowtimeDto(showtime))
-                )
+            await this.eventService.emit(
+                new ShowtimesCreateFailEvent(request.batchId, maps(conflictShowtimes, ShowtimeDto))
             )
         } else {
             await this.createShowtimes(request)
-
-            await this.emitEvent(new ShowtimesCreateCompleteEvent(request.batchId))
+            await this.eventService.emit(new ShowtimesCreateCompleteEvent(request.batchId))
         }
     }
 
     @MethodLog()
-    private async createShowtimes(event: ShowtimesCreateRequestEvent) {
-        const { batchId } = event
-        const { movieId, theaterIds, durationMinutes, startTimes } = event.creationDto
+    private async createShowtimes({ batchId, createDto }: ShowtimesCreateRequestEvent) {
+        const { movieId, theaterIds, durationMinutes, startTimes } = createDto
 
         const createDtos: SchemeBody<Showtime>[] = []
 
@@ -88,7 +83,7 @@ export class ShowtimesCreationService {
     }
 
     @MethodLog()
-    async checkForTimeConflicts(request: ShowtimesCreationDto): Promise<Showtime[]> {
+    private async checkForTimeConflicts(request: CreateShowtimesDto): Promise<Showtime[]> {
         const { durationMinutes, startTimes, theaterIds } = request
 
         const timeslotsByTheater = await this.createTimeslotsByTheater(request)
@@ -118,7 +113,7 @@ export class ShowtimesCreationService {
     }
 
     private async createTimeslotsByTheater(
-        request: ShowtimesCreationDto
+        request: CreateShowtimesDto
     ): Promise<Map<string, Timeslot>> {
         const { theaterIds, durationMinutes, startTimes } = request
 
@@ -129,11 +124,11 @@ export class ShowtimesCreationService {
         const timeslotsByTheater = new Map<string, Timeslot>()
 
         for (const theaterId of theaterIds) {
-            const fetchedShowtimes = await this.repository.findShowtimesWithinDateRange({
+            const fetchedShowtimes = await this.repository.findShowtimesWithinDateRange(
                 theaterId,
-                startTime: startDate,
-                endTime: endDate
-            })
+                startDate,
+                endDate
+            )
 
             const timeslots = new Map<number, Showtime>()
 
@@ -147,6 +142,20 @@ export class ShowtimesCreationService {
         }
 
         return timeslotsByTheater
+    }
+
+    private async checkMovieExists(movieId: string): Promise<void> {
+        const movieExists = await this.moviesService.moviesExist([movieId])
+        if (!movieExists) {
+            throw new NotFoundException(`Movie with ID ${movieId} not found`)
+        }
+    }
+
+    private async checkTheatersExist(theaterIds: string[]): Promise<void> {
+        const theaterExists = await this.theatersService.theatersExist(theaterIds)
+        if (!theaterExists) {
+            throw new NotFoundException(`Theater with IDs ${theaterIds.join(', ')} not found`)
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 import { StorageFilesController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
+import { CoreModule } from 'app/global'
 import { StorageFilesModule } from 'app/services/storage-files'
 import { StorageFileDto } from 'app/services/storage-files/dto'
 import { getChecksum, nullObjectId, Path } from 'common'
@@ -54,7 +54,7 @@ describe('/storage-files', () => {
         Config.fileUpload.directory = await Path.createTempDirectory()
 
         testContext = await createHttpTestContext({
-            imports: [GlobalModule, StorageFilesModule],
+            imports: [CoreModule, StorageFilesModule],
             controllers: [StorageFilesController]
         })
         req = testContext.createClient()
