@@ -1,7 +1,7 @@
 import { HttpClient } from 'common/test'
 import { omit } from 'lodash'
 
-export const makeCustomerDtos = (overrides = {}) => {
+export const makeCustomerDto = (overrides = {}) => {
     const createDto = {
         name: 'name',
         email: 'name@mail.com',
@@ -16,7 +16,7 @@ export const makeCustomerDtos = (overrides = {}) => {
 }
 
 export const createCustomer = async (client: HttpClient, override = {}) => {
-    const { createDto } = makeCustomerDtos(override)
+    const { createDto } = makeCustomerDto(override)
     const { body } = await client.post('/customers', false).body(createDto).created()
     return body
 }

@@ -7,7 +7,7 @@ import { pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
-import { ShowtimesFactory } from './showtimes.fixture'
+import { ShowtimesEventListener } from './showtimes.fixture'
 import { createTheater } from './theaters.fixture'
 import { TicketsFactory } from './tickets.fixture'
 import {
@@ -42,7 +42,7 @@ export async function createFixture() {
             ShowtimesController,
             PaymentsController
         ],
-        providers: [TicketsFactory, ShowtimesFactory]
+        providers: [TicketsFactory, ShowtimesEventListener]
     })
 
     const module = testContext.module

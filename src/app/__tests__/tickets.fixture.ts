@@ -19,7 +19,7 @@ import {
     TicketsService
 } from '../services/tickets'
 import { createMovie } from './movies.fixture'
-import { ShowtimesFactory } from './showtimes.fixture'
+import { ShowtimesEventListener } from './showtimes.fixture'
 import { createTheater } from './theaters.fixture'
 import { BatchEventListener } from './utils'
 
@@ -29,7 +29,7 @@ export class TicketsFactory extends BatchEventListener {
     theaters: TheaterDto[] = []
 
     constructor(
-        private showtimesFactory: ShowtimesFactory,
+        private showtimesFactory: ShowtimesEventListener,
         private ticketsService: TicketsService
     ) {
         super()
@@ -91,7 +91,7 @@ export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [CoreModule, MoviesModule, TheatersModule, ShowtimesModule, TicketsModule],
         controllers: [TicketsController],
-        providers: [TicketsFactory, ShowtimesFactory]
+        providers: [TicketsFactory, ShowtimesEventListener]
     })
 
     const module = testContext.module

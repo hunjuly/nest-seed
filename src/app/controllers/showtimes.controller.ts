@@ -27,7 +27,7 @@ export class ShowtimesController {
         return this.service.getShowtime(showtimeId)
     }
 
-    @UsePipes(new PaginationPipe(50))
+    @UsePipes(new PaginationPipe(100))
     @Get()
     async findShowtimes(@Query() query: QueryShowtimesDto, @Query() pagination: PaginationOption) {
         return this.service.findShowtimes(query, pagination)

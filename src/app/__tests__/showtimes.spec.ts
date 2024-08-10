@@ -1,18 +1,27 @@
 import { ShowtimeDto } from 'app/services/showtimes'
 import { nullObjectId, pickIds } from 'common'
 import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common/test'
-import { ShowtimesFactory, createFixture } from './showtimes.fixture'
+import {
+    ShowtimesEventListener,
+    createFixture,
+    createShowtimes,
+    makeCreateShowtimesDto
+} from './showtimes.fixture'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let client: HttpClient
-    let factory: ShowtimesFactory
+    let listener: ShowtimesEventListener
+    let movieId: string
+    let theaterIds: string[]
 
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
         client = fixture.testContext.createClient('/showtimes')
-        factory = fixture.factory
+        listener = fixture.listener
+        movieId = fixture.movie.id
+        theaterIds = pickIds(fixture.theaters)
     })
 
     afterEach(async () => {
@@ -21,13 +30,17 @@ describe('/showtimes', () => {
 
     describe('showtime creation', () => {
         it('should wait until showtime creation is completed', async () => {
-            const createDto = factory.makeCreateDto({
+            const { createDto, expectedDtos } = makeCreateShowtimesDto({
+                movieId,
+                theaterIds,
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
             })
-            const { body } = await client.post().body(createDto).accepted()
 
-            const { createdShowtimes } = await factory.waitComplete(body.batchId)
-            expectEqualUnsorted(createdShowtimes, factory.makeExpectedShowtimes(createDto))
+            const { body } = await client.post().body(createDto).accepted()
+            await listener.waitComplete(body.batchId)
+            const res = await client.get().query({ batchId: body.batchId }).ok()
+
+            expectEqualUnsorted(res.body.items, expectedDtos)
         })
 
         it('should successfully complete all requests when multiple creation requests occur simultaneously', async () => {
@@ -35,17 +48,22 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
-                    const startTimes = [new Date(1900, index)]
-                    const batchId = await factory.createShowtimes({ startTimes })
-                    const { createdShowtimes } = await factory.waitComplete(batchId)
-                    const expectedShowtimes = factory.makeExpectedShowtimes({ startTimes })
+                    const { createDto, expectedDtos } = makeCreateShowtimesDto({
+                        movieId,
+                        theaterIds,
+                        startTimes: [new Date(1900, index)]
+                    })
 
-                    return { createdShowtimes, expectedShowtimes }
+                    const batchId = await createShowtimes(client, createDto)
+                    await listener.waitComplete(batchId)
+                    const { body } = await client.get().query({ batchId }).ok()
+
+                    return { createdShowtimes: body.items, expectedDtos }
                 })
             )
 
             const actual = results.flatMap((result) => result.createdShowtimes)
-            const expected = results.flatMap((result) => result.expectedShowtimes)
+            const expected = results.flatMap((result) => result.expectedDtos)
 
             expectEqualUnsorted(actual, expected)
         })
@@ -55,8 +73,8 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async () => {
-                    const batchId = await factory.createShowtimes()
-                    return await factory.waitFinish(batchId)
+                    const batchId = await createShowtimes(client, { movieId, theaterIds })
+                    return listener.waitFinish(batchId)
                 })
             )
 
@@ -71,27 +89,23 @@ describe('/showtimes', () => {
 
     describe('error handling', () => {
         it('should return NOT_FOUND(404) when movieId is not found', async () => {
-            const createDto = factory.makeCreateDto({ movieId: nullObjectId })
-            const { body } = await client.post().body(createDto).accepted()
-
-            const { message } = await factory.waitError(body.batchId)
+            const batchId = await createShowtimes(client, { movieId: nullObjectId, theaterIds })
+            const { message } = await listener.waitError(batchId)
             expect(message).toBeDefined()
         })
 
         it('should return NOT_FOUND(404) when theaterId is not found', async () => {
-            const createDto = factory.makeCreateDto({ theaterIds: [nullObjectId] })
-            const { body } = await client.post().body(createDto).accepted()
-
-            const { message } = await factory.waitError(body.batchId)
+            const batchId = await createShowtimes(client, { movieId, theaterIds: [nullObjectId] })
+            const { message } = await listener.waitError(batchId)
             expect(message).toBeDefined()
         })
 
         it('should return NOT_FOUND(404) when any theaterId in the list is not found', async () => {
-            const theaterId = factory.theaters[0].id
-            const createDto = factory.makeCreateDto({ theaterIds: [theaterId, nullObjectId] })
-            const { body } = await client.post().body(createDto).accepted()
-
-            const { message } = await factory.waitError(body.batchId)
+            const batchId = await createShowtimes(client, {
+                movieId,
+                theaterIds: [theaterIds[0], nullObjectId]
+            })
+            const { message } = await listener.waitError(batchId)
             expect(message).toBeDefined()
         })
     })
@@ -101,40 +115,37 @@ describe('/showtimes', () => {
         let batchId: string
 
         beforeEach(async () => {
-            const startTimes = [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
-            batchId = await factory.createShowtimes({ startTimes })
-            const res = await factory.waitComplete(batchId)
-            createdShowtimes = res.createdShowtimes
-        })
-
-        it('should retrieve showtimes by batchId', async () => {
-            const { body } = await client.get().query({ batchId }).ok()
-
-            expectEqualUnsorted(body.items, createdShowtimes)
+            batchId = await createShowtimes(client, {
+                movieId,
+                theaterIds,
+                startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
+            })
+            await listener.waitComplete(batchId)
+            const { body } = await client.get().query({ batchId: batchId }).ok()
+            createdShowtimes = body.items
         })
 
         it('should retrieve showtimes by theaterId', async () => {
-            const theaterId = factory.theaters[0].id
+            const theaterId = theaterIds[0]
             const res = await client.get().query({ theaterId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter(
-                (showtime) => showtime.theaterId === theaterId
+            expectEqualUnsorted(
+                res.body.items,
+                createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
             )
-            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('should retrieve showtimes by movieId', async () => {
-            const movieId = factory.movie?.id
             const res = await client.get().query({ movieId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter(
-                (showtime) => showtime.movieId === movieId
+            expectEqualUnsorted(
+                res.body.items,
+                createdShowtimes.filter((showtime) => showtime.movieId === movieId)
             )
-            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('should retrieve showtimes by showtimeIds[]', async () => {
-            const findingShowtimes = [createdShowtimes[0], createdShowtimes[1]]
+            const findingShowtimes = createdShowtimes.slice(0, 2)
             const res = await client
                 .get()
                 .query({ showtimeIds: pickIds(findingShowtimes) })
@@ -157,7 +168,9 @@ describe('/showtimes', () => {
 
     describe('conflict checking', () => {
         it('should return conflict information when creation request conflicts with existing showtimes', async () => {
-            const createBatchId = await factory.createShowtimes({
+            const createBatchId = await createShowtimes(client, {
+                movieId,
+                theaterIds,
                 durationMinutes: 90,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -166,9 +179,14 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T18:30')
                 ]
             })
-            const { createdShowtimes } = await factory.waitComplete(createBatchId)
 
-            const conflictBatchId = await factory.createShowtimes({
+            await listener.waitComplete(createBatchId)
+            const { body } = await client.get().query({ batchId: createBatchId }).ok()
+            const createdShowtimes = body.items
+
+            const conflictBatchId = await createShowtimes(client, {
+                movieId,
+                theaterIds,
                 durationMinutes: 30,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -177,7 +195,7 @@ describe('/showtimes', () => {
                 ]
             })
 
-            const { conflictShowtimes } = await factory.waitFail(conflictBatchId)
+            const { conflictShowtimes } = await listener.waitFail(conflictBatchId)
 
             const expectedShowtimes = createdShowtimes.filter((showtime: ShowtimeDto) =>
                 [

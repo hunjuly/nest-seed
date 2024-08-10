@@ -1,7 +1,7 @@
 import { padNumber } from 'common'
 import { HttpClient } from 'common/test'
 
-export const makeTheaterDtos = (overrides = {}) => {
+export const makeTheaterDto = (overrides = {}) => {
     const createDto = {
         name: `theater name`,
         latlong: { latitude: 38.123, longitude: 138.678 },
@@ -15,7 +15,7 @@ export const makeTheaterDtos = (overrides = {}) => {
 }
 
 export const createTheater = async (client: HttpClient, override = {}) => {
-    const { createDto } = makeTheaterDtos(override)
+    const { createDto } = makeTheaterDto(override)
     const { body } = await client.post('/theaters', false).body(createDto).created()
     return body
 }

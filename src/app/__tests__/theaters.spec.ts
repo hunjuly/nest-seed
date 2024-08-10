@@ -8,7 +8,7 @@ import {
     createHttpTestContext,
     expectEqualUnsorted
 } from 'common/test'
-import { createTheater, createTheaters, makeTheaterDtos } from './theaters.fixture'
+import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
@@ -25,7 +25,7 @@ describe('/theaters', () => {
 
     describe('POST /theaters', () => {
         it('should create a theater and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeTheaterDtos()
+            const { createDto, expectedDto } = makeTheaterDto()
 
             const { body } = await client.post().body(createDto).created()
 

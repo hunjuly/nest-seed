@@ -8,7 +8,7 @@ import {
     createHttpTestContext,
     expectEqualUnsorted
 } from 'common/test'
-import { createMovie, createMovies, makeMovieDtos } from './movies.fixture'
+import { createMovie, createMovies, makeMovieDto } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
@@ -25,7 +25,7 @@ describe('/movies', () => {
 
     describe('POST /movies', () => {
         it('should create a movie and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeMovieDtos()
+            const { createDto, expectedDto } = makeMovieDto()
 
             const { body } = await client.post().body(createDto).created()
 

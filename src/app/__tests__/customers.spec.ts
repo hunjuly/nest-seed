@@ -9,7 +9,7 @@ import {
     createHttpTestContext,
     expectEqualUnsorted
 } from 'common/test'
-import { createCustomer, createCustomers, makeCustomerDtos } from './customers.fixture'
+import { createCustomer, createCustomers, makeCustomerDto } from './customers.fixture'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -29,7 +29,7 @@ describe('/customers', () => {
 
     describe('POST /customers', () => {
         it('should create a customer and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeCustomerDtos()
+            const { createDto, expectedDto } = makeCustomerDto()
 
             const { body } = await client.post().body(createDto).created()
 
@@ -37,7 +37,7 @@ describe('/customers', () => {
         })
 
         it('should return CONFLICT(409) when email already exists', async () => {
-            const { createDto } = makeCustomerDtos()
+            const { createDto } = makeCustomerDto()
 
             await client.post().body(createDto).created()
             await client.post().body(createDto).conflict()

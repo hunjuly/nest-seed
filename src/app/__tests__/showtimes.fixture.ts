@@ -4,40 +4,29 @@ import { MoviesController, ShowtimesController, TheatersController } from 'app/c
 import { CoreModule } from 'app/core'
 import {
     CreateShowtimesDto,
-    ShowtimeDto,
     ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
     ShowtimesCreateEvent,
     ShowtimesCreateFailEvent,
-    ShowtimesModule,
-    ShowtimesService
+    ShowtimesModule
 } from 'app/services/showtimes'
-import { addMinutes, pickIds } from 'common'
-import { createHttpTestContext } from 'common/test'
-import { MovieDto, MoviesModule } from '../services/movies'
-import { TheaterDto, TheatersModule } from '../services/theaters'
+import { addMinutes } from 'common'
+import { createHttpTestContext, HttpClient } from 'common/test'
+import { MoviesModule } from '../services/movies'
+import { TheatersModule } from '../services/theaters'
 import { createMovie } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
 import { BatchEventListener } from './utils'
 
 @Injectable()
-export class ShowtimesFactory extends BatchEventListener {
-    movie: MovieDto | undefined
-    theaters: TheaterDto[] = []
-
-    constructor(private showtimesService: ShowtimesService) {
-        super()
-    }
-
+export class ShowtimesEventListener extends BatchEventListener {
     @OnEvent('showtimes.create.*', { async: true })
     onShowtimesCreateEvent(event: ShowtimesCreateEvent): void {
         this.handleEvent(event)
     }
 
     waitComplete = async (batchId: string) => {
-        await this.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
-        const createdShowtimes = await this.showtimesService.findShowtimesByBatchId(batchId)
-        return { createdShowtimes }
+        return this.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
     }
 
     waitFail = async (batchId: string) => {
@@ -54,55 +43,42 @@ export class ShowtimesFactory extends BatchEventListener {
     waitError = async (batchId: string) => {
         return this.awaitEvent(batchId, [ShowtimesCreateErrorEvent.eventName])
     }
+}
 
-    setupTestData(movie: MovieDto, theaters: TheaterDto[]) {
-        this.movie = movie
-        this.theaters = theaters
-    }
+export const createShowtimes = async (client: HttpClient, overrides = {}) => {
+    const { createDto } = makeCreateShowtimesDto(overrides)
+    const { body } = await client.post('/showtimes', false).body(createDto).accepted()
+    return body.batchId
+}
 
-    async createShowtimes(overrides = {}) {
-        const { batchId } = await this.showtimesService.createShowtimes(
-            this.makeCreateDto(overrides)
-        )
+export const makeCreateShowtimesDto = (overrides = {}) => {
+    const createDto = {
+        durationMinutes: 1,
+        startTimes: [new Date(0)],
+        ...overrides
+    } as CreateShowtimesDto
 
-        return batchId
-    }
+    if (!createDto.movieId || !createDto.theaterIds)
+        throw new Error('movie or theaters is not defined')
 
-    makeCreateDto(overrides = {}) {
-        const creationDto = {
-            movieId: this.movie?.id,
-            theaterIds: pickIds(this.theaters),
-            durationMinutes: 1,
-            startTimes: [new Date(0)],
-            ...overrides
-        } as CreateShowtimesDto
+    const expectedDtos = createDto.theaterIds.flatMap((theaterId) =>
+        createDto.startTimes.map((startTime) => ({
+            id: expect.anything(),
+            movieId: createDto.movieId,
+            theaterId,
+            startTime,
+            endTime: addMinutes(startTime, createDto.durationMinutes)
+        }))
+    )
 
-        if (!creationDto.movieId || !creationDto.theaterIds)
-            throw new Error('movie or theaters is not defined')
-
-        return creationDto
-    }
-
-    makeExpectedShowtimes(overrides = {}): ShowtimeDto[] {
-        const { movieId, theaterIds, startTimes, durationMinutes } = this.makeCreateDto(overrides)
-
-        return theaterIds.flatMap((theaterId) =>
-            startTimes.map((startTime) => ({
-                id: expect.anything(),
-                movieId,
-                theaterId,
-                startTime,
-                endTime: addMinutes(startTime, durationMinutes)
-            }))
-        )
-    }
+    return { createDto, expectedDtos }
 }
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
         imports: [CoreModule, MoviesModule, TheatersModule, ShowtimesModule],
         controllers: [ShowtimesController, MoviesController, TheatersController],
-        providers: [ShowtimesFactory]
+        providers: [ShowtimesEventListener]
     })
 
     const client = testContext.createClient('/movies')
@@ -110,9 +86,7 @@ export async function createFixture() {
     const theaters = await createTheaters(client, 2)
 
     const module = testContext.module
-    const showtimesService = module.get(ShowtimesService)
-    const factory = module.get(ShowtimesFactory)
-    factory.setupTestData(movie, theaters)
+    const listener = module.get(ShowtimesEventListener)
 
-    return { testContext, showtimesService, factory }
+    return { testContext, listener, movie, theaters }
 }
