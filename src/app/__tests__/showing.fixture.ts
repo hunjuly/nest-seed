@@ -7,7 +7,7 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { CoreModule } from 'app/global'
+import { CoreModule } from 'app/core'
 import { CustomerDto, CustomersModule } from 'app/services/customers'
 import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
 import { PaymentsModule, PaymentsService } from 'app/services/payments'

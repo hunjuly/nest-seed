@@ -18,7 +18,7 @@ import {
     ShowtimesController,
     PaymentsController
 } from 'app/controllers'
-import { CoreModule } from 'app/global'
+import { CoreModule } from 'app/core'
 import { CustomersModule } from 'app/services/customers'
 import { ShowtimesModule } from 'app/services/showtimes'
 

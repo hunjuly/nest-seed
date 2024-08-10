@@ -8,14 +8,14 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { CoreModule } from 'app/global'
+import { CoreModule } from './core'
 import { CustomersModule } from './services/customers'
 import { MoviesModule } from './services/movies'
 import { PaymentsModule } from './services/payments'
+import { ShowingModule } from './services/showing'
 import { ShowtimesModule } from './services/showtimes'
 import { TheatersModule } from './services/theaters'
 import { TicketsModule } from './services/tickets'
-import { ShowingModule } from './services/showing'
 
 @Module({
     imports: [

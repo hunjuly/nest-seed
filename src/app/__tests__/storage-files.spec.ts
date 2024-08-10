@@ -1,5 +1,5 @@
 import { StorageFilesController } from 'app/controllers'
-import { CoreModule } from 'app/global'
+import { CoreModule } from 'app/core'
 import { StorageFilesModule } from 'app/services/storage-files'
 import { StorageFileDto } from 'app/services/storage-files/dto'
 import { getChecksum, nullObjectId, Path } from 'common'
