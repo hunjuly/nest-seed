@@ -7,6 +7,8 @@ import {
     createShowtimes,
     makeCreateShowtimesDto
 } from './showtimes.fixture'
+import { createMovie } from './movies.fixture'
+import { createTheaters } from './theaters.fixture'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
@@ -20,8 +22,8 @@ describe('/showtimes', () => {
         testContext = fixture.testContext
         client = fixture.testContext.createClient('/showtimes')
         listener = fixture.listener
-        movieId = fixture.movie.id
-        theaterIds = pickIds(fixture.theaters)
+        movieId = (await createMovie(client)).id
+        theaterIds = pickIds(await createTheaters(client, 2))
     })
 
     afterEach(async () => {
@@ -30,7 +32,7 @@ describe('/showtimes', () => {
 
     describe('showtime creation', () => {
         it('should wait until showtime creation is completed', async () => {
-            const { createDto, expectedDtos } = makeCreateShowtimesDto({
+            const { createDto, expectedShowtimes } = makeCreateShowtimesDto({
                 movieId,
                 theaterIds,
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
@@ -40,7 +42,7 @@ describe('/showtimes', () => {
             await listener.waitComplete(body.batchId)
             const res = await client.get().query({ batchId: body.batchId }).ok()
 
-            expectEqualUnsorted(res.body.items, expectedDtos)
+            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
         it('should successfully complete all requests when multiple creation requests occur simultaneously', async () => {
@@ -48,7 +50,7 @@ describe('/showtimes', () => {
 
             const results = await Promise.all(
                 Array.from({ length }, async (_, index) => {
-                    const { createDto, expectedDtos } = makeCreateShowtimesDto({
+                    const { createDto, expectedShowtimes } = makeCreateShowtimesDto({
                         movieId,
                         theaterIds,
                         startTimes: [new Date(1900, index)]
@@ -58,12 +60,12 @@ describe('/showtimes', () => {
                     await listener.waitComplete(batchId)
                     const { body } = await client.get().query({ batchId }).ok()
 
-                    return { createdShowtimes: body.items, expectedDtos }
+                    return { createdShowtimes: body.items, expectedShowtimes }
                 })
             )
 
             const actual = results.flatMap((result) => result.createdShowtimes)
-            const expected = results.flatMap((result) => result.expectedDtos)
+            const expected = results.flatMap((result) => result.expectedShowtimes)
 
             expectEqualUnsorted(actual, expected)
         })
@@ -121,7 +123,7 @@ describe('/showtimes', () => {
                 startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
             })
             await listener.waitComplete(batchId)
-            const { body } = await client.get().query({ batchId: batchId }).ok()
+            const { body } = await client.get().query({ batchId }).ok()
             createdShowtimes = body.items
         })
 

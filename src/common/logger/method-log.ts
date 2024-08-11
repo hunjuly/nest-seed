@@ -14,7 +14,7 @@ const getParameterNames = (func: (...args: any[]) => any) => {
     return result || []
 }
 
-export function MethodLog(options: MethodLogOptions = {}) {
+export const MethodLog = (options: MethodLogOptions = {}): MethodDecorator => {
     const { level = 'log', excludeArgs = [] } = options
 
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {

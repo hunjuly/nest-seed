@@ -2,7 +2,14 @@ import { InjectQueue } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
-import { Assert, MethodLog, PaginationOption, PaginationResult, waitForQueueToEmpty } from 'common'
+import {
+    Assert,
+    maps,
+    MethodLog,
+    PaginationOption,
+    PaginationResult,
+    waitForQueueToEmpty
+} from 'common'
 import { ShowtimesCreateCompleteEvent } from '../showtimes'
 import { TicketDto, TicketsQueryDto } from './dto'
 import { TicketStatus } from './schemas'
@@ -39,45 +46,37 @@ export class TicketsService {
         )
 
         const tickets = await this.repository.findByIds(ticketIds)
-
-        return tickets.map((ticket) => new TicketDto(ticket))
+        return maps(tickets, TicketDto)
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTickets(
-        queryDto: TicketsQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<TicketDto>> {
-        const paginated = await this.repository.findTickets(queryDto, pagination)
+    async findTickets(queryDto: TicketsQueryDto, pagination: PaginationOption) {
+        const { items, ...paginated } = await this.repository.findTickets(queryDto, pagination)
 
-        return { ...paginated, items: paginated.items.map((item) => new TicketDto(item)) }
+        return { ...paginated, items: maps(items, TicketDto) } as PaginationResult<TicketDto>
     }
 
     @MethodLog({ level: 'verbose' })
     async findTicketsByShowtimeId(showtimeId: string) {
         const tickets = await this.repository.findTicketsByShowtimeId(showtimeId)
-
-        return tickets.map((ticket) => new TicketDto(ticket))
+        return maps(tickets, TicketDto)
     }
 
     @MethodLog({ level: 'verbose' })
     async findTicketsByBatchId(batchId: string) {
         const tickets = await this.repository.findByBatchId(batchId)
-
-        return tickets.map((ticket) => new TicketDto(ticket))
+        return maps(tickets, TicketDto)
     }
 
     @MethodLog({ level: 'verbose' })
     async findTicketsByIds(ticketIds: string[]) {
         const tickets = await this.repository.findByIds(ticketIds)
-
-        return tickets.map((ticket) => new TicketDto(ticket))
+        return maps(tickets, TicketDto)
     }
 
     @MethodLog({ level: 'verbose' })
     async getSalesStatuses(showtimeIds: string[]) {
         const statuses = await this.repository.getSalesStatuses(showtimeIds)
-
         return statuses
     }
 }

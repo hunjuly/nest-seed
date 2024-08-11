@@ -60,7 +60,7 @@ export class ShowtimesRepository extends MongoRepository<Showtime> {
 
     @MethodLog({ level: 'verbose' })
     async findShowtimesByBatchId(batchId: string) {
-        const showtimes = await this.model.find({ batchId: new ObjectId(batchId) }).exec()
+        const showtimes = await this.model.find({ batchId: objectId(batchId) }).exec()
         return showtimes as Showtime[]
     }
 

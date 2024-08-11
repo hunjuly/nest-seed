@@ -14,8 +14,6 @@ import { addMinutes } from 'common'
 import { createHttpTestContext, HttpClient } from 'common/test'
 import { MoviesModule } from '../services/movies'
 import { TheatersModule } from '../services/theaters'
-import { createMovie } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
 import { BatchEventListener } from './utils'
 
 @Injectable()
@@ -61,7 +59,7 @@ export const makeCreateShowtimesDto = (overrides = {}) => {
     if (!createDto.movieId || !createDto.theaterIds)
         throw new Error('movie or theaters is not defined')
 
-    const expectedDtos = createDto.theaterIds.flatMap((theaterId) =>
+    const expectedShowtimes = createDto.theaterIds.flatMap((theaterId) =>
         createDto.startTimes.map((startTime) => ({
             id: expect.anything(),
             movieId: createDto.movieId,
@@ -71,7 +69,7 @@ export const makeCreateShowtimesDto = (overrides = {}) => {
         }))
     )
 
-    return { createDto, expectedDtos }
+    return { createDto, expectedShowtimes }
 }
 
 export async function createFixture() {
@@ -81,12 +79,8 @@ export async function createFixture() {
         providers: [ShowtimesEventListener]
     })
 
-    const client = testContext.createClient('/movies')
-    const movie = await createMovie(client)
-    const theaters = await createTheaters(client, 2)
-
     const module = testContext.module
     const listener = module.get(ShowtimesEventListener)
 
-    return { testContext, listener, movie, theaters }
+    return { testContext, listener }
 }

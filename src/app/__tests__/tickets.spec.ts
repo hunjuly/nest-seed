@@ -1,21 +1,31 @@
-import { TicketDto, TicketsService } from 'app/services/tickets'
+import { TheaterDto } from 'app/services/theaters'
+import { TicketDto } from 'app/services/tickets'
 import { pickIds } from 'common'
 import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
-import { createFixture, TicketsFactory } from './tickets.fixture'
+import { createMovie } from './movies.fixture'
+import { createTheaters } from './theaters.fixture'
+import {
+    createFixture,
+    createTickets,
+    makeCreateTicketsDto,
+    TicketsEventListener
+} from './tickets.fixture'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
-    let req: HttpClient
-    let factory: TicketsFactory
-    let ticketsService: TicketsService
+    let client: HttpClient
+    let listener: TicketsEventListener
+    let movieId: string
+    let theaters: TheaterDto[]
 
     beforeEach(async () => {
         const fixture = await createFixture()
 
         testContext = fixture.testContext
-        req = fixture.testContext.createClient()
-        factory = fixture.factory
-        ticketsService = fixture.ticketsService
+        client = fixture.testContext.createClient('/tickets')
+        listener = fixture.listener
+        movieId = (await createMovie(client)).id
+        theaters = await createTheaters(client, 2)
     })
 
     afterEach(async () => {
@@ -23,18 +33,12 @@ describe('/tickets', () => {
         jest.restoreAllMocks()
     })
 
-    it('ShowtimesCreateCompletedEvent 이벤트를 수신해야 한다', async () => {
-        const spy = jest.spyOn(ticketsService, 'onShowtimesCreateComplete')
-
-        await factory.createTickets()
-
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({ batchId: expect.anything() }))
-    })
-
     it('티켓 생성에 성공하면 TicketsCreateCompleteEvent 이벤트가 발생해야 한다', async () => {
-        const spy = jest.spyOn(factory, 'onTicketsCreateCompleteEvent')
+        const spy = jest.spyOn(listener, 'onTicketsCreateCompleteEvent')
 
-        await factory.createTickets()
+        const { createDto } = makeCreateTicketsDto(theaters, { movieId })
+        const batchId = await createTickets(client, createDto)
+        await listener.waitComplete(batchId)
 
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({ batchId: expect.anything() }))
     })
@@ -45,8 +49,16 @@ describe('/tickets', () => {
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
                 const startTimes = [new Date(1900, index)]
-                const { createdTickets } = await factory.createTickets({ startTimes })
-                const expectedTickets = factory.makeExpectedTickets({ startTimes })
+                const { createDto, expectedTickets } = makeCreateTicketsDto(theaters, {
+                    movieId,
+                    startTimes
+                })
+
+                const batchId = await createTickets(client, createDto)
+                await listener.waitComplete(batchId)
+                const { body } = await client.get().query({ batchId }).ok()
+                const createdTickets = body.items
+
                 return { createdTickets, expectedTickets }
             })
         )
@@ -57,25 +69,27 @@ describe('/tickets', () => {
         expectEqualUnsorted(actual, expected)
     })
 
-    describe('Tickets Retrieval', () => {
+    describe('retrieve tickets', () => {
         let batchId: string
         let createdTickets: TicketDto[]
 
         beforeEach(async () => {
-            const res = await factory.createTickets()
-            batchId = res.batchId
-            createdTickets = res.createdTickets
+            const { createDto } = makeCreateTicketsDto(theaters, { movieId })
+            batchId = await createTickets(client, createDto)
+            await listener.waitComplete(batchId)
+            const { body } = await client.get().query({ batchId }).ok()
+            createdTickets = body.items
         })
 
         it('batchId로 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const res = await req.get('/tickets').query({ batchId }).ok()
+            const res = await client.get().query({ batchId }).ok()
 
             expectEqualUnsorted(res.body.items, createdTickets)
         })
 
         it('theaterId로 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const theaterId = factory.theaters[0].id
-            const res = await req.get('/tickets').query({ theaterId }).ok()
+            const theaterId = theaters[0].id
+            const res = await client.get().query({ theaterId }).ok()
 
             const filteredTickets = createdTickets.filter(
                 (ticket) => ticket.theaterId === theaterId
@@ -84,8 +98,8 @@ describe('/tickets', () => {
         })
 
         it('theaterIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const theaterIds = pickIds(factory.theaters)
-            const res = await req.get('/tickets').query({ theaterIds }).ok()
+            const theaterIds = pickIds(theaters)
+            const res = await client.get().query({ theaterIds }).ok()
 
             const filteredTickets = createdTickets.filter((ticket) =>
                 theaterIds.includes(ticket.theaterId)
@@ -96,14 +110,13 @@ describe('/tickets', () => {
         it('ticketIds로 조회하면 해당 티켓을 반환해야 한다', async () => {
             const partialTickets = createdTickets.slice(5, 10)
             const ticketIds = pickIds(partialTickets)
-            const res = await req.get('/tickets').query({ ticketIds }).ok()
+            const res = await client.get().query({ ticketIds }).ok()
 
             expectEqualUnsorted(res.body.items, partialTickets)
         })
 
         it('movieId로 조회하면 해당 티켓을 반환해야 한다', async () => {
-            const movieId = factory.movie.id
-            const res = await req.get('/tickets').query({ movieId }).ok()
+            const res = await client.get().query({ movieId }).ok()
 
             const filteredTickets = createdTickets.filter((ticket) => ticket.movieId === movieId)
             expectEqualUnsorted(res.body.items, filteredTickets)
