@@ -2,38 +2,37 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongooseRepository,
+    MongoRepository,
+    objectId,
+    objectIds,
     PaginationOption,
     PaginationResult,
     stringToObjectId
 } from 'common'
 import { Model } from 'mongoose'
-import { PaymentCreationDto, PaymentsQueryDto } from './dto'
+import { CreatePaymentDto, QueryPaymentsDto } from './dto'
 import { Payment } from './schemas'
 
 @Injectable()
-export class PaymentsRepository extends MongooseRepository<Payment> {
+export class PaymentsRepository extends MongoRepository<Payment> {
     constructor(@InjectModel(Payment.name) model: Model<Payment>) {
         super(model)
     }
 
     @MethodLog()
-    async createPayment(createDto: PaymentCreationDto) {
-        const dto = stringToObjectId(createDto)
+    async createPayment(createDto: CreatePaymentDto) {
+        const payment = this.newDocument()
+        payment.customerId = objectId(createDto.customerId)
+        payment.ticketIds = objectIds(createDto.ticketIds)
 
-        const customer = await this.create((doc) => {
-            doc.customerId = dto.customerId
-            doc.ticketIds = dto.ticketIds
-        })
-
-        return customer
+        return payment.save()
     }
 
     async findPayments(
-        queryDto: PaymentsQueryDto,
+        queryDto: QueryPaymentsDto,
         pagination: PaginationOption
     ): Promise<PaginationResult<Payment>> {
-        const paginated = await this.find((helpers) => {
+        const paginated = await this.findWithPagination((helpers) => {
             const { paymentId, ...query } = stringToObjectId(queryDto)
 
             if (paymentId) query._id = paymentId

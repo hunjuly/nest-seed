@@ -78,10 +78,6 @@ function isDataObject(value: unknown): boolean {
     )
 }
 
-export function newObjectId() {
-    return new ObjectId().toString()
-}
-
-export function objectId(id: string) {
-    return new ObjectId(id)
-}
+export const newObjectId = () => new ObjectId().toString()
+export const objectId = (id: string) => new ObjectId(id)
+export const objectIds = (ids: string[]) => ids.map((id) => objectId(id))

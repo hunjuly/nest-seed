@@ -6,8 +6,8 @@ export class PaymentDto {
     ticketIds: string[]
 
     constructor(payment: Payment) {
-        const { _id, customerId, ticketIds } = payment
+        const { id, customerId, ticketIds } = payment
 
-        Object.assign(this, { id: _id.toString(), customerId, ticketIds })
+        Object.assign(this, { id: id.toString(), customerId, ticketIds })
     }
 }

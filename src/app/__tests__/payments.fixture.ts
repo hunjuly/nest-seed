@@ -1,68 +1,42 @@
 import { AppModule } from 'app/app.module'
-import { MoviesModule, MoviesService } from 'app/services/movies'
-import { PaymentsModule, PaymentsService } from 'app/services/payments'
-import { TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule, TicketsService } from 'app/services/tickets'
-import { pickIds } from 'common'
-import { createHttpTestContext } from 'common/test'
+import { createHttpTestContext, HttpClient } from 'common/test'
+import {
+    createShowtimes,
+    makeCreateShowtimesDto,
+    ShowtimesEventListener
+} from './showtimes-registration.fixture'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
-import { ShowtimesEventListener } from './showtimes.fixture'
-import { createTheater } from './theaters.fixture'
-import { TicketsFactory } from './tickets.fixture'
-import {
-    CustomersController,
-    MoviesController,
-    TheatersController,
-    TicketsController,
-    ShowtimesController,
-    PaymentsController
-} from 'app/controllers'
-import { CoreModule } from 'app/core'
-import { CustomersModule } from 'app/services/customers'
-import { ShowtimesModule } from 'app/services/showtimes'
+import { createTheaters } from './theaters.fixture'
+import { CustomerDto } from 'app/services/customers'
+import { TicketDto } from 'app/services/tickets'
+import { pickIds } from 'common'
+import { CreatePaymentDto } from 'app/services/payments'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
-        // imports: [AppModule],
-        imports: [
-            CoreModule,
-            CustomersModule,
-            MoviesModule,
-            TheatersModule,
-            TicketsModule,
-            ShowtimesModule,
-            PaymentsModule
-        ],
-        controllers: [
-            CustomersController,
-            MoviesController,
-            TheatersController,
-            TicketsController,
-            ShowtimesController,
-            PaymentsController
-        ],
-        providers: [TicketsFactory, ShowtimesEventListener]
+        imports: [AppModule],
+        providers: [ShowtimesEventListener]
     })
 
     const module = testContext.module
-
-    const ticketFactory = module.get(TicketsFactory)
-    const moviesService = module.get(MoviesService)
-    const theatersService = module.get(TheatersService)
-    const ticketsService = module.get(TicketsService)
-    const paymentsService = testContext.module.get(PaymentsService)
+    const listener = module.get(ShowtimesEventListener)
 
     const client = testContext.createClient()
     const customer = await createCustomer(client)
-    const movie = await createMovie(moviesService)
-    const theaters = [await createTheater(theatersService)]
+    const movie = await createMovie(client)
+    const theaters = await createTheaters(client, 2)
+    const { createDto } = makeCreateShowtimesDto(movie, theaters)
+    const { tickets } = await createShowtimes(client, createDto, listener)
 
-    ticketFactory.setupTestData(movie, theaters)
-    const { createdTickets } = await ticketFactory.createTickets({
-        movieId: movie.id,
-        theaterIds: pickIds(theaters)
-    })
+    return { testContext, customer, tickets }
+}
 
-    return { testContext, paymentsService, customer, createdTickets, ticketsService }
+export async function createPayment(client: HttpClient, createDto: CreatePaymentDto) {
+    const { body } = await client.post('/payments', false).body(createDto).created()
+    return body
+}
+
+export const makePaymentDto = (customer: CustomerDto, tickets: TicketDto[]) => {
+    return { customerId: customer.id, ticketIds: pickIds(tickets) }
 }

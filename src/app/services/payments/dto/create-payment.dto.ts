@@ -1,6 +1,6 @@
 import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator'
 
-export class PaymentCreationDto {
+export class CreatePaymentDto {
     @IsString()
     @IsNotEmpty()
     customerId: string

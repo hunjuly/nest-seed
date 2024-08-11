@@ -1,27 +1,23 @@
 import { expect } from '@jest/globals'
-import { PaymentDto, PaymentsService } from 'app/services/payments'
-import { TicketsService } from 'app/services/tickets'
+import { CustomerDto } from 'app/services/customers'
+import { PaymentDto } from 'app/services/payments'
+import { TicketDto } from 'app/services/tickets'
 import { pickIds } from 'common'
 import { HttpClient, HttpTestContext } from 'common/test'
-import { createFixture } from './payments.fixture'
+import { createFixture, createPayment, makePaymentDto } from './payments.fixture'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
-    let req: HttpClient
-    let paymentsService: PaymentsService
-    let customerId: string
-    let ticketIds: string[]
-    let ticketsService: TicketsService
+    let client: HttpClient
+    let customer: CustomerDto
+    let tickets: TicketDto[]
 
     beforeEach(async () => {
         const fixture = await createFixture()
-
         testContext = fixture.testContext
-        req = fixture.testContext.createClient()
-        paymentsService = fixture.paymentsService
-        ticketsService = fixture.ticketsService
-        customerId = fixture.customer.id
-        ticketIds = pickIds(fixture.createdTickets)
+        client = fixture.testContext.createClient()
+        customer = fixture.customer
+        tickets = fixture.tickets
     })
 
     afterEach(async () => {
@@ -29,27 +25,35 @@ describe('/payments', () => {
     })
 
     const paymentCreationDto = (overrides = {}) => ({
-        customerId,
-        ticketIds,
+        customerId: customer.id,
+        ticketIds: pickIds(tickets),
         ...overrides
     })
 
     describe('POST /payments', () => {
         it('should create a payment and return CREATED status', async () => {
-            const res = await req.post('/payments').body(paymentCreationDto()).created()
+            const createDto = makePaymentDto(customer, tickets)
+            const payment = await createPayment(client, createDto)
 
-            expect(res.body).toEqual({ id: expect.anything(), ...paymentCreationDto() })
+            expect(payment).toEqual({ id: expect.anything(), ...paymentCreationDto() })
         })
 
         it('BAD_REQUEST(400) if required fields are missing', async () => {
-            return req.post('/payments').body({}).badRequest()
+            return client.post('/payments').body({}).badRequest()
         })
 
         it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
-            await req.post('/payments').body(paymentCreationDto()).created()
+            const createDto = makePaymentDto(customer, tickets)
+            await createPayment(client, createDto)
 
-            const tickets = await ticketsService.findTicketsByIds(ticketIds)
-            const notSoldTickets = tickets.filter((ticket) => ticket.status !== 'sold')
+            const { body } = await client
+                .get('/tickets')
+                .query({ ticketIds: pickIds(tickets) })
+                .ok()
+
+            const notSoldTickets = body.items.filter(
+                (ticket: TicketDto) => ticket.status !== 'sold'
+            )
             expect(notSoldTickets).toHaveLength(0)
         })
     })
@@ -58,18 +62,17 @@ describe('/payments', () => {
         let payment: PaymentDto
 
         beforeEach(async () => {
-            payment = await paymentsService.createPayment(paymentCreationDto())
+            const createDto = makePaymentDto(customer, tickets)
+            payment = await createPayment(client, createDto)
         })
 
         it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
-            const res = await req.get('/payments').query({ paymentId: payment.id }).ok()
-
+            const res = await client.get('/payments').query({ paymentId: payment.id }).ok()
             expect(res.body.items).toEqual([payment])
         })
 
         it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
-            const res = await req.get('/payments').query({ customerId }).ok()
-
+            const res = await client.get('/payments').query({ customerId: customer.id }).ok()
             expect(res.body.items).toEqual([payment])
         })
     })

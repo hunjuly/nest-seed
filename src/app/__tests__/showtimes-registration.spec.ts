@@ -1,14 +1,14 @@
+import { MovieDto } from 'app/services/movies'
+import { TheaterDto } from 'app/services/theaters'
 import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common/test'
 import { createMovie } from './movies.fixture'
 import {
     ShowtimesEventListener,
     createFixture,
-    getResultsByBatchId,
+    createShowtimes,
     makeCreateShowtimesDto
 } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
-import { MovieDto } from 'app/services/movies'
-import { TheaterDto } from 'app/services/theaters'
 
 describe('showtimes-registration', () => {
     let testContext: HttpTestContext
@@ -30,17 +30,43 @@ describe('showtimes-registration', () => {
         await testContext?.close()
     })
 
-    it('should wait until showtime creation is completed', async () => {
+    it('선택한 영화에 대한 상영 시간 입력', async () => {
         const { createDto, expectedShowtimes, expectedTickets } = makeCreateShowtimesDto(
             movie,
             theaters,
             { startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')] }
         )
 
-        const { body } = await client.post().body(createDto).accepted()
-        const { showtimes, tickets } = await getResultsByBatchId(client, body.batchId, listener)
+        const { showtimes, tickets } = await createShowtimes(client, createDto, listener)
 
         expectEqualUnsorted(showtimes, expectedShowtimes)
         expectEqualUnsorted(tickets, expectedTickets)
+    })
+
+    it('should successfully complete all requests when multiple creation requests occur simultaneously', async () => {
+        const length = 100
+
+        const results = await Promise.all(
+            Array.from({ length }, async (_, index) => {
+                const { createDto, expectedShowtimes, expectedTickets } = makeCreateShowtimesDto(
+                    movie,
+                    theaters,
+                    { startTimes: [new Date(1900, index)] }
+                )
+
+                const { showtimes, tickets } = await createShowtimes(client, createDto, listener)
+
+                return { showtimes, tickets, expectedShowtimes, expectedTickets }
+            })
+        )
+
+        expectEqualUnsorted(
+            results.flatMap((result) => result.showtimes),
+            results.flatMap((result) => result.expectedShowtimes)
+        )
+        expectEqualUnsorted(
+            results.flatMap((result) => result.tickets),
+            results.flatMap((result) => result.expectedTickets)
+        )
     })
 })

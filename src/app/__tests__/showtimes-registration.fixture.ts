@@ -8,29 +8,45 @@ import {
     ShowtimesCreateEvent
 } from 'app/services/showtimes'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateEvent } from 'app/services/tickets'
-import { addMinutes, pickIds } from 'common'
+import { addMinutes, AppEvent, pickIds } from 'common'
 import { createHttpTestContext, HttpClient } from 'common/test'
 import { MovieDto } from '../services/movies'
 import { forEachSeats, Seat, TheaterDto } from '../services/theaters'
-import { BatchEventListener } from './utils'
+
+type PromiseHandlers = {
+    eventName: string
+    resolve: (value: unknown) => void
+    reject: (value: any) => void
+}
 
 @Injectable()
-export class ShowtimesEventListener extends BatchEventListener {
-    @OnEvent('*.create.request', { async: true })
-    onRequestEvent(_event: ShowtimesCreateEvent | TicketsCreateEvent): void {}
+export class ShowtimesEventListener {
+    private promises = new Map<string, PromiseHandlers>()
 
-    @OnEvent('*.create.complete', { async: true })
-    onCompleteEvent(event: ShowtimesCreateEvent | TicketsCreateEvent): void {
-        this.handleEvent(event)
+    protected handleEvent(event: AppEvent & { batchId: string }) {
+        const promise = this.promises.get(event.batchId)
+
+        if (!promise) {
+            throw new Error(`${event}를 찾지 못함. 동기화 오류 가능성 있음`)
+        }
+
+        if (promise.eventName === event.name) {
+            promise.resolve(event)
+        } else {
+            promise.reject(event)
+        }
+
+        this.promises.delete(event.batchId)
     }
 
-    @OnEvent('*.create.fail', { async: true })
-    onFailEvent(event: ShowtimesCreateEvent | TicketsCreateEvent): void {
-        this.handleEvent(event)
+    awaitEvent(batchId: string, eventName: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.promises.set(batchId, { eventName, resolve, reject })
+        })
     }
 
-    @OnEvent('*.create.error', { async: true })
-    onErrorEvent(event: ShowtimesCreateEvent | TicketsCreateEvent): void {
+    @OnEvent('**', { async: true })
+    onEvent(event: ShowtimesCreateEvent | TicketsCreateEvent): void {
         this.handleEvent(event)
     }
 }
@@ -60,36 +76,37 @@ export const makeCreateShowtimesDto = (movie: MovieDto, theaters: TheaterDto[], 
     const expectedTickets: TicketDto[] = expectedShowtimes.flatMap((showtime) => {
         const theater = theaters.find((theater) => theater.id === showtime.theaterId)!
 
-        return forEachSeats(theater.seatmap, (seat: Seat) => ({
-            id: expect.anything(),
-            showtimeId: showtime.id,
-            theaterId: showtime.theaterId,
-            movieId: showtime.movieId,
-            seat,
-            status: 'open'
-        }))
+        return theater.seatmap
+            ? forEachSeats(theater.seatmap, (seat: Seat) => ({
+                  id: expect.anything(),
+                  showtimeId: showtime.id,
+                  theaterId: showtime.theaterId,
+                  movieId: showtime.movieId,
+                  seat,
+                  status: 'open'
+              }))
+            : []
     })
 
     return { createDto, expectedShowtimes, expectedTickets }
 }
 
-export const createShowtimes = async (client: HttpClient, createDto: CreateShowtimesDto) => {
-    const { body } = await client.post('/showtimes', false).body(createDto).accepted()
-    return body.batchId
-}
-
-export const getResultsByBatchId = async (
+export const createShowtimes = async (
     client: HttpClient,
-    batchId: string,
+    createDto: CreateShowtimesDto,
     listener: ShowtimesEventListener
 ) => {
-    await listener.awaitEvent(batchId, [ShowtimesCreateCompleteEvent.eventName])
-    await listener.awaitEvent(batchId, [TicketsCreateCompleteEvent.eventName])
+    const { body } = await client.post('/showtimes', false).body(createDto).accepted()
+
+    const batchId = body.batchId
+
+    await listener.awaitEvent(batchId, ShowtimesCreateCompleteEvent.eventName)
+    await listener.awaitEvent(batchId, TicketsCreateCompleteEvent.eventName)
 
     const { body: showtimesBody } = await client.get('/showtimes', false).query({ batchId }).ok()
     const { body: ticketsBody } = await client.get('/tickets', false).query({ batchId }).ok()
 
-    return { showtimes: showtimesBody.items, tickets: ticketsBody.items }
+    return { batchId, showtimes: showtimesBody.items, tickets: ticketsBody.items }
 }
 
 export async function createFixture() {
