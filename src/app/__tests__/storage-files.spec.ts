@@ -154,8 +154,13 @@ describe('/storage-files', () => {
         })
 
         it('Delete a file', async () => {
+            const filePath = Path.join(Config.fileUpload.directory, `${uploadedFile.id}.file`)
+            expect(Path.existsSync(filePath)).toBeTruthy()
+
             await req.delete(`/storage-files/${uploadedFile.id}`).ok()
             await req.get(`/storage-files/${uploadedFile.id}`).notFound()
+
+            expect(Path.existsSync(filePath)).toBeFalsy()
         })
 
         it('NOT_FOUND(404) if file is not found', async () => {

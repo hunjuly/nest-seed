@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { Assert, DocumentId, getChecksum, MethodLog, Path } from 'common'
+import { DocumentId, getChecksum, MethodLog, Path } from 'common'
 import { Config } from 'config'
 import { pick } from 'lodash'
-import { StorageFileDto } from './dto'
+import { CreateStorageFileDto, StorageFileDto } from './dto'
 import { StorageFile } from './schemas'
 import { StorageFilesRepository } from './storage-files.repository'
 
@@ -19,15 +19,7 @@ export class StorageFilesService {
     }
 
     @MethodLog()
-    private async _saveFiles(
-        createDtos: {
-            originalname: string
-            filename: string
-            mimetype: string
-            size: number
-            path: string
-        }[]
-    ) {
+    private async _saveFiles(createDtos: CreateStorageFileDto[]) {
         const savedFiles = await this.repository.withTransaction(async (session) => {
             const storedFiles: StorageFile[] = []
 
@@ -53,23 +45,18 @@ export class StorageFilesService {
         }
     }
 
-    @MethodLog()
-    async deleteFile(fileId: string) {
-        await this.repository.deleteById(fileId)
-    }
-
     @MethodLog({ level: 'verbose' })
-    async getFile(fileId: string) {
-        const file = await this.repository.findById(fileId)
-
-        Assert.defined(file, `File with id ${fileId} must exist`)
-
+    async getStorageFile(fileId: string) {
+        const file = await this.repository.getStorageFile(fileId)
         return this.makeStorageFileDto(file!)
     }
 
-    async filesExist(fileIds: string[]): Promise<boolean> {
-        const fileExists = await this.repository.existsByIds(fileIds)
-        return fileExists
+    @MethodLog()
+    async deleteStorageFile(fileId: string) {
+        await this.repository.deleteStorageFile(fileId)
+
+        const targetPath = this.getStoragePath(fileId)
+        Path.delete(targetPath)
     }
 
     private makeStorageFileDto(file: StorageFile) {

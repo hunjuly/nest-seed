@@ -55,9 +55,8 @@ export class StorageFilesController {
     }
 
     @Get(':fileId')
-    // @UseGuards(StorageFileExistsGuard)
     async downloadFile(@Param('fileId') fileId: string) {
-        const file = await this.storageFileService.getFile(fileId)
+        const file = await this.storageFileService.getStorageFile(fileId)
 
         const readStream = createReadStream(file.storedPath)
 
@@ -69,8 +68,7 @@ export class StorageFilesController {
     }
 
     @Delete(':fileId')
-    // @UseGuards(StorageFileExistsGuard)
-    async deleteMovie(@Param('fileId') fileId: string) {
-        return this.storageFileService.deleteFile(fileId)
+    async deleteStorageFile(@Param('fileId') fileId: string) {
+        return this.storageFileService.deleteStorageFile(fileId)
     }
 }
