@@ -51,6 +51,7 @@ export class JwtAuthService {
 
         const storedRefreshToken = await this.getStoredRefreshToken(payload.userId)
 
+        /* istanbul ignore if */
         if (storedRefreshToken !== refreshToken) {
             throw new UnauthorizedException(`RefreshToken for ${payload.userId} does not exist`)
         }

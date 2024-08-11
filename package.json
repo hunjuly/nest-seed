@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "nest start --debug 9230 --watch",
-        "start:prod": "node dist/app/main",
+        "start:prod": "node _output/dist/app/main",
         "test": "rm -rf dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
         "test:all": "IGNORE_LOGGING_DURING_TESTING=true jest --coverage",
         "test:app": "IGNORE_LOGGING_DURING_TESTING=true jest --config ./jest.config.app.ts",

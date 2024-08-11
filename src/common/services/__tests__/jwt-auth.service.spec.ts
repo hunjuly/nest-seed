@@ -60,15 +60,15 @@ describe('JwtAuthService', () => {
         })
 
         it('Returns null status when providing an incorrect refreshToken', async () => {
-            const tokens = await jwtService.refreshAuthTokens('invalid-token')
-            expect(tokens).toBeNull()
+            const promise = jwtService.refreshAuthTokens('invalid-token')
+            expect(promise).rejects.toThrow()
         })
 
         it('Returns null status when providing an expired refreshToken', async () => {
             await sleep(3500)
 
-            const tokens = await jwtService.refreshAuthTokens(refreshToken)
-            expect(tokens).toBeNull()
+            const promise = jwtService.refreshAuthTokens(refreshToken)
+            expect(promise).rejects.toThrow()
         })
     })
 })

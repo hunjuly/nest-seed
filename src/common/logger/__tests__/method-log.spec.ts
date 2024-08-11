@@ -44,18 +44,18 @@ describe('@MethodLog()', () => {
     it('printLog', async () => {
         await service.printLog('Test User')
 
-        expect(mockLogger.log).toHaveBeenCalledWith('TestService.printLog completed', {
-            args: '["Test User"]',
+        expect(mockLogger.log).toHaveBeenCalledWith('TestService.printLog', {
+            args: ['Test User'],
             duration: expect.any(Number),
-            return: '"return value"'
+            return: 'return value'
         })
     })
 
     it('debugLog', async () => {
         await service.debugLog()
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('TestService.debugLog completed', {
-            args: '[]',
+        expect(mockLogger.debug).toHaveBeenCalledWith('TestService.debugLog', {
+            args: [],
             duration: expect.any(Number),
             return: undefined
         })
@@ -63,8 +63,8 @@ describe('@MethodLog()', () => {
 
     it('throwError', async () => {
         await expect(service.throwError('data')).rejects.toThrow()
-        expect(mockLogger.error).toHaveBeenCalledWith('TestService.throwError failed', {
-            args: '["data"]',
+        expect(mockLogger.error).toHaveBeenCalledWith('TestService.throwError', {
+            args: ['data'],
             duration: expect.any(Number),
             error: 'error message'
         })
@@ -73,8 +73,8 @@ describe('@MethodLog()', () => {
     it('syncMethod', async () => {
         await service.syncMethod()
 
-        expect(mockLogger.log).toHaveBeenCalledWith('TestService.syncMethod completed', {
-            args: '[]',
+        expect(mockLogger.log).toHaveBeenCalledWith('TestService.syncMethod', {
+            args: [],
             duration: expect.any(Number),
             return: undefined
         })

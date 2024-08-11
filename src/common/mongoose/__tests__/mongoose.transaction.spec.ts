@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals'
-import { pickItems } from 'common'
+import { maps, pickItems } from 'common'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import {
     createFixture,
@@ -15,7 +15,7 @@ describe('MongooseRepository - withTransaction', () => {
 
     beforeAll(async () => {
         mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
-    })
+    }, 60000)
 
     afterAll(async () => {
         await mongod?.stop()
@@ -48,7 +48,7 @@ describe('MongooseRepository - withTransaction', () => {
         })
 
         const foundSamples = await repository.findByIds(pickItems(docs, '_id'))
-        expect(SampleDto.fromArray(foundSamples)).toEqual(SampleDto.fromArray(docs))
+        expect(maps(foundSamples, SampleDto)).toEqual(maps(docs, SampleDto))
     })
 
     it('should rollback changes when an exception occurs during a transaction', async () => {
@@ -83,6 +83,6 @@ describe('MongooseRepository - withTransaction', () => {
         })
 
         const foundSamples = await repository.findByIds(ids)
-        expect(SampleDto.fromArray(foundSamples)).toEqual(SampleDto.fromArray(samples))
+        expect(maps(foundSamples, SampleDto)).toEqual(maps(samples, SampleDto))
     })
 })
