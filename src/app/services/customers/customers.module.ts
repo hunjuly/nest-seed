@@ -19,7 +19,7 @@ import { PassportModule } from '@nestjs/passport'
         CustomerLocalStrategy,
         CustomerJwtStrategy,
         JwtAuthService,
-        { provide: 'AuthConfig', useValue: Config.auth }
+        { provide: 'AuthConfig', useFactory: () => Config.auth }
     ],
     exports: [CustomersService]
 })

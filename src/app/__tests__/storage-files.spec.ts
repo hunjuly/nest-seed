@@ -7,19 +7,6 @@ import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } f
 import { Config } from 'config'
 import { writeFile } from 'fs/promises'
 
-jest.mock('config', () => ({
-    ...jest.requireActual('config'),
-    Config: {
-        ...jest.requireActual('config').Config,
-        fileUpload: {
-            directory: './uploads',
-            maxFileSizeBytes: 1024 * 1024 * 100,
-            maxFilesPerUpload: 2,
-            allowedMimeTypes: ['image/*', 'text/plain']
-        }
-    }
-}))
-
 describe('/storage-files', () => {
     let testContext: HttpTestContext
     let req: HttpClient
@@ -51,7 +38,12 @@ describe('/storage-files', () => {
     })
 
     beforeEach(async () => {
-        Config.fileUpload.directory = await Path.createTempDirectory()
+        Config.fileUpload = {
+            directory: await Path.createTempDirectory(),
+            maxFileSizeBytes: 1024 * 1024 * 100,
+            maxFilesPerUpload: 2,
+            allowedMimeTypes: ['image/*', 'text/plain']
+        }
 
         testContext = await createHttpTestContext({
             imports: [CoreModule, StorageFilesModule],

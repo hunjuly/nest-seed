@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongoRepository,
+    MongooseRepository,
     PaginationOption,
     PaginationResult,
     stringToObjectId
@@ -13,7 +13,7 @@ import { CreateTheaterDto, QueryTheatersDto, UpdateTheaterDto } from './dto'
 import { Theater } from './schemas'
 
 @Injectable()
-export class TheatersRepository extends MongoRepository<Theater> {
+export class TheatersRepository extends MongooseRepository<Theater> {
     constructor(@InjectModel(Theater.name) model: Model<Theater>) {
         super(model)
     }

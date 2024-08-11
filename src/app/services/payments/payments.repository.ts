@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongoRepository,
+    MongooseRepository,
     objectId,
     objectIds,
     PaginationOption,
@@ -14,7 +14,7 @@ import { CreatePaymentDto, QueryPaymentsDto } from './dto'
 import { Payment } from './schemas'
 
 @Injectable()
-export class PaymentsRepository extends MongoRepository<Payment> {
+export class PaymentsRepository extends MongooseRepository<Payment> {
     constructor(@InjectModel(Payment.name) model: Model<Payment>) {
         super(model)
     }

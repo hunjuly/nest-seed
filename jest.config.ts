@@ -11,8 +11,7 @@ const config: Config = {
         '^app/(.*)$': '<rootDir>/src/app/$1',
         '^common$': '<rootDir>/src/common/index',
         '^common/test$': '<rootDir>/src/common/test/index',
-        '^config$': '<rootDir>/src/config/index',
-        '^databases/(.*)$': '<rootDir>/src/databases/$1'
+        '^config$': '<rootDir>/src/config/index'
     },
     testEnvironment: 'node',
     transform: {

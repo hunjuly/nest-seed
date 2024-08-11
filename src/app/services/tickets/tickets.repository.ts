@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
     MongooseUpdateResult,
-    MongoRepository,
+    MongooseRepository,
     objectId,
     ObjectId,
     PaginationOption,
@@ -16,7 +16,7 @@ import { TicketSalesStatusDto, TicketsQueryDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
 
 @Injectable()
-export class TicketsRepository extends MongoRepository<Ticket> {
+export class TicketsRepository extends MongooseRepository<Ticket> {
     constructor(@InjectModel(Ticket.name) model: Model<Ticket>) {
         super(model)
     }

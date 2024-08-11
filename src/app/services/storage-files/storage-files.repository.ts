@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { MethodLog, MongoRepository, SchemeBody } from 'common'
+import { MethodLog, MongooseRepository, SchemeBody } from 'common'
 import { ClientSession, Model } from 'mongoose'
 import { StorageFile } from './schemas'
 
 @Injectable()
-export class StorageFilesRepository extends MongoRepository<StorageFile> {
+export class StorageFilesRepository extends MongooseRepository<StorageFile> {
     constructor(@InjectModel(StorageFile.name) model: Model<StorageFile>) {
         super(model)
     }

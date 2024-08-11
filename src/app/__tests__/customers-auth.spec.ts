@@ -3,23 +3,7 @@ import { AppModule } from 'app/app.module'
 import { nullObjectId, sleep } from 'common'
 import { createHttpTestContext, HttpClient, HttpTestContext } from 'common/test'
 import { createCredentials, Credentials } from './customers-auth.fixture'
-
-jest.mock('config', () => {
-    const { Config, ...rest } = jest.requireActual('config')
-
-    return {
-        ...rest,
-        Config: {
-            ...Config,
-            auth: {
-                accessSecret: 'mockAccessSecret',
-                accessTokenExpiration: '3s',
-                refreshSecret: 'mockRefreshSecret',
-                refreshTokenExpiration: '3s'
-            }
-        }
-    }
-})
+import { Config } from 'config'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
@@ -27,6 +11,13 @@ describe('/customers', () => {
     let credentials: Credentials
 
     beforeEach(async () => {
+        Config.auth = {
+            accessSecret: 'mockAccessSecret',
+            accessTokenExpiration: '3s',
+            refreshSecret: 'mockRefreshSecret',
+            refreshTokenExpiration: '3s'
+        }
+
         testContext = await createHttpTestContext({ imports: [AppModule] })
         client = testContext.createClient('/customers')
         credentials = await createCredentials(client)

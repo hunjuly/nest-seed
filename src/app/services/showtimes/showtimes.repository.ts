@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongoRepository,
+    MongooseRepository,
     objectId,
     ObjectId,
     PaginationOption,
@@ -15,7 +15,7 @@ import { QueryShowtimesDto } from './dto'
 import { Showtime } from './schemas'
 
 @Injectable()
-export class ShowtimesRepository extends MongoRepository<Showtime> {
+export class ShowtimesRepository extends MongooseRepository<Showtime> {
     constructor(@InjectModel(Showtime.name) model: Model<Showtime>) {
         super(model)
     }

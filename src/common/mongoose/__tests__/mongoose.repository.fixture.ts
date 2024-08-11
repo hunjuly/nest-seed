@@ -1,6 +1,6 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { createMongooseSchema, MongooseSchema, MongoRepository, padNumber } from 'common'
+import { createMongooseSchema, MongooseSchema, MongooseRepository, padNumber } from 'common'
 import { createTestingModule } from 'common/test'
 import { Connection, HydratedDocument, Model } from 'mongoose'
 
@@ -24,7 +24,7 @@ export class SampleDto {
 }
 
 @Injectable()
-export class SamplesRepository extends MongoRepository<SampleSchema> {
+export class SamplesRepository extends MongooseRepository<SampleSchema> {
     constructor(@InjectModel(SampleSchema.name) model: Model<SampleSchema>) {
         super(model)
     }

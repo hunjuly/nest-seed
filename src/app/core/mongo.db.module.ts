@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
-import { isDevelopment } from 'config'
-import { mongoDatasource } from 'databases/mongo'
+import { mongoDataSource, isDevelopment } from 'config'
 
 const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
     const connectionFactory = async (connection: any) => {
@@ -11,7 +10,7 @@ const mongoModuleConfig = (): MongooseModuleFactoryOptions => {
     }
 
     const options = {
-        ...mongoDatasource,
+        ...mongoDataSource(),
         autoIndex: isDevelopment(),
         autoCreate: isDevelopment(),
         bufferCommands: true,

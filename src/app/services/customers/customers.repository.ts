@@ -2,7 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongoRepository,
+    MongooseRepository,
     PaginationOption,
     PaginationResult,
     stringToObjectId
@@ -13,7 +13,7 @@ import { CreateCustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
 import { Customer } from './schemas'
 
 @Injectable()
-export class CustomersRepository extends MongoRepository<Customer> {
+export class CustomersRepository extends MongooseRepository<Customer> {
     constructor(@InjectModel(Customer.name) model: Model<Customer>) {
         super(model)
     }
