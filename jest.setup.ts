@@ -14,5 +14,5 @@ global.beforeAll(async () => {
     const testPath = expect.getState().testPath ?? ''
     const uniqueId = createHash('md5').update(testPath).digest('hex')
 
-    ;(global as any).__JEST_UNIQUE_ID__ = uniqueId
+    ;(global as any).JEST_UNIQUE_ID = uniqueId
 })

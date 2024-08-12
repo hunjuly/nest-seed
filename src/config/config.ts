@@ -71,7 +71,7 @@ export const mongoDataSource = () => {
     const { user, pass, host1, host2, host3, port, replica, database } = Config.mongo
     notUsed(host3, '3개를 다 적을 필요는 없다')
     const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
-    const uniqueId = (global as any).__JEST_UNIQUE_ID__
+    const uniqueId = (global as any).JEST_UNIQUE_ID
     const dbName = uniqueId ? 'test_' + uniqueId : database
 
     return { uri, dbName }

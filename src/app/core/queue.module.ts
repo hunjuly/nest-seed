@@ -8,7 +8,7 @@ import { Config } from 'config'
         BullModule.forRootAsync({
             useFactory: async () => {
                 return {
-                    prefix: (global as any).__JEST_UNIQUE_ID__ ?? 'queue',
+                    prefix: (global as any).JEST_UNIQUE_ID ?? 'queue',
                     redis: { ...Config.redis }
                 }
             }
