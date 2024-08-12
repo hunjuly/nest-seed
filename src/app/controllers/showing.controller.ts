@@ -4,11 +4,11 @@ import { convertStringToDate, LatLong, LatLongQuery } from 'common'
 
 @Controller('showing')
 export class ShowingController {
-    constructor(private showingService: ShowingService) {}
+    constructor(private service: ShowingService) {}
 
     @Get('movies/recommended')
     async getRecommendedMovies(@Query('customerId') customerId: string) {
-        return this.showingService.getRecommendedMovies(customerId)
+        return this.service.getRecommendedMovies(customerId)
     }
 
     @Get('movies/:movieId/theaters')
@@ -16,12 +16,12 @@ export class ShowingController {
         @Param('movieId') movieId: string,
         @LatLongQuery('userLocation') userLocation: LatLong
     ) {
-        return this.showingService.findShowingTheaters(movieId, userLocation)
+        return this.service.findShowingTheaters(movieId, userLocation)
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates')
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
-        return this.showingService.findShowdates(movieId, theaterId)
+        return this.service.findShowdates(movieId, theaterId)
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
@@ -30,11 +30,11 @@ export class ShowingController {
         @Param('theaterId') theaterId: string,
         @Param('showdate') showdate: string
     ) {
-        return this.showingService.findShowtimes(movieId, theaterId, convertStringToDate(showdate))
+        return this.service.findShowtimes(movieId, theaterId, convertStringToDate(showdate))
     }
 
     @Get('showtimes/:showtimeId/tickets')
     async findTickets(@Param('showtimeId') showtimeId: string) {
-        return this.showingService.findTickets(showtimeId)
+        return this.service.findTickets(showtimeId)
     }
 }

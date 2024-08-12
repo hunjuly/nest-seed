@@ -3,11 +3,11 @@ import { TestModule } from './filters.fixture'
 
 describe('common/filters', () => {
     let testContext: HttpTestContext
-    let req: HttpClient
+    let client: HttpClient
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [TestModule] })
-        req = testContext.createClient()
+        client = testContext.client
         testContext.app.useLogger(false)
     })
 
@@ -16,14 +16,14 @@ describe('common/filters', () => {
     })
 
     it('ErrorFilter', async () => {
-        return req.get('/error').internalServerError()
+        return client.get('/error').internalServerError()
     })
 
     it('HttpExceptionFilter', async () => {
-        return req.get('/http-exception').badRequest()
+        return client.get('/http-exception').badRequest()
     })
 
     it('HttpSuccessInterceptor', async () => {
-        return req.get('/http-success').ok()
+        return client.get('/http-success').ok()
     })
 })

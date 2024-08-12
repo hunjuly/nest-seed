@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UsePipes
+} from '@nestjs/common'
 import {
     CreateTheaterDto,
     QueryTheatersDto,
@@ -36,7 +48,13 @@ export class TheatersController {
 
     @Get()
     @UsePipes(new PaginationPipe(50))
-    async findTheaters(@Query() query: QueryTheatersDto, @Query() pagination: PaginationOption) {
-        return this.service.findTheaters(query, pagination)
+    async findTheaters(@Query() queryDto: QueryTheatersDto, @Query() pagination: PaginationOption) {
+        return this.service.findTheaters(queryDto, pagination)
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('getByIds')
+    async getByIds(@Body('theaterIds') theaterIds: string[]) {
+        return this.service.getTheatersByIds(theaterIds)
     }
 }

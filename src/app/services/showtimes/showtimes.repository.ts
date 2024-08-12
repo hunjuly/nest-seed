@@ -106,8 +106,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
             { $group: { _id: '$date' } },
             { $sort: { _id: 1 } }
         ])
-        // TODO id to date
-        return showdates.map((item) => new Date(item.id))
+
+        return showdates.map((item) => new Date(item._id))
     }
 
     @MethodLog({ level: 'verbose' })

@@ -52,11 +52,13 @@ export class CustomersController {
 
     @UsePipes(new PaginationPipe(50))
     @Get()
-    async findCustomers(@Query() query: QueryCustomersDto, @Query() pagination: PaginationOption) {
-        return this.service.findCustomers(query, pagination)
+    async findCustomers(
+        @Query() queryDto: QueryCustomersDto,
+        @Query() pagination: PaginationOption
+    ) {
+        return this.service.findCustomers(queryDto, pagination)
     }
 
-    @Public()
     @UseGuards(CustomerLocalAuthGuard)
     @Post('login')
     async login(@Req() req: { user: CustomerDto }) {

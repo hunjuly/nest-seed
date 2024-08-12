@@ -26,8 +26,8 @@ export async function createFixture() {
     const customer = await createCustomer(client)
     const movie = await createMovie(client)
     const theaters = await createTheaters(client, 2)
-    const { createDto } = makeCreateShowtimesDto(movie, theaters)
-    const { tickets } = await createShowtimes(client, createDto, listener)
+    const { createDto: createShowtimesDto } = makeCreateShowtimesDto(movie, theaters)
+    const { tickets } = await createShowtimes(client, createShowtimesDto, listener)
 
     return { testContext, customer, tickets }
 }
@@ -37,6 +37,6 @@ export async function createPayment(client: HttpClient, createDto: CreatePayment
     return body
 }
 
-export const makePaymentDto = (customer: CustomerDto, tickets: TicketDto[]) => {
+export const makeCreatePaymentDto = (customer: CustomerDto, tickets: TicketDto[]) => {
     return { customerId: customer.id, ticketIds: pickIds(tickets) }
 }

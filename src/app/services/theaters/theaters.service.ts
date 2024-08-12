@@ -1,8 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { Expect, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
+import { Injectable } from '@nestjs/common'
+import { maps, MethodLog, PaginationOption, PaginationResult } from 'common'
 import { CreateTheaterDto, QueryTheatersDto, TheaterDto, UpdateTheaterDto } from './dto'
 import { TheatersRepository } from './theaters.repository'
-import { uniq, differenceWith } from 'lodash'
 
 @Injectable()
 export class TheatersService {
@@ -40,23 +39,7 @@ export class TheatersService {
 
     @MethodLog({ level: 'verbose' })
     async getTheatersByIds(theaterIds: string[]) {
-        const uniqueIds = uniq(theaterIds)
-
-        Expect.equalLength(
-            uniqueIds,
-            theaterIds,
-            `Duplicate theater IDs are not allowed:${theaterIds}`
-        )
-
-        const theaters = await this.repository.findByIds(uniqueIds)
-        const notFoundIds = differenceWith(uniqueIds, theaters, (id, theater) => id === theater.id)
-
-        if (notFoundIds.length > 0) {
-            throw new NotFoundException(
-                `One or more theaters with IDs ${notFoundIds.join(', ')} not found`
-            )
-        }
-
+        const theaters = await this.repository.getTheatersByIds(theaterIds)
         return maps(theaters, TheaterDto)
     }
 

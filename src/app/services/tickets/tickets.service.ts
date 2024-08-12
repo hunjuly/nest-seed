@@ -58,13 +58,7 @@ export class TicketsService {
 
     @MethodLog({ level: 'verbose' })
     async findTicketsByShowtimeId(showtimeId: string) {
-        const tickets = await this.repository.findTicketsByShowtimeId(showtimeId)
-        return maps(tickets, TicketDto)
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async findTicketsByBatchId(batchId: string) {
-        const tickets = await this.repository.findByBatchId(batchId)
+        const tickets = await this.repository.findByShowtimeId(showtimeId)
         return maps(tickets, TicketDto)
     }
 

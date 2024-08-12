@@ -100,7 +100,6 @@ export class ShowingService {
     @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
-
         return showdates
     }
 
@@ -133,7 +132,6 @@ export class ShowingService {
     @MethodLog({ level: 'verbose' })
     async findTickets(showtimeId: string) {
         const tickets = await this.ticketsService.findTicketsByShowtimeId(showtimeId)
-
         return tickets
     }
 }

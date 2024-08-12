@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
+    Expect,
     MethodLog,
     MongooseRepository,
     PaginationOption,
     PaginationResult,
     stringToObjectId
 } from 'common'
-import { escapeRegExp } from 'lodash'
+import { differenceWith, escapeRegExp, uniq } from 'lodash'
 import { Model } from 'mongoose'
 import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { Movie } from './schemas'
@@ -73,5 +74,22 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         }, pagination)
 
         return paginated as PaginationResult<Movie>
+    }
+
+    async getMoviesByIds(movieIds: string[]) {
+        const uniqueIds = uniq(movieIds)
+
+        Expect.equalLength(uniqueIds, movieIds, `Duplicate movie IDs are not allowed:${movieIds}`)
+
+        const movies = await this.findByIds(uniqueIds)
+        const notFoundIds = differenceWith(uniqueIds, movies, (id, movie) => id === movie.id)
+
+        if (notFoundIds.length > 0) {
+            throw new NotFoundException(
+                `One or more movies with IDs ${notFoundIds.join(', ')} not found`
+            )
+        }
+
+        return movies
     }
 }

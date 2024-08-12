@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { AppModule } from 'app/app.module'
 import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId } from 'common'
+import { nullObjectId, pickIds } from 'common'
 import {
     HttpClient,
     HttpTestContext,
@@ -45,7 +45,11 @@ describe('/theaters', () => {
         })
 
         it('should update a theater', async () => {
-            const updateDto = { name: `Update-Name`, latlong: { latitude: 30.0, longitude: 120.0 } }
+            const updateDto = {
+                name: `Update-Name`,
+                latlong: { latitude: 30.0, longitude: 120.0 },
+                seatmap: []
+            }
 
             const updated = await client.patch(`/theaters/${theater.id}`).body(updateDto).ok()
             expect(updated.body).toEqual({ ...theater, ...updateDto })
@@ -118,6 +122,37 @@ describe('/theaters', () => {
 
             const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
             expectEqualUnsorted(body.items, expected)
+        })
+
+        it('should retrieve theaters by id', async () => {
+            const partialName = 'Theater-'
+            const { body } = await client.get('/theaters').query({ name: partialName }).ok()
+
+            const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
+            expectEqualUnsorted(body.items, expected)
+        })
+    })
+
+    describe('POST /theaters/getByIds', () => {
+        let theaters: TheaterDto[]
+
+        beforeEach(async () => {
+            theaters = await createTheaters(client)
+        })
+
+        it('should retrieve theaters with theaterIds', async () => {
+            const expectedTheaters = theaters.slice(0, 5)
+            const queryDto = { theaterIds: pickIds(expectedTheaters) }
+
+            const { body } = await client.post('/theaters/getByIds').body(queryDto).ok()
+
+            expectEqualUnsorted(body, expectedTheaters)
+        })
+
+        it('should return NOT_FOUND(404) when theater does not exist', async () => {
+            const queryDto = { theaterIds: [nullObjectId] }
+
+            return client.post('/theaters/getByIds').body(queryDto).notFound()
         })
     })
 })

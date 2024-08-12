@@ -1,6 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { Expect, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
-import { differenceWith, uniq } from 'lodash'
+import { Injectable } from '@nestjs/common'
+import { maps, MethodLog, PaginationOption, PaginationResult } from 'common'
 import { CreateMovieDto, MovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
@@ -40,19 +39,7 @@ export class MoviesService {
 
     @MethodLog({ level: 'verbose' })
     async getMoviesByIds(movieIds: string[]) {
-        const uniqueIds = uniq(movieIds)
-
-        Expect.equalLength(uniqueIds, movieIds, `Duplicate movie IDs are not allowed:${movieIds}`)
-
-        const movies = await this.repository.findByIds(uniqueIds)
-        const notFoundIds = differenceWith(uniqueIds, movies, (id, movie) => id === movie.id)
-
-        if (notFoundIds.length > 0) {
-            throw new NotFoundException(
-                `One or more movies with IDs ${notFoundIds.join(', ')} not found`
-            )
-        }
-
+        const movies = await this.repository.getMoviesByIds(movieIds)
         return maps(movies, MovieDto)
     }
 

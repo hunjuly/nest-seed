@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UsePipes
+} from '@nestjs/common'
 import { CreateMovieDto, MoviesService, QueryMoviesDto, UpdateMovieDto } from 'app/services/movies'
 import { PaginationOption, PaginationPipe } from 'common'
 
@@ -28,7 +40,13 @@ export class MoviesController {
 
     @UsePipes(new PaginationPipe(100))
     @Get()
-    async findMovies(@Query() query: QueryMoviesDto, @Query() pagination: PaginationOption) {
-        return this.service.findMovies(query, pagination)
+    async findMovies(@Query() queryDto: QueryMoviesDto, @Query() pagination: PaginationOption) {
+        return this.service.findMovies(queryDto, pagination)
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('getByIds')
+    async getByIds(@Body('movieIds') movieIds: string[]) {
+        return this.service.getMoviesByIds(movieIds)
     }
 }

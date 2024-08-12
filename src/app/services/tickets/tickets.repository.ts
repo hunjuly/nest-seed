@@ -23,7 +23,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
 
     @MethodLog()
     async createTickets(createDtos: SchemeBody<Ticket>[]) {
-        const showtimes = createDtos.map((dto) => {
+        const tickets = createDtos.map((dto) => {
             const ticket = this.newDocument()
             ticket.batchId = new ObjectId(dto.batchId)
             ticket.showtimeId = new ObjectId(dto.showtimeId)
@@ -35,7 +35,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
             return ticket
         })
 
-        return this.saveAll(showtimes)
+        return this.saveAll(tickets)
     }
 
     @MethodLog()
@@ -66,15 +66,9 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTicketsByShowtimeId(showtimeId: string): Promise<Ticket[]> {
-        const showtimes = await this.model.find({ showtimeId: objectId(showtimeId) }).lean()
-        return showtimes
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async findByBatchId(batchId: string): Promise<Ticket[]> {
-        const showtimes = await this.model.find({ batchId: objectId(batchId) }).lean()
-        return showtimes
+    async findByShowtimeId(showtimeId: string) {
+        const tickets = await this.model.find({ showtimeId: objectId(showtimeId) })
+        return tickets
     }
 
     @MethodLog({ level: 'verbose' })

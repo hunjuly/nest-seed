@@ -56,7 +56,11 @@ describe('/customers', () => {
         })
 
         it('should update a customer', async () => {
-            const updateDto = { name: 'update name', email: 'new@mail.com' }
+            const updateDto = {
+                name: 'update name',
+                email: 'new@mail.com',
+                birthday: new Date('1900-12-31')
+            }
 
             const updated = await client.patch(`/customers/${customer.id}`).body(updateDto).ok()
             expect(updated.body).toEqual({ ...customer, ...updateDto })

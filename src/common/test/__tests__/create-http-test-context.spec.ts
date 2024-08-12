@@ -3,7 +3,7 @@ import { FixtureModule, FixtureService } from './create-http-test-context.fixtur
 
 describe('Service Mocking', () => {
     let testContext: HttpTestContext
-    let req: any
+    let client: any
 
     const fixtureServiceMock = {
         getMessage: jest.fn().mockReturnValue({ message: 'This is Mock' })
@@ -20,7 +20,7 @@ describe('Service Mocking', () => {
             ]
         })
 
-        req = testContext.createClient()
+        client = testContext.client
     })
 
     afterEach(async () => {
@@ -28,7 +28,7 @@ describe('Service Mocking', () => {
     })
 
     it('should return mock message', async () => {
-        const res = await req.get('/').ok()
+        const res = await client.get('/').ok()
 
         expect(res.body).toEqual({ message: 'This is Mock' })
     })

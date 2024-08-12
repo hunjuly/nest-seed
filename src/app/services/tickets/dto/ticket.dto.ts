@@ -14,9 +14,9 @@ export class TicketDto {
 
         Object.assign(this, {
             id: id.toString(),
-            showtimeId,
-            theaterId,
-            movieId,
+            showtimeId: showtimeId.toString(),
+            theaterId: theaterId.toString(),
+            movieId: movieId.toString(),
             seat,
             status
         })

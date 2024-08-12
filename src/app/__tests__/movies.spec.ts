@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import { AppModule } from 'app/app.module'
-import { MovieDto, MovieGenre } from 'app/services/movies'
-import { nullObjectId } from 'common'
+import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
+import { nullObjectId, pickIds } from 'common'
 import {
     HttpClient,
     HttpTestContext,
@@ -45,7 +45,15 @@ describe('/movies', () => {
         })
 
         it('should update a movie', async () => {
-            const updateDto = { title: 'update title', genre: ['Romance', 'Thriller'] }
+            const updateDto = {
+                title: 'update title',
+                genre: ['Romance', 'Thriller'],
+                releaseDate: new Date('2000-01-01'),
+                plot: `new plot`,
+                durationMinutes: 10,
+                director: 'Steven Spielberg',
+                rating: MovieRating.R
+            }
 
             const updated = await client.patch(`/movies/${movie.id}`).body(updateDto).ok()
             expect(updated.body).toEqual({ ...movie, ...updateDto })
@@ -136,6 +144,29 @@ describe('/movies', () => {
 
             const expected = movies.filter((movie) => movie.genre.includes(targetGenre))
             expectEqualUnsorted(body.items, expected)
+        })
+    })
+
+    describe('POST /movies/getByIds', () => {
+        let movies: MovieDto[]
+
+        beforeEach(async () => {
+            movies = await createMovies(client)
+        })
+
+        it('should retrieve movies with movieIds', async () => {
+            const expectedMovies = movies.slice(0, 5)
+            const queryDto = { movieIds: pickIds(expectedMovies) }
+
+            const { body } = await client.post('/movies/getByIds').body(queryDto).ok()
+
+            expectEqualUnsorted(body, expectedMovies)
+        })
+
+        it('should return NOT_FOUND(404) when movie does not exist', async () => {
+            const queryDto = { movieIds: [nullObjectId] }
+
+            return client.post('/movies/getByIds').body(queryDto).notFound()
         })
     })
 })

@@ -4,7 +4,7 @@ import { PaymentDto } from 'app/services/payments'
 import { TicketDto } from 'app/services/tickets'
 import { pickIds } from 'common'
 import { HttpClient, HttpTestContext } from 'common/test'
-import { createFixture, createPayment, makePaymentDto } from './payments.fixture'
+import { createFixture, createPayment, makeCreatePaymentDto } from './payments.fixture'
 
 describe('/payments', () => {
     let testContext: HttpTestContext
@@ -15,7 +15,7 @@ describe('/payments', () => {
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        client = fixture.testContext.client
+        client = testContext.client
         customer = fixture.customer
         tickets = fixture.tickets
     })
@@ -32,7 +32,7 @@ describe('/payments', () => {
 
     describe('POST /payments', () => {
         it('should create a payment and return CREATED status', async () => {
-            const createDto = makePaymentDto(customer, tickets)
+            const createDto = makeCreatePaymentDto(customer, tickets)
             const payment = await createPayment(client, createDto)
 
             expect(payment).toEqual({ id: expect.anything(), ...paymentCreationDto() })
@@ -43,7 +43,7 @@ describe('/payments', () => {
         })
 
         it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
-            const createDto = makePaymentDto(customer, tickets)
+            const createDto = makeCreatePaymentDto(customer, tickets)
             await createPayment(client, createDto)
 
             const { body } = await client
@@ -62,7 +62,7 @@ describe('/payments', () => {
         let payment: PaymentDto
 
         beforeEach(async () => {
-            const createDto = makePaymentDto(customer, tickets)
+            const createDto = makeCreatePaymentDto(customer, tickets)
             payment = await createPayment(client, createDto)
         })
 
