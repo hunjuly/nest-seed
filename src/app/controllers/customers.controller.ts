@@ -29,8 +29,6 @@ export class CustomersController {
     @Public()
     @Post()
     async createCustomer(@Body() createDto: CreateCustomerDto) {
-        console.log(createDto)
-
         return this.service.createCustomer(createDto)
     }
 

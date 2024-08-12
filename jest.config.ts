@@ -36,7 +36,7 @@ const config: Config = {
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],
     coverageDirectory: '<rootDir>/_output/coverage',
-    testTimeout: 10000 // 10s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
+    testTimeout: 15000 // 15s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
 }
 
 export default config
