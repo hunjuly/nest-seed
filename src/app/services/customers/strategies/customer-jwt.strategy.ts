@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport'
 import { Config } from 'config'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { CustomersRepository } from '../customers.repository'
-import { AuthTokenPayload } from 'app/services/jwt-auth'
+import { AuthTokenPayload } from 'common'
 
 @Injectable()
 export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jwt') {
@@ -17,7 +17,6 @@ export class CustomerJwtStrategy extends PassportStrategy(Strategy, 'customer-jw
 
     async validate(payload: AuthTokenPayload): Promise<AuthTokenPayload | null> {
         const exists = await this.customersRepository.existsByIds([payload.userId])
-
         return exists ? payload : null
     }
 }

@@ -1,7 +1,12 @@
 import { expect } from '@jest/globals'
-import { pickItems } from 'common'
+import { maps, pickItems } from 'common'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
-import { createFixture, createSamples, SamplesRepository } from './mongoose.repository.fixture'
+import {
+    createFixture,
+    createSamples,
+    SampleDto,
+    SamplesRepository
+} from './mongoose.repository.fixture'
 
 describe('MongooseRepository - withTransaction', () => {
     let mongod: MongoMemoryReplSet
@@ -10,7 +15,7 @@ describe('MongooseRepository - withTransaction', () => {
 
     beforeAll(async () => {
         mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
-    })
+    }, 60000)
 
     afterAll(async () => {
         await mongod?.stop()
@@ -27,43 +32,45 @@ describe('MongooseRepository - withTransaction', () => {
     })
 
     it('commit a transaction', async () => {
-        const createData = [{ name: 'document-1 name' }, { name: 'document-2 name' }]
+        const docs = await repository.withTransaction(async (session) => {
+            const docs = [
+                { name: 'document-1' },
+                { name: 'document-2' },
+                { name: 'document-2' }
+            ].map((data) => {
+                const doc = repository.newDocument()
+                doc.name = data.name
+                return doc
+            })
 
-        const createdCount = await repository.withTransaction(async (session) => {
-            return await repository.createMany(
-                createData.length,
-                (doc, index) => {
-                    doc.name = createData[index].name
-                },
-                session
-            )
+            await repository.saveAll(docs, session)
+            return docs
         })
 
-        expect(createdCount).toEqual(createData.length)
-
-        const foundSamples = await repository.find()
-        expect(foundSamples.items.length).toEqual(createdCount)
+        const foundSamples = await repository.findByIds(pickItems(docs, '_id'))
+        expect(maps(foundSamples, SampleDto)).toEqual(maps(docs, SampleDto))
     })
 
     it('should rollback changes when an exception occurs during a transaction', async () => {
-        const createData = [{ name: 'document-1 name' }, { name: 'document-2 name' }]
-
         const promise = repository.withTransaction(async (session) => {
-            await repository.createMany(
-                createData.length,
-                (doc, index) => {
-                    doc.name = createData[index].name
-                },
-                session
-            )
+            const docs = [
+                { name: 'document-1' },
+                { name: 'document-2' },
+                { name: 'document-2' }
+            ].map((data) => {
+                const doc = repository.newDocument()
+                doc.name = data.name
+                return doc
+            })
 
+            await repository.saveAll(docs, session)
             throw new Error('')
         })
 
         await expect(promise).rejects.toThrowError()
 
-        const foundSamples = await repository.find()
-        expect(foundSamples.items).toHaveLength(0)
+        const foundSamples = await repository.findWithPagination()
+        expect(foundSamples.total).toEqual(0)
     })
 
     it('rollback a transaction', async () => {
@@ -76,6 +83,6 @@ describe('MongooseRepository - withTransaction', () => {
         })
 
         const foundSamples = await repository.findByIds(ids)
-        expect(foundSamples).toEqual(samples)
+        expect(maps(foundSamples, SampleDto)).toEqual(maps(samples, SampleDto))
     })
 })

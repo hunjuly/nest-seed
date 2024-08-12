@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongooseRepository,
     MongooseUpdateResult,
-    objectIdToString,
+    MongooseRepository,
+    objectId,
+    ObjectId,
     PaginationOption,
     PaginationResult,
     SchemeBody,
@@ -16,26 +17,25 @@ import { Ticket, TicketStatus } from './schemas'
 
 @Injectable()
 export class TicketsRepository extends MongooseRepository<Ticket> {
-    private readonly logger = new Logger(this.constructor.name)
-
     constructor(@InjectModel(Ticket.name) model: Model<Ticket>) {
         super(model)
     }
 
     @MethodLog()
     async createTickets(createDtos: SchemeBody<Ticket>[]) {
-        const dtos = stringToObjectId(createDtos)
+        const tickets = createDtos.map((dto) => {
+            const ticket = this.newDocument()
+            ticket.batchId = new ObjectId(dto.batchId)
+            ticket.showtimeId = new ObjectId(dto.showtimeId)
+            ticket.theaterId = new ObjectId(dto.theaterId)
+            ticket.movieId = new ObjectId(dto.movieId)
+            ticket.status = dto.status
+            ticket.seat = dto.seat
 
-        const insertedCount = await this.createMany(dtos.length, (doc, index) => {
-            doc.showtimeId = dtos[index].showtimeId
-            doc.theaterId = dtos[index].theaterId
-            doc.movieId = dtos[index].movieId
-            doc.status = dtos[index].status
-            doc.seat = dtos[index].seat
-            doc.batchId = dtos[index].batchId
+            return ticket
         })
 
-        return insertedCount
+        return this.saveAll(tickets)
     }
 
     @MethodLog()
@@ -52,11 +52,8 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTickets(
-        queryDto: TicketsQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Ticket>> {
-        const paginated = await this.find((helpers) => {
+    async findTickets(queryDto: TicketsQueryDto, pagination: PaginationOption) {
+        const paginated = await this.findWithPagination((helpers) => {
             const { theaterIds, ticketIds, ...query } = stringToObjectId(queryDto)
 
             if (theaterIds) query.theaterId = { $in: theaterIds }
@@ -65,21 +62,13 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Ticket>
     }
 
     @MethodLog({ level: 'verbose' })
-    async findTicketsByShowtimeId(showtimeId: string): Promise<Ticket[]> {
-        const showtimes = await this.model.find({ showtimeId: stringToObjectId(showtimeId) }).lean()
-
-        return objectIdToString(showtimes)
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async findByBatchId(batchId: string): Promise<Ticket[]> {
-        const showtimes = await this.model.find({ batchId: stringToObjectId(batchId) }).lean()
-
-        return objectIdToString(showtimes)
+    async findByShowtimeId(showtimeId: string) {
+        const tickets = await this.model.find({ showtimeId: objectId(showtimeId) })
+        return tickets
     }
 
     @MethodLog({ level: 'verbose' })

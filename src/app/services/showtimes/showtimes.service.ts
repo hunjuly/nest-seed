@@ -2,19 +2,14 @@ import { InjectQueue } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { Queue } from 'bull'
 import {
-    Assert,
-    createObjectId,
+    maps,
     MethodLog,
+    newObjectId,
     PaginationOption,
     PaginationResult,
     waitForQueueToEmpty
 } from 'common'
-import {
-    ShowtimeDto,
-    ShowtimesCreationDto,
-    ShowtimesCreationResponse,
-    ShowtimesQueryDto
-} from './dto'
+import { CreateShowtimesDto, CreateShowtimesResponse, QueryShowtimesDto, ShowtimeDto } from './dto'
 import { ShowtimesCreateRequestEvent } from './showtimes.events'
 import { ShowtimesRepository } from './showtimes.repository'
 
@@ -30,33 +25,33 @@ export class ShowtimesService {
     }
 
     @MethodLog()
-    async createShowtimes(createDto: ShowtimesCreationDto): Promise<ShowtimesCreationResponse> {
-        const batchId = createObjectId()
+    async createShowtimes(createDto: CreateShowtimesDto) {
+        const batchId = newObjectId()
 
         const event = new ShowtimesCreateRequestEvent(batchId, createDto)
         await this.showtimesQueue.add(event.name, event)
 
-        return { batchId }
+        return { batchId } as CreateShowtimesResponse
     }
 
     @MethodLog({ level: 'verbose' })
-    async findShowtimes(
-        queryDto: ShowtimesQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<ShowtimeDto>> {
-        const paginatedShowtimes = await this.repository.findShowtimes(queryDto, pagination)
+    async getShowtime(showtimeId: string) {
+        const showtime = await this.repository.getShowtime(showtimeId)
+        return new ShowtimeDto(showtime)
+    }
 
-        return {
-            ...paginatedShowtimes,
-            items: paginatedShowtimes.items.map((showtime) => new ShowtimeDto(showtime))
-        }
+    @MethodLog({ level: 'verbose' })
+    async findShowtimes(queryDto: QueryShowtimesDto, pagination: PaginationOption) {
+        const { items, ...paginated } = await this.repository.findShowtimes(queryDto, pagination)
+
+        return { ...paginated, items: maps(items, ShowtimeDto) } as PaginationResult<ShowtimeDto>
     }
 
     @MethodLog({ level: 'verbose' })
     async findShowtimesByBatchId(batchId: string) {
         const showtimes = await this.repository.findShowtimesByBatchId(batchId)
 
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+        return maps(showtimes, ShowtimeDto)
     }
 
     @MethodLog({ level: 'verbose' })
@@ -67,44 +62,22 @@ export class ShowtimesService {
             showdate
         )
 
-        return showtimes.map((showtime) => new ShowtimeDto(showtime))
+        return maps(showtimes, ShowtimeDto)
     }
 
     @MethodLog({ level: 'verbose' })
     async findShowingMovieIds(): Promise<string[]> {
         const currentTime = new Date()
-        const movieIds = await this.repository.findMovieIdsShowingAfter(currentTime)
-
-        return movieIds
+        return this.repository.findMovieIdsShowingAfter(currentTime)
     }
 
     @MethodLog({ level: 'verbose' })
     async findTheaterIdsShowingMovie(movieId: string) {
-        const theaterIds = await this.repository.findTheaterIdsShowingMovie(movieId)
-
-        return theaterIds
+        return this.repository.findTheaterIdsShowingMovie(movieId)
     }
 
     @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string) {
-        const showdates = await this.repository.findShowdates(movieId, theaterId)
-
-        return showdates
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async getShowtime(showtimeId: string) {
-        const showtime = await this.repository.findById(showtimeId)
-
-        Assert.defined(showtime, `Showtime with id ${showtimeId} must exist`)
-
-        return new ShowtimeDto(showtime!)
-    }
-
-    @MethodLog({ level: 'verbose' })
-    async showtimesExist(showtimeIds: string[]): Promise<boolean> {
-        const showtimeExists = await this.repository.existsByIds(showtimeIds)
-
-        return showtimeExists
+        return this.repository.findShowdates(movieId, theaterId)
     }
 }

@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
+    Expect,
     MethodLog,
     MongooseRepository,
     PaginationOption,
     PaginationResult,
     stringToObjectId
 } from 'common'
-import { escapeRegExp } from 'lodash'
+import { differenceWith, escapeRegExp, uniq } from 'lodash'
 import { Model } from 'mongoose'
-import { MovieCreationDto, MoviesQueryDto, MovieUpdatingDto } from './dto'
+import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { Movie } from './schemas'
 
 @Injectable()
@@ -19,45 +20,52 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     }
 
     @MethodLog()
-    async createMovie(createDto: MovieCreationDto) {
-        const dto = stringToObjectId(createDto)
+    async createMovie(createDto: CreateMovieDto) {
+        const movie = this.newDocument()
+        movie.title = createDto.title
+        movie.genre = createDto.genre
+        movie.releaseDate = createDto.releaseDate
+        movie.plot = createDto.plot
+        movie.durationMinutes = createDto.durationMinutes
+        movie.director = createDto.director
+        movie.rating = createDto.rating
 
-        const customer = await this.create((doc) => {
-            doc.title = dto.title
-            doc.genre = dto.genre
-            doc.releaseDate = dto.releaseDate
-            doc.plot = dto.plot
-            doc.durationMinutes = dto.durationMinutes
-            doc.director = dto.director
-            doc.rating = dto.rating
-        })
-
-        return customer
+        return movie.save()
     }
 
     @MethodLog()
-    async updateMovie(movieId: string, updateDto: MovieUpdatingDto): Promise<Movie> {
-        const dto = stringToObjectId(updateDto)
+    async updateMovie(movieId: string, updateDto: UpdateMovieDto) {
+        const movie = await this.getMovie(movieId)
 
-        const movie = await this.updateById(movieId, (doc) => {
-            if (dto.title) doc.title = dto.title
-            if (dto.genre) doc.genre = dto.genre
-            if (dto.releaseDate) doc.releaseDate = dto.releaseDate
-            if (dto.plot) doc.plot = dto.plot
-            if (dto.durationMinutes) doc.durationMinutes = dto.durationMinutes
-            if (dto.director) doc.director = dto.director
-            if (dto.rating) doc.rating = dto.rating
-        })
+        if (updateDto.title) movie.title = updateDto.title
+        if (updateDto.genre) movie.genre = updateDto.genre
+        if (updateDto.releaseDate) movie.releaseDate = updateDto.releaseDate
+        if (updateDto.plot) movie.plot = updateDto.plot
+        if (updateDto.durationMinutes) movie.durationMinutes = updateDto.durationMinutes
+        if (updateDto.director) movie.director = updateDto.director
+        if (updateDto.rating) movie.rating = updateDto.rating
+
+        return movie.save()
+    }
+
+    @MethodLog()
+    async deleteMovie(movieId: string) {
+        const movie = await this.getMovie(movieId)
+        await movie.deleteOne()
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async getMovie(movieId: string) {
+        const movie = await this.findById(movieId)
+
+        if (!movie) throw new NotFoundException(`Movie with ID ${movieId} not found`)
 
         return movie
     }
 
     @MethodLog({ level: 'verbose' })
-    async findMovies(
-        queryDto: MoviesQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Movie>> {
-        const paginated = await this.find((helpers) => {
+    async findMovies(queryDto: QueryMoviesDto, pagination: PaginationOption) {
+        const paginated = await this.findWithPagination((helpers) => {
             const { title, ...query } = stringToObjectId(queryDto)
 
             if (title) query.title = new RegExp(escapeRegExp(title), 'i')
@@ -65,6 +73,23 @@ export class MoviesRepository extends MongooseRepository<Movie> {
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Movie>
+    }
+
+    async getMoviesByIds(movieIds: string[]) {
+        const uniqueIds = uniq(movieIds)
+
+        Expect.equalLength(uniqueIds, movieIds, `Duplicate movie IDs are not allowed:${movieIds}`)
+
+        const movies = await this.findByIds(uniqueIds)
+        const notFoundIds = differenceWith(uniqueIds, movies, (id, movie) => id === movie.id)
+
+        if (notFoundIds.length > 0) {
+            throw new NotFoundException(
+                `One or more movies with IDs ${notFoundIds.join(', ')} not found`
+            )
+        }
+
+        return movies
     }
 }

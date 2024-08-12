@@ -1,5 +1,4 @@
 export * from './assert'
-export * from './events'
 export * from './exceptions'
 export * from './expect'
 export * from './file'

@@ -3,52 +3,50 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
+    HttpStatus,
     Param,
     Patch,
     Post,
     Query,
-    UseGuards,
     UsePipes
 } from '@nestjs/common'
-import {
-    MovieCreationDto,
-    MoviesQueryDto,
-    MoviesService,
-    MovieUpdatingDto
-} from 'app/services/movies'
+import { CreateMovieDto, MoviesService, QueryMoviesDto, UpdateMovieDto } from 'app/services/movies'
 import { PaginationOption, PaginationPipe } from 'common'
-import { MovieExistsGuard } from './guards'
 
 @Controller('movies')
 export class MoviesController {
-    constructor(private readonly moviesService: MoviesService) {}
+    constructor(private readonly service: MoviesService) {}
 
     @Post()
-    async createMovie(@Body() createMovieDto: MovieCreationDto) {
-        return this.moviesService.createMovie(createMovieDto)
+    async createMovie(@Body() createDto: CreateMovieDto) {
+        return this.service.createMovie(createDto)
     }
 
-    @Get()
-    @UsePipes(new PaginationPipe(100))
-    async findMovies(@Query() filter: MoviesQueryDto, @Query() pagination: PaginationOption) {
-        return this.moviesService.findMovies(filter, pagination)
+    @Patch(':movieId')
+    async updateMovie(@Param('movieId') movieId: string, @Body() updateDto: UpdateMovieDto) {
+        return this.service.updateMovie(movieId, updateDto)
     }
 
-    @UseGuards(MovieExistsGuard)
     @Get(':movieId')
     async getMovie(@Param('movieId') movieId: string) {
-        return this.moviesService.getMovie(movieId)
+        return this.service.getMovie(movieId)
     }
 
-    @UseGuards(MovieExistsGuard)
-    @Patch(':movieId')
-    async updateMovie(@Param('movieId') movieId: string, @Body() updateMovieDto: MovieUpdatingDto) {
-        return this.moviesService.updateMovie(movieId, updateMovieDto)
-    }
-
-    @UseGuards(MovieExistsGuard)
     @Delete(':movieId')
     async deleteMovie(@Param('movieId') movieId: string) {
-        return this.moviesService.deleteMovie(movieId)
+        return this.service.deleteMovie(movieId)
+    }
+
+    @UsePipes(new PaginationPipe(100))
+    @Get()
+    async findMovies(@Query() queryDto: QueryMoviesDto, @Query() pagination: PaginationOption) {
+        return this.service.findMovies(queryDto, pagination)
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('getByIds')
+    async getByIds(@Body('movieIds') movieIds: string[]) {
+        return this.service.getMoviesByIds(movieIds)
     }
 }

@@ -9,10 +9,10 @@ export class StorageFileDto {
     checksum: string
 
     constructor(file: StorageFile, storedPath: string) {
-        const { _id, originalname, mimetype, size, checksum } = file
+        const { id, originalname, mimetype, size, checksum } = file
 
         Object.assign(this, {
-            id: _id.toString(),
+            id: id.toString(),
             originalname,
             mimetype,
             size,

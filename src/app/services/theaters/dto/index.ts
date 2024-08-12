@@ -1,4 +1,4 @@
-export * from './theater-creation.dto'
-export * from './theater-updating.dto'
+export * from './create-theater.dto'
+export * from './query-theaters.dto'
 export * from './theater.dto'
-export * from './theaters-filter.dto'
+export * from './update-theater.dto'

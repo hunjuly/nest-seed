@@ -1,4 +1,4 @@
-import { ShowtimesCreationDto, ShowtimeDto } from './dto'
+import { CreateShowtimesDto, ShowtimeDto } from './dto'
 import { AppEvent, EventName } from 'common'
 
 export abstract class ShowtimesCreateEvent extends AppEvent {
@@ -11,7 +11,7 @@ export abstract class ShowtimesCreateEvent extends AppEvent {
 export class ShowtimesCreateRequestEvent extends ShowtimesCreateEvent {
     constructor(
         batchId: string,
-        public creationDto: ShowtimesCreationDto
+        public createDto: CreateShowtimesDto
     ) {
         super(batchId)
     }

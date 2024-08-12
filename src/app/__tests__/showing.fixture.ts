@@ -1,73 +1,39 @@
-import { PaymentsController, ShowingController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { CustomerDto, CustomersModule, CustomersService } from 'app/services/customers'
-import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
-import { PaymentsModule, PaymentsService } from 'app/services/payments'
-import { ShowingModule } from 'app/services/showing'
-import { ShowtimesModule } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule, TicketsService } from 'app/services/tickets'
-import { pickIds } from 'common'
-import { createHttpTestContext } from 'common/test'
+import { AppModule } from 'app/app.module'
+import { CustomerDto } from 'app/services/customers'
+import { MovieDto, MovieGenre } from 'app/services/movies'
+import { TheaterDto } from 'app/services/theaters'
+import { createHttpTestContext, HttpClient } from 'common/test'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
-import { ShowtimesFactory } from './showtimes.fixture'
+import { createPayment, makeCreatePaymentDto } from './payments.fixture'
+import {
+    createShowtimes,
+    makeCreateShowtimesDto,
+    ShowtimesEventListener
+} from './showtimes-registration.fixture'
 import { createTheater } from './theaters.fixture'
-import { TicketsFactory } from './tickets.fixture'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
-        imports: [
-            GlobalModule,
-            PaymentsModule,
-            ShowingModule,
-            CustomersModule,
-            MoviesModule,
-            ShowtimesModule,
-            TheatersModule,
-            TicketsModule
-        ],
-        controllers: [ShowingController, PaymentsController],
-        providers: [TicketsFactory, ShowtimesFactory]
+        imports: [AppModule],
+        providers: [ShowtimesEventListener]
     })
 
     const module = testContext.module
+    const listener = module.get(ShowtimesEventListener)
 
-    const customersService = module.get(CustomersService)
-    const moviesService = module.get(MoviesService)
-    const theatersService = module.get(TheatersService)
-    const ticketsService = testContext.module.get(TicketsService)
-    const paymentsService = testContext.module.get(PaymentsService)
-    const ticketsFactory = module.get(TicketsFactory)
+    const client = testContext.client
+    const customer = await createCustomer(client)
+    const movies = await createMovies(client)
+    const theaters = await createTheaters(client)
+    const tickets = await createTickets(client, listener, movies, theaters)
 
-    const customer = await createCustomer(customersService)
-    const theaters = await createTheaters(theatersService)
-    const movies = await createMovies(moviesService)
-    const tickets = await createTickets(ticketsFactory, ticketsService, movies, theaters)
-    const watchedMovie = await createWatchedMovie(
-        moviesService,
-        ticketsFactory,
-        paymentsService,
-        customer,
-        theaters
-    )
+    const watchedMovie = await createWatchedMovie(client, listener, customer, theaters)
 
-    return {
-        testContext,
-        ticketsService,
-        paymentsService,
-        ticketsFactory,
-        theatersService,
-        moviesService,
-        customer,
-        movies,
-        theaters,
-        tickets,
-        watchedMovie
-    }
+    return { testContext, customer, tickets, watchedMovie, movies, theaters }
 }
 
-async function createTheaters(theatersService: TheatersService) {
+async function createTheaters(client: HttpClient) {
     const seatmap = { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOOOOOO' }] }] }
     const overrides = [
         { latlong: { latitude: 37.0, longitude: 128.0 }, seatmap },
@@ -77,12 +43,12 @@ async function createTheaters(theatersService: TheatersService) {
         { latlong: { latitude: 39.0, longitude: 130.0 }, seatmap }
     ]
 
-    const promises = overrides.map(async (override) => createTheater(theatersService, override))
+    const promises = overrides.map(async (override) => createTheater(client, override))
 
     return Promise.all(promises)
 }
 
-async function createMovies(moviesService: MoviesService) {
+async function createMovies(client: HttpClient) {
     const overrides = [
         { genre: [MovieGenre.Action, MovieGenre.Thriller] },
         { genre: [MovieGenre.Comedy, MovieGenre.Action] },
@@ -94,22 +60,20 @@ async function createMovies(moviesService: MoviesService) {
         { genre: [MovieGenre.Thriller, MovieGenre.Romance] }
     ]
 
-    const promises = overrides.map(async (override) => createMovie(moviesService, override))
+    const promises = overrides.map(async (override) => createMovie(client, override))
 
     return Promise.all(promises)
 }
 
 async function createTickets(
-    ticketFactory: TicketsFactory,
-    ticketsService: TicketsService,
+    client: HttpClient,
+    listener: ShowtimesEventListener,
     movies: MovieDto[],
     theaters: TheaterDto[]
 ) {
     const allTickets = await Promise.all(
         movies.map(async (movie, i) => {
-            const { createdTickets } = await ticketFactory.createTickets({
-                movieId: movie.id,
-                theaterIds: pickIds(theaters),
+            const { createDto } = makeCreateShowtimesDto(movie, theaters, {
                 startTimes: [
                     new Date(2999, i, 2, 19),
                     new Date(2999, i, 2, 21),
@@ -119,7 +83,8 @@ async function createTickets(
                 ]
             })
 
-            return createdTickets
+            const { tickets } = await createShowtimes(client, createDto, listener)
+            return tickets
         })
     )
 
@@ -127,25 +92,16 @@ async function createTickets(
 }
 
 async function createWatchedMovie(
-    moviesService: MoviesService,
-    ticketsFactory: TicketsFactory,
-    paymentsService: PaymentsService,
+    client: HttpClient,
+    listener: ShowtimesEventListener,
     customer: CustomerDto,
     theaters: TheaterDto[]
 ) {
-    const movie = await createMovie(moviesService, {
-        genre: [MovieGenre.Drama, MovieGenre.Fantasy]
-    })
+    const movie = await createMovie(client, { genre: [MovieGenre.Drama, MovieGenre.Fantasy] })
 
-    const { createdTickets } = await ticketsFactory.createTickets({
-        movieId: movie.id,
-        theaterIds: [theaters[0].id]
-    })
-
-    await paymentsService.createPayment({
-        customerId: customer.id,
-        ticketIds: [createdTickets[0].id]
-    })
+    const { createDto } = makeCreateShowtimesDto(movie, theaters)
+    const { tickets } = await createShowtimes(client, createDto, listener)
+    await createPayment(client, makeCreatePaymentDto(customer, tickets))
 
     return movie
 }

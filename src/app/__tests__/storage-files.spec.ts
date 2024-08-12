@@ -1,28 +1,13 @@
-import { StorageFilesController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { StorageFilesModule } from 'app/services/storage-files'
+import { AppModule } from 'app/app.module'
 import { StorageFileDto } from 'app/services/storage-files/dto'
 import { getChecksum, nullObjectId, Path } from 'common'
-import { createDummyFile, createHttpTestContext, HttpRequest, HttpTestContext } from 'common/test'
+import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } from 'common/test'
 import { Config } from 'config'
 import { writeFile } from 'fs/promises'
 
-jest.mock('config', () => ({
-    ...jest.requireActual('config'),
-    Config: {
-        ...jest.requireActual('config').Config,
-        fileUpload: {
-            directory: './uploads',
-            maxFileSizeBytes: 1024 * 1024 * 100,
-            maxFilesPerUpload: 2,
-            allowedMimeTypes: ['image/*', 'text/plain']
-        }
-    }
-}))
-
 describe('/storage-files', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
+    let client: HttpClient
 
     let tempDir: string
     let notAllowFile: string
@@ -51,13 +36,15 @@ describe('/storage-files', () => {
     })
 
     beforeEach(async () => {
-        Config.fileUpload.directory = await Path.createTempDirectory()
+        Config.fileUpload = {
+            directory: await Path.createTempDirectory(),
+            maxFileSizeBytes: 1024 * 1024 * 100,
+            maxFilesPerUpload: 2,
+            allowedMimeTypes: ['image/*', 'text/plain']
+        }
 
-        testContext = await createHttpTestContext({
-            imports: [GlobalModule, StorageFilesModule],
-            controllers: [StorageFilesController]
-        })
-        req = testContext.createRequest()
+        testContext = await createHttpTestContext({ imports: [AppModule] })
+        client = testContext.client
     })
 
     afterEach(async () => {
@@ -66,7 +53,7 @@ describe('/storage-files', () => {
     })
 
     async function uploadFile(filePath: string, name = 'test') {
-        return req
+        return client
             .post('/storage-files')
             .attachs([{ name: 'files', file: filePath }])
             .fields([{ name: 'name', value: name }])
@@ -74,15 +61,14 @@ describe('/storage-files', () => {
     }
 
     describe('POST /storage-files', () => {
-        // it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
-        it('tetsetadfadsf', async () => {
+        it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
             const res = await uploadFile(largeFile)
             const uploadedFile = res.body.files[0]
             expect(uploadedFile.checksum).toEqual(await getChecksum(largeFile))
         })
 
         it('여러 개의 파일을 업로드 해야 한다', async () => {
-            const res = await req
+            const res = await client
                 .post('/storage-files')
                 .attachs([
                     { name: 'files', file: largeFile },
@@ -96,7 +82,7 @@ describe('/storage-files', () => {
         })
 
         it('파일 첨부를 하지 않아도 업로드는 성공해야 한다', async () => {
-            await req
+            await client
                 .post('/storage-files')
                 .attachs([])
                 .fields([{ name: 'name', value: 'test' }])
@@ -104,7 +90,7 @@ describe('/storage-files', () => {
         })
 
         it('허용된 파일 크기를 초과하는 업로드는 실패해야 한다', async () => {
-            await req
+            await client
                 .post('/storage-files')
                 .attachs([{ name: 'files', file: oversizedFile }])
                 .payloadTooLarge()
@@ -114,16 +100,17 @@ describe('/storage-files', () => {
             const limitOver = Config.fileUpload.maxFilesPerUpload + 1
             const excessFiles = Array(limitOver).fill({ name: 'files', file: smallFile })
 
-            await req.post('/storage-files').attachs(excessFiles).badRequest()
+            await client.post('/storage-files').attachs(excessFiles).badRequest()
         })
 
         it('허용되지 않은 Mime-Type의 업로드는 실패해야 한다', async () => {
-            await req
+            await client
                 .post('/storage-files')
                 .attachs([{ name: 'files', file: notAllowFile }])
                 .badRequest()
         })
     })
+
     describe('GET /storage-files/:fileId', () => {
         let uploadedFile: StorageFileDto
 
@@ -135,13 +122,13 @@ describe('/storage-files', () => {
         it('다운로드한 파일과 저장된 파일은 동일해야 한다', async () => {
             const downloadPath = Path.join(tempDir, 'download.txt')
 
-            await req.get(`/storage-files/${uploadedFile.id}`).download(downloadPath).ok()
+            await client.get(`/storage-files/${uploadedFile.id}`).download(downloadPath).ok()
 
             expect(uploadedFile.checksum).toEqual(await getChecksum(downloadPath))
         })
 
         it('NOT_FOUND(404) if file is not found', async () => {
-            await req.get(`/storage-files/${nullObjectId}`).notFound()
+            await client.get(`/storage-files/${nullObjectId}`).notFound()
         })
     })
 
@@ -154,12 +141,17 @@ describe('/storage-files', () => {
         })
 
         it('Delete a file', async () => {
-            await req.delete(`/storage-files/${uploadedFile.id}`).ok()
-            await req.get(`/storage-files/${uploadedFile.id}`).notFound()
+            const filePath = Path.join(Config.fileUpload.directory, `${uploadedFile.id}.file`)
+            expect(Path.existsSync(filePath)).toBeTruthy()
+
+            await client.delete(`/storage-files/${uploadedFile.id}`).ok()
+            await client.get(`/storage-files/${uploadedFile.id}`).notFound()
+
+            expect(Path.existsSync(filePath)).toBeFalsy()
         })
 
         it('NOT_FOUND(404) if file is not found', async () => {
-            return req.delete(`/storage-files/${nullObjectId}`).notFound()
+            return client.delete(`/storage-files/${nullObjectId}`).notFound()
         })
     })
 })

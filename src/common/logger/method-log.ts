@@ -14,7 +14,7 @@ const getParameterNames = (func: (...args: any[]) => any) => {
     return result || []
 }
 
-export function MethodLog(options: MethodLogOptions = {}) {
+export const MethodLog = (options: MethodLogOptions = {}): MethodDecorator => {
     const { level = 'log', excludeArgs = [] } = options
 
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -27,18 +27,19 @@ export function MethodLog(options: MethodLogOptions = {}) {
             const filteredArgs = args.filter((_, index) => !excludeArgs.includes(paramNames[index]))
 
             const start = Date.now()
+
             try {
                 const result = await originalMethod.apply(this, args)
 
-                logger[level](`${className}.${propertyKey} completed`, {
-                    args: JSON.stringify(filteredArgs),
-                    return: JSON.stringify(result),
+                logger[level](`${className}.${propertyKey}`, {
+                    args: filteredArgs,
+                    return: result,
                     duration: Date.now() - start
                 })
                 return result
             } catch (error) {
-                logger.error(`${className}.${propertyKey} failed`, {
-                    args: JSON.stringify(filteredArgs),
+                logger.error(`${className}.${propertyKey}`, {
+                    args: filteredArgs,
                     error: error.message,
                     duration: Date.now() - start
                 })

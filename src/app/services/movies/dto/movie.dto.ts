@@ -11,10 +11,10 @@ export class MovieDto {
     rating: MovieRating
 
     constructor(movie: Movie) {
-        const { _id, title, genre, releaseDate, plot, durationMinutes, director, rating } = movie
+        const { id, title, genre, releaseDate, plot, durationMinutes, director, rating } = movie
 
         Object.assign(this, {
-            id: _id.toString(),
+            id: id.toString(),
             title,
             genre,
             releaseDate,

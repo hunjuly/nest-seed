@@ -21,7 +21,7 @@ export class MongooseUpdateResult {
     collation: { locale: 'en_US', strength: 1 }
 })
 export class MongooseSchema {
-    _id: DocumentId
+    id: DocumentId
     createdAt: Date
     updatedAt: Date
     __v: number

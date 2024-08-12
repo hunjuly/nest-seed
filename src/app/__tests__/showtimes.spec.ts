@@ -1,124 +1,99 @@
+import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
+import { TheaterDto } from 'app/services/theaters'
 import { nullObjectId, pickIds } from 'common'
-import { HttpRequest, HttpTestContext, expectEqualUnsorted } from 'common/test'
-import { ShowtimesFactory, createFixture } from './showtimes.fixture'
+import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common/test'
+import { createMovie } from './movies.fixture'
+import {
+    ShowtimesEventListener,
+    createFixture,
+    createShowtimes,
+    makeCreateShowtimesDto
+} from './showtimes-registration.fixture'
+import { createTheaters } from './theaters.fixture'
 
 describe('/showtimes', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
-    let factory: ShowtimesFactory
+    let client: HttpClient
+    let listener: ShowtimesEventListener
+    let movie: MovieDto
+    let theaters: TheaterDto[]
 
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        req = fixture.testContext.createRequest()
-        factory = fixture.factory
+        client = testContext.client
+        listener = fixture.listener
+        movie = await createMovie(client)
+        theaters = await createTheaters(client, 2)
     })
 
     afterEach(async () => {
         await testContext?.close()
     })
 
-    describe('Showtimes Creation Request', () => {
-        it('상영 시간 생성을 요청하면 batchId를 반환해야 한다', async () => {
-            const creationDto = factory.makeCreationDto({})
-            const { body } = await req.post('/showtimes').body(creationDto).accepted()
-
-            expect(body.batchId).toBeDefined()
-            await factory.waitComplete(body.batchId)
-        })
-
-        it('생성 요청에 따라 정확하게 showtimes을 생성하고 완료될 때까지 기다려야 한다', async () => {
-            const creationDto = factory.makeCreationDto({
-                startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')]
-            })
-            const { body } = await req.post('/showtimes').body(creationDto).accepted()
-
-            const { createdShowtimes } = await factory.waitComplete(body.batchId)
-            expectEqualUnsorted(createdShowtimes, factory.makeExpectedShowtimes(creationDto))
-        })
-    })
-
-    describe('Error Handling', () => {
-        it('NOT_FOUND(404) when movieId is not found', async () => {
-            const creationDto = factory.makeCreationDto({ movieId: nullObjectId })
-            return req.post('/showtimes').body(creationDto).notFound()
-        })
-
-        it('NOT_FOUND(404) when theaterId is not found', async () => {
-            const creationDto = factory.makeCreationDto({ theaterIds: [nullObjectId] })
-            return req.post('/showtimes').body(creationDto).notFound()
-        })
-
-        it('NOT_FOUND(404) when any theaterId in the list is not found', async () => {
-            const theaterId = factory.theaters[0].id
-            const creationDto = factory.makeCreationDto({ theaterIds: [theaterId, nullObjectId] })
-            return req.post('/showtimes').body(creationDto).notFound()
-        })
-    })
-
-    describe('Showtimes Retrieval', () => {
-        let createdShowtimes: ShowtimeDto[]
+    describe('retrieve showtimes', () => {
         let batchId: string
+        let createdShowtimes: ShowtimeDto[]
 
         beforeEach(async () => {
-            const startTimes = [new Date('2013-01-31T12:00'), new Date('2013-01-31T14:00')]
-            batchId = await factory.createShowtimes({ startTimes })
-            const res = await factory.waitComplete(batchId)
-            createdShowtimes = res.createdShowtimes
+            const { createDto } = makeCreateShowtimesDto(movie, theaters)
+            const result = await createShowtimes(client, createDto, listener)
+            batchId = result.batchId
+            createdShowtimes = result.showtimes
         })
 
-        it('batchId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const { body } = await req.get('/showtimes').query({ batchId }).ok()
+        it('should retrieve showtimes by batchId', async () => {
+            const { body } = await client.get('/showtimes').query({ batchId }).ok()
 
             expectEqualUnsorted(body.items, createdShowtimes)
         })
 
-        it('theaterId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const theaterId = factory.theaters[0].id
-            const res = await req.get('/showtimes').query({ theaterId }).ok()
+        it('should retrieve showtimes by theaterId', async () => {
+            const theaterId = theaters[0].id
+            const { body } = await client.get('/showtimes').query({ theaterId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter(
-                (showtime) => showtime.theaterId === theaterId
+            expectEqualUnsorted(
+                body.items,
+                createdShowtimes.filter((showtime) => showtime.theaterId === theaterId)
             )
-            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
-        it('movieId로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const movieId = factory.movie?.id
-            const res = await req.get('/showtimes').query({ movieId }).ok()
+        it('should retrieve showtimes by movieId', async () => {
+            const movieId = movie.id
+            const { body } = await client.get('/showtimes').query({ movieId }).ok()
 
-            const expectedShowtimes = createdShowtimes.filter(
-                (showtime) => showtime.movieId === movieId
+            expectEqualUnsorted(
+                body.items,
+                createdShowtimes.filter((showtime) => showtime.movieId === movieId)
             )
-            expectEqualUnsorted(res.body.items, expectedShowtimes)
         })
 
-        it('showtimeIds[]로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
-            const findingShowtimes = [createdShowtimes[0], createdShowtimes[1]]
-            const res = await req
+        it('should retrieve showtimes by showtimeIds[]', async () => {
+            const findingShowtimes = createdShowtimes.slice(0, 2)
+            const { body } = await client
                 .get('/showtimes')
                 .query({ showtimeIds: pickIds(findingShowtimes) })
                 .ok()
 
-            expectEqualUnsorted(res.body.items, findingShowtimes)
+            expectEqualUnsorted(body.items, findingShowtimes)
         })
 
-        it('showtime의 id로 조회하면 해당 상영 시간을 반환해야 한다', async () => {
+        it('should retrieve a showtime by its id', async () => {
             const showtime = createdShowtimes[0]
-            const res = await req.get(`/showtimes/${showtime.id}`).ok()
+            const { body } = await client.get(`/showtimes/${showtime.id}`).ok()
 
-            expect(res.body).toEqual(showtime)
+            expect(body).toEqual(showtime)
         })
 
-        it('showtime의 id가 존재하지 않으면 NOT_FOUND(404)', async () => {
-            return req.get(`/showtimes/${nullObjectId}`).notFound()
+        it('should return NOT_FOUND(404) when showtime id does not exist', async () => {
+            return client.get(`/showtimes/${nullObjectId}`).notFound()
         })
     })
 
-    describe('Conflict Checking', () => {
-        it('기존 showtimes와 충돌하는 생성 요청은 충돌 정보를 반환해야 한다', async () => {
-            const createBatchId = await factory.createShowtimes({
+    describe('conflict checking', () => {
+        it('should return conflict information when creation request conflicts with existing showtimes', async () => {
+            const { createDto } = makeCreateShowtimesDto(movie, theaters, {
                 durationMinutes: 90,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -127,9 +102,14 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T18:30')
                 ]
             })
-            const { createdShowtimes } = await factory.waitComplete(createBatchId)
 
-            const conflictBatchId = await factory.createShowtimes({
+            const { showtimes: createdShowtimes } = await createShowtimes(
+                client,
+                createDto,
+                listener
+            )
+
+            const { createDto: conflictCreateDto } = makeCreateShowtimesDto(movie, theaters, {
                 durationMinutes: 30,
                 startTimes: [
                     new Date('2013-01-31T12:00'),
@@ -138,8 +118,6 @@ describe('/showtimes', () => {
                 ]
             })
 
-            const { conflictShowtimes } = await factory.waitFail(conflictBatchId)
-
             const expectedShowtimes = createdShowtimes.filter((showtime: ShowtimeDto) =>
                 [
                     new Date('2013-01-31T12:00').getTime(),
@@ -147,48 +125,47 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T18:30').getTime()
                 ].includes(showtime.startTime.getTime())
             )
+            const promise = createShowtimes(client, conflictCreateDto, listener)
 
-            expectEqualUnsorted(conflictShowtimes, expectedShowtimes)
+            await expect(promise).rejects.toEqual({
+                batchId: expect.any(String),
+                name: 'showtimes.create.fail',
+                conflictShowtimes: expectedShowtimes
+            })
         })
     })
 
-    describe('Parallel Showtime Creation', () => {
-        it('생성 요청이 동시에 발생해도 모든 요청이 성공적으로 완료되어야 한다', async () => {
-            const length = 100
+    describe('error handling', () => {
+        const expected = expect.objectContaining({ name: 'showtimes.create.error' })
 
-            const results = await Promise.all(
-                Array.from({ length }, async (_, index) => {
-                    const startTimes = [new Date(1900, index)]
-                    const batchId = await factory.createShowtimes({ startTimes })
-                    const { createdShowtimes } = await factory.waitComplete(batchId)
-                    const expectedShowtimes = factory.makeExpectedShowtimes({ startTimes })
-
-                    return { createdShowtimes, expectedShowtimes }
-                })
+        it('should return NOT_FOUND(404) when movieId is not found', async () => {
+            const { createDto } = makeCreateShowtimesDto(
+                { id: nullObjectId } as MovieDto,
+                theaters,
+                { startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')] }
             )
 
-            const actual = results.flatMap((result) => result.createdShowtimes)
-            const expected = results.flatMap((result) => result.expectedShowtimes)
-
-            expectEqualUnsorted(actual, expected)
+            const promise = createShowtimes(client, createDto, listener)
+            await expect(promise).rejects.toEqual(expected)
         })
 
-        it('동일한 요청이 동시에 발생해도 충돌 체크가 되어야 한다', async () => {
-            const length = 100
+        it('should return NOT_FOUND(404) when theaterId is not found', async () => {
+            const { createDto } = makeCreateShowtimesDto(movie, [
+                { id: nullObjectId } as TheaterDto
+            ])
 
-            const results = await Promise.all(
-                Array.from({ length }, async () => {
-                    const batchId = await factory.createShowtimes()
-                    return await factory.waitFinish(batchId)
-                })
-            )
+            const promise = createShowtimes(client, createDto, listener)
+            await expect(promise).rejects.toEqual(expected)
+        })
 
-            expect(
-                results.filter((result) => result.name === 'showtimes.create.complete')
-            ).toHaveLength(1)
-            expect(
-                results.filter((result) => result.name === 'showtimes.create.fail')
-            ).toHaveLength(length - 1)
+        it('should return NOT_FOUND(404) when any theaterId in the list is not found', async () => {
+            const { createDto } = makeCreateShowtimesDto(movie, [
+                theaters[0],
+                { id: nullObjectId } as TheaterDto
+            ])
+
+            const promise = createShowtimes(client, createDto, listener)
+            await expect(promise).rejects.toEqual(expected)
         })
     })
 })

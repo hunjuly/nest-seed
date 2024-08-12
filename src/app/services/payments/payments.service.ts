@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { PaymentCreationDto, PaymentDto, PaymentsQueryDto } from './dto'
+import { CreatePaymentDto, PaymentDto, QueryPaymentsDto } from './dto'
 import { PaymentsRepository } from './payments.repository'
 import { TicketsService } from '../tickets'
-import { MethodLog, PaginationOption, PaginationResult } from 'common'
+import { maps, MethodLog, PaginationOption, PaginationResult } from 'common'
 
 @Injectable()
 export class PaymentsService {
@@ -12,24 +12,18 @@ export class PaymentsService {
     ) {}
 
     @MethodLog()
-    async createPayment(createDto: PaymentCreationDto) {
-        const savedPayment = await this.repository.createPayment(createDto)
+    async createPayment(createDto: CreatePaymentDto) {
+        const payment = await this.repository.createPayment(createDto)
 
         await this.ticketsService.notifyTicketsPurchased(createDto.ticketIds)
 
-        return new PaymentDto(savedPayment)
+        return new PaymentDto(payment)
     }
 
     @MethodLog({ level: 'verbose' })
-    async findPayments(
-        queryDto: PaymentsQueryDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<PaymentDto>> {
-        const paginated = await this.repository.findPayments(queryDto, pagination)
+    async findPayments(queryDto: QueryPaymentsDto, pagination: PaginationOption) {
+        const { items, ...paginated } = await this.repository.findPayments(queryDto, pagination)
 
-        return {
-            ...paginated,
-            items: paginated.items.map((item) => new PaymentDto(item))
-        }
+        return { ...paginated, items: maps(items, PaymentDto) } as PaginationResult<PaymentDto>
     }
 }

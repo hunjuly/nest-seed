@@ -10,13 +10,13 @@ export class TicketDto {
     status: string
 
     constructor(ticket: Ticket) {
-        const { _id, showtimeId, theaterId, movieId, seat, status } = ticket
+        const { id, showtimeId, theaterId, movieId, seat, status } = ticket
 
         Object.assign(this, {
-            id: _id.toString(),
-            showtimeId,
-            theaterId,
-            movieId,
+            id: id.toString(),
+            showtimeId: showtimeId.toString(),
+            theaterId: theaterId.toString(),
+            movieId: movieId.toString(),
             seat,
             status
         })

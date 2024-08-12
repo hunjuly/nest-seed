@@ -8,86 +8,68 @@ import {
     Post,
     Query,
     Req,
-    UnauthorizedException,
     UseGuards,
     UsePipes
 } from '@nestjs/common'
 import {
-    CustomerCreationDto,
+    CreateCustomerDto,
     CustomerDto,
-    CustomersQueryDto,
+    QueryCustomersDto,
     CustomersService,
-    CustomerUpdatingDto
+    UpdateCustomerDto
 } from 'app/services/customers'
 import { Assert, PaginationOption, PaginationPipe } from 'common'
-import {
-    CustomerEmailNotExistsGuard,
-    CustomerExistsGuard,
-    CustomerJwtAuthGuard,
-    CustomerLocalAuthGuard,
-    Public
-} from './guards'
+import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, Public } from './guards'
 
 @Controller('customers')
 @UseGuards(CustomerJwtAuthGuard)
 export class CustomersController {
-    constructor(private readonly customersService: CustomersService) {}
+    constructor(private readonly service: CustomersService) {}
 
-    @Post()
     @Public()
-    @UseGuards(CustomerEmailNotExistsGuard)
-    async createCustomer(@Body() createCustomerDto: CustomerCreationDto) {
-        return this.customersService.createCustomer(createCustomerDto)
-    }
-
-    @Get()
-    @UsePipes(new PaginationPipe(50))
-    async findCustomers(@Query() filter: CustomersQueryDto, @Query() pagination: PaginationOption) {
-        return this.customersService.findCustomers(filter, pagination)
-    }
-
-    @Get(':customerId')
-    @UseGuards(CustomerExistsGuard)
-    async getCustomer(@Param('customerId') customerId: string) {
-        return this.customersService.getCustomer(customerId)
+    @Post()
+    async createCustomer(@Body() createDto: CreateCustomerDto) {
+        return this.service.createCustomer(createDto)
     }
 
     @Patch(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async updateCustomer(
         @Param('customerId') customerId: string,
-        @Body() updateCustomerDto: CustomerUpdatingDto
+        @Body() updateDto: UpdateCustomerDto
     ) {
-        return this.customersService.updateCustomer(customerId, updateCustomerDto)
+        return this.service.updateCustomer(customerId, updateDto)
+    }
+
+    @Get(':customerId')
+    async getCustomer(@Param('customerId') customerId: string) {
+        return this.service.getCustomer(customerId)
     }
 
     @Delete(':customerId')
-    @UseGuards(CustomerExistsGuard)
     async deleteCustomer(@Param('customerId') customerId: string) {
-        return this.customersService.deleteCustomer(customerId)
+        return this.service.deleteCustomer(customerId)
     }
 
-    @Post('login')
-    @Public()
+    @UsePipes(new PaginationPipe(50))
+    @Get()
+    async findCustomers(
+        @Query() queryDto: QueryCustomersDto,
+        @Query() pagination: PaginationOption
+    ) {
+        return this.service.findCustomers(queryDto, pagination)
+    }
+
     @UseGuards(CustomerLocalAuthGuard)
+    @Post('login')
     async login(@Req() req: { user: CustomerDto }) {
-        // req.user is the return value from LocalStrategy.validate
-        Assert.defined(req.user, 'req.customer must be defined')
+        Assert.defined(req.user, 'req.user must be returned in LocalStrategy.validate')
 
-        const tokenPair = await this.customersService.login(req.user)
-
-        return tokenPair
+        return this.service.login(req.user)
     }
 
-    @Post('refresh')
     @Public()
+    @Post('refresh')
     async refreshToken(@Body('refreshToken') refreshToken: string) {
-        const tokenPair = await this.customersService.refreshAuthTokens(refreshToken)
-
-        if (!tokenPair) {
-            throw new UnauthorizedException('refresh failed.')
-        }
-
-        return tokenPair
+        return this.service.refreshAuthTokens(refreshToken)
     }
 }

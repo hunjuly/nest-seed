@@ -3,13 +3,13 @@ import { TestingModule } from '@nestjs/testing'
 import { AppLoggerService } from 'common'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
-import { HttpRequest } from './http.request'
+import { HttpClient } from './http.client'
 
 export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
-    createRequest: (prefix?: string) => HttpRequest
+    client: HttpClient
     close: () => Promise<void>
 }
 
@@ -18,17 +18,18 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const app = module.createNestApplication()
 
-    const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
+    // VSCODE에 종속적이다.
+    const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
 
-    if (ignoreLogging) {
-        app.useLogger(false)
-    } else {
+    if (isDebuggingEnabled) {
         try {
             const logger = app.get(AppLoggerService)
             app.useLogger(logger)
         } catch (error) {
             app.useLogger(console)
         }
+    } else {
+        app.useLogger(false)
     }
 
     if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
@@ -48,12 +49,12 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
         })
     })
 
-    const createRequest = (prefix: string = '') => new HttpRequest(server, prefix)
+    const client = new HttpClient(server)
 
     const close = async () => {
         if (server) await server.close()
         if (module) await module.close()
     }
 
-    return { server, module, app, createRequest, close }
+    return { server, module, app, client, close }
 }

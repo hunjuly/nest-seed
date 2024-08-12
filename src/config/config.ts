@@ -2,16 +2,11 @@ import { existsSync } from 'fs'
 import * as dotenv from 'dotenv'
 import { getNumber, getString } from './utils'
 import { exit } from 'process'
+import { notUsed } from 'common'
 
-export function isProduction() {
-    return process.env.NODE_ENV === 'production'
-}
+export const nodeEnv = () => getString('NODE_ENV') as 'production' | 'development'
 
-export function isDevelopment() {
-    return process.env.NODE_ENV === 'development'
-}
-
-if (isDevelopment()) {
+if (nodeEnv() === 'development') {
     dotenv.config({ path: '.env.development' })
 }
 
@@ -64,4 +59,14 @@ if (!existsSync(Config.fileUpload.directory)) {
 if (!existsSync(Config.log.directory)) {
     console.log(`Log directory does not exist: ${Config.log.directory}`)
     exit(1)
+}
+
+export const mongoDataSource = () => {
+    const { user, pass, host1, host2, host3, port, replica, database } = Config.mongo
+    notUsed(host3, '3개를 다 적을 필요는 없다')
+    const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
+    const uniqueId = (global as any).JEST_UNIQUE_ID
+    const dbName = uniqueId ? 'test_' + uniqueId : database
+
+    return { uri, dbName }
 }

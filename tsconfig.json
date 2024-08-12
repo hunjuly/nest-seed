@@ -8,7 +8,7 @@
         "allowSyntheticDefaultImports": true,
         "target": "ES2021",
         "sourceMap": true,
-        "outDir": "./dist",
+        "outDir": "./_output/dist",
         "baseUrl": "./",
         "paths": {
             "app/*": [
@@ -22,9 +22,6 @@
             ],
             "config": [
                 "src/config/index"
-            ],
-            "databases/*": [
-                "src/databases/*"
             ]
         },
         "incremental": true,
@@ -35,5 +32,7 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include":["src/**/*"]
+    "include": [
+        "src/**/*"
+    ]
 }

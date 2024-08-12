@@ -1,26 +1,26 @@
 import { expect } from '@jest/globals'
-import { MongooseException, OrderDirection, nullObjectId, pickItems } from 'common'
+import { maps, nullObjectId, OrderDirection, pickIds, pickItems } from 'common'
 import { expectEqualUnsorted } from 'common/test'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
+import { MongooseException } from '../exceptions'
 import {
-    Sample,
-    SamplesRepository,
     createFixture,
     createSample,
     createSamples,
-    generated,
+    SampleDto,
+    SamplesRepository,
     sortByName,
     sortByNameDescending
 } from './mongoose.repository.fixture'
 
-describe('MongooseRepository', () => {
+describe('MongoRepository', () => {
     let mongod: MongoMemoryReplSet
     let repository: SamplesRepository
     let teardown: () => void
 
     beforeAll(async () => {
         mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
-    })
+    }, 60000)
 
     afterAll(async () => {
         await mongod?.stop()
@@ -36,203 +36,117 @@ describe('MongooseRepository', () => {
         await teardown()
     })
 
-    describe('create', () => {
+    describe('save', () => {
         it('should successfully create a document', async () => {
-            const doc = await repository.create((doc) => {
-                doc.name = 'document name'
-            })
+            const newDoc = repository.newDocument()
+            newDoc.name = 'document name'
+            await newDoc.save()
 
-            expect(doc).toEqual({ ...generated, name: 'document name' })
+            const findDoc = await repository.findById(newDoc.id)
+            expect(new SampleDto(findDoc!)).toEqual(new SampleDto(newDoc))
         })
 
         it('should throw an exception if required fields are missing', async () => {
-            const promise = repository.create(() => {})
-
+            const doc = repository.newDocument()
+            const promise = doc.save()
             await expect(promise).rejects.toThrowError()
+        })
+
+        it('should successfully update a document', async () => {
+            const newDoc = repository.newDocument()
+            newDoc.name = 'name1'
+            await newDoc.save()
+
+            const updateDoc = await repository.findById(newDoc.id)
+            updateDoc!.name = 'name2'
+            await updateDoc!.save()
+
+            const findDoc = await repository.findById(newDoc.id)
+
+            expect(findDoc?.name).toEqual('name2')
         })
     })
 
-    describe('createMany', () => {
+    describe('saveAll', () => {
         it('should successfully create multiple documents', async () => {
-            const datas = [{ name: 'document-1 name' }, { name: 'document-2 name' }]
-
-            const createdCount = await repository.createMany(datas.length, (doc, index) => {
-                doc.name = datas[index].name
+            const docs = [
+                { name: 'document-1' },
+                { name: 'document-2' },
+                { name: 'document-2' }
+            ].map((data) => {
+                const doc = repository.newDocument()
+                doc.name = data.name
+                return doc
             })
 
-            expect(createdCount).toEqual(datas.length)
+            const res = await repository.saveAll(docs)
+
+            expect(res).toBeTruthy()
         })
 
         it('should throw an exception if required fields are missing', async () => {
-            const datas = [{ name: 'document-1 name' }]
+            const docs = [repository.newDocument(), repository.newDocument()]
 
-            const promise = repository.createMany(datas.length, () => {})
+            const promise = repository.saveAll(docs)
 
             await expect(promise).rejects.toThrowError()
         })
     })
 
-    describe('existsByIds', () => {
-        let samples: Sample[]
+    describe('findWithPagination', () => {
+        let samples: SampleDto[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
-        })
-
-        it('should return true if the IDs does exist', async () => {
-            const exists = await repository.existsByIds(pickItems(samples, '_id'))
-            expect(exists).toBeTruthy()
-        })
-
-        it('should return false if any ID does not exist', async () => {
-            const exists = await repository.existsByIds([nullObjectId])
-            expect(exists).toBeFalsy()
-        })
-    })
-
-    describe('updateById', () => {
-        let sample: Sample
-
-        beforeEach(async () => {
-            sample = await createSample(repository)
-        })
-
-        it('should successfully update a document', async () => {
-            const doc = await repository.updateById(sample._id, (doc) => {
-                doc.name = 'new name'
-            })
-
-            expect(doc).toEqual({ ...generated, name: 'new name' })
-        })
-
-        it('should throw an exception if the ID does not exist', async () => {
-            const promise = repository.updateById(nullObjectId, () => {})
-
-            await expect(promise).rejects.toThrow(MongooseException)
-        })
-    })
-
-    describe('updateByIds', () => {
-        let samples: Sample[]
-
-        beforeEach(async () => {
-            samples = await createSamples(repository)
-        })
-
-        it('should successfully update a document', async () => {
-            const result = await repository.updateByIds(pickItems(samples, '_id'), (doc, index) => {
-                doc.name = `new name-${index}`
-            })
-
-            expect(result).toEqual({
-                matchedCount: samples.length,
-                modifiedCount: samples.length
-            })
-        })
-
-        it('should throw an exception if the ID does not exist', async () => {
-            const promise = repository.updateByIds([nullObjectId], () => {})
-
-            await expect(promise).rejects.toThrow(MongooseException)
-        })
-    })
-
-    describe('findById', () => {
-        let sample: Sample
-
-        beforeEach(async () => {
-            sample = await createSample(repository)
-        })
-
-        it('should find a document by ID', async () => {
-            const doc = await repository.findById(sample._id)
-            expect(doc).toEqual(sample)
-        })
-
-        it('should return null if the ID does not exist', async () => {
-            const doc = await repository.findById(nullObjectId)
-            expect(doc).toBeNull()
-        })
-    })
-
-    describe('findByIds', () => {
-        let samples: Sample[]
-
-        beforeEach(async () => {
-            samples = await createSamples(repository)
-        })
-
-        it('should find documents by multiple IDs', async () => {
-            const docs = await repository.findByIds(pickItems(samples, '_id'))
-            expectEqualUnsorted(docs, samples)
-        })
-
-        it('should ignore non-existent IDs', async () => {
-            const docs = await repository.findByIds([nullObjectId])
-            expect(docs).toHaveLength(0)
-        })
-    })
-
-    describe('find', () => {
-        let samples: Sample[]
-
-        beforeEach(async () => {
-            samples = await createSamples(repository)
+            const docs = await createSamples(repository)
+            samples = maps(docs, SampleDto)
         })
 
         it('should set the pagination correctly', async () => {
             const skip = 10
             const take = 5
-            const paginated = await repository.find(() => {}, {
+            const { items, ...paginated } = await repository.findWithPagination(() => {}, {
                 skip,
                 take,
                 orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
             sortByName(samples)
-
-            expect(paginated).toEqual({
-                items: samples.slice(skip, skip + take),
-                total: samples.length,
-                skip,
-                take
-            })
+            expect(samples.slice(skip, skip + take)).toEqual(maps(items, SampleDto))
+            expect(paginated).toEqual({ total: samples.length, skip, take })
         })
 
         it('should sort in ascending order', async () => {
-            const paginated = await repository.find(() => {}, {
+            const { items } = await repository.findWithPagination(() => {}, {
                 orderby: { name: 'name', direction: OrderDirection.asc }
             })
 
             sortByName(samples)
-
-            expect(paginated.items).toEqual(samples)
+            expect(maps(items, SampleDto)).toEqual(samples)
         })
 
         it('should sort in descending order', async () => {
-            const paginated = await repository.find(() => {}, {
+            const { items } = await repository.findWithPagination(() => {}, {
                 orderby: { name: 'name', direction: OrderDirection.desc }
             })
 
             sortByNameDescending(samples)
-
-            expect(paginated.items).toEqual(samples)
+            expect(maps(items, SampleDto)).toEqual(samples)
         })
 
         it('should throw an exception if ‘take’ is absent or zero', async () => {
-            const promise = repository.find(() => {}, { take: 0 })
+            const promise = repository.findWithPagination(() => {}, { take: 0 })
 
             await expect(promise).rejects.toThrow(MongooseException)
         })
 
         it('Should set conditions using the QueryHelper', async () => {
-            const paginated = await repository.find((helpers) => {
+            const { items } = await repository.findWithPagination((helpers) => {
                 helpers.setQuery({ name: /Sample-00/i })
             })
 
-            sortByName(paginated.items)
+            const sorted = sortByName(maps(items, SampleDto))
 
-            expect(pickItems(paginated.items, 'name')).toEqual([
+            expect(pickItems(sorted, 'name')).toEqual([
                 'Sample-000',
                 'Sample-001',
                 'Sample-002',
@@ -247,37 +161,77 @@ describe('MongooseRepository', () => {
         })
     })
 
-    describe('deleteById', () => {
-        let sample: Sample
+    describe('existsByIds', () => {
+        let samples: SampleDto[]
 
         beforeEach(async () => {
-            sample = await createSample(repository)
+            const docs = await createSamples(repository)
+            samples = maps(docs, SampleDto)
         })
 
-        it('should delete a document successfully', async () => {
-            const deletedDoc = await repository.deleteById(sample._id)
-            expect(deletedDoc).toEqual(sample)
-
-            const foundDoc = await repository.findById(sample._id)
-            expect(foundDoc).toBeNull()
+        it('should return true if the IDs does exist', async () => {
+            const exists = await repository.existsByIds(pickItems(samples, 'id'))
+            expect(exists).toBeTruthy()
         })
 
-        it('should throw an exception if the ID does not exist', async () => {
-            const promise = repository.deleteById(nullObjectId)
+        it('should return false if any ID does not exist', async () => {
+            const exists = await repository.existsByIds([nullObjectId])
+            expect(exists).toBeFalsy()
+        })
+    })
 
-            await expect(promise).rejects.toThrow(MongooseException)
+    describe('findById', () => {
+        let sample: SampleDto
+
+        beforeEach(async () => {
+            const doc = await createSample(repository)
+            sample = new SampleDto(doc)
+        })
+
+        it('should find a document by ID', async () => {
+            const doc = await repository.findById(sample.id)
+
+            expect(new SampleDto(doc!)).toEqual(sample)
+        })
+
+        it('should return null if the ID does not exist', async () => {
+            const doc = await repository.findById(nullObjectId)
+
+            expect(doc).toBeNull()
+        })
+    })
+
+    describe('findByIds', () => {
+        let samples: SampleDto[]
+
+        beforeEach(async () => {
+            const docs = await createSamples(repository)
+            samples = maps(docs, SampleDto)
+        })
+
+        it('should find documents by multiple IDs', async () => {
+            const ids = pickIds(samples)
+            const docs = await repository.findByIds(ids)
+
+            expectEqualUnsorted(maps(docs, SampleDto), samples)
+        })
+
+        it('should ignore non-existent IDs', async () => {
+            const docs = await repository.findByIds([nullObjectId])
+            expect(docs).toHaveLength(0)
         })
     })
 
     describe('deleteByIds', () => {
-        let samples: Sample[]
+        let samples: SampleDto[]
 
         beforeEach(async () => {
-            samples = await createSamples(repository)
+            const docs = await createSamples(repository)
+            samples = maps(docs, SampleDto)
         })
 
         it('should delete multiple documents successfully', async () => {
-            const ids = samples.slice(0, 10).map((doc) => doc._id)
+            const ids = pickIds(samples.slice(0, 10))
 
             const deletedCount = await repository.deleteByIds(ids)
             expect(deletedCount).toEqual(ids.length)
@@ -291,28 +245,6 @@ describe('MongooseRepository', () => {
             const deletedCount = await repository.deleteByIds([nullObjectId])
 
             expect(deletedCount).toEqual(0)
-        })
-    })
-
-    describe('delete', () => {
-        beforeEach(async () => {
-            await createSamples(repository)
-        })
-
-        it('should delete documents based on a filter', async () => {
-            const deletedCount = await repository.delete({ name: /Sample-00/i })
-            expect(deletedCount).toEqual(10)
-
-            const paginated = await repository.find((helpers) => {
-                helpers.setQuery({ name: /Sample-00/i })
-            })
-            expect(paginated.total).toEqual(0)
-        })
-
-        it('should throw an exception if the filter is empty', async () => {
-            const promise = repository.delete({})
-
-            await expect(promise).rejects.toThrow(MongooseException)
         })
     })
 })

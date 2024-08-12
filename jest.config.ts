@@ -1,7 +1,6 @@
 import type { Config } from 'jest'
 
 const config: Config = {
-    maxWorkers: 1, // --runInBand, jest 테스트가 동시에 실행되면 서로 postgresql을 초기화 해서 오류가 발생한다.
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
@@ -11,8 +10,7 @@ const config: Config = {
         '^app/(.*)$': '<rootDir>/src/app/$1',
         '^common$': '<rootDir>/src/common/index',
         '^common/test$': '<rootDir>/src/common/test/index',
-        '^config$': '<rootDir>/src/config/index',
-        '^databases/(.*)$': '<rootDir>/src/databases/$1'
+        '^config$': '<rootDir>/src/config/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -37,10 +35,8 @@ const config: Config = {
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],
-    coverageDirectory: './coverage',
-    // 60s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
-    // memory-mongodb 다운로드가 느린 경우가 있다.
-    testTimeout: 60000
+    coverageDirectory: '<rootDir>/_output/coverage',
+    testTimeout: 15000 // 15s, 테스트에서 DB 상태에 따라서 가끔 5초를 초과하는 경우가 있다.
 }
 
 export default config

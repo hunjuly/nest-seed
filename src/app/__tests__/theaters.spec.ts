@@ -1,24 +1,22 @@
 import { expect } from '@jest/globals'
-import { TheatersController } from 'app/controllers'
-import { GlobalModule } from 'app/global'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { nullObjectId } from 'common'
-import { HttpRequest, HttpTestContext, createHttpTestContext } from 'common/test'
-import { createTheater, createTheaters } from './theaters.fixture'
+import { AppModule } from 'app/app.module'
+import { TheaterDto } from 'app/services/theaters'
+import { nullObjectId, pickIds } from 'common'
+import {
+    HttpClient,
+    HttpTestContext,
+    createHttpTestContext,
+    expectEqualUnsorted
+} from 'common/test'
+import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
-    let req: HttpRequest
-    let theatersService: TheatersService
+    let client: HttpClient
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
-            imports: [GlobalModule, TheatersModule],
-            controllers: [TheatersController]
-        })
-        req = testContext.createRequest()
-
-        theatersService = testContext.module.get(TheatersService)
+        testContext = await createHttpTestContext({ imports: [AppModule] })
+        client = testContext.client
     })
 
     afterEach(async () => {
@@ -26,20 +24,16 @@ describe('/theaters', () => {
     })
 
     describe('POST /theaters', () => {
-        const createData = {
-            name: `Theater-Name`,
-            latlong: { latitude: 38.123, longitude: 138.678 },
-            seatmap: { blocks: [{ name: 'A', rows: [{ name: '1', seats: 'OOOOXXOOOO' }] }] }
-        }
+        it('should create a theater and return CREATED(201) status', async () => {
+            const { createDto, expectedDto } = makeTheaterDto()
 
-        it('Create a theater', async () => {
-            const res = await req.post('/theaters').body(createData).created()
+            const { body } = await client.post('/theaters').body(createDto).created()
 
-            expect(res.body).toEqual({ id: expect.anything(), ...createData })
+            expect(body).toEqual(expectedDto)
         })
 
-        it('BAD_REQUEST(400) if required fields are missing', async () => {
-            return req.post('/theaters').body({}).badRequest()
+        it('should return BAD_REQUEST(400) when required fields are missing', async () => {
+            return client.post('/theaters').body({}).badRequest()
         })
     })
 
@@ -47,25 +41,25 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            theater = await createTheater(theatersService)
+            theater = await createTheater(client)
         })
 
-        it('Update a theater', async () => {
-            const updateData = {
+        it('should update a theater', async () => {
+            const updateDto = {
                 name: `Update-Name`,
                 latlong: { latitude: 30.0, longitude: 120.0 },
                 seatmap: []
             }
 
-            const updateResponse = await req.patch(`/theaters/${theater.id}`).body(updateData).ok()
-            expect(updateResponse.body).toEqual({ ...theater, ...updateData })
+            const updated = await client.patch(`/theaters/${theater.id}`).body(updateDto).ok()
+            expect(updated.body).toEqual({ ...theater, ...updateDto })
 
-            const getResponse = await req.get(`/theaters/${theater.id}`).ok()
-            expect(updateResponse.body).toEqual(getResponse.body)
+            const got = await client.get(`/theaters/${theater.id}`).ok()
+            expect(got.body).toEqual(updated.body)
         })
 
-        it('NOT_FOUND(404) if theater is not found', async () => {
-            return req.patch(`/theaters/${nullObjectId}`).body({}).notFound()
+        it('should return NOT_FOUND(404) when theater does not exist', async () => {
+            return client.patch(`/theaters/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -73,36 +67,16 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            theater = await createTheater(theatersService)
+            theater = await createTheater(client)
         })
 
-        it('Delete a theater', async () => {
-            await req.delete(`/theaters/${theater.id}`).ok()
-            await req.get(`/theaters/${theater.id}`).notFound()
+        it('should delete a theater', async () => {
+            await client.delete(`/theaters/${theater.id}`).ok()
+            await client.get(`/theaters/${theater.id}`).notFound()
         })
 
-        it('NOT_FOUND(404) if theater is not found', async () => {
-            return req.delete(`/theaters/${nullObjectId}`).notFound()
-        })
-    })
-
-    describe('GET /theaters', () => {
-        let theaters: TheaterDto[]
-
-        beforeEach(async () => {
-            theaters = await createTheaters(theatersService, 20)
-        })
-
-        it('Retrieve all theaters', async () => {
-            const res = await req.get('/theaters').query({ orderby: 'name:asc' }).ok()
-
-            expect(res.body.items).toEqual(theaters)
-        })
-
-        it('Retrieve theaters by partial name', async () => {
-            const res = await req.get('/theaters').query({ name: 'Theater-' }).ok()
-
-            expect(res.body.items).toEqual(expect.arrayContaining(theaters))
+        it('should return NOT_FOUND(404) when theater does not exist', async () => {
+            return client.delete(`/theaters/${nullObjectId}`).notFound()
         })
     })
 
@@ -110,17 +84,75 @@ describe('/theaters', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
-            theater = await createTheater(theatersService)
+            theater = await createTheater(client)
         })
 
-        it('Retrieve a theater by ID', async () => {
-            const res = await req.get(`/theaters/${theater.id}`).ok()
-
-            expect(res.body).toEqual(theater)
+        it('should get a theater', async () => {
+            const { body } = await client.get(`/theaters/${theater.id}`).ok()
+            expect(body).toEqual(theater)
         })
 
-        it('NOT_FOUND(404) if ID does not exist', async () => {
-            return req.get(`/theaters/${nullObjectId}`).notFound()
+        it('should return NOT_FOUND(404) when theater does not exist', async () => {
+            return client.get(`/theaters/${nullObjectId}`).notFound()
+        })
+    })
+
+    describe('GET /theaters', () => {
+        let theaters: TheaterDto[]
+
+        beforeEach(async () => {
+            theaters = await createTheaters(client)
+        })
+
+        it('should retrieve theaters with default pagination', async () => {
+            const { body } = await client.get('/theaters').ok()
+            const { items, ...paginated } = body
+
+            expect(paginated).toEqual({
+                skip: 0,
+                take: expect.any(Number),
+                total: theaters.length
+            })
+            expectEqualUnsorted(items, theaters)
+        })
+
+        it('should retrieve theaters by partial title', async () => {
+            const partialName = 'Theater-'
+            const { body } = await client.get('/theaters').query({ name: partialName }).ok()
+
+            const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
+            expectEqualUnsorted(body.items, expected)
+        })
+
+        it('should retrieve theaters by id', async () => {
+            const partialName = 'Theater-'
+            const { body } = await client.get('/theaters').query({ name: partialName }).ok()
+
+            const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
+            expectEqualUnsorted(body.items, expected)
+        })
+    })
+
+    describe('POST /theaters/getByIds', () => {
+        let theaters: TheaterDto[]
+
+        beforeEach(async () => {
+            theaters = await createTheaters(client)
+        })
+
+        it('should retrieve theaters with theaterIds', async () => {
+            const expectedTheaters = theaters.slice(0, 5)
+            const queryDto = { theaterIds: pickIds(expectedTheaters) }
+
+            const { body } = await client.post('/theaters/getByIds').body(queryDto).ok()
+
+            expectEqualUnsorted(body, expectedTheaters)
+        })
+
+        it('should return NOT_FOUND(404) when theater does not exist', async () => {
+            const queryDto = { theaterIds: [nullObjectId] }
+
+            return client.post('/theaters/getByIds').body(queryDto).notFound()
         })
     })
 })

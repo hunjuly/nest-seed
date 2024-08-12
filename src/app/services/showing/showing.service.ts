@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import {
-    Assert,
     LatLong,
     latlongDistanceInMeters,
     MethodLog,
@@ -85,8 +84,7 @@ export class ShowingService {
     @MethodLog({ level: 'verbose' })
     async findShowingTheaters(movieId: string, userLocation: LatLong) {
         const theaterIds = await this.showtimesService.findTheaterIdsShowingMovie(movieId)
-        const theaters = await this.theatersService.findByIds(theaterIds)
-        Assert.equalLength(theaterIds, theaters, '찾으려는 theaterIds는 모두 존재해야 한다')
+        const theaters = await this.theatersService.getTheatersByIds(theaterIds)
 
         return this.sortTheatersByDistance(theaters, userLocation)
     }
@@ -102,7 +100,6 @@ export class ShowingService {
     @MethodLog({ level: 'verbose' })
     async findShowdates(movieId: string, theaterId: string) {
         const showdates = await this.showtimesService.findShowdates(movieId, theaterId)
-
         return showdates
     }
 
@@ -135,7 +132,6 @@ export class ShowingService {
     @MethodLog({ level: 'verbose' })
     async findTickets(showtimeId: string) {
         const tickets = await this.ticketsService.findTicketsByShowtimeId(showtimeId)
-
         return tickets
     }
 }
