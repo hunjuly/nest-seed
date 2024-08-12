@@ -4,15 +4,9 @@ import { getNumber, getString } from './utils'
 import { exit } from 'process'
 import { notUsed } from 'common'
 
-export function isProduction() {
-    return process.env.NODE_ENV === 'production'
-}
+export const nodeEnv = () => getString('NODE_ENV') as 'production' | 'development'
 
-export function isDevelopment() {
-    return process.env.NODE_ENV === 'development'
-}
-
-if (isDevelopment()) {
+if (nodeEnv() === 'development') {
     dotenv.config({ path: '.env.development' })
 }
 
