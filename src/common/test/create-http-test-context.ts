@@ -9,8 +9,7 @@ export interface HttpTestContext {
     server: any
     module: TestingModule
     app: INestApplication<any>
-    // TODO to client
-    createClient: (prefix?: string) => HttpClient
+    client: HttpClient
     close: () => Promise<void>
 }
 
@@ -50,12 +49,12 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
         })
     })
 
-    const createClient = (prefix: string = '') => new HttpClient(server, prefix)
+    const client = new HttpClient(server)
 
     const close = async () => {
         if (server) await server.close()
         if (module) await module.close()
     }
 
-    return { server, module, app, createClient, close }
+    return { server, module, app, client, close }
 }

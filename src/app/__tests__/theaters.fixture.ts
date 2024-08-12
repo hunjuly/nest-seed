@@ -16,7 +16,7 @@ export const makeTheaterDto = (overrides = {}) => {
 
 export const createTheater = async (client: HttpClient, override = {}) => {
     const { createDto } = makeTheaterDto(override)
-    const { body } = await client.post('/theaters', false).body(createDto).created()
+    const { body } = await client.post('/theaters').body(createDto).created()
     return body
 }
 

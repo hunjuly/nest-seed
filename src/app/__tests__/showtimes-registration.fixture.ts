@@ -96,15 +96,15 @@ export const createShowtimes = async (
     createDto: CreateShowtimesDto,
     listener: ShowtimesEventListener
 ) => {
-    const { body } = await client.post('/showtimes', false).body(createDto).accepted()
+    const { body } = await client.post('/showtimes').body(createDto).accepted()
 
     const batchId = body.batchId
 
     await listener.awaitEvent(batchId, ShowtimesCreateCompleteEvent.eventName)
     await listener.awaitEvent(batchId, TicketsCreateCompleteEvent.eventName)
 
-    const { body: showtimesBody } = await client.get('/showtimes', false).query({ batchId }).ok()
-    const { body: ticketsBody } = await client.get('/tickets', false).query({ batchId }).ok()
+    const { body: showtimesBody } = await client.get('/showtimes').query({ batchId }).ok()
+    const { body: ticketsBody } = await client.get('/tickets').query({ batchId }).ok()
 
     return { batchId, showtimes: showtimesBody.items, tickets: ticketsBody.items }
 }

@@ -22,7 +22,7 @@ describe('/tickets', () => {
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        client = fixture.testContext.createClient('/tickets')
+        client = fixture.testContext.client
         listener = fixture.listener
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
@@ -45,14 +45,14 @@ describe('/tickets', () => {
         })
 
         it('should retrieve tickets by batchId', async () => {
-            const { body } = await client.get().query({ batchId }).ok()
+            const { body } = await client.get('/tickets').query({ batchId }).ok()
 
             expectEqualUnsorted(body.items, createdTickets)
         })
 
         it('should retrieve tickets by theaterId', async () => {
             const theaterId = theaters[0].id
-            const { body } = await client.get().query({ theaterId }).ok()
+            const { body } = await client.get('/tickets').query({ theaterId }).ok()
 
             const filteredTickets = createdTickets.filter(
                 (ticket) => ticket.theaterId === theaterId
@@ -62,7 +62,7 @@ describe('/tickets', () => {
 
         it('should retrieve tickets by theaterIds', async () => {
             const theaterIds = pickIds(theaters)
-            const { body } = await client.get().query({ theaterIds }).ok()
+            const { body } = await client.get('/tickets').query({ theaterIds }).ok()
 
             const filteredTickets = createdTickets.filter((ticket) =>
                 theaterIds.includes(ticket.theaterId)
@@ -73,14 +73,14 @@ describe('/tickets', () => {
         it('should retrieve tickets by ticketIds', async () => {
             const partialTickets = createdTickets.slice(5, 10)
             const ticketIds = pickIds(partialTickets)
-            const { body } = await client.get().query({ ticketIds }).ok()
+            const { body } = await client.get('/tickets').query({ ticketIds }).ok()
 
             expectEqualUnsorted(body.items, partialTickets)
         })
 
         it('should retrieve tickets by movieId', async () => {
             const movieId = movie.id
-            const { body } = await client.get().query({ movieId }).ok()
+            const { body } = await client.get('/tickets').query({ movieId }).ok()
 
             const filteredTickets = createdTickets.filter((ticket) => ticket.movieId === movieId)
             expectEqualUnsorted(body.items, filteredTickets)

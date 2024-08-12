@@ -21,7 +21,7 @@ export const makeMovieDto = (overrides = {}) => {
 
 export const createMovie = async (client: HttpClient, override = {}) => {
     const { createDto } = makeMovieDto(override)
-    const { body } = await client.post('/movies', false).body(createDto).created()
+    const { body } = await client.post('/movies').body(createDto).created()
     return body
 }
 

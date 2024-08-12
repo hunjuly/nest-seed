@@ -1,20 +1,9 @@
-import {
-    CustomersController,
-    MoviesController,
-    PaymentsController,
-    ShowingController,
-    ShowtimesController,
-    TheatersController,
-    TicketsController
-} from 'app/controllers'
-import { CoreModule } from 'app/core'
-import { CustomerDto, CustomersModule } from 'app/services/customers'
-import { MovieDto, MovieGenre, MoviesModule, MoviesService } from 'app/services/movies'
-import { PaymentsModule, PaymentsService } from 'app/services/payments'
-import { ShowingModule } from 'app/services/showing'
-import { ShowtimesModule } from 'app/services/showtimes'
-import { TheaterDto, TheatersModule, TheatersService } from 'app/services/theaters'
-import { TicketsModule, TicketsService } from 'app/services/tickets'
+import { AppModule } from 'app/app.module'
+import { CustomerDto } from 'app/services/customers'
+import { MovieDto, MovieGenre, MoviesService } from 'app/services/movies'
+import { PaymentsService } from 'app/services/payments'
+import { TheaterDto, TheatersService } from 'app/services/theaters'
+import { TicketsService } from 'app/services/tickets'
 import { pickIds } from 'common'
 import { createHttpTestContext } from 'common/test'
 import { createCustomer } from './customers.fixture'
@@ -25,26 +14,8 @@ import { TicketsFactory } from './tickets.fixture'
 
 export async function createFixture() {
     const testContext = await createHttpTestContext({
-        imports: [
-            CoreModule,
-            CustomersModule,
-            MoviesModule,
-            TheatersModule,
-            TicketsModule,
-            ShowtimesModule,
-            PaymentsModule,
-            ShowingModule
-        ],
-        controllers: [
-            CustomersController,
-            MoviesController,
-            TheatersController,
-            TicketsController,
-            ShowtimesController,
-            PaymentsController,
-            ShowingController
-        ],
-        providers: [TicketsFactory, ShowtimesEventListener]
+        imports: [AppModule],
+        providers: [ShowtimesEventListener]
     })
 
     const module = testContext.module

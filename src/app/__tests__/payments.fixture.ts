@@ -22,7 +22,7 @@ export async function createFixture() {
     const module = testContext.module
     const listener = module.get(ShowtimesEventListener)
 
-    const client = testContext.createClient()
+    const client = testContext.client
     const customer = await createCustomer(client)
     const movie = await createMovie(client)
     const theaters = await createTheaters(client, 2)
@@ -33,7 +33,7 @@ export async function createFixture() {
 }
 
 export async function createPayment(client: HttpClient, createDto: CreatePaymentDto) {
-    const { body } = await client.post('/payments', false).body(createDto).created()
+    const { body } = await client.post('/payments').body(createDto).created()
     return body
 }
 

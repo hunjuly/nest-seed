@@ -20,7 +20,7 @@ describe('/customers', () => {
             imports: [AppModule],
             ignoreGuards: [CustomerJwtAuthGuard]
         })
-        client = testContext.createClient('/customers')
+        client = testContext.client
     })
 
     afterEach(async () => {
@@ -31,7 +31,7 @@ describe('/customers', () => {
         it('should create a customer and return CREATED(201) status', async () => {
             const { createDto, expectedDto } = makeCustomerDto()
 
-            const { body } = await client.post().body(createDto).created()
+            const { body } = await client.post('/customers').body(createDto).created()
 
             expect(body).toEqual(expectedDto)
         })
@@ -39,12 +39,12 @@ describe('/customers', () => {
         it('should return CONFLICT(409) when email already exists', async () => {
             const { createDto } = makeCustomerDto()
 
-            await client.post().body(createDto).created()
-            await client.post().body(createDto).conflict()
+            await client.post('/customers').body(createDto).created()
+            await client.post('/customers').body(createDto).conflict()
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            return client.post().body({}).badRequest()
+            return client.post('/customers').body({}).badRequest()
         })
     })
 
@@ -58,15 +58,15 @@ describe('/customers', () => {
         it('should update a customer', async () => {
             const updateDto = { name: 'update name', email: 'new@mail.com' }
 
-            const updated = await client.patch(customer.id).body(updateDto).ok()
+            const updated = await client.patch(`/customers/${customer.id}`).body(updateDto).ok()
             expect(updated.body).toEqual({ ...customer, ...updateDto })
 
-            const got = await client.get(customer.id).ok()
+            const got = await client.get(`/customers/${customer.id}`).ok()
             expect(got.body).toEqual(updated.body)
         })
 
         it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            return client.patch(nullObjectId).body({}).notFound()
+            return client.patch(`/customers/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -78,12 +78,12 @@ describe('/customers', () => {
         })
 
         it('should delete a customer', async () => {
-            await client.delete(customer.id).ok()
-            await client.get(customer.id).notFound()
+            await client.delete(`/customers/${customer.id}`).ok()
+            await client.get(`/customers/${customer.id}`).notFound()
         })
 
         it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            return client.delete(nullObjectId).notFound()
+            return client.delete(`/customers/${nullObjectId}`).notFound()
         })
     })
 
@@ -95,12 +95,12 @@ describe('/customers', () => {
         })
 
         it('should get a customer', async () => {
-            const { body } = await client.get(customer.id).ok()
+            const { body } = await client.get(`/customers/${customer.id}`).ok()
             expect(body).toEqual(customer)
         })
 
         it('should return NOT_FOUND(404) when customer does not exist', async () => {
-            return client.get(nullObjectId).notFound()
+            return client.get(`/customers/${nullObjectId}`).notFound()
         })
     })
 
@@ -112,7 +112,7 @@ describe('/customers', () => {
         })
 
         it('should retrieve customers with default pagination', async () => {
-            const { body } = await client.get().ok()
+            const { body } = await client.get('/customers').ok()
             const { items, ...paginated } = body
 
             expect(paginated).toEqual({
@@ -125,7 +125,7 @@ describe('/customers', () => {
 
         it('should retrieve customers by partial name', async () => {
             const partialName = 'Customer-1'
-            const { body } = await client.get().query({ name: partialName }).ok()
+            const { body } = await client.get('/customers').query({ name: partialName }).ok()
 
             const expected = customers.filter((customer) => customer.name.startsWith(partialName))
             expectEqualUnsorted(body.items, expected)

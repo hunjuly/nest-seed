@@ -17,7 +17,7 @@ export const makeCustomerDto = (overrides = {}) => {
 
 export const createCustomer = async (client: HttpClient, override = {}) => {
     const { createDto } = makeCustomerDto(override)
-    const { body } = await client.post('/customers', false).body(createDto).created()
+    const { body } = await client.post('/customers').body(createDto).created()
     return body
 }
 

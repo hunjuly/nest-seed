@@ -15,7 +15,7 @@ describe('/payments', () => {
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        client = fixture.testContext.createClient()
+        client = fixture.testContext.client
         customer = fixture.customer
         tickets = fixture.tickets
     })

@@ -22,7 +22,7 @@ describe('/showtimes', () => {
     beforeEach(async () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
-        client = fixture.testContext.createClient('/showtimes')
+        client = fixture.testContext.client
         listener = fixture.listener
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
@@ -44,14 +44,14 @@ describe('/showtimes', () => {
         })
 
         it('should retrieve showtimes by batchId', async () => {
-            const { body } = await client.get().query({ batchId }).ok()
+            const { body } = await client.get('/showtimes').query({ batchId }).ok()
 
             expectEqualUnsorted(body.items, createdShowtimes)
         })
 
         it('should retrieve showtimes by theaterId', async () => {
             const theaterId = theaters[0].id
-            const { body } = await client.get().query({ theaterId }).ok()
+            const { body } = await client.get('/showtimes').query({ theaterId }).ok()
 
             expectEqualUnsorted(
                 body.items,
@@ -61,7 +61,7 @@ describe('/showtimes', () => {
 
         it('should retrieve showtimes by movieId', async () => {
             const movieId = movie.id
-            const { body } = await client.get().query({ movieId }).ok()
+            const { body } = await client.get('/showtimes').query({ movieId }).ok()
 
             expectEqualUnsorted(
                 body.items,
@@ -72,7 +72,7 @@ describe('/showtimes', () => {
         it('should retrieve showtimes by showtimeIds[]', async () => {
             const findingShowtimes = createdShowtimes.slice(0, 2)
             const { body } = await client
-                .get()
+                .get('/showtimes')
                 .query({ showtimeIds: pickIds(findingShowtimes) })
                 .ok()
 
@@ -81,13 +81,13 @@ describe('/showtimes', () => {
 
         it('should retrieve a showtime by its id', async () => {
             const showtime = createdShowtimes[0]
-            const { body } = await client.get(showtime.id).ok()
+            const { body } = await client.get(`/showtimes/${showtime.id}`).ok()
 
             expect(body).toEqual(showtime)
         })
 
         it('should return NOT_FOUND(404) when showtime id does not exist', async () => {
-            return client.get(nullObjectId).notFound()
+            return client.get(`/showtimes/${nullObjectId}`).notFound()
         })
     })
 

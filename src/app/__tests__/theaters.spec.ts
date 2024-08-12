@@ -16,7 +16,7 @@ describe('/theaters', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({ imports: [AppModule] })
-        client = testContext.createClient('/theaters')
+        client = testContext.client
     })
 
     afterEach(async () => {
@@ -27,13 +27,13 @@ describe('/theaters', () => {
         it('should create a theater and return CREATED(201) status', async () => {
             const { createDto, expectedDto } = makeTheaterDto()
 
-            const { body } = await client.post().body(createDto).created()
+            const { body } = await client.post('/theaters').body(createDto).created()
 
             expect(body).toEqual(expectedDto)
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            return client.post().body({}).badRequest()
+            return client.post('/theaters').body({}).badRequest()
         })
     })
 
@@ -47,15 +47,15 @@ describe('/theaters', () => {
         it('should update a theater', async () => {
             const updateDto = { name: `Update-Name`, latlong: { latitude: 30.0, longitude: 120.0 } }
 
-            const updated = await client.patch(theater.id).body(updateDto).ok()
+            const updated = await client.patch(`/theaters/${theater.id}`).body(updateDto).ok()
             expect(updated.body).toEqual({ ...theater, ...updateDto })
 
-            const got = await client.get(theater.id).ok()
+            const got = await client.get(`/theaters/${theater.id}`).ok()
             expect(got.body).toEqual(updated.body)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.patch(nullObjectId).body({}).notFound()
+            return client.patch(`/theaters/${nullObjectId}`).body({}).notFound()
         })
     })
 
@@ -67,12 +67,12 @@ describe('/theaters', () => {
         })
 
         it('should delete a theater', async () => {
-            await client.delete(theater.id).ok()
-            await client.get(theater.id).notFound()
+            await client.delete(`/theaters/${theater.id}`).ok()
+            await client.get(`/theaters/${theater.id}`).notFound()
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.delete(nullObjectId).notFound()
+            return client.delete(`/theaters/${nullObjectId}`).notFound()
         })
     })
 
@@ -84,12 +84,12 @@ describe('/theaters', () => {
         })
 
         it('should get a theater', async () => {
-            const { body } = await client.get(theater.id).ok()
+            const { body } = await client.get(`/theaters/${theater.id}`).ok()
             expect(body).toEqual(theater)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.get(nullObjectId).notFound()
+            return client.get(`/theaters/${nullObjectId}`).notFound()
         })
     })
 
@@ -101,7 +101,7 @@ describe('/theaters', () => {
         })
 
         it('should retrieve theaters with default pagination', async () => {
-            const { body } = await client.get().ok()
+            const { body } = await client.get('/theaters').ok()
             const { items, ...paginated } = body
 
             expect(paginated).toEqual({
@@ -114,7 +114,7 @@ describe('/theaters', () => {
 
         it('should retrieve theaters by partial title', async () => {
             const partialName = 'Theater-'
-            const { body } = await client.get().query({ name: partialName }).ok()
+            const { body } = await client.get('/theaters').query({ name: partialName }).ok()
 
             const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
             expectEqualUnsorted(body.items, expected)
