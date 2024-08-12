@@ -22,7 +22,7 @@ class Customer {
     id: string
     name: string
     email: string
-    birthday: Date
+    birthdate: Date
 }
 
 class Movie {

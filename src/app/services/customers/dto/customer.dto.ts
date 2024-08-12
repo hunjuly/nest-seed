@@ -4,16 +4,16 @@ export class CustomerDto {
     id: string
     name: string
     email: string
-    birthday: Date
+    birthdate: Date
 
     constructor(customer: Customer) {
-        const { id, name, email, birthday } = customer
+        const { id, name, email, birthdate } = customer
 
         Object.assign(this, {
             id: id.toString(),
             name,
             email,
-            birthday
+            birthdate
         })
     }
 }

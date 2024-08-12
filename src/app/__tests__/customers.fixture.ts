@@ -5,7 +5,7 @@ export const makeCustomerDto = (overrides = {}) => {
     const createDto = {
         name: 'name',
         email: 'name@mail.com',
-        birthday: new Date('2020-12-12'),
+        birthdate: new Date('2020-12-12'),
         password: 'password',
         ...overrides
     }

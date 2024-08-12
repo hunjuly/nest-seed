@@ -59,7 +59,7 @@ describe('/customers', () => {
             const updateDto = {
                 name: 'update name',
                 email: 'new@mail.com',
-                birthday: new Date('1900-12-31')
+                birthdate: new Date('1900-12-31')
             }
 
             const updated = await client.patch(`/customers/${customer.id}`).body(updateDto).ok()

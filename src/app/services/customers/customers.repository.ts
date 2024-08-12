@@ -26,7 +26,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         const customer = this.newDocument()
         customer.name = createDto.name
         customer.email = createDto.email
-        customer.birthday = createDto.birthday
+        customer.birthdate = createDto.birthdate
         customer.password = createDto.password
 
         return customer.save()
@@ -38,7 +38,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
 
         if (updateDto.name) customer.name = updateDto.name
         if (updateDto.email) customer.email = updateDto.email
-        if (updateDto.birthday) customer.birthday = updateDto.birthday
+        if (updateDto.birthdate) customer.birthdate = updateDto.birthdate
 
         return customer.save()
     }

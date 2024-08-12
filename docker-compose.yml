@@ -79,7 +79,8 @@ services:
             - NODE_ENV=production
         env_file: .env.development
         volumes:
-            - ./logs:/app/logs
+            - ./_output/logs:/app/_output/logs
+            - ./_output/uploads:/app/_output/uploads
         networks:
             - default
 

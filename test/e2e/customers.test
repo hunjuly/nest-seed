@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+. ./common.cfg
+
+reset_all
+create_user_and_login
+
+TITLE "사용자 조회"
+GET /customers/$USER_ID \
+    -H "Authorization: Bearer $ACCESS_TOKEN"
+
+TITLE "모든 사용자 조회"
+GET /customers \
+    -H "Authorization: Bearer $ACCESS_TOKEN"
+
+TITLE "user 업데이트"
+PATCH /customers/$USER_ID \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -d '{
+            "name": "new name",
+            "email": "new@mail.com",
+            "birthdate": "2000-01-01"
+        }'
+
+TITLE "특정 ID를 가진 사용자 삭제"
+DELETE /customers/$USER_ID \
+    -H "Authorization: Bearer $ACCESS_TOKEN"

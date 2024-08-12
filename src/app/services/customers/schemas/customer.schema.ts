@@ -10,7 +10,7 @@ export class Customer extends MongooseSchema {
     email: string
 
     @Prop({ required: true })
-    birthday: Date
+    birthdate: Date
 
     @Prop({ required: true })
     password: string
