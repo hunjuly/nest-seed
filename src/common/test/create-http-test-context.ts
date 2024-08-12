@@ -19,17 +19,18 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const app = module.createNestApplication()
 
-    const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
+    // VSCODE에 종속적이다.
+    const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
 
-    if (ignoreLogging) {
-        app.useLogger(false)
-    } else {
+    if (isDebuggingEnabled) {
         try {
             const logger = app.get(AppLoggerService)
             app.useLogger(logger)
         } catch (error) {
             app.useLogger(console)
         }
+    } else {
+        app.useLogger(false)
     }
 
     if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {

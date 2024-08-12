@@ -65,11 +65,15 @@ export async function createFixture(uri: string) {
     const module = await createTestingModule({
         imports: [
             MongooseModule.forRoot(uri, {
-                // autoCreate: false 하지 않으면 await session.commitTransaction() 할 때 아래 오류가 발생한다.
-                // MongoServerError: Caused by :: Collection namespace 'test.samples' is already in use. :: Please retry your operation or multi-document transaction.
-                // autoCreate: false의 실제 영향:
-                // 이 설정은 Mongoose 레벨에서의 자동 컬렉션 생성을 비활성화합니다.
-                // 그러나 MongoDB 서버 레벨에서의 자동 컬렉션 생성은 여전히 활성화되어 있습니다.
+                /*
+                If we don't set autoCreate: false, the following error occurs when calling await session.commitTransaction():
+
+                "MongoServerError: Caused by :: Collection namespace 'test.samples' is already in use."
+
+                The actual effect of autoCreate: false:
+                This setting disables automatic collection creation at the Mongoose level.
+                However, automatic collection creation at the MongoDB server level is still enabled.
+                */
                 autoCreate: false,
                 connectionFactory: async (connection: Connection) => {
                     await connection.dropDatabase()

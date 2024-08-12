@@ -5,6 +5,7 @@ import {
     PaymentsController,
     ShowingController,
     ShowtimesController,
+    StorageFilesController,
     TheatersController,
     TicketsController
 } from 'app/controllers'
@@ -14,6 +15,7 @@ import { MoviesModule } from './services/movies'
 import { PaymentsModule } from './services/payments'
 import { ShowingModule } from './services/showing'
 import { ShowtimesModule } from './services/showtimes'
+import { StorageFilesModule } from './services/storage-files'
 import { TheatersModule } from './services/theaters'
 import { TicketsModule } from './services/tickets'
 
@@ -26,7 +28,8 @@ import { TicketsModule } from './services/tickets'
         TicketsModule,
         ShowtimesModule,
         PaymentsModule,
-        ShowingModule
+        ShowingModule,
+        StorageFilesModule
     ],
     controllers: [
         CustomersController,
@@ -35,7 +38,8 @@ import { TicketsModule } from './services/tickets'
         TicketsController,
         ShowtimesController,
         PaymentsController,
-        ShowingController
+        ShowingController,
+        StorageFilesController
     ]
 })
 export class AppModule {}

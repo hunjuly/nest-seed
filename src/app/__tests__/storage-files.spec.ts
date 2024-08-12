@@ -1,6 +1,4 @@
-import { StorageFilesController } from 'app/controllers'
-import { CoreModule } from 'app/core'
-import { StorageFilesModule } from 'app/services/storage-files'
+import { AppModule } from 'app/app.module'
 import { StorageFileDto } from 'app/services/storage-files/dto'
 import { getChecksum, nullObjectId, Path } from 'common'
 import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } from 'common/test'
@@ -45,10 +43,7 @@ describe('/storage-files', () => {
             allowedMimeTypes: ['image/*', 'text/plain']
         }
 
-        testContext = await createHttpTestContext({
-            imports: [CoreModule, StorageFilesModule],
-            controllers: [StorageFilesController]
-        })
+        testContext = await createHttpTestContext({ imports: [AppModule] })
         req = testContext.createClient()
     })
 
@@ -66,8 +61,7 @@ describe('/storage-files', () => {
     }
 
     describe('POST /storage-files', () => {
-        // it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
-        it('tetsetadfadsf', async () => {
+        it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
             const res = await uploadFile(largeFile)
             const uploadedFile = res.body.files[0]
             expect(uploadedFile.checksum).toEqual(await getChecksum(largeFile))
@@ -116,6 +110,7 @@ describe('/storage-files', () => {
                 .badRequest()
         })
     })
+
     describe('GET /storage-files/:fileId', () => {
         let uploadedFile: StorageFileDto
 

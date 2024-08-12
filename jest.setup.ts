@@ -6,8 +6,6 @@ if (process.env.NODE_ENV !== 'development') {
     exit(1)
 }
 
-process.env.IGNORE_LOGGING_DURING_TESTING = 'true'
-
 process.env.MONGOMS_DOWNLOAD_URL =
     'https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian11-7.0.12.tgz'
 process.env.MONGOMS_VERSION = '7.0.12'
