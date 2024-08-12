@@ -3,7 +3,6 @@ import baseOption from './jest.config'
 
 const config: Config = {
     ...baseOption,
-    maxWorkers: 0,
     roots: ['<rootDir>/src/common'],
     collectCoverage: true,
     collectCoverageFrom: [

@@ -5,8 +5,13 @@ import { Config } from 'config'
 @Global()
 @Module({
     imports: [
-        BullModule.forRoot({
-            redis: { ...Config.redis }
+        BullModule.forRootAsync({
+            useFactory: async () => {
+                return {
+                    prefix: (global as any).__JEST_UNIQUE_ID__ ?? 'queue',
+                    redis: { ...Config.redis }
+                }
+            }
         })
     ]
 })

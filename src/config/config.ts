@@ -68,13 +68,11 @@ if (!existsSync(Config.log.directory)) {
 }
 
 export const mongoDataSource = () => {
-    const { user, pass, host1, host2, host3, port, replica, database: dbName } = Config.mongo
+    const { user, pass, host1, host2, host3, port, replica, database } = Config.mongo
     notUsed(host3, '3개를 다 적을 필요는 없다')
     const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
-    return { uri, dbName }
-    // const isJestEnvironment = process.env.JEST_WORKER_ID !== undefined
+    const uniqueId = (global as any).__JEST_UNIQUE_ID__
+    const dbName = uniqueId ? 'test_' + uniqueId : database
 
-    // return isJestEnvironment
-    //     ? { uri, dbName: dbName + process.env.JEST_WORKER_ID }
-    // : { uri, dbName }
+    return { uri, dbName }
 }
