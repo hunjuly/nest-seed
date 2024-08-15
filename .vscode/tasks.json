@@ -5,31 +5,31 @@
     "tasks": [
         {
             "label": "Run Test Suites",
-            "detail": "선택한 테스트 스위트를 실행합니다(all, app, common).",
+            "detail": "Run selected test suites (all, app, common).",
             "type": "shell",
             "command": "npm run ${input:testSuite}"
         },
         {
             "label": "Watch Start",
-            "detail": "Nest 개발 서버를 시작하고 파일 변경을 감시합니다(--debug 9230).",
+            "detail": "Start the Nest development server and watch for file changes (--debug 9230).",
             "type": "shell",
             "command": "npm start"
         },
         {
             "label": "Watch Test",
-            "detail": "Jest 테스트를 실행하고 파일 변경을 감시합니다(--inspect=9231).",
+            "detail": "Run Jest tests and watch for file changes (--inspect=9231).",
             "type": "shell",
             "command": "npm test"
         },
         {
             "label": "Workspace Setup",
-            "detail": "개발 환경을 설정하고 필요한 종속성을 설치합니다.",
+            "detail": "Set up the development environment and install necessary dependencies.",
             "type": "shell",
             "command": "bash scripts/workspace_setup.sh"
         },
         {
             "label": "Workspace Cleanup",
-            "detail": "개발 환경을 초기화하고 모든 데이터를 제거합니다.",
+            "detail": "Reset the development environment and remove all data.",
             "type": "shell",
             "command": "bash scripts/workspace_cleanup.sh"
         }

@@ -21,7 +21,7 @@ export class TypeormTransaction {
         resourceType: ClassConstructor<Entity>,
         entityData: DeepPartial<Entity>
     ): Promise<Entity> {
-        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
+        Assert.falsy(this.rollbackRequested, 'rollback() has been executed')
 
         this.ensureTransactionIsActive()
 
@@ -31,7 +31,7 @@ export class TypeormTransaction {
     }
 
     async update<Entity extends TypeormEntity>(entity: Entity): Promise<Entity> {
-        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
+        Assert.falsy(this.rollbackRequested, 'rollback() has been executed')
         Assert.defined(entity.id, "Entity doesn't have id")
 
         this.ensureTransactionIsActive()
@@ -40,7 +40,7 @@ export class TypeormTransaction {
     }
 
     async delete<Entity extends TypeormEntity>(entity: Entity): Promise<void> {
-        Assert.falsy(this.rollbackRequested, 'rollback()을 실행한 상태임')
+        Assert.falsy(this.rollbackRequested, 'rollback() has been executed')
 
         this.ensureTransactionIsActive()
 

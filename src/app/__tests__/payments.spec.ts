@@ -24,26 +24,20 @@ describe('/payments', () => {
         await testContext?.close()
     })
 
-    const paymentCreationDto = (overrides = {}) => ({
-        customerId: customer.id,
-        ticketIds: pickIds(tickets),
-        ...overrides
-    })
-
     describe('POST /payments', () => {
         it('should create a payment and return CREATED status', async () => {
-            const createDto = makeCreatePaymentDto(customer, tickets)
+            const { createDto, expectedDto } = makeCreatePaymentDto(customer, tickets)
             const payment = await createPayment(client, createDto)
 
-            expect(payment).toEqual({ id: expect.anything(), ...paymentCreationDto() })
+            expect(payment).toEqual(expectedDto)
         })
 
-        it('BAD_REQUEST(400) if required fields are missing', async () => {
+        it('should return BAD_REQUEST(400) when required fields are missing', async () => {
             return client.post('/payments').body({}).badRequest()
         })
 
-        it('구매가 완료된 ticket은 sold 상태여야 한다', async () => {
-            const createDto = makeCreatePaymentDto(customer, tickets)
+        it(`tickets should be in 'sold' status after a successful purchase`, async () => {
+            const { createDto } = makeCreatePaymentDto(customer, tickets)
             await createPayment(client, createDto)
 
             const { body } = await client
@@ -62,16 +56,16 @@ describe('/payments', () => {
         let payment: PaymentDto
 
         beforeEach(async () => {
-            const createDto = makeCreatePaymentDto(customer, tickets)
+            const { createDto } = makeCreatePaymentDto(customer, tickets)
             payment = await createPayment(client, createDto)
         })
 
-        it('paymentId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
+        it('should return the purchase record when queried by paymentId', async () => {
             const res = await client.get('/payments').query({ paymentId: payment.id }).ok()
             expect(res.body.items).toEqual([payment])
         })
 
-        it('customerId로 조회하면 해당 구매기록을 반환해야 한다', async () => {
+        it('should return the purchase record when queried by customerId', async () => {
             const res = await client.get('/payments').query({ customerId: customer.id }).ok()
             expect(res.body.items).toEqual([payment])
         })

@@ -61,13 +61,13 @@ describe('/storage-files', () => {
     }
 
     describe('POST /storage-files', () => {
-        it('업로드한 파일과 저장된 파일이 같아야 한다', async () => {
+        it('Should return CREATED(201) when uploaded file is identical to stored file', async () => {
             const { body } = await uploadFile(largeFile)
             const uploadedFile = body.storageFiles[0]
             expect(uploadedFile.checksum).toEqual(await getChecksum(largeFile))
         })
 
-        it('여러 개의 파일을 업로드 해야 한다', async () => {
+        it('Should allow uploading multiple files', async () => {
             const { body } = await client
                 .post('/storage-files')
                 .attachs([
@@ -81,7 +81,7 @@ describe('/storage-files', () => {
             expect(body.storageFiles[1].checksum).toEqual(await getChecksum(smallFile))
         })
 
-        it('파일 첨부를 하지 않아도 업로드는 성공해야 한다', async () => {
+        it('Should return CREATED(201) when upload is successful even with no file attached', async () => {
             await client
                 .post('/storage-files')
                 .attachs([])
@@ -89,14 +89,14 @@ describe('/storage-files', () => {
                 .created()
         })
 
-        it('허용된 파일 크기를 초과하는 업로드는 실패해야 한다', async () => {
+        it('Should return PAYLOAD_TOO_LARGE(413) when uploading file exceeding allowed size', async () => {
             await client
                 .post('/storage-files')
                 .attachs([{ name: 'files', file: oversizedFile }])
                 .payloadTooLarge()
         })
 
-        it('허용된 파일 개수를 초과하는 업로드는 실패해야 한다', async () => {
+        it('Should return BAD_REQUEST(400) when uploading more files than allowed', async () => {
             const limitOver = Config.fileUpload.maxFilesPerUpload + 1
             const excessFiles = Array(limitOver).fill({ name: 'files', file: smallFile })
 
@@ -119,7 +119,7 @@ describe('/storage-files', () => {
             uploadedFile = body.storageFiles[0]
         })
 
-        it('다운로드한 파일과 저장된 파일은 동일해야 한다', async () => {
+        it('should get a file', async () => {
             const downloadPath = Path.join(tempDir, 'download.txt')
 
             await client.get(`/storage-files/${uploadedFile.id}`).download(downloadPath).ok()
@@ -127,7 +127,7 @@ describe('/storage-files', () => {
             expect(uploadedFile.checksum).toEqual(await getChecksum(downloadPath))
         })
 
-        it('NOT_FOUND(404) if file is not found', async () => {
+        it('should return NOT_FOUND(404) when file does not exist', async () => {
             await client.get(`/storage-files/${nullObjectId}`).notFound()
         })
     })
@@ -140,7 +140,7 @@ describe('/storage-files', () => {
             uploadedFile = body.storageFiles[0]
         })
 
-        it('Delete a file', async () => {
+        it('should delete a file', async () => {
             const filePath = Path.join(Config.fileUpload.directory, `${uploadedFile.id}.file`)
             expect(Path.existsSync(filePath)).toBeTruthy()
 
@@ -150,7 +150,7 @@ describe('/storage-files', () => {
             expect(Path.existsSync(filePath)).toBeFalsy()
         })
 
-        it('NOT_FOUND(404) if file is not found', async () => {
+        it('should return NOT_FOUND(404) when file does not exist', async () => {
             return client.delete(`/storage-files/${nullObjectId}`).notFound()
         })
     })

@@ -5,16 +5,16 @@ set -e
 reset_all
 create_user_and_login
 
-TITLE "Access Token 재발급 요청"
+TITLE "Request Access Token Refresh"
 POST /customers/refresh \
-    -H 'Content-Type: application/json' \
-    -d '{
-            "refreshToken": "'$REFRESH_TOKEN'"
-        }'
+-H 'Content-Type: application/json' \
+-d '{
+ "refreshToken": "'$REFRESH_TOKEN'"
+ }'
 
 ACCESS_TOKEN=$(echo $BODY | jq -r '.accessToken')
 REFRESH_TOKEN=$(echo $BODY | jq -r '.refreshToken')
 
-TITLE "Access Token 테스트"
+TITLE "Test Access Token"
 GET /customers \
-    -H "Authorization: Bearer $ACCESS_TOKEN"
+-H "Authorization: Bearer $ACCESS_TOKEN"

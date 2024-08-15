@@ -27,7 +27,7 @@ export class ShowtimesEventListener {
         const promise = this.promises.get(event.batchId)
 
         if (!promise) {
-            throw new Error(`${event}를 찾지 못함. 동기화 오류 가능성 있음`)
+            throw new Error(`${event} not found, possible sync error`)
         }
 
         if (promise.eventName === event.name) {

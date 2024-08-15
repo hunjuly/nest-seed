@@ -30,7 +30,7 @@ describe('showtimes-registration', () => {
         await testContext?.close()
     })
 
-    it('선택한 영화에 대한 상영 시간 입력', async () => {
+    it('enter showtimes for the selected movie', async () => {
         const { createDto, expectedShowtimes, expectedTickets } = makeCreateShowtimesDto(
             movie,
             theaters,

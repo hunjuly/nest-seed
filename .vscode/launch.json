@@ -8,7 +8,9 @@
             "name": "Attach to Start",
             "port": 9230,
             "request": "attach",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node",
             "restart": true
         },
@@ -16,7 +18,9 @@
             "name": "Attach to Test",
             "port": 9231,
             "request": "attach",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node",
             "restart": true
         }

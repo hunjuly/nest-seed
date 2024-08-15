@@ -18,7 +18,7 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const app = module.createNestApplication()
 
-    // VSCODE에 종속적이다.
+    // Dependent on VSCODE
     const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
 
     if (isDebuggingEnabled) {
@@ -43,11 +43,7 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const server = app.getHttpServer()
 
-    await new Promise<void>((resolve) => {
-        server.listen(() => {
-            resolve()
-        })
-    })
+    await new Promise<void>((resolve) => server.listen(() => resolve()))
 
     const client = new HttpClient(server)
 

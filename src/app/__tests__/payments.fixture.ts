@@ -38,5 +38,8 @@ export async function createPayment(client: HttpClient, createDto: CreatePayment
 }
 
 export const makeCreatePaymentDto = (customer: CustomerDto, tickets: TicketDto[]) => {
-    return { customerId: customer.id, ticketIds: pickIds(tickets) }
+    const createDto = { customerId: customer.id, ticketIds: pickIds(tickets) }
+    const expectedDto = { id: expect.anything(), ...createDto }
+
+    return { createDto, expectedDto }
 }

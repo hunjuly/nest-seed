@@ -120,8 +120,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     @MethodLog({ level: 'verbose' })
     async findShowtimesWithinDateRange(theaterId: string, startTime: Date, endTime: Date) {
         /**
-         * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
-         * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
+         * When searching for previously registered showtimes, it should only be done using startTime.
+         * Even though startTime and endTime are received as input values, the search should not be done using both startTime and endTime.
          */
         const showtimes = await this.model
             .find({

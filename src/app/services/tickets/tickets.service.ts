@@ -42,7 +42,7 @@ export class TicketsService {
         Assert.equals(
             result.matchedCount,
             result.modifiedCount,
-            '모든 티켓의 상태가 변경되어야 한다'
+            'The status of all tickets must be changed.'
         )
 
         const tickets = await this.repository.findByIds(ticketIds)

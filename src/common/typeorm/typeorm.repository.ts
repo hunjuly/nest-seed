@@ -11,7 +11,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
     async create(entityData: DeepPartial<Entity>): Promise<Entity> {
         Assert.undefined(entityData.id, `The id ${entityData.id} should not be defined.`)
 
-        // repo.save(creationData)를 하면 creationData에 id가 자동으로 생성돼서 변형된다.
+        // When repo.save(creationData) is called, an id is automatically generated and added to creationData, modifying it.
         const cloned = { ...entityData }
         const savedEntity = await this.repo.save(cloned)
 
@@ -28,7 +28,7 @@ export abstract class TypeormRepository<Entity extends TypeormEntity> {
 
             const saved = await this.repo.save(entity)
 
-            Assert.equals(saved, entity, 'update 요청과 결과가 다름')
+            Assert.equals(saved, entity, 'Update request and result are different')
 
             return saved
         }
