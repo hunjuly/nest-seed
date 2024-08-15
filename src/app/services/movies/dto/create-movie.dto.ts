@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 import { IsArray, IsDate, IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator'
 import { MovieGenre, MovieRating } from '../schemas'
 
@@ -9,6 +9,12 @@ export class CreateMovieDto {
 
     @IsArray()
     @IsEnum(MovieGenre, { each: true })
+    @Transform(({ value }) => {
+        if (Array.isArray(value)) return value
+
+        const genres = JSON.parse(value)
+        return genres.map((genre: string) => genre as MovieGenre)
+    })
     genre: MovieGenre[]
 
     @IsDate()

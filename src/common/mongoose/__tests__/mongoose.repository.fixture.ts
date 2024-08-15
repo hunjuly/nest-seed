@@ -1,16 +1,16 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
-import { createMongooseSchema, MongooseSchema, MongooseRepository, padNumber } from 'common'
+import { createMongooseSchema, MongooseRepository, MongooseSchema, padNumber } from 'common'
 import { createTestingModule } from 'common/test'
-import { Connection, HydratedDocument, Model } from 'mongoose'
+import { Connection, Model } from 'mongoose'
 
 @Schema()
-export class SampleSchema extends MongooseSchema {
+export class Sample extends MongooseSchema {
     @Prop({ required: true })
     name: string
 }
 
-export type Sample = HydratedDocument<SampleSchema>
+export const SampleSchema = createMongooseSchema(Sample)
 
 export class SampleDto {
     id: string
@@ -18,24 +18,37 @@ export class SampleDto {
 
     constructor(sample: Sample) {
         const { id, name } = sample
-
         Object.assign(this, { id: id.toString(), name })
     }
 }
 
 @Injectable()
-export class SamplesRepository extends MongooseRepository<SampleSchema> {
-    constructor(@InjectModel(SampleSchema.name) model: Model<SampleSchema>) {
+export class SamplesRepository extends MongooseRepository<Sample> {
+    constructor(@InjectModel(Sample.name) model: Model<Sample>) {
         super(model)
+    }
+
+    /*
+    Issue   : document.save() internally calls createCollection
+    Symptom : Concurrent save() calls can cause "Collection namespace is already in use" errors.
+              (more frequent in transactions)
+    Solution: enable autoCreate and "await this.model.createCollection()"
+    Note    : This problem mainly occurs in unit test environments with frequent initializations
+    Ref     : https://mongoosejs.com/docs/api/model.html#Model.createCollection()
+    */
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
+    async test() {
+        const sample = new this.model({ name: 'abc' })
+        console.log(sample.name)
+        return await sample.save()
     }
 }
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            { name: SampleSchema.name, schema: createMongooseSchema(SampleSchema) }
-        ])
-    ],
+    imports: [MongooseModule.forFeature([{ name: Sample.name, schema: SampleSchema }])],
     providers: [SamplesRepository]
 })
 export class SampleModule {}
@@ -65,16 +78,9 @@ export async function createFixture(uri: string) {
     const module = await createTestingModule({
         imports: [
             MongooseModule.forRoot(uri, {
-                /*
-                If we don't set autoCreate: false, the following error occurs when calling await session.commitTransaction():
-
-                "MongoServerError: Caused by :: Collection namespace 'test.samples' is already in use."
-
-                The actual effect of autoCreate: false:
-                This setting disables automatic collection creation at the Mongoose level.
-                However, automatic collection creation at the MongoDB server level is still enabled.
-                */
+                autoIndex: true,
                 autoCreate: false,
+                bufferCommands: true,
                 connectionFactory: async (connection: Connection) => {
                     await connection.dropDatabase()
                     return connection
@@ -83,10 +89,11 @@ export async function createFixture(uri: string) {
             SampleModule
         ]
     })
-    const repository = module.get(SamplesRepository)
-    const teardown = async () => {
-        await module.close()
-    }
+    const app = module.createNestApplication()
+    await app.init()
 
-    return { module, repository, teardown }
+    const repository = module.get(SamplesRepository)
+    const close = async () => await module.close()
+
+    return { module, repository, close }
 }

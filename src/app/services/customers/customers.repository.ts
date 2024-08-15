@@ -18,6 +18,10 @@ export class CustomersRepository extends MongooseRepository<Customer> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
     async createCustomer(createDto: CreateCustomerDto) {
         if (await this.findByEmail(createDto.email))

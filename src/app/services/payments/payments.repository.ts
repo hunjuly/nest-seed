@@ -19,6 +19,10 @@ export class PaymentsRepository extends MongooseRepository<Payment> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
     async createPayment(createDto: CreatePaymentDto) {
         const payment = this.newDocument()

@@ -20,6 +20,10 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
     async createShowtimes(createDtos: SchemeBody<Showtime>[]) {
         const showtimes = createDtos.map((dto) => {

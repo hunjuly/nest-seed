@@ -19,6 +19,10 @@ export class TheatersRepository extends MongooseRepository<Theater> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
     async createTheater(createDto: CreateTheaterDto) {
         const theater = this.newDocument()

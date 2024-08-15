@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
-    MongooseUpdateResult,
     MongooseRepository,
+    MongooseUpdateResult,
     objectId,
     ObjectId,
+    objectIds,
     PaginationOption,
     PaginationResult,
     SchemeBody,
@@ -19,6 +20,10 @@ import { Ticket, TicketStatus } from './schemas'
 export class TicketsRepository extends MongooseRepository<Ticket> {
     constructor(@InjectModel(Ticket.name) model: Model<Ticket>) {
         super(model)
+    }
+
+    async onModuleInit() {
+        await this.model.createCollection()
     }
 
     @MethodLog()
@@ -44,7 +49,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
         status: TicketStatus
     ): Promise<MongooseUpdateResult> {
         const result = await this.model.updateMany(
-            { _id: { $in: stringToObjectId(ticketIds) } },
+            { _id: { $in: objectIds(ticketIds) } },
             { $set: { status } }
         )
 
@@ -74,7 +79,7 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     @MethodLog({ level: 'verbose' })
     async getSalesStatuses(showtimeIds: string[]): Promise<TicketSalesStatusDto[]> {
         const salesStatuses = await this.model.aggregate([
-            { $match: { showtimeId: { $in: stringToObjectId(showtimeIds) } } },
+            { $match: { showtimeId: { $in: objectIds(showtimeIds) } } },
             {
                 $group: {
                     _id: '$showtimeId',

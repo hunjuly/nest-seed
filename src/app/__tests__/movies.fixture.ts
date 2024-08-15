@@ -2,7 +2,7 @@ import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
 import { padNumber } from 'common'
 import { HttpClient } from 'common/test'
 
-export const makeMovieDto = (overrides = {}) => {
+export const makeCreateMovieDto = (overrides = {}) => {
     const createDto = {
         title: `MovieTitle`,
         genre: [MovieGenre.Action],
@@ -14,14 +14,42 @@ export const makeMovieDto = (overrides = {}) => {
         ...overrides
     }
 
-    const expectedDto = { id: expect.anything(), ...createDto }
+    const expectedDto = { id: expect.anything(), images: expect.any(Array), ...createDto }
 
     return { createDto, expectedDto }
 }
 
+export const objectToFields = (createDto: any) => {
+    const fields = Object.entries(createDto).map(([key, value]) => {
+        let processedValue
+
+        if (typeof value === 'string') {
+            processedValue = value
+        } else if (value instanceof Date) {
+            processedValue = value.toISOString()
+        } else if (Array.isArray(value)) {
+            processedValue = JSON.stringify(value)
+        } else if (value === null || value === undefined) {
+            processedValue = ''
+        } else {
+            processedValue = JSON.stringify(value)
+        }
+
+        return { name: key, value: processedValue }
+    })
+
+    return fields
+}
+
 export const createMovie = async (client: HttpClient, override = {}) => {
-    const { createDto } = makeMovieDto(override)
-    const { body } = await client.post('/movies').body(createDto).created()
+    const { createDto } = makeCreateMovieDto(override)
+
+    const { body } = await client
+        .post('/movies')
+        .attachs([{ name: 'files', file: './test/fixtures/image.png' }])
+        .fields(objectToFields(createDto))
+        .created()
+
     return body
 }
 

@@ -4,6 +4,7 @@ import {
     Expect,
     MethodLog,
     MongooseRepository,
+    objectIds,
     PaginationOption,
     PaginationResult,
     stringToObjectId
@@ -19,8 +20,12 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
-    async createMovie(createDto: CreateMovieDto) {
+    async createMovie(createDto: CreateMovieDto, storageFileIds: string[]) {
         const movie = this.newDocument()
         movie.title = createDto.title
         movie.genre = createDto.genre
@@ -29,6 +34,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         movie.durationMinutes = createDto.durationMinutes
         movie.director = createDto.director
         movie.rating = createDto.rating
+        movie.storageFileIds = objectIds(storageFileIds)
 
         return movie.save()
     }

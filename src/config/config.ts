@@ -1,12 +1,12 @@
-import { existsSync } from 'fs'
-import * as dotenv from 'dotenv'
-import { getNumber, getString } from './utils'
-import { exit } from 'process'
 import { notUsed } from 'common'
+import * as dotenv from 'dotenv'
+import { existsSync } from 'fs'
+import { exit } from 'process'
+import { getNumber, getString } from './utils'
 
-export const nodeEnv = () => getString('NODE_ENV') as 'production' | 'development'
+export const matchesEnv = (env: 'production' | 'development') => getString('NODE_ENV') === env
 
-if (nodeEnv() === 'development') {
+if (matchesEnv('development')) {
     dotenv.config({ path: '.env.development' })
 }
 

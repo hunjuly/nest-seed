@@ -8,7 +8,7 @@ import {
     createHttpTestContext,
     expectEqualUnsorted
 } from 'common/test'
-import { createMovie, createMovies, makeMovieDto } from './movies.fixture'
+import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
@@ -25,11 +25,20 @@ describe('/movies', () => {
 
     describe('POST /movies', () => {
         it('should create a movie and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeMovieDto()
-
-            const { body } = await client.post('/movies').body(createDto).created()
+            const { createDto, expectedDto } = makeCreateMovieDto()
+            const body = await createMovie(client, createDto)
 
             expect(body).toEqual(expectedDto)
+        })
+
+        it('should return BAD_REQUEST(400) when uploading a file with disallowed MIME type', async () => {
+            const notAllowFile = './test/fixtures/text.txt'
+            const { createDto } = makeCreateMovieDto()
+            await client
+                .post('/movies')
+                .attachs([{ name: 'files', file: notAllowFile }])
+                .fields(objectToFields(createDto))
+                .badRequest()
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {

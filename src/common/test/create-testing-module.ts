@@ -1,15 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, ModuleMetadata } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 
-interface OverrideItem {
-    original: any
-    replacement: any
-}
-
 export interface ModuleMetadataEx extends ModuleMetadata {
     ignoreGuards?: any[]
     ignoreProviders?: any[]
-    overrideProviders?: OverrideItem[]
+    overrideProviders?: { original: any; replacement: any }[]
 }
 
 class NullGuard implements CanActivate {
@@ -25,25 +20,13 @@ export async function createTestingModule(metadata: ModuleMetadataEx) {
     const { ignoreGuards, ignoreProviders, overrideProviders, ...moduleConfig } = metadata
     const builder = Test.createTestingModule(moduleConfig)
 
-    if (ignoreGuards) {
-        for (const guard of ignoreGuards) {
-            builder.overrideGuard(guard).useClass(NullGuard)
-        }
-    }
+    ignoreGuards?.forEach((guard) => builder.overrideGuard(guard).useClass(NullGuard))
+    ignoreProviders?.forEach((provider) =>
+        builder.overrideProvider(provider).useClass(NullProvider)
+    )
+    overrideProviders?.forEach((provider) =>
+        builder.overrideProvider(provider.original).useValue(provider.replacement)
+    )
 
-    if (ignoreProviders) {
-        for (const provider of ignoreProviders) {
-            builder.overrideProvider(provider).useClass(NullProvider)
-        }
-    }
-
-    if (overrideProviders) {
-        for (const provider of overrideProviders) {
-            builder.overrideProvider(provider.original).useValue(provider.replacement)
-        }
-    }
-
-    const module = await builder.compile()
-
-    return module
+    return builder.compile()
 }

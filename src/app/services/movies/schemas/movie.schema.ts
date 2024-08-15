@@ -1,5 +1,5 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { MongooseSchema, createMongooseSchema } from 'common'
+import { MongooseSchema, ObjectId, createMongooseSchema } from 'common'
 
 export enum MovieGenre {
     Action = 'Action',
@@ -43,6 +43,9 @@ export class Movie extends MongooseSchema {
 
     @Prop({ type: String, enum: MovieRating })
     rating: MovieRating
+
+    @Prop({ type: ObjectId, required: true })
+    storageFileIds: ObjectId[]
 }
 
 export const MovieSchema = createMongooseSchema(Movie)

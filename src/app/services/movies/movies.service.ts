@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common'
 import { maps, MethodLog, PaginationOption, PaginationResult } from 'common'
+import { StorageFilesService } from '../storage-files'
 import { CreateMovieDto, MovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { MoviesRepository } from './movies.repository'
 
 @Injectable()
 export class MoviesService {
-    constructor(private repository: MoviesRepository) {}
+    constructor(
+        private repository: MoviesRepository,
+        private storageFilesService: StorageFilesService
+    ) {}
 
     @MethodLog()
-    async createMovie(createDto: CreateMovieDto) {
-        const movie = await this.repository.createMovie(createDto)
+    async createMovie(files: Express.Multer.File[], createDto: CreateMovieDto) {
+        const { storageFiles } = await this.storageFilesService.saveFiles(files)
+        const storageFileIds = storageFiles.map((file) => file.id.toString())
+
+        const movie = await this.repository.createMovie(createDto, storageFileIds)
         return new MovieDto(movie)
     }
 

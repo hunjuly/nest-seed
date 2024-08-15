@@ -4,11 +4,11 @@ import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
-import { convertDateToString, pickItems, pickIds } from 'common'
+import { convertDateToString, pickIds, pickItems } from 'common'
 import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
-import { createFixture, filterMoviesByGenre } from './showing.fixture'
+import { createFixture, filterMoviesByGenre } from './tickets-purchase.spec.fixture'
 
-describe('/showing', () => {
+describe('tickets-purchase', () => {
     let testContext: HttpTestContext
     let client: HttpClient
     let customer: CustomerDto
