@@ -1,4 +1,5 @@
 # Showtimes Registration
+
 ```
 Showtime과 Ticket을 한 번에 생성하려는 시행착오가 있었다.
 ShowtimesService에서 createTickets를 호출했다.
@@ -119,20 +120,15 @@ Admin <-- Frontend: 등록 완료
 
 ```ts
 const timeslots: Set<number> = new Set([
-    202010300430,
-    202010300440,
-    202010300450,
-    202010300500,
-    202010300510,
-    202010300520,
-]);
+    202010300430, 202010300440, 202010300450, 202010300500, 202010300510, 202010300520
+])
 
-const createShowtime = 202010300500;
+const createShowtime = 202010300500
 
 if (timeslots.has(createShowtime)) {
-    console.log('Conflict');
+    console.log('Conflict')
 } else {
-    console.log('No conflict');
+    console.log('No conflict')
 }
 ```
 
@@ -166,14 +162,12 @@ stop
 ```ts
 ValidationResultDto
 {
-    status: 'success' | 'fail';
+    status: 'success' | 'fail'
     errors: [
         {
-            movieId: "movie#1",
-            theaterId: "theater#1",
-            conflictingShowtimes: [
-                { startDatetime: 202012120900 }
-            ]
+            movieId: 'movie#1',
+            theaterId: 'theater#1',
+            conflictingShowtimes: [{ startDatetime: 202012120900 }]
         }
     ]
 }
