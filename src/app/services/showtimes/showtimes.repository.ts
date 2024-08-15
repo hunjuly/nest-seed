@@ -4,13 +4,12 @@ import {
     MethodLog,
     MongooseRepository,
     objectId,
-    ObjectId,
+    objectIds,
     PaginationOption,
     PaginationResult,
-    SchemeBody,
-    stringToObjectId
+    SchemeBody
 } from 'common'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { QueryShowtimesDto } from './dto'
 import { Showtime } from './schemas'
 
@@ -28,9 +27,9 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     async createShowtimes(createDtos: SchemeBody<Showtime>[]) {
         const showtimes = createDtos.map((dto) => {
             const showtime = this.newDocument()
-            showtime.batchId = new ObjectId(dto.batchId)
-            showtime.theaterId = new ObjectId(dto.theaterId)
-            showtime.movieId = new ObjectId(dto.movieId)
+            showtime.batchId = objectId(dto.batchId)
+            showtime.theaterId = objectId(dto.theaterId)
+            showtime.movieId = objectId(dto.movieId)
             showtime.startTime = dto.startTime
             showtime.endTime = dto.endTime
 
@@ -52,9 +51,13 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     @MethodLog({ level: 'verbose' })
     async findShowtimes(queryDto: QueryShowtimesDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { showtimeIds, ...query } = stringToObjectId(queryDto)
+            const { showtimeIds, movieId, theaterId, batchId } = queryDto
 
-            if (showtimeIds) query._id = { $in: showtimeIds }
+            const query: FilterQuery<Showtime> = {}
+            if (showtimeIds) query._id = { $in: objectIds(showtimeIds) }
+            if (movieId) query.movieId = objectId(movieId)
+            if (theaterId) query.theaterId = objectId(theaterId)
+            if (batchId) query.batchId = objectId(batchId)
 
             helpers.setQuery(query)
         }, pagination)
@@ -78,8 +81,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
         const showtimes = await this.model
             .find({
-                movieId: new ObjectId(movieId),
-                theaterId: new ObjectId(theaterId),
+                movieId: objectId(movieId),
+                theaterId: objectId(theaterId),
                 startTime: { $gte: startOfDay, $lte: endOfDay }
             })
             .sort({ startTime: 1 })

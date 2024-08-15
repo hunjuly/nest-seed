@@ -5,14 +5,12 @@ import {
     MongooseRepository,
     MongooseUpdateResult,
     objectId,
-    ObjectId,
     objectIds,
     PaginationOption,
     PaginationResult,
-    SchemeBody,
-    stringToObjectId
+    SchemeBody
 } from 'common'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { TicketSalesStatusDto, TicketsQueryDto } from './dto'
 import { Ticket, TicketStatus } from './schemas'
 
@@ -30,10 +28,10 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     async createTickets(createDtos: SchemeBody<Ticket>[]) {
         const tickets = createDtos.map((dto) => {
             const ticket = this.newDocument()
-            ticket.batchId = new ObjectId(dto.batchId)
-            ticket.showtimeId = new ObjectId(dto.showtimeId)
-            ticket.theaterId = new ObjectId(dto.theaterId)
-            ticket.movieId = new ObjectId(dto.movieId)
+            ticket.batchId = objectId(dto.batchId)
+            ticket.showtimeId = objectId(dto.showtimeId)
+            ticket.theaterId = objectId(dto.theaterId)
+            ticket.movieId = objectId(dto.movieId)
             ticket.status = dto.status
             ticket.seat = dto.seat
 
@@ -59,10 +57,15 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     @MethodLog({ level: 'verbose' })
     async findTickets(queryDto: TicketsQueryDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { theaterIds, ticketIds, ...query } = stringToObjectId(queryDto)
+            const { movieId, theaterId, theaterIds, ticketIds, batchId, showtimeId } = queryDto
 
-            if (theaterIds) query.theaterId = { $in: theaterIds }
-            if (ticketIds) query._id = { $in: ticketIds }
+            const query: FilterQuery<Ticket> = {}
+            if (theaterIds) query.theaterId = { $in: objectIds(theaterIds) }
+            if (ticketIds) query._id = { $in: objectIds(ticketIds) }
+            if (movieId) query.movieId = objectId(movieId)
+            if (theaterId) query.theaterId = objectId(theaterId)
+            if (batchId) query.batchId = objectId(batchId)
+            if (showtimeId) query.showtimeId = objectId(showtimeId)
 
             helpers.setQuery(query)
         }, pagination)

@@ -69,15 +69,18 @@ export class ShowtimesCreationService {
     private async createShowtimes({ batchId, createDto }: ShowtimesCreateRequestEvent) {
         const { movieId, theaterIds, durationMinutes, startTimes } = createDto
 
-        const createDtos: SchemeBody<Showtime>[] = []
-
-        for (const theaterId of theaterIds) {
-            for (const startTime of startTimes) {
-                const endTime = addMinutes(startTime, durationMinutes)
-
-                createDtos.push({ movieId, theaterId, startTime, endTime, batchId })
-            }
-        }
+        const createDtos = theaterIds.flatMap((theaterId) =>
+            startTimes.map(
+                (startTime) =>
+                    ({
+                        batchId,
+                        movieId,
+                        theaterId,
+                        startTime,
+                        endTime: addMinutes(startTime, durationMinutes)
+                    }) as SchemeBody<Showtime>
+            )
+        )
 
         await this.repository.createShowtimes(createDtos)
     }

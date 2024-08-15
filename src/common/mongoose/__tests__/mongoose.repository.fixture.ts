@@ -32,18 +32,12 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     Issue   : document.save() internally calls createCollection
     Symptom : Concurrent save() calls can cause "Collection namespace is already in use" errors.
               (more frequent in transactions)
-    Solution: enable autoCreate and "await this.model.createCollection()"
+    Solution: "await this.model.createCollection()"
     Note    : This problem mainly occurs in unit test environments with frequent initializations
     Ref     : https://mongoosejs.com/docs/api/model.html#Model.createCollection()
     */
     async onModuleInit() {
         await this.model.createCollection()
-    }
-
-    async test() {
-        const sample = new this.model({ name: 'abc' })
-        console.log(sample.name)
-        return await sample.save()
     }
 }
 
@@ -52,27 +46,6 @@ export class SamplesRepository extends MongooseRepository<Sample> {
     providers: [SamplesRepository]
 })
 export class SampleModule {}
-
-export const sortByName = (documents: SampleDto[]) =>
-    documents.sort((a, b) => a.name.localeCompare(b.name))
-
-export const sortByNameDescending = (documents: SampleDto[]) =>
-    documents.sort((a, b) => b.name.localeCompare(a.name))
-
-export const createSample = (repository: SamplesRepository) => {
-    const doc = repository.newDocument()
-    doc.name = 'Sample-Name'
-    return doc.save()
-}
-
-export const createSamples = async (repository: SamplesRepository) =>
-    Promise.all(
-        Array.from({ length: 20 }, async (_, index) => {
-            const doc = repository.newDocument()
-            doc.name = `Sample-${padNumber(index, 3)}`
-            return doc.save()
-        })
-    )
 
 export async function createFixture(uri: string) {
     const module = await createTestingModule({
@@ -97,3 +70,24 @@ export async function createFixture(uri: string) {
 
     return { module, repository, close }
 }
+
+export const sortByName = (documents: SampleDto[]) =>
+    documents.sort((a, b) => a.name.localeCompare(b.name))
+
+export const sortByNameDescending = (documents: SampleDto[]) =>
+    documents.sort((a, b) => b.name.localeCompare(a.name))
+
+export const createSample = (repository: SamplesRepository) => {
+    const doc = repository.newDocument()
+    doc.name = 'Sample-Name'
+    return doc.save()
+}
+
+export const createSamples = async (repository: SamplesRepository) =>
+    Promise.all(
+        Array.from({ length: 20 }, async (_, index) => {
+            const doc = repository.newDocument()
+            doc.name = `Sample-${padNumber(index, 3)}`
+            return doc.save()
+        })
+    )

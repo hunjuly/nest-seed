@@ -31,10 +31,6 @@ describe('MongooseRepository - withTransaction', () => {
         await close()
     })
 
-    it('adfadsf', async () => {
-        const a = await repository.test()
-        console.log(a)
-    })
     it('commit a transaction', async () => {
         const docs = await repository.withTransaction(async (session) => {
             const docs = [

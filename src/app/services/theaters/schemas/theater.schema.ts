@@ -37,23 +37,23 @@ export function getSeatCount(seatmap: Seatmap) {
     return count
 }
 
-export function forEachSeats(seatmap: Seatmap, callback: (seat: Seat) => any) {
-    const results: any[] = []
-
+function* seatsIterator(seatmap: Seatmap): IterableIterator<Seat> {
     for (const block of seatmap.blocks) {
         for (const row of block.rows) {
             for (let i = 0; i < row.seats.length; i++) {
-                const seat = row.seats[i]
-
-                if (seat !== 'X') {
-                    results.push(callback({ block: block.name, row: row.name, seatnum: i + 1 }))
+                if (row.seats[i] !== 'X') {
+                    yield {
+                        block: block.name,
+                        row: row.name,
+                        seatnum: i + 1
+                    }
                 }
             }
         }
     }
-
-    return results
 }
+
+export const getAllSeats = (seatmap: Seatmap) => Array.from(seatsIterator(seatmap))
 
 @Schema()
 export class Theater extends MongooseSchema {

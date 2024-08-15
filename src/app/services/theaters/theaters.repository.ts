@@ -1,15 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import {
-    Expect,
-    MethodLog,
-    MongooseRepository,
-    PaginationOption,
-    PaginationResult,
-    stringToObjectId
-} from 'common'
+import { Expect, MethodLog, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { differenceWith, escapeRegExp, uniq } from 'lodash'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { CreateTheaterDto, QueryTheatersDto, UpdateTheaterDto } from './dto'
 import { Theater } from './schemas'
 
@@ -62,8 +55,9 @@ export class TheatersRepository extends MongooseRepository<Theater> {
     @MethodLog({ level: 'verbose' })
     async findTheaters(queryDto: QueryTheatersDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { name, ...query } = stringToObjectId(queryDto)
+            const { name } = queryDto
 
+            const query: FilterQuery<Theater> = {}
             if (name) query.name = new RegExp(escapeRegExp(name), 'i')
 
             helpers.setQuery(query)

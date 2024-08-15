@@ -6,11 +6,10 @@ import {
     MongooseRepository,
     objectIds,
     PaginationOption,
-    PaginationResult,
-    stringToObjectId
+    PaginationResult
 } from 'common'
 import { differenceWith, escapeRegExp, uniq } from 'lodash'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { Movie } from './schemas'
 
@@ -72,9 +71,16 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     @MethodLog({ level: 'verbose' })
     async findMovies(queryDto: QueryMoviesDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { title, ...query } = stringToObjectId(queryDto)
+            const { title, genre, releaseDate, plot, durationMinutes, director, rating } = queryDto
 
+            const query: FilterQuery<Movie> = {}
             if (title) query.title = new RegExp(escapeRegExp(title), 'i')
+            if (genre) query.genre = genre
+            if (releaseDate) query.releaseDate = releaseDate
+            if (plot) query.plot = new RegExp(escapeRegExp(plot), 'i')
+            if (durationMinutes) query.durationMinutes = durationMinutes
+            if (director) query.director = new RegExp(escapeRegExp(director), 'i')
+            if (rating) query.rating = rating
 
             helpers.setQuery(query)
         }, pagination)

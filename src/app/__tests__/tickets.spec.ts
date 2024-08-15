@@ -85,5 +85,15 @@ describe('/tickets', () => {
             const filteredTickets = createdTickets.filter((ticket) => ticket.movieId === movieId)
             expectEqualUnsorted(body.items, filteredTickets)
         })
+
+        it('should retrieve tickets by showtimeId', async () => {
+            const showtimeId = createdTickets[0].showtimeId
+            const { body } = await client.get('/tickets').query({ showtimeId }).ok()
+
+            const filteredTickets = createdTickets.filter(
+                (ticket) => ticket.showtimeId === showtimeId
+            )
+            expectEqualUnsorted(body.items, filteredTickets)
+        })
     })
 })
