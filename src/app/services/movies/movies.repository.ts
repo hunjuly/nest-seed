@@ -4,12 +4,12 @@ import {
     Expect,
     MethodLog,
     MongooseRepository,
+    objectIds,
     PaginationOption,
-    PaginationResult,
-    stringToObjectId
+    PaginationResult
 } from 'common'
 import { differenceWith, escapeRegExp, uniq } from 'lodash'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from './dto'
 import { Movie } from './schemas'
 
@@ -19,8 +19,12 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
-    async createMovie(createDto: CreateMovieDto) {
+    async createMovie(createDto: CreateMovieDto, storageFileIds: string[]) {
         const movie = this.newDocument()
         movie.title = createDto.title
         movie.genre = createDto.genre
@@ -29,6 +33,7 @@ export class MoviesRepository extends MongooseRepository<Movie> {
         movie.durationMinutes = createDto.durationMinutes
         movie.director = createDto.director
         movie.rating = createDto.rating
+        movie.storageFileIds = objectIds(storageFileIds)
 
         return movie.save()
     }
@@ -66,9 +71,16 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     @MethodLog({ level: 'verbose' })
     async findMovies(queryDto: QueryMoviesDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { title, ...query } = stringToObjectId(queryDto)
+            const { title, genre, releaseDate, plot, durationMinutes, director, rating } = queryDto
 
+            const query: FilterQuery<Movie> = {}
             if (title) query.title = new RegExp(escapeRegExp(title), 'i')
+            if (genre) query.genre = genre
+            if (releaseDate) query.releaseDate = releaseDate
+            if (plot) query.plot = new RegExp(escapeRegExp(plot), 'i')
+            if (durationMinutes) query.durationMinutes = durationMinutes
+            if (director) query.director = new RegExp(escapeRegExp(director), 'i')
+            if (rating) query.rating = rating
 
             helpers.setQuery(query)
         }, pagination)

@@ -11,7 +11,7 @@ import {
 describe('MongooseRepository - withTransaction', () => {
     let mongod: MongoMemoryReplSet
     let repository: SamplesRepository
-    let teardown: () => void
+    let close: () => void
 
     beforeAll(async () => {
         mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } })
@@ -24,11 +24,11 @@ describe('MongooseRepository - withTransaction', () => {
     beforeEach(async () => {
         const fixture = await createFixture(mongod.getUri())
         repository = fixture.repository
-        teardown = fixture.teardown
+        close = fixture.close
     })
 
     afterEach(async () => {
-        await teardown()
+        await close()
     })
 
     it('commit a transaction', async () => {

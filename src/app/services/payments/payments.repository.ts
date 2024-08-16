@@ -6,10 +6,9 @@ import {
     objectId,
     objectIds,
     PaginationOption,
-    PaginationResult,
-    stringToObjectId
+    PaginationResult
 } from 'common'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { CreatePaymentDto, QueryPaymentsDto } from './dto'
 import { Payment } from './schemas'
 
@@ -17,6 +16,10 @@ import { Payment } from './schemas'
 export class PaymentsRepository extends MongooseRepository<Payment> {
     constructor(@InjectModel(Payment.name) model: Model<Payment>) {
         super(model)
+    }
+
+    async onModuleInit() {
+        await this.model.createCollection()
     }
 
     @MethodLog()
@@ -28,18 +31,17 @@ export class PaymentsRepository extends MongooseRepository<Payment> {
         return payment.save()
     }
 
-    async findPayments(
-        queryDto: QueryPaymentsDto,
-        pagination: PaginationOption
-    ): Promise<PaginationResult<Payment>> {
+    async findPayments(queryDto: QueryPaymentsDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { paymentId, ...query } = stringToObjectId(queryDto)
+            const { paymentId, customerId } = queryDto
 
-            if (paymentId) query._id = paymentId
+            const query: FilterQuery<Payment> = {}
+            if (paymentId) query._id = objectId(paymentId)
+            if (customerId) query.customerId = objectId(customerId)
 
             helpers.setQuery(query)
         }, pagination)
 
-        return paginated
+        return paginated as PaginationResult<Payment>
     }
 }

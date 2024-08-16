@@ -134,5 +134,13 @@ describe('/customers', () => {
             const expected = customers.filter((customer) => customer.name.startsWith(partialName))
             expectEqualUnsorted(body.items, expected)
         })
+
+        it('should retrieve customers by partial email', async () => {
+            const partialEmail = 'user-1'
+            const { body } = await client.get('/customers').query({ email: partialEmail }).ok()
+
+            const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
+            expectEqualUnsorted(body.items, expected)
+        })
     })
 })

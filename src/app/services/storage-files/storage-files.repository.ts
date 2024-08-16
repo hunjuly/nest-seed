@@ -10,8 +10,12 @@ export class StorageFilesRepository extends MongooseRepository<StorageFile> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog({ excludeArgs: ['session'] })
-    async createStorageFile(createDto: SchemeBody<StorageFile>, session: ClientSession) {
+    async createStorageFile(createDto: SchemeBody<StorageFile>, session?: ClientSession) {
         const storageFile = this.newDocument()
         storageFile.originalname = createDto.originalname
         storageFile.filename = createDto.filename

@@ -11,7 +11,7 @@ import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateEvent } from 'app/s
 import { addMinutes, AppEvent, pickIds } from 'common'
 import { createHttpTestContext, HttpClient } from 'common/test'
 import { MovieDto } from '../services/movies'
-import { forEachSeats, Seat, TheaterDto } from '../services/theaters'
+import { getAllSeats, TheaterDto } from '../services/theaters'
 
 type PromiseHandlers = {
     eventName: string
@@ -27,7 +27,7 @@ export class ShowtimesEventListener {
         const promise = this.promises.get(event.batchId)
 
         if (!promise) {
-            throw new Error(`${event}를 찾지 못함. 동기화 오류 가능성 있음`)
+            throw new Error(`${event} not found, possible sync error`)
         }
 
         if (promise.eventName === event.name) {
@@ -63,28 +63,34 @@ export const makeCreateShowtimesDto = (movie: MovieDto, theaters: TheaterDto[], 
     if (!createDto.movieId || !createDto.theaterIds)
         throw new Error('movie or theaters is not defined')
 
-    const expectedShowtimes: ShowtimeDto[] = createDto.theaterIds.flatMap((theaterId) =>
-        createDto.startTimes.map((startTime) => ({
-            id: expect.anything(),
-            movieId: createDto.movieId,
-            theaterId,
-            startTime,
-            endTime: addMinutes(startTime, createDto.durationMinutes)
-        }))
+    const expectedShowtimes = createDto.theaterIds.flatMap((theaterId) =>
+        createDto.startTimes.map(
+            (startTime) =>
+                ({
+                    id: expect.anything(),
+                    movieId: createDto.movieId,
+                    theaterId,
+                    startTime,
+                    endTime: addMinutes(startTime, createDto.durationMinutes)
+                }) as ShowtimeDto
+        )
     )
 
-    const expectedTickets: TicketDto[] = expectedShowtimes.flatMap((showtime) => {
+    const expectedTickets = expectedShowtimes.flatMap((showtime) => {
         const theater = theaters.find((theater) => theater.id === showtime.theaterId)!
 
         return theater.seatmap
-            ? forEachSeats(theater.seatmap, (seat: Seat) => ({
-                  id: expect.anything(),
-                  showtimeId: showtime.id,
-                  theaterId: showtime.theaterId,
-                  movieId: showtime.movieId,
-                  seat,
-                  status: 'open'
-              }))
+            ? getAllSeats(theater.seatmap).map(
+                  (seat) =>
+                      ({
+                          id: expect.anything(),
+                          showtimeId: showtime.id,
+                          theaterId: showtime.theaterId,
+                          movieId: showtime.movieId,
+                          seat,
+                          status: 'open'
+                      }) as TicketDto
+              )
             : []
     })
 

@@ -99,9 +99,10 @@ async function createWatchedMovie(
 ) {
     const movie = await createMovie(client, { genre: [MovieGenre.Drama, MovieGenre.Fantasy] })
 
-    const { createDto } = makeCreateShowtimesDto(movie, theaters)
-    const { tickets } = await createShowtimes(client, createDto, listener)
-    await createPayment(client, makeCreatePaymentDto(customer, tickets))
+    const { createDto: createShowtimesDto } = makeCreateShowtimesDto(movie, theaters)
+    const { tickets } = await createShowtimes(client, createShowtimesDto, listener)
+    const { createDto: createPaymentDto } = makeCreatePaymentDto(customer, tickets)
+    await createPayment(client, createPaymentDto)
 
     return movie
 }

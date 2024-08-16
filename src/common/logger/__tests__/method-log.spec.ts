@@ -15,7 +15,7 @@ jest.mock('@nestjs/common', () => {
     }
 })
 
-// jest.mock의 초기화 문제 때문에 TestRepository를 fixture.ts로 분리하지 못했다.
+// Due to initialization issues with jest.mock, I couldn't separate TestRepository into fixture.ts
 export class TestService {
     @MethodLog()
     async printLog(_data: string) {

@@ -4,11 +4,11 @@ import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
-import { convertDateToString, pickItems, pickIds } from 'common'
+import { convertDateToString, pickIds, pickItems } from 'common'
 import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
-import { createFixture, filterMoviesByGenre } from './showing.fixture'
+import { createFixture, filterMoviesByGenre } from './tickets-purchase.spec.fixture'
 
-describe('/showing', () => {
+describe('tickets-purchase', () => {
     let testContext: HttpTestContext
     let client: HttpClient
     let customer: CustomerDto
@@ -37,7 +37,7 @@ describe('/showing', () => {
         await testContext?.close()
     })
 
-    it('추천 영화 목록 요청', async () => {
+    it('Request recommended movie list', async () => {
         const res = await client
             .get('/showing/movies/recommended')
             .query({ customerId: customer.id })
@@ -49,7 +49,7 @@ describe('/showing', () => {
         selectedMovie = movies[0]
     })
 
-    it('상영 극장 목록 요청', async () => {
+    it('Request list of theaters showing the movie', async () => {
         const nearbyTheater1 = '37.6,128.6'
         const res = await client
             .get(`/showing/movies/${selectedMovie.id}/theaters`)
@@ -61,7 +61,7 @@ describe('/showing', () => {
         selectedTheater = theaters[0]
     })
 
-    it('상영일 목록 요청', async () => {
+    it('Request list of showdates', async () => {
         const res = await client
             .get(`/showing/movies/${selectedMovie.id}/theaters/${selectedTheater.id}/showdates`)
             .ok()
@@ -76,7 +76,7 @@ describe('/showing', () => {
         selectedShowdate = showdates[0]
     })
 
-    it('상영 시간 목록 요청', async () => {
+    it('Request list of showtimes', async () => {
         const movieId = selectedMovie.id
         const theaterId = selectedTheater.id
         const showdate = convertDateToString(selectedShowdate)
@@ -101,7 +101,7 @@ describe('/showing', () => {
         selectedShowtime = showtimes[0]
     })
 
-    it('상영 시간의 티켓 정보 요청', async () => {
+    it('Request ticket information for a specific showtime', async () => {
         const { body: tickets } = await client
             .get(`/showing/showtimes/${selectedShowtime.id}/tickets`)
             .ok()
@@ -121,14 +121,14 @@ describe('/showing', () => {
         selectedTickets = [tickets[0], tickets[1]]
     })
 
-    it('티켓 구매', async () => {
+    it('Purchase tickets', async () => {
         return client
             .post('/payments')
             .body({ customerId: customer.id, ticketIds: pickIds(selectedTickets) })
             .created()
     })
 
-    it('상영 시간 목록 업데이트 확인', async () => {
+    it('Verify update of screening time list', async () => {
         const movieId = selectedMovie.id
         const theaterId = selectedTheater.id
         const showdate = convertDateToString(selectedShowdate)
@@ -147,7 +147,7 @@ describe('/showing', () => {
         expectEqualUnsorted(salesStatuses, expectedStatuses)
     })
 
-    it('상영 시간의 티켓 정보 업데이트 확인', async () => {
+    it('Verify update of ticket information for the screening time', async () => {
         const { body } = await client.get(`/showing/showtimes/${selectedShowtime.id}/tickets`).ok()
 
         const tickets = body as TicketDto[]

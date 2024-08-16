@@ -8,7 +8,7 @@ import {
     createHttpTestContext,
     expectEqualUnsorted
 } from 'common/test'
-import { createMovie, createMovies, makeMovieDto } from './movies.fixture'
+import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
@@ -25,11 +25,20 @@ describe('/movies', () => {
 
     describe('POST /movies', () => {
         it('should create a movie and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeMovieDto()
-
-            const { body } = await client.post('/movies').body(createDto).created()
+            const { createDto, expectedDto } = makeCreateMovieDto()
+            const body = await createMovie(client, createDto)
 
             expect(body).toEqual(expectedDto)
+        })
+
+        it('should return BAD_REQUEST(400) when uploading a file with disallowed MIME type', async () => {
+            const notAllowFile = './test/fixtures/text.txt'
+            const { createDto } = makeCreateMovieDto()
+            await client
+                .post('/movies')
+                .attachs([{ name: 'files', file: notAllowFile }])
+                .fields(objectToFields(createDto))
+                .badRequest()
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
@@ -128,21 +137,53 @@ describe('/movies', () => {
             expectEqualUnsorted(body.items, expected)
         })
 
+        it('should retrieve movies by genre', async () => {
+            const genre = MovieGenre.Drama
+            const { body } = await client.get('/movies').query({ genre }).ok()
+
+            const expected = movies.filter((movie) => movie.genre.includes(genre))
+            expectEqualUnsorted(body.items, expected)
+        })
+
         it('should retrieve movies by releaseDate', async () => {
-            const targetDate = movies[0].releaseDate
-            const { body } = await client.get('/movies').query({ releaseDate: targetDate }).ok()
+            const releaseDate = movies[0].releaseDate
+            const { body } = await client.get('/movies').query({ releaseDate }).ok()
 
             const expected = movies.filter(
-                (movie) => movie.releaseDate.getTime() === targetDate.getTime()
+                (movie) => movie.releaseDate.getTime() === releaseDate.getTime()
             )
             expectEqualUnsorted(body.items, expected)
         })
 
-        it('should retrieve movies by genre', async () => {
-            const targetGenre = MovieGenre.Drama
-            const { body } = await client.get('/movies').query({ genre: targetGenre }).ok()
+        it('should retrieve movies by partial plot', async () => {
+            const partialPlot = 'plot-01'
+            const { body } = await client.get('/movies').query({ plot: partialPlot }).ok()
 
-            const expected = movies.filter((movie) => movie.genre.includes(targetGenre))
+            const expected = movies.filter((movie) => movie.plot.startsWith(partialPlot))
+            expectEqualUnsorted(body.items, expected)
+        })
+
+        it('should retrieve movies by durationMinutes', async () => {
+            const durationMinutes = 90
+            const { body } = await client.get('/movies').query({ durationMinutes }).ok()
+
+            const expected = movies.filter((movie) => movie.durationMinutes === durationMinutes)
+            expectEqualUnsorted(body.items, expected)
+        })
+
+        it('should retrieve movies by partial director', async () => {
+            const partialDirector = 'James'
+            const { body } = await client.get('/movies').query({ director: partialDirector }).ok()
+
+            const expected = movies.filter((movie) => movie.director.startsWith(partialDirector))
+            expectEqualUnsorted(body.items, expected)
+        })
+
+        it('should retrieve movies by rating', async () => {
+            const rating = MovieRating.NC17
+            const { body } = await client.get('/movies').query({ rating }).ok()
+
+            const expected = movies.filter((movie) => movie.rating === rating)
             expectEqualUnsorted(body.items, expected)
         })
     })

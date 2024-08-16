@@ -4,13 +4,12 @@ import {
     MethodLog,
     MongooseRepository,
     objectId,
-    ObjectId,
+    objectIds,
     PaginationOption,
     PaginationResult,
-    SchemeBody,
-    stringToObjectId
+    SchemeBody
 } from 'common'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { QueryShowtimesDto } from './dto'
 import { Showtime } from './schemas'
 
@@ -20,13 +19,17 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
         super(model)
     }
 
+    async onModuleInit() {
+        await this.model.createCollection()
+    }
+
     @MethodLog()
     async createShowtimes(createDtos: SchemeBody<Showtime>[]) {
         const showtimes = createDtos.map((dto) => {
             const showtime = this.newDocument()
-            showtime.batchId = new ObjectId(dto.batchId)
-            showtime.theaterId = new ObjectId(dto.theaterId)
-            showtime.movieId = new ObjectId(dto.movieId)
+            showtime.batchId = objectId(dto.batchId)
+            showtime.theaterId = objectId(dto.theaterId)
+            showtime.movieId = objectId(dto.movieId)
             showtime.startTime = dto.startTime
             showtime.endTime = dto.endTime
 
@@ -48,9 +51,13 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     @MethodLog({ level: 'verbose' })
     async findShowtimes(queryDto: QueryShowtimesDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { showtimeIds, ...query } = stringToObjectId(queryDto)
+            const { showtimeIds, movieId, theaterId, batchId } = queryDto
 
-            if (showtimeIds) query._id = { $in: showtimeIds }
+            const query: FilterQuery<Showtime> = {}
+            if (showtimeIds) query._id = { $in: objectIds(showtimeIds) }
+            if (movieId) query.movieId = objectId(movieId)
+            if (theaterId) query.theaterId = objectId(theaterId)
+            if (batchId) query.batchId = objectId(batchId)
 
             helpers.setQuery(query)
         }, pagination)
@@ -74,8 +81,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
 
         const showtimes = await this.model
             .find({
-                movieId: new ObjectId(movieId),
-                theaterId: new ObjectId(theaterId),
+                movieId: objectId(movieId),
+                theaterId: objectId(theaterId),
                 startTime: { $gte: startOfDay, $lte: endOfDay }
             })
             .sort({ startTime: 1 })
@@ -113,8 +120,8 @@ export class ShowtimesRepository extends MongooseRepository<Showtime> {
     @MethodLog({ level: 'verbose' })
     async findShowtimesWithinDateRange(theaterId: string, startTime: Date, endTime: Date) {
         /**
-         * 기존에 등록된 showtimes를 찾을 때 startTime으로만 찾아야 한다.
-         * 입력값으로 startTime, endTime를 받는다고 해서 검색도 startTime,endTime으로 하면 안 된다.
+         * When searching for previously registered showtimes, it should only be done using startTime.
+         * Even though startTime and endTime are received as input values, the search should not be done using both startTime and endTime.
          */
         const showtimes = await this.model
             .find({

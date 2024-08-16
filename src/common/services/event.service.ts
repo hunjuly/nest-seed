@@ -16,7 +16,7 @@ export function EventName(name: string) {
             static eventName = name
             constructor(...args: any[]) {
                 super(...args)
-                this.name = name // AppEvent의 eventName 설정
+                this.name = name
             }
         }
     }

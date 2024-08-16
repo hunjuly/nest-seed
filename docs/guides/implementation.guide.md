@@ -46,37 +46,6 @@ When [Condition], expect [Error Type]
     "should [Action] and return [Error Type]"\
     "should create a new resource and return CREATED(201)"
 
-## Controller 레이어
-
-Controller는 사용자 입력에 대한 점검과 변환을 담당한다.
-
-다음은 일반적인 Controller의 코드다.
-
-```ts
-@Controller('users')
-export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
-
-    @UseGuards(JwtAuthGuard)
-    @Get(':userId')
-    async getUser(@Param('userId') userId: string) {
-        const userExists = await this.usersService.doesUserExist(userId)
-
-        // userId가 존재하지 않으면 NOT_FOUND(404) 반환한다
-        if (!userExists) {
-            throw new NotFoundException(`User with ID ${userId} not found`)
-        }
-
-        return this.usersService.getUser(userId)
-    }
-}
-```
-
-getUser()는 사용자가 존재하지 않으면 예외를 던진다. Controller에서 입력값을 점검하고 예외를 던지는 이유는 다음과 같다.
-
-1. REST나 GRPC 등 통신방식에 따라서 예외 처리가 다르다. Service에서 예외를 throw 하면 Controller에서 catch 해서 다시 던져야 하는데 불편하다.
-1. Controller에서 발생할 수 있는 예외를 점검하면 문서화가 쉽다.
-
 ## Domain 레이어
 
 ### TypeORM과 도메인의 Entity 관계

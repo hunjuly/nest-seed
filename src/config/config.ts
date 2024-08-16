@@ -1,12 +1,12 @@
-import { existsSync } from 'fs'
-import * as dotenv from 'dotenv'
-import { getNumber, getString } from './utils'
-import { exit } from 'process'
 import { notUsed } from 'common'
+import * as dotenv from 'dotenv'
+import { existsSync } from 'fs'
+import { exit } from 'process'
+import { getNumber, getString } from './utils'
 
-export const nodeEnv = () => getString('NODE_ENV') as 'production' | 'development'
+export const matchesEnv = (env: 'production' | 'development') => getString('NODE_ENV') === env
 
-if (nodeEnv() === 'development') {
+if (matchesEnv('development')) {
     dotenv.config({ path: '.env.development' })
 }
 
@@ -63,7 +63,7 @@ if (!existsSync(Config.log.directory)) {
 
 export const mongoDataSource = () => {
     const { user, pass, host1, host2, host3, port, replica, database } = Config.mongo
-    notUsed(host3, '3개를 다 적을 필요는 없다')
+    notUsed(host3, 'No need to list all three')
     const uri = `mongodb://${user}:${pass}@${host1}:${port},${host2}:${port}/?replicaSet=${replica}`
     const uniqueId = (global as any).JEST_UNIQUE_ID
     const dbName = uniqueId ? 'test_' + uniqueId : database

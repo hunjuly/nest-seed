@@ -1,3 +1,4 @@
+// TODO 다시 검토
 export class Exception extends Error {
     constructor(message?: string) {
         super(message)

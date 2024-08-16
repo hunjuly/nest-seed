@@ -1,8 +1,8 @@
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { ShowtimesService } from 'app/services/showtimes'
-import { Seat, TheatersService, forEachSeats } from 'app/services/theaters'
+import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
+import { TheatersService, getAllSeats } from 'app/services/theaters'
 import { Job } from 'bull'
 import { AppEvent, MethodLog, SchemeBody } from 'common'
 import { Ticket, TicketStatus } from '../schemas'
@@ -18,8 +18,6 @@ type TicketsCreationData = { batchId: string }
 @Injectable()
 @Processor('tickets')
 export class TicketsCreationService {
-    private readonly logger = new Logger(this.constructor.name)
-
     constructor(
         private eventEmitter: EventEmitter2,
         private repository: TicketsRepository,
@@ -31,8 +29,6 @@ export class TicketsCreationService {
     @OnQueueFailed()
     @MethodLog()
     async onFailed(job: Job) {
-        this.logger.error(job.failedReason, job.data)
-
         await this.emitEvent(new TicketsCreateErrorEvent(job.data.batchId, job.failedReason ?? ''))
     }
 
@@ -42,27 +38,35 @@ export class TicketsCreationService {
         const { batchId } = job.data
 
         const showtimes = await this.showtimesService.findShowtimesByBatchId(batchId)
+        const theaterMap = await this.getTheaterMap(showtimes)
 
-        const createDtos: SchemeBody<Ticket>[] = []
+        const tickets = showtimes.flatMap((showtime) => {
+            const theater = theaterMap.get(showtime.theaterId)
 
-        for (const showtime of showtimes) {
-            const theater = await this.theatersService.getTheater(showtime.theaterId)
+            return getAllSeats(theater!.seatmap).map(
+                (seat) =>
+                    ({
+                        showtimeId: showtime.id,
+                        theaterId: showtime.theaterId,
+                        movieId: showtime.movieId,
+                        status: TicketStatus.open,
+                        seat,
+                        batchId
+                    }) as SchemeBody<Ticket>
+            )
+        })
 
-            forEachSeats(theater.seatmap, (seat: Seat) => {
-                createDtos.push({
-                    showtimeId: showtime.id,
-                    theaterId: showtime.theaterId,
-                    movieId: showtime.movieId,
-                    status: TicketStatus.open,
-                    seat,
-                    batchId
-                })
-            })
-        }
-
-        await this.repository.createTickets(createDtos)
+        await this.repository.createTickets(tickets)
 
         await this.emitEvent(new TicketsCreateCompleteEvent(batchId))
+    }
+
+    private async getTheaterMap(showtimes: ShowtimeDto[]) {
+        const theaters = await Promise.all(
+            showtimes.map((showtime) => this.theatersService.getTheater(showtime.theaterId))
+        )
+
+        return new Map(theaters.map((theater) => [theater.id, theater]))
     }
 
     @MethodLog()

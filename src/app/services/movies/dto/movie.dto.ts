@@ -9,9 +9,20 @@ export class MovieDto {
     durationMinutes: number
     director: string
     rating: MovieRating
+    images: string[]
 
     constructor(movie: Movie) {
-        const { id, title, genre, releaseDate, plot, durationMinutes, director, rating } = movie
+        const {
+            id,
+            title,
+            genre,
+            releaseDate,
+            plot,
+            durationMinutes,
+            director,
+            rating,
+            storageFileIds
+        } = movie
 
         Object.assign(this, {
             id: id.toString(),
@@ -21,7 +32,8 @@ export class MovieDto {
             plot,
             durationMinutes,
             director,
-            rating
+            rating,
+            images: [`/storage-files/${storageFileIds.map((id) => id.toString())}`]
         })
     }
 }

@@ -29,7 +29,7 @@ describe('MongoRepository', () => {
     beforeEach(async () => {
         const fixture = await createFixture(mongod.getUri())
         repository = fixture.repository
-        teardown = fixture.teardown
+        teardown = fixture.close
     })
 
     afterEach(async () => {

@@ -3,7 +3,6 @@ import * as os from 'os'
 import * as p from 'path'
 import { Path } from '..'
 
-// TODO 시간될 때 다시 보자. 지저분 하다.
 describe('Path', () => {
     let tempDir: string
 

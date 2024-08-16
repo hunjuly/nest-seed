@@ -25,7 +25,7 @@ class UploadFileDto {
 
 @Controller('storage-files')
 export class StorageFilesController {
-    constructor(private storageFileService: StorageFilesService) {}
+    constructor(private service: StorageFilesService) {}
 
     @Post()
     @UseInterceptors(
@@ -51,12 +51,12 @@ export class StorageFilesController {
         })
     )
     async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() _body: UploadFileDto) {
-        return this.storageFileService.saveFiles(files)
+        return this.service.saveFiles(files)
     }
 
     @Get(':fileId')
     async downloadFile(@Param('fileId') fileId: string) {
-        const file = await this.storageFileService.getStorageFile(fileId)
+        const file = await this.service.getStorageFile(fileId)
 
         const readStream = createReadStream(file.storedPath)
 
@@ -69,6 +69,6 @@ export class StorageFilesController {
 
     @Delete(':fileId')
     async deleteStorageFile(@Param('fileId') fileId: string) {
-        return this.storageFileService.deleteStorageFile(fileId)
+        return this.service.deleteStorageFile(fileId)
     }
 }

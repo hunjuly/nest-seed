@@ -20,28 +20,24 @@ export class StorageFilesService {
 
     @MethodLog()
     private async _saveFiles(createDtos: CreateStorageFileDto[]) {
-        const savedFiles = await this.repository.withTransaction(async (session) => {
-            const storedFiles: StorageFile[] = []
+        const storageFiles = await this.repository.withTransaction(async (session) => {
+            const storageFiles: StorageFile[] = []
 
             for (const createDto of createDtos) {
-                const checksum = await getChecksum(createDto.path)
-
-                const storedFile = await this.repository.createStorageFile(
-                    { ...createDto, checksum },
+                const storageFile = await this.repository.createStorageFile(
+                    { ...createDto, checksum: await getChecksum(createDto.path) },
                     session
                 )
+                Path.move(createDto.path, this.getStoragePath(storageFile.id))
 
-                const targetPath = this.getStoragePath(storedFile.id)
-                Path.move(createDto.path, targetPath)
-
-                storedFiles.push(storedFile)
+                storageFiles.push(storageFile)
             }
 
-            return storedFiles
+            return storageFiles
         })
 
         return {
-            files: savedFiles.map((file) => this.makeStorageFileDto(file))
+            storageFiles: storageFiles.map((file) => this.makeStorageFileDto(file))
         }
     }
 
