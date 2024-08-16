@@ -1,4 +1,4 @@
-import { UserException } from 'common'
+import { Exception } from 'common'
 
 export function stringToMillisecs(str: string): number {
     const timeUnits: { [key: string]: number } = {
@@ -13,7 +13,7 @@ export function stringToMillisecs(str: string): number {
     const validFormatRegex = /^(-?\d+(\.\d+)?)(ms|s|m|h|d)(\s*(-?\d+(\.\d+)?)(ms|s|m|h|d))*$/
 
     if (!validFormatRegex.test(str)) {
-        throw new UserException(`Invalid time format(${str})`)
+        throw new Exception(`Invalid time format(${str})`)
     }
 
     const regex = /(-?\d+(\.\d+)?)(ms|s|m|h|d)/g

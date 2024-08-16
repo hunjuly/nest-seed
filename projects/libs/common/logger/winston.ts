@@ -4,7 +4,7 @@
  * This file is ignored in the test coverage because testing it is challenging and seeing logs during testing can be distracting.
  */
 
-import { EnvironmentException, Path } from 'common'
+import { Exception, Path } from 'common'
 import * as winston from 'winston'
 import * as DailyRotateFile from 'winston-daily-rotate-file'
 import { consoleLogFormat } from './console-log.format'
@@ -20,7 +20,7 @@ export async function initializeLogger(config: LoggerConfiguration) {
     const { directory, daysToKeepLogs, fileLogLevel, consoleLogLevel } = config
 
     if (!(await Path.isWritable(directory))) {
-        throw new EnvironmentException(`"${directory}" is not writable.`)
+        throw new Exception(`"${directory}" is not writable.`)
     }
 
     const logFileOptions = {

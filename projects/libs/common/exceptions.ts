@@ -1,4 +1,3 @@
-// TODO 다시 검토
 export class Exception extends Error {
     constructor(message?: string) {
         super(message)
@@ -17,16 +16,3 @@ export class FatalException extends Exception {}
  * This is usually caused by a programmer's mistake.
  */
 export class LogicException extends FatalException {}
-
-/**
- * Exceptions caused by invalid user input
- */
-export class UserException extends Exception {}
-
-/**
- * Exception caused by a preference issue.
- * You need to shut down the instance.
- */
-export class EnvironmentException extends Exception {}
-
-export class AppException extends Exception {}

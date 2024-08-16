@@ -9,9 +9,9 @@
         "test:all": "jest --coverage",
         "test:app": "jest --config ./jest.config.app.ts",
         "test:common": "jest --config ./jest.config.common.ts",
-        "build": "nest build",
-        "lint": "eslint src/**/*/*.ts --fix",
-        "format": "prettier --write src/**/*/*.ts"
+        "build": "nest build --webpack gateway",
+        "lint": "eslint projects/**/*/*.ts --fix",
+        "format": "prettier --write projects/**/*/*.ts"
     },
     "dependencies": {
         "@nestjs/bull": "^10.1.1",

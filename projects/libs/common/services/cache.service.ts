@@ -1,7 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { EnvironmentException, stringToMillisecs } from 'common'
+import { Exception, stringToMillisecs } from 'common'
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
@@ -17,7 +17,7 @@ export class CacheService implements OnModuleDestroy {
         const expireMillisecs = stringToMillisecs(expireTime)
 
         if (expireMillisecs < 0) {
-            throw new EnvironmentException('ttlMiliseconds should not be negative')
+            throw new Exception('ttlMiliseconds should not be negative')
         }
 
         await this.cacheManager.set(key, value, expireMillisecs)

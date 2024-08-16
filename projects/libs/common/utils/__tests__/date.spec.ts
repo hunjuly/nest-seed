@@ -1,4 +1,4 @@
-import { UserException } from 'common'
+import { Exception } from 'common'
 import {
     addDays,
     addMinutes,
@@ -57,8 +57,8 @@ describe('common/utils/date', () => {
             expect(result).toEqual(500)
         })
 
-        it('throws an UserException if the format is invalid', () => {
-            expect(() => stringToMillisecs('2z')).toThrow(UserException)
+        it('throws an Exception if the format is invalid', () => {
+            expect(() => stringToMillisecs('2z')).toThrow(Exception)
         })
     })
 
