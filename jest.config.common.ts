@@ -3,13 +3,13 @@ import baseOption from './jest.config'
 
 const config: Config = {
     ...baseOption,
-    roots: ['<rootDir>/src/common'],
+    roots: ['<rootDir>/projects/libs/common'],
     collectCoverage: true,
     collectCoverageFrom: [
-        'src/common/**/*.ts',
-        '!src/common/test/**/*',
-        '!src/**/index.ts',
-        '!src/**/*.module.ts'
+        'projects/libs/common/**/*.ts',
+        '!projects/libs/common/test/**/*',
+        '!projects/libs/**/index.ts',
+        '!projects/libs/**/*.module.ts'
     ]
 }
 

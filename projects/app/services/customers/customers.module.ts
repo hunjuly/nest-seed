@@ -5,7 +5,6 @@ import { Config } from 'config'
 import { CustomersRepository } from './customers.repository'
 import { CustomersService } from './customers.service'
 import { Customer, CustomerSchema } from './schemas'
-import { CustomerJwtStrategy, CustomerLocalStrategy } from './strategies'
 import { PassportModule } from '@nestjs/passport'
 
 @Module({
@@ -16,8 +15,6 @@ import { PassportModule } from '@nestjs/passport'
     providers: [
         CustomersService,
         CustomersRepository,
-        CustomerLocalStrategy,
-        CustomerJwtStrategy,
         JwtAuthService,
         { provide: 'AuthConfig', useFactory: () => Config.auth }
     ],

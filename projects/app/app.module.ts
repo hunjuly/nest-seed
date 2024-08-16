@@ -10,6 +10,7 @@ import {
     TicketsController
 } from 'app/controllers'
 import { CoreModule } from 'core'
+import { CustomerJwtStrategy, CustomerLocalStrategy } from './controllers/strategies'
 import { CustomersModule } from './services/customers'
 import { MoviesModule } from './services/movies'
 import { PaymentsModule } from './services/payments'
@@ -31,6 +32,7 @@ import { TicketsModule } from './services/tickets'
         ShowingModule,
         StorageFilesModule
     ],
+    providers: [CustomerLocalStrategy, CustomerJwtStrategy],
     controllers: [
         CustomersController,
         MoviesController,

@@ -52,6 +52,11 @@ export class CustomersService {
     }
 
     @MethodLog()
+    async customersExist(customerIds: string[]) {
+        return this.repository.existsByIds(customerIds)
+    }
+
+    @MethodLog()
     async login(customer: CustomerDto) {
         return this.jwtAuthService.generateAuthTokens(customer.id, customer.email)
     }
@@ -59,5 +64,15 @@ export class CustomersService {
     @MethodLog()
     async refreshAuthTokens(refreshToken: string) {
         return this.jwtAuthService.refreshAuthTokens(refreshToken)
+    }
+
+    @MethodLog({ level: 'verbose' })
+    async getCustomerByCredentials(email: string, password: string) {
+        const customer = await this.repository.findByEmail(email)
+
+        if (customer && (await Password.validate(password, customer.password)))
+            return new CustomerDto(customer)
+
+        return null
     }
 }
