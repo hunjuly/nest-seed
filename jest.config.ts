@@ -4,13 +4,14 @@ const config: Config = {
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
-    roots: ['<rootDir>/src/app', '<rootDir>/src/common'],
+    roots: ['<rootDir>/projects/app', '<rootDir>/projects/libs/common'],
     testRegex: '.*\\.spec\\.ts$',
     moduleNameMapper: {
-        '^app/(.*)$': '<rootDir>/src/app/$1',
-        '^common$': '<rootDir>/src/common/index',
-        '^common/test$': '<rootDir>/src/common/test/index',
-        '^config$': '<rootDir>/src/config/index'
+        '^app/(.*)$'    : '<rootDir>/projects/app/$1',
+        '^common$'      : '<rootDir>/projects/libs/common/index',
+        '^common/test$' : '<rootDir>/projects/libs/common/test/index',
+        '^config$'      : '<rootDir>/projects/libs/config/index',
+        '^core$'        : '<rootDir>/projects/libs/core/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -26,12 +27,12 @@ const config: Config = {
         }
     },
     collectCoverageFrom: [
-        'src/app/**/*.ts',
-        '!src/app/main.ts',
-        'src/common/**/*.ts',
-        '!src/common/test/**/*',
-        '!src/**/index.ts',
-        '!src/**/*.module.ts'
+        'projects/app/**/*.ts',
+        'projects/libs/common/**/*.ts',
+        '!projects/libs/common/test/**/*',
+        '!projects/**/main.ts',
+        '!projects/**/index.ts',
+        '!projects/**/*.module.ts'
     ],
     coverageReporters: ['json-summary', 'lcov', 'text'],
     coveragePathIgnorePatterns: ['__tests__'],

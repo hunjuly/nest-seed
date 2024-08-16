@@ -9,19 +9,22 @@
         "target": "ES2021",
         "sourceMap": true,
         "outDir": "./_output/dist",
-        "baseUrl": "./",
+        "baseUrl": ".",
         "paths": {
             "app/*": [
-                "src/app/*"
+                "projects/app/*"
             ],
             "common": [
-                "src/common/index"
+                "projects/libs/common/index"
             ],
             "common/test": [
-                "src/common/test/index"
+                "projects/libs/common/test/index"
             ],
             "config": [
-                "src/config/index"
+                "projects/libs/config/index"
+            ],
+            "core": [
+                "projects/libs/core/index"
             ]
         },
         "incremental": true,
@@ -33,6 +36,6 @@
         "noFallthroughCasesInSwitch": true
     },
     "include": [
-        "src/**/*"
+        "projects/**/*"
     ]
 }

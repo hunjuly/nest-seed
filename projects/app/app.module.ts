@@ -9,7 +9,7 @@ import {
     TheatersController,
     TicketsController
 } from 'app/controllers'
-import { CoreModule } from './core'
+import { CoreModule } from 'core'
 import { CustomersModule } from './services/customers'
 import { MoviesModule } from './services/movies'
 import { PaymentsModule } from './services/payments'

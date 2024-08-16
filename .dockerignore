@@ -4,6 +4,6 @@
 # Allow specific files
 !package.json
 !package-lock.json
-!src
+!projects
 !tsconfig.json
 !tsconfig.build.json
