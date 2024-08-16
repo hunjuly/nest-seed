@@ -1,9 +1,5 @@
 # 엔티티 정의
 
-```ts
-
-```
-
 Seat는 왜 value object인가?
 
 여기서 Seat는 Ticket을 생성하기 위한 일종의 템플릿으로 사용된다.
