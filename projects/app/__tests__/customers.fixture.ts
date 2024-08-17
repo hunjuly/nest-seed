@@ -1,4 +1,4 @@
-import { HttpClient } from 'common/test'
+import { HttpClient } from 'common'
 import { omit } from 'lodash'
 
 export const makeCustomerDto = (overrides = {}) => {

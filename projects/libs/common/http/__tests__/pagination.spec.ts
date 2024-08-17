@@ -1,6 +1,6 @@
 import { ValidationPipe } from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
-import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common'
 import { SamplesModule } from './pagination.fixture'
 
 describe('Pagination', () => {

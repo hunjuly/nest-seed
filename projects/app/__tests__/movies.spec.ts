@@ -7,7 +7,7 @@ import {
     HttpTestContext,
     createHttpTestContext,
     expectEqualUnsorted
-} from 'common/test'
+} from 'common'
 import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
 
 describe('/movies', () => {

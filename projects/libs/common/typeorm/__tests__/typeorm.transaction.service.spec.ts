@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { TypeormTransactionService } from 'common'
-import { createTestingModule } from 'common/test'
+import { createTestingModule } from 'common'
 import { Sample, SamplesModule, SamplesRepository } from './typeorm.transaction.service.fixture'
 
 describe('TypeormTransactionService', () => {

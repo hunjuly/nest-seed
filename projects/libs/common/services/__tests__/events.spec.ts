@@ -1,6 +1,6 @@
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { TestingModule } from '@nestjs/testing'
-import { createTestingModule } from 'common/test'
+import { createTestingModule } from 'common'
 import { AppEventListener, SampleEvent } from './events.fixture'
 import { EventService } from '../event.service'
 

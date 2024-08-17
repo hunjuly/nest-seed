@@ -1,4 +1,4 @@
-import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common'
 import { TestModule } from './filters.fixture'
 
 describe('http/filters', () => {

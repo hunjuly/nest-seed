@@ -8,7 +8,7 @@ import {
     HttpTestContext,
     createHttpTestContext,
     expectEqualUnsorted
-} from 'common/test'
+} from 'common'
 import { createCustomer, createCustomers, makeCustomerDto } from './customers.fixture'
 
 describe('/customers', () => {

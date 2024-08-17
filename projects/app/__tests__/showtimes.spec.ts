@@ -2,7 +2,7 @@ import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
 import { nullObjectId, pickIds } from 'common'
-import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common/test'
+import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common'
 import { createMovie } from './movies.fixture'
 import {
     ShowtimesEventListener,

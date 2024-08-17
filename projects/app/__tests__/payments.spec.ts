@@ -3,7 +3,7 @@ import { CustomerDto } from 'app/services/customers'
 import { PaymentDto } from 'app/services/payments'
 import { TicketDto } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { HttpClient, HttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext } from 'common'
 import { createFixture, createPayment, makeCreatePaymentDto } from './payments.fixture'
 
 describe('/payments', () => {

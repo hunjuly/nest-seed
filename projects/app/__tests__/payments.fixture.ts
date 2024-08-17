@@ -1,5 +1,5 @@
 import { AppModule } from 'app/app.module'
-import { createHttpTestContext, HttpClient } from 'common/test'
+import { createHttpTestContext, HttpClient } from 'common'
 import {
     createShowtimes,
     makeCreateShowtimesDto,

@@ -1,9 +1,10 @@
 import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { AppLoggerService } from 'common'
+import { AppLoggerService } from '../logger'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpClient } from './http.client'
+import { addAppLogger } from './utils'
 
 export interface HttpTestContext {
     server: any
@@ -17,20 +18,7 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
     const module = await createTestingModule(metadata)
 
     const app = module.createNestApplication()
-
-    // Dependent on VSCODE
-    const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
-
-    if (isDebuggingEnabled) {
-        try {
-            const logger = app.get(AppLoggerService)
-            app.useLogger(logger)
-        } catch (error) {
-            app.useLogger(console)
-        }
-    } else {
-        app.useLogger(false)
-    }
+    addAppLogger(app)
 
     if (process.env.HTTP_REQUEST_PAYLOAD_LIMIT) {
         const limit = process.env.HTTP_REQUEST_PAYLOAD_LIMIT

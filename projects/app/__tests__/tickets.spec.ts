@@ -1,7 +1,7 @@
 import { TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
 import { pickIds } from 'common'
-import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
+import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common'
 import { createMovie } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
 import {

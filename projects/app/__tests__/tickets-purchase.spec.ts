@@ -5,7 +5,7 @@ import { ShowtimeDto } from 'app/services/showtimes'
 import { getSeatCount, TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
 import { convertDateToString, pickIds, pickItems } from 'common'
-import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common/test'
+import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common'
 import { createFixture, filterMoviesByGenre } from './tickets-purchase.spec.fixture'
 
 describe('tickets-purchase', () => {

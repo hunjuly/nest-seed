@@ -7,7 +7,7 @@ import {
     HttpTestContext,
     createHttpTestContext,
     expectEqualUnsorted
-} from 'common/test'
+} from 'common'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {

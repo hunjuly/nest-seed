@@ -9,7 +9,7 @@ import {
 } from 'app/services/showtimes'
 import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateEvent } from 'app/services/tickets'
 import { addMinutes, AppEvent, pickIds } from 'common'
-import { createHttpTestContext, HttpClient } from 'common/test'
+import { createHttpTestContext, HttpClient } from 'common'
 import { MovieDto } from '../services/movies'
 import { getAllSeats, TheaterDto } from '../services/theaters'
 

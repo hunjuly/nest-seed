@@ -1,6 +1,6 @@
 import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
 import { padNumber } from 'common'
-import { HttpClient } from 'common/test'
+import { HttpClient } from 'common'
 
 export const makeCreateMovieDto = (overrides = {}) => {
     const createDto = {

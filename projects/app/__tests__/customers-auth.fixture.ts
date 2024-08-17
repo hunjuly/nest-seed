@@ -1,5 +1,5 @@
 import { createCustomer } from './customers.fixture'
-import { HttpClient } from 'common/test'
+import { HttpClient } from 'common'
 
 export interface Credentials {
     customerId: string

@@ -1,7 +1,7 @@
 import { Injectable, Module } from '@nestjs/common'
 import { InjectModel, MongooseModule, Prop, Schema } from '@nestjs/mongoose'
 import { createMongooseSchema, MongooseRepository, MongooseSchema, padNumber } from 'common'
-import { createTestingModule } from 'common/test'
+import { createTestingModule } from 'common'
 import { Connection, Model } from 'mongoose'
 
 @Schema()

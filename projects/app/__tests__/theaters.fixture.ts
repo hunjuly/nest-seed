@@ -1,5 +1,5 @@
 import { padNumber } from 'common'
-import { HttpClient } from 'common/test'
+import { HttpClient } from 'common'
 
 export const makeTheaterDto = (overrides = {}) => {
     const createDto = {

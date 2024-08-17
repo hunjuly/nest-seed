@@ -1,10 +1,11 @@
 import { INestMicroservice } from '@nestjs/common'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
-import { AppLoggerService } from 'common'
+import { AppLoggerService } from '../logger'
 import { AllExceptionsFilter } from '../microservice'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { MicroserviceClient } from './microservice.client'
+import { addAppLogger } from './utils'
 
 export interface MicroserviceTestContext {
     module: TestingModule
@@ -24,21 +25,8 @@ export async function createMicroserviceTestContext(
     } as const
 
     const app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
+    addAppLogger(app)
     app.useGlobalFilters(new AllExceptionsFilter())
-
-    // Dependent on VSCODE
-    const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
-
-    if (isDebuggingEnabled) {
-        try {
-            const logger = app.get(AppLoggerService)
-            app.useLogger(logger)
-        } catch (error) {
-            app.useLogger(console)
-        }
-    } else {
-        app.useLogger(false)
-    }
 
     await app.listen()
 

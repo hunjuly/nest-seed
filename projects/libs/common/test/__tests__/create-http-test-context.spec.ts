@@ -1,4 +1,4 @@
-import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
+import { HttpClient, HttpTestContext, createHttpTestContext } from 'common'
 import { SampleModule, SampleService } from './create-http-test-context.fixture'
 
 describe('createHttpTestContext', () => {
