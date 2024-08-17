@@ -17,9 +17,6 @@
             "common": [
                 "projects/libs/common/index"
             ],
-            "common/test": [
-                "projects/libs/common/test/index"
-            ],
             "config": [
                 "projects/libs/config/index"
             ],

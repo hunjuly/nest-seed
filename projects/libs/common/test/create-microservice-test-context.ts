@@ -1,11 +1,10 @@
-import { HttpStatus, INestMicroservice } from '@nestjs/common'
-import { ClientProxy, ClientsModule, MicroserviceOptions, Transport } from '@nestjs/microservices'
+import { INestMicroservice } from '@nestjs/common'
+import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
-import { lastValueFrom } from 'rxjs'
-import { AppLoggerService } from '../logger'
-import { jsonToObject } from '../utils'
-import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { AppLoggerService } from 'common'
 import { AllExceptionsFilter } from '../microservice'
+import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { MicroserviceClient } from './microservice.client'
 
 export interface MicroserviceTestContext {
     module: TestingModule
@@ -14,67 +13,42 @@ export interface MicroserviceTestContext {
     close: () => Promise<void>
 }
 
-export class MicroserviceClient {
-    constructor(private client: ClientProxy) {}
-
-    async send(cmd: string, payload: any) {
-        return jsonToObject(await lastValueFrom(this.client.send({ cmd }, payload)))
-    }
-
-    async error(cmd: string, payload: any, status: HttpStatus) {
-        const res = lastValueFrom(this.client.send({ cmd }, payload))
-        await expect(res).rejects.toMatchObject({ status, message: expect.any(String) })
-    }
-}
-
 export async function createMicroserviceTestContext(
     metadata: ModuleMetadataEx
 ): Promise<MicroserviceTestContext> {
-    const metadataWithTestClient = {
-        ...metadata,
-        imports: [
-            ...(metadata.imports ?? []),
-            ClientsModule.register([
-                {
-                    name: 'TEST_SERVICE',
-                    transport: Transport.TCP,
-                    options: { host: '0.0.0.0', port: 3000 }
-                }
-            ])
-        ]
-    }
+    const module = await createTestingModule(metadata)
 
-    const module = await createTestingModule(metadataWithTestClient)
-
-    const app = module.createNestMicroservice<MicroserviceOptions>({
+    const rpcOptions = {
         transport: Transport.TCP,
         options: { host: '0.0.0.0', port: 3000 }
-    })
+    } as const
 
+    const app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
     app.useGlobalFilters(new AllExceptionsFilter())
 
-    const ignoreLogging = process.env.IGNORE_LOGGING_DURING_TESTING === 'true'
+    // Dependent on VSCODE
+    const isDebuggingEnabled = process.env.NODE_OPTIONS !== undefined
 
-    if (ignoreLogging) {
-        app.useLogger(false)
-    } else {
+    if (isDebuggingEnabled) {
         try {
             const logger = app.get(AppLoggerService)
             app.useLogger(logger)
         } catch (error) {
             app.useLogger(console)
         }
+    } else {
+        app.useLogger(false)
     }
 
     await app.listen()
 
-    const client = app.get('TEST_SERVICE')
-    await client.connect()
+    const client = await MicroserviceClient.create(rpcOptions)
 
     const close = async () => {
         await client.close()
+        await module.close()
         await app.close()
     }
 
-    return { module, app, close, client: new MicroserviceClient(client) }
+    return { module, app, close, client }
 }

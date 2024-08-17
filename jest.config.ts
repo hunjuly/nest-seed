@@ -9,7 +9,6 @@ const config: Config = {
     moduleNameMapper: {
         '^app/(.*)$'    : '<rootDir>/projects/app/$1',
         '^common$'      : '<rootDir>/projects/libs/common/index',
-        '^common/test$' : '<rootDir>/projects/libs/common/test/index',
         '^config$'      : '<rootDir>/projects/libs/config/index',
         '^core$'        : '<rootDir>/projects/libs/core/index'
     },

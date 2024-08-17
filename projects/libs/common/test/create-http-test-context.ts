@@ -48,8 +48,9 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
     const client = new HttpClient(server)
 
     const close = async () => {
-        if (server) await server.close()
-        if (module) await module.close()
+        await server.close()
+        await module.close()
+        // await app.close()
     }
 
     return { server, module, app, client, close }

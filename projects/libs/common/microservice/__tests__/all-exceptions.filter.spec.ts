@@ -10,7 +10,7 @@ import { lastValueFrom } from 'rxjs'
 import { AllExceptionsFilter } from '../all-exceptions.filter'
 import { SampleModule } from './all-exceptions.filter.fixture'
 
-describe('common/filters', () => {
+describe('microservice/AllExceptionsFilter', () => {
     let client: ClientProxy
     let module: TestingModule
     let app: INestMicroservice
@@ -21,19 +21,17 @@ describe('common/filters', () => {
         })
         module = await builder.compile()
 
-        app = module.createNestMicroservice<MicroserviceOptions>({
+        const rpcOptions = {
             transport: Transport.TCP,
-            options: { host: '0.0.0.0', port: 3010 }
-        })
+            options: { host: '0.0.0.0', port: 3000 }
+        } as const
+
+        app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
 
         app.useGlobalFilters(new AllExceptionsFilter())
         await app.listen()
 
-        client = ClientProxyFactory.create({
-            transport: Transport.TCP,
-            options: { host: '0.0.0.0', port: 3010 }
-        })
-
+        client = ClientProxyFactory.create(rpcOptions)
         await client.connect()
     })
 
@@ -43,8 +41,18 @@ describe('common/filters', () => {
         await module.close()
     })
 
-    it('HttpExceptionFilter', async () => {
-        const res = lastValueFrom(client.send({ cmd: 'getMessage' }, 'payload'))
+    it('should handle HttpException properly for RPC', async () => {
+        const res = lastValueFrom(client.send({ cmd: 'throwHttpException' }, {}))
         await expect(res).resolves.toMatchObject({ status: 404, message: expect.any(String) })
+    })
+
+    it('should handle Error properly for RPC', async () => {
+        const res = lastValueFrom(client.send({ cmd: 'throwError' }, {}))
+        await expect(res).resolves.toMatchObject({ status: 500, message: expect.any(String) })
+    })
+
+    it('should validate input and return error for incorrect data format', async () => {
+        const res = lastValueFrom(client.send({ cmd: 'createSample' }, { wrong: 'wrong field' }))
+        await expect(res).resolves.toMatchObject({ status: 400, message: expect.any(String) })
     })
 })

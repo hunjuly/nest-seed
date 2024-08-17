@@ -1,5 +1,7 @@
 export * from './create-http-test-context'
+export * from './create-microservice-test-context'
 export * from './create-testing-module'
 export * from './expect-equal-unsorted'
 export * from './http.client'
+export * from './microservice.client'
 export * from './utils'

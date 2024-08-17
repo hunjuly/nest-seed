@@ -1,27 +1,37 @@
-import { Controller, Injectable, Module, NotFoundException } from '@nestjs/common'
+import { Controller, Injectable, Module, NotFoundException, ValidationPipe } from '@nestjs/common'
+import { APP_PIPE } from '@nestjs/core'
 import { MessagePattern } from '@nestjs/microservices'
+import { Type } from 'class-transformer'
+import { IsString, IsNotEmpty, IsEmail, IsDate } from 'class-validator'
 
-@Injectable()
-export class SampleService {
-    constructor() {}
-
-    async getMessage(arg: string) {
-        throw new NotFoundException('not found exception')
-    }
+export class CreateSampleDto {
+    @IsString()
+    @IsNotEmpty()
+    name: string
 }
 
 @Controller()
 class SampleController {
-    constructor(private service: SampleService) {}
+    constructor() {}
 
-    @MessagePattern({ cmd: 'getMessage' })
-    async getMessage(arg: string) {
-        return this.service.getMessage(arg)
+    @MessagePattern({ cmd: 'throwHttpException' })
+    async throwHttpException() {
+        throw new NotFoundException('not found exception')
+    }
+
+    @MessagePattern({ cmd: 'throwError' })
+    async getMessage() {
+        throw new Error('error')
+    }
+
+    @MessagePattern({ cmd: 'createSample' })
+    async createSample(createDto: CreateSampleDto) {
+        return createDto
     }
 }
 
 @Module({
     controllers: [SampleController],
-    providers: [SampleService]
+    providers: [{ provide: APP_PIPE, useFactory: () => new ValidationPipe({}) }]
 })
 export class SampleModule {}

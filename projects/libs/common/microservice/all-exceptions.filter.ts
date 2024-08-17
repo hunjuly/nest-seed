@@ -1,19 +1,15 @@
-import { ArgumentsHost, Catch, RpcExceptionFilter } from '@nestjs/common'
-import { RpcException } from '@nestjs/microservices'
+import { ArgumentsHost, Catch, HttpException, RpcExceptionFilter } from '@nestjs/common'
 import { Observable, of } from 'rxjs'
 
 @Catch()
 export class AllExceptionsFilter implements RpcExceptionFilter<any> {
     catch(exception: any, _host: ArgumentsHost): Observable<any> {
-        let error: any
+        let error = exception
 
-        if (exception instanceof RpcException) {
-            error = exception.getError()
+        if (exception instanceof HttpException) {
+            error = { status: exception.getStatus(), message: exception.message }
         } else {
-            error = {
-                status: exception.status || 500,
-                message: exception.message || 'Internal server error'
-            }
+            error = { status: 500, message: 'Internal server error' }
         }
 
         return of(error)

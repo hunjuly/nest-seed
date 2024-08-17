@@ -1,7 +1,7 @@
 import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
 import { TestModule } from './filters.fixture'
 
-describe('common/filters', () => {
+describe('http/filters', () => {
     let testContext: HttpTestContext
     let client: HttpClient
 
