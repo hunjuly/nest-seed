@@ -1,16 +1,20 @@
-import { HttpClient, HttpTestContext, createHttpTestContext } from 'common/test'
-import { SampleModule, SampleService } from './create-http-test-context.fixture'
+import {
+    MicroserviceTestContext,
+    MicroserviceClient,
+    createMicroserviceTestContext
+} from '../create-microservice-test-context'
+import { SampleModule, SampleService } from './create-microservice-test-context.fixture'
 
 describe('createHttpTestContext', () => {
-    let testContext: HttpTestContext
-    let client: HttpClient
+    let testContext: MicroserviceTestContext
+    let client: MicroserviceClient
 
     const serviceMock = {
         getMessage: jest.fn().mockReturnValue({ message: 'This is Mock' })
     }
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({
+        testContext = await createMicroserviceTestContext({
             imports: [SampleModule],
             overrideProviders: [
                 {
@@ -19,7 +23,6 @@ describe('createHttpTestContext', () => {
                 }
             ]
         })
-
         client = testContext.client
     })
 
@@ -28,8 +31,8 @@ describe('createHttpTestContext', () => {
     })
 
     it('should return mock message', async () => {
-        const res = await client.get('/').ok()
+        const message = await client.send('getMessage', 'args')
 
-        expect(res.body).toEqual({ message: 'This is Mock' })
+        expect(message).toEqual({ message: 'This is Mock' })
     })
 })

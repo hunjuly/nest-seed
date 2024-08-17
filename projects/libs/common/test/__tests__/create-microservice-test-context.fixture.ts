@@ -1,10 +1,11 @@
-import { Controller, Get, Injectable, Module } from '@nestjs/common'
+import { Controller, Injectable, Module } from '@nestjs/common'
+import { MessagePattern } from '@nestjs/microservices'
 
 @Injectable()
 export class SampleService {
     constructor() {}
 
-    async getMessage() {
+    async getMessage(_arg: string) {
         throw new Error('This method should be mocked.')
     }
 }
@@ -13,9 +14,9 @@ export class SampleService {
 class SampleController {
     constructor(private service: SampleService) {}
 
-    @Get()
-    async getMessage() {
-        return this.service.getMessage()
+    @MessagePattern({ cmd: 'getMessage' })
+    async getMessage(arg: string) {
+        return this.service.getMessage(arg)
     }
 }
 
