@@ -6,10 +6,10 @@
         "start": "nest start gateway --debug 9230 --watch",
         "start:prod": "node _output/dist/app/main",
         "test": "rm -rf _output/dist && node --inspect=9231 -r ts-node/register ./node_modules/.bin/jest --watch --onlyChanged",
-        "test:services": "jest --config ./projects/apps/services/jest.config.ts",
+        "test:services": "jest --coverage --config ./projects/apps/services/jest.config.ts",
         "test:all": "jest --coverage",
         "test:app": "jest --config ./jest.config.app.ts",
-        "test:common": "jest --config ./jest.config.common.ts",
+        "test:common": "jest --coverage --config ./projects/libs/common/jest.config.ts",
         "build": "nest build --webpack gateway",
         "lint": "eslint projects/**/*/*.ts --fix",
         "format": "prettier --write projects/**/*/*.ts"

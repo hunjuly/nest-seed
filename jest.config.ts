@@ -12,7 +12,7 @@ const config: Config = {
     testRegex: '.*\\.spec\\.ts$',
     moduleNameMapper: {
         '^app/(.*)$': '<rootDir>/projects/app/$1',
-        '^common$': '<rootDir>/projects/libs/common/index',
+        '^common$': '<rootDir>/projects/libs/common/src/index',
         '^config$': '<rootDir>/projects/libs/config/index',
         '^core$': '<rootDir>/projects/libs/core/index'
     },

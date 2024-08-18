@@ -15,7 +15,7 @@
                 "projects/app/*"
             ],
             "common": [
-                "projects/libs/common/index"
+                "projects/libs/common/src/index"
             ],
             "config": [
                 "projects/libs/config/index"
