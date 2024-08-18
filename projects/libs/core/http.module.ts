@@ -1,6 +1,6 @@
 import { Module, ValidationPipe } from '@nestjs/common'
-import { APP_FILTER, APP_PIPE } from '@nestjs/core'
-import { HttpErrorFilter, HttpExceptionFilter } from 'common'
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { HttpErrorFilter, HttpExceptionFilter, HttpSuccessInterceptor } from 'common'
 
 @Module({
     providers: [
@@ -26,6 +26,10 @@ import { HttpErrorFilter, HttpExceptionFilter } from 'common'
                         enableImplicitConversion: true // Setting it to false will cause an error in @InInt().
                     }
                 })
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: HttpSuccessInterceptor
         }
     ]
 })

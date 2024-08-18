@@ -1,8 +1,6 @@
 import { Injectable, Module, OnModuleDestroy } from '@nestjs/common'
-import { APP_INTERCEPTOR } from '@nestjs/core'
 import {
     AppLoggerService,
-    HttpSuccessInterceptor,
     LoggerConfiguration,
     initializeLogger
 } from 'common'
@@ -44,10 +42,6 @@ class WinstonConfigService implements OnModuleDestroy {
                 return winstonConfigService.getLoggerService()
             },
             inject: [WinstonConfigService]
-        },
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: HttpSuccessInterceptor
         }
     ]
 })
