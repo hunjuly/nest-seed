@@ -27,9 +27,7 @@ export class StorageFilesService {
             return storageFiles
         })
 
-        return {
-            storageFiles: storageFiles.map((file) => this.makeStorageFileDto(file))
-        }
+        return storageFiles.map((file) => this.makeStorageFileDto(file))
     }
 
     @MethodLog({ level: 'verbose' })
@@ -44,6 +42,8 @@ export class StorageFilesService {
 
         const targetPath = this.getStoragePath(fileId)
         Path.delete(targetPath)
+
+        return true
     }
 
     private makeStorageFileDto(file: StorageFile) {

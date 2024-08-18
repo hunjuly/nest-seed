@@ -54,10 +54,9 @@ export class StorageFilesController {
     async uploadFiles(@UploadedFiles() files: Express.Multer.File[], @Body() _body: UploadFileDto) {
         const createDtos = files.map((file) => ({
             originalname: file.originalname,
-            filename: file.filename,
             mimetype: file.mimetype,
             size: file.size,
-            uploadedPath: file.path
+            uploadedFilePath: file.path
         }))
 
         return this.service.saveFiles(createDtos)

@@ -15,10 +15,9 @@ export class MoviesService {
     async createMovie(files: Express.Multer.File[], createDto: CreateMovieDto) {
         const createDtos = files.map((file) => ({
             originalname: file.originalname,
-            filename: file.filename,
             mimetype: file.mimetype,
             size: file.size,
-            uploadedPath: file.path
+            uploadedFilePath: file.path
         }))
 
         const { storageFiles } = await this.storageFilesService.saveFiles(createDtos)
