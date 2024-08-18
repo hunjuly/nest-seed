@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { CanActivate, ExecutionContext, Injectable, ModuleMetadata } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 

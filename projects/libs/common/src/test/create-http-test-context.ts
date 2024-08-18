@@ -1,6 +1,7 @@
+/* istanbul ignore file */
+
 import { INestApplication } from '@nestjs/common'
 import { TestingModule } from '@nestjs/testing'
-import { AppLoggerService } from '../logger'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpClient } from './http.client'

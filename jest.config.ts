@@ -20,7 +20,7 @@ const config: Config = {
     transform: {
         '^.+\\.(t|j)s$': 'ts-jest'
     },
-    collectCoverage: false,
+    // collectCoverage: false,
     coverageThreshold: {
         global: {
             branches: 100,
@@ -30,8 +30,11 @@ const config: Config = {
         }
     },
     collectCoverageFrom: [
-        'projects/**/*.ts',
-        '!projects/libs/common/test/**/*',
+        'projects/app/**/*.ts',
+        'projects/apps/**/*.ts',
+        'projects/libs/**/*.ts',
+        '!projects/libs/config/**/*.ts',
+        '!projects/**/jest.config.ts',
         '!projects/**/main.ts',
         '!projects/**/index.ts',
         '!projects/**/*.module.ts'

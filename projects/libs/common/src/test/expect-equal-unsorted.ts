@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { memoize } from 'lodash'
 
 function stringifyWithSortedKeys(obj: any): string {

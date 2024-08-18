@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { INestApplication, INestMicroservice } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import { AppLoggerService } from '../logger'

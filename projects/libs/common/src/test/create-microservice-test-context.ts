@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { INestMicroservice } from '@nestjs/common'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'

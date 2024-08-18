@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { HttpStatus } from '@nestjs/common'
 import { createWriteStream } from 'fs'
 import { posix } from 'path'

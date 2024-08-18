@@ -1,9 +1,7 @@
+/* istanbul ignore file */
+
 import { HttpStatus } from '@nestjs/common'
-import {
-    ClientOptions,
-    ClientProxy,
-    ClientProxyFactory
-} from '@nestjs/microservices'
+import { ClientOptions, ClientProxy, ClientProxyFactory } from '@nestjs/microservices'
 import { lastValueFrom } from 'rxjs'
 import { jsonToObject } from '../utils'
 
