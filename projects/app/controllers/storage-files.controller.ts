@@ -59,7 +59,8 @@ export class StorageFilesController {
             uploadedFilePath: file.path
         }))
 
-        return this.service.saveFiles(createDtos)
+        const storageFiles = await this.service.saveFiles(createDtos)
+        return { storageFiles }
     }
 
     @Get(':fileId')

@@ -19,7 +19,7 @@ export class StorageFilesService {
                     { ...createDto, checksum: await getChecksum(createDto.uploadedFilePath) },
                     session
                 )
-                Path.move(createDto.uploadedFilePath, this.getStoragePath(storageFile.id))
+                Path.copy(createDto.uploadedFilePath, this.getStoragePath(storageFile.id))
 
                 storageFiles.push(storageFile)
             }

@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common'
-import { MessagePattern } from '@nestjs/microservices'
+import { MessagePattern, Payload } from '@nestjs/microservices'
 import { PaginationOption } from 'common'
 import { CustomersService } from './customers.service'
 import { CreateCustomerDto, QueryCustomersDto, UpdateCustomerDto } from './dto'
@@ -9,47 +9,56 @@ export class CustomersController {
     constructor(private readonly service: CustomersService) {}
 
     @MessagePattern({ cmd: 'createCustomer' })
-    async createCustomer(createDto: CreateCustomerDto) {
+    createCustomer(@Payload() createDto: CreateCustomerDto) {
         return this.service.createCustomer(createDto)
     }
 
     @MessagePattern({ cmd: 'updateCustomer' })
-    updateCustomer(p: { customerId: string; updateDto: UpdateCustomerDto }) {
-        return this.service.updateCustomer(p.customerId, p.updateDto)
+    updateCustomer(
+        @Payload('customerId') customerId: string,
+        @Payload('updateDto') updateDto: UpdateCustomerDto
+    ) {
+        return this.service.updateCustomer(customerId, updateDto)
     }
 
     @MessagePattern({ cmd: 'deleteCustomer' })
-    deleteCustomer(customerId: string) {
+    deleteCustomer(@Payload() customerId: string) {
         return this.service.deleteCustomer(customerId)
     }
 
     @MessagePattern({ cmd: 'findCustomers' })
-    findCustomers(p: { query: QueryCustomersDto; pagination: PaginationOption }) {
-        return this.service.findCustomers(p.query, p.pagination)
+    findCustomers(
+        @Payload('query') query: QueryCustomersDto | undefined,
+        @Payload('pagination') pagination: PaginationOption | undefined
+    ) {
+        return this.service.findCustomers(query ?? {}, pagination ?? {})
     }
 
     @MessagePattern({ cmd: 'getCustomer' })
-    getCustomer(customerId: string) {
+    getCustomer(@Payload() customerId: string) {
         return this.service.getCustomer(customerId)
     }
 
     @MessagePattern({ cmd: 'customersExist' })
-    customersExist(customerIds: string[]) {
+    customersExist(@Payload() customerIds: string[]) {
         return this.service.customersExist(customerIds)
     }
 
     @MessagePattern({ cmd: 'login' })
-    login(p: { customerId: string; email: string }) {
-        return this.service.login(p.customerId, p.email)
+    login(@Payload('customerId') customerId: string, @Payload('email') email: string) {
+        return this.service.login(customerId, email)
     }
 
     @MessagePattern({ cmd: 'refreshAuthTokens' })
-    refreshAuthTokens(refreshToken: string) {
+    refreshAuthTokens(@Payload() refreshToken: string) {
         return this.service.refreshAuthTokens(refreshToken)
     }
 
     @MessagePattern({ cmd: 'getCustomerByCredentials' })
-    getCustomerByCredentials(p: { email: string; password: string }) {
-        return this.service.getCustomerByCredentials(p.email, p.password)
+    getCustomerByCredentials(
+        @Payload('email') email: string,
+        @Payload('password') password: string
+    ) {
+        return this.service.getCustomerByCredentials(email, password)
     }
 }

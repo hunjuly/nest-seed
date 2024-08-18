@@ -4,9 +4,10 @@ import { Config } from 'config'
 import { CreateStorageFileDto, StorageFileDto } from '../storage-files'
 import { createFixture } from './storage-files.fixture'
 
-describe('/storage-files', () => {
+describe('StorageFilesModule', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
+
     let tempDir: string
     let file1: CreateStorageFileDto
     let file1Checksum: string

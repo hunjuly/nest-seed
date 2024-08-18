@@ -1,21 +1,23 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
-import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
-import { nullObjectId, pickIds } from 'common'
 import {
-    HttpClient,
-    HttpTestContext,
-    createHttpTestContext,
-    expectEqualUnsorted
+    MicroserviceClient,
+    MicroserviceTestContext,
+    createMicroserviceTestContext,
+    expectEqualUnsorted,
+    nullObjectId,
+    pickIds
 } from 'common'
-import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
+import { ServicesModule } from '../services.module'
+import { createMovie, createMovies, makeCreateMovieDto } from './movies.fixture'
+import { HttpStatus } from '@nestjs/common'
+import { MovieDto, MovieGenre, MovieRating } from '../movies'
 
-describe('/movies', () => {
-    let testContext: HttpTestContext
-    let client: HttpClient
+describe('MoviesModule', () => {
+    let testContext: MicroserviceTestContext
+    let client: MicroserviceClient
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
         client = testContext.client
     })
 
@@ -23,30 +25,26 @@ describe('/movies', () => {
         await testContext?.close()
     })
 
-    describe('POST /movies', () => {
+    describe('createMovie', () => {
         it('should create a movie and return CREATED(201) status', async () => {
-            const { createDto, expectedDto } = makeCreateMovieDto()
-            const body = await createMovie(client, createDto)
+            const { createMovieDto, expectedDto } = makeCreateMovieDto()
+            const body = await createMovie(client, createMovieDto)
 
             expect(body).toEqual(expectedDto)
         })
 
-        it('should return BAD_REQUEST(400) when uploading a file with disallowed MIME type', async () => {
-            const notAllowFile = './test/fixtures/text.txt'
-            const { createDto } = makeCreateMovieDto()
-            await client
-                .post('/movies')
-                .attachs([{ name: 'files', file: notAllowFile }])
-                .fields(objectToFields(createDto))
-                .badRequest()
-        })
-
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            return client.post('/movies').body({}).badRequest()
+            const { createStorageFileDtos } = makeCreateMovieDto()
+
+            await client.error(
+                'createMovie',
+                { createStorageFileDtos, createMovieDto: {} },
+                HttpStatus.BAD_REQUEST
+            )
         })
     })
 
-    describe('PATCH /movies/:id', () => {
+    describe('updateMovie', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
@@ -54,6 +52,7 @@ describe('/movies', () => {
         })
 
         it('should update a movie', async () => {
+            const movieId = movie.id
             const updateDto = {
                 title: 'update title',
                 genre: ['Romance', 'Thriller'],
@@ -64,19 +63,23 @@ describe('/movies', () => {
                 rating: MovieRating.R
             }
 
-            const updated = await client.patch(`/movies/${movie.id}`).body(updateDto).ok()
-            expect(updated.body).toEqual({ ...movie, ...updateDto })
+            const updated = await client.send('updateMovie', { movieId, updateDto })
+            expect(updated).toEqual({ ...movie, ...updateDto })
 
-            const got = await client.get(`/movies/${movie.id}`).ok()
+            const got = await client.send('getMovie', movie.id)
             expect(got.body).toEqual(updated.body)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
-            return client.patch(`/movies/${nullObjectId}`).body({}).notFound()
+            await client.error(
+                'updateMovie',
+                { movieId: nullObjectId, updateDto: {} },
+                HttpStatus.NOT_FOUND
+            )
         })
     })
 
-    describe('DELETE /movies/:id', () => {
+    describe('deleteMovie', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
@@ -84,16 +87,16 @@ describe('/movies', () => {
         })
 
         it('should delete a movie', async () => {
-            await client.delete(`/movies/${movie.id}`).ok()
-            await client.get(`/movies/${movie.id}`).notFound()
+            await client.send('deleteMovie', movie.id)
+            await client.error('getMovie', movie.id, HttpStatus.NOT_FOUND)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
-            return client.delete(`/movies/${nullObjectId}`).notFound()
+            await client.error('deleteMovie', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('GET /movies/:id', () => {
+    describe('getMovie', () => {
         let movie: MovieDto
 
         beforeEach(async () => {
@@ -101,16 +104,16 @@ describe('/movies', () => {
         })
 
         it('should get a movie', async () => {
-            const { body } = await client.get(`/movies/${movie.id}`).ok()
-            expect(body).toEqual(movie)
+            const got = await client.send('getMovie', movie.id)
+            expect(got).toEqual(movie)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
-            return client.get(`/movies/${nullObjectId}`).notFound()
+            await client.error('getMovie', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('GET /movies', () => {
+    describe('findMovies', () => {
         let movies: MovieDto[]
 
         beforeEach(async () => {
@@ -118,8 +121,7 @@ describe('/movies', () => {
         })
 
         it('should retrieve movies with default pagination', async () => {
-            const { body } = await client.get('/movies').ok()
-            const { items, ...paginated } = body
+            const { items, ...paginated } = await client.send('findMovies', {})
 
             expect(paginated).toEqual({
                 skip: 0,
@@ -131,64 +133,66 @@ describe('/movies', () => {
 
         it('should retrieve movies by partial title', async () => {
             const partialTitle = 'title-01'
-            const { body } = await client.get('/movies').query({ title: partialTitle }).ok()
+            const { items } = await client.send('findMovies', { query: { title: partialTitle } })
 
             const expected = movies.filter((movie) => movie.title.startsWith(partialTitle))
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by genre', async () => {
             const genre = MovieGenre.Drama
-            const { body } = await client.get('/movies').query({ genre }).ok()
+            const { items } = await client.send('findMovies', { query: { genre } })
 
             const expected = movies.filter((movie) => movie.genre.includes(genre))
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by releaseDate', async () => {
             const releaseDate = movies[0].releaseDate
-            const { body } = await client.get('/movies').query({ releaseDate }).ok()
+            const { items } = await client.send('findMovies', { query: { releaseDate } })
 
             const expected = movies.filter(
                 (movie) => movie.releaseDate.getTime() === releaseDate.getTime()
             )
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by partial plot', async () => {
             const partialPlot = 'plot-01'
-            const { body } = await client.get('/movies').query({ plot: partialPlot }).ok()
+            const { items } = await client.send('findMovies', { query: { plot: partialPlot } })
 
             const expected = movies.filter((movie) => movie.plot.startsWith(partialPlot))
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by durationMinutes', async () => {
             const durationMinutes = 90
-            const { body } = await client.get('/movies').query({ durationMinutes }).ok()
+            const { items } = await client.send('findMovies', { query: { durationMinutes } })
 
             const expected = movies.filter((movie) => movie.durationMinutes === durationMinutes)
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by partial director', async () => {
             const partialDirector = 'James'
-            const { body } = await client.get('/movies').query({ director: partialDirector }).ok()
+            const { items } = await client.send('findMovies', {
+                query: { director: partialDirector }
+            })
 
             const expected = movies.filter((movie) => movie.director.startsWith(partialDirector))
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by rating', async () => {
             const rating = MovieRating.NC17
-            const { body } = await client.get('/movies').query({ rating }).ok()
+            const { items } = await client.send('findMovies', { query: { rating } })
 
             const expected = movies.filter((movie) => movie.rating === rating)
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
     })
 
-    describe('POST /movies/getByIds', () => {
+    describe('getMoviesByIds', () => {
         let movies: MovieDto[]
 
         beforeEach(async () => {
@@ -197,17 +201,30 @@ describe('/movies', () => {
 
         it('should retrieve movies with movieIds', async () => {
             const expectedMovies = movies.slice(0, 5)
-            const queryDto = { movieIds: pickIds(expectedMovies) }
-
-            const { body } = await client.post('/movies/getByIds').body(queryDto).ok()
-
-            expectEqualUnsorted(body, expectedMovies)
+            const got = await client.send('getMoviesByIds', pickIds(expectedMovies))
+            expectEqualUnsorted(got, expectedMovies)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
-            const queryDto = { movieIds: [nullObjectId] }
+            const got = await client.error('getMoviesByIds', [nullObjectId], HttpStatus.NOT_FOUND)
+        })
+    })
 
-            return client.post('/movies/getByIds').body(queryDto).notFound()
+    describe('moviesExist', () => {
+        let movie: MovieDto
+
+        beforeEach(async () => {
+            movie = await createMovie(client)
+        })
+
+        it('should return true when movie does exist', async () => {
+            const exists = await client.send('moviesExist', [movie.id])
+            expect(exists).toBeTruthy()
+        })
+
+        it('should return false when movie does not exist', async () => {
+            const exists = await client.send('moviesExist', [nullObjectId])
+            expect(exists).toBeFalsy()
         })
     })
 })

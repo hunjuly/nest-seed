@@ -19,7 +19,7 @@ export class StorageFilesService {
                     { ...createDto, checksum: await getChecksum(createDto.uploadedFilePath) },
                     session
                 )
-                Path.move(createDto.uploadedFilePath, this.getStoragePath(storageFile.id))
+                Path.copy(createDto.uploadedFilePath, this.getStoragePath(storageFile.id))
 
                 storageFiles.push(storageFile)
             }
@@ -27,9 +27,7 @@ export class StorageFilesService {
             return storageFiles
         })
 
-        return {
-            storageFiles: storageFiles.map((file) => this.makeStorageFileDto(file))
-        }
+        return storageFiles.map((file) => this.makeStorageFileDto(file))
     }
 
     @MethodLog({ level: 'verbose' })

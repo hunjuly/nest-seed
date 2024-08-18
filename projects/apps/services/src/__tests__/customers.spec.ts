@@ -1,4 +1,5 @@
 import { expect } from '@jest/globals'
+import { HttpStatus } from '@nestjs/common'
 import {
     createMicroserviceTestContext,
     expectEqualUnsorted,
@@ -7,14 +8,13 @@ import {
     nullObjectId,
     OrderDirection
 } from 'common'
+import { CustomerDto } from '../customers'
 import { ServicesModule } from '../services.module'
 import {
     createCustomer,
     createCustomers,
     makeCustomerDto as makeCreateCustomerDto
 } from './customers.fixture'
-import { HttpStatus } from '@nestjs/common'
-import { CustomerDto } from '../customers'
 
 describe('CustomersModule', () => {
     let testContext: MicroserviceTestContext
@@ -97,39 +97,6 @@ describe('CustomersModule', () => {
         })
     })
 
-    describe('findCustomers', () => {
-        let customers: CustomerDto[]
-
-        beforeEach(async () => {
-            customers = await createCustomers(client, 20)
-        })
-
-        it('should retrieve all customers', async () => {
-            const res = await client.send('findCustomers', {
-                query: {},
-                pagination: { orderby: { name: 'name', direction: OrderDirection.asc } }
-            })
-
-            expectEqualUnsorted(res.items, customers)
-        })
-
-        it('should retrieve customers by partial name', async () => {
-            const partialName = 'Customer-1'
-            const res = await client.send('findCustomers', { query: { name: partialName } })
-
-            const expected = customers.filter((customer) => customer.name.startsWith(partialName))
-            expectEqualUnsorted(res.items, expected)
-        })
-
-        it('should retrieve customers by partial email', async () => {
-            const partialEmail = 'user-1'
-            const res = await client.send('findCustomers', { query: { email: partialEmail } })
-
-            const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
-            expectEqualUnsorted(res.items, expected)
-        })
-    })
-
     describe('getCustomer', () => {
         let customer: CustomerDto
 
@@ -138,12 +105,47 @@ describe('CustomersModule', () => {
         })
 
         it('should get a customer', async () => {
-            const getCustomer = await client.send('getCustomer', customer.id)
-            expect(getCustomer).toEqual(customer)
+            const got = await client.send('getCustomer', customer.id)
+            expect(got).toEqual(customer)
         })
 
         it('should return NOT_FOUND(404) when customer does not exist', async () => {
             await client.error('getCustomer', nullObjectId, HttpStatus.NOT_FOUND)
+        })
+    })
+
+    describe('findCustomers', () => {
+        let customers: CustomerDto[]
+
+        beforeEach(async () => {
+            customers = await createCustomers(client, 20)
+        })
+
+        it('should retrieve customers with default pagination', async () => {
+            const { items, ...paginated } = await client.send('findCustomers', {})
+
+            expect(paginated).toEqual({
+                skip: 0,
+                take: expect.any(Number),
+                total: customers.length
+            })
+            expectEqualUnsorted(items, customers)
+        })
+
+        it('should retrieve customers by partial name', async () => {
+            const partialName = 'Customer-1'
+            const { items } = await client.send('findCustomers', { query: { name: partialName } })
+
+            const expected = customers.filter((customer) => customer.name.startsWith(partialName))
+            expectEqualUnsorted(items, expected)
+        })
+
+        it('should retrieve customers by partial email', async () => {
+            const partialEmail = 'user-1'
+            const { items } = await client.send('findCustomers', { query: { email: partialEmail } })
+
+            const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
+            expectEqualUnsorted(items, expected)
         })
     })
 
@@ -155,13 +157,13 @@ describe('CustomersModule', () => {
         })
 
         it('should return true when customer does exist', async () => {
-            const res = await client.send('customersExist', [customer.id])
-            expect(res).toBeTruthy()
+            const exists = await client.send('customersExist', [customer.id])
+            expect(exists).toBeTruthy()
         })
 
         it('should return false when customer does not exist', async () => {
-            const res = await client.send('customersExist', [nullObjectId])
-            expect(res).toBeFalsy()
+            const exists = await client.send('customersExist', [nullObjectId])
+            expect(exists).toBeFalsy()
         })
     })
 
@@ -173,12 +175,11 @@ describe('CustomersModule', () => {
         })
 
         it('should return CREATED(201) and AuthTokens on successful login', async () => {
-            const getCustomer = await client.send('getCustomerByCredentials', {
+            const got = await client.send('getCustomerByCredentials', {
                 email: 'name@mail.com',
                 password: 'password'
             })
-
-            expect(getCustomer).toEqual(customer)
+            expect(got).toEqual(customer)
 
             const loginRes = await client.send('login', {
                 customerId: customer.id,

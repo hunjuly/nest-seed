@@ -38,6 +38,7 @@ export class MoviesService {
     @MethodLog()
     async deleteMovie(movieId: string) {
         await this.repository.deleteMovie(movieId)
+        return true
     }
 
     @MethodLog({ level: 'verbose' })

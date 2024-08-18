@@ -1,9 +1,9 @@
 import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
-import { padNumber } from 'common'
-import { HttpClient } from 'common'
+import { MicroserviceClient, padNumber, Path } from 'common'
+import * as fs from 'fs'
 
 export const makeCreateMovieDto = (overrides = {}) => {
-    const createDto = {
+    const createMovieDto = {
         title: `MovieTitle`,
         genre: [MovieGenre.Action],
         releaseDate: new Date('1900-01-01'),
@@ -14,46 +14,29 @@ export const makeCreateMovieDto = (overrides = {}) => {
         ...overrides
     }
 
-    const expectedDto = { id: expect.anything(), images: expect.any(Array), ...createDto }
-
-    return { createDto, expectedDto }
-}
-
-export const objectToFields = (createDto: any) => {
-    const fields = Object.entries(createDto).map(([key, value]) => {
-        let processedValue
-
-        if (typeof value === 'string') {
-            processedValue = value
-        } else if (value instanceof Date) {
-            processedValue = value.toISOString()
-        } else if (Array.isArray(value)) {
-            processedValue = JSON.stringify(value)
-        } else if (value === null || value === undefined) {
-            processedValue = ''
-        } else {
-            processedValue = JSON.stringify(value)
+    const imageFile = './test/fixtures/image.png'
+    const createStorageFileDtos = [
+        {
+            originalname: 'image.png',
+            mimetype: 'image/png',
+            size: fs.statSync(imageFile).size,
+            uploadedFilePath: imageFile
         }
+    ]
 
-        return { name: key, value: processedValue }
-    })
+    const expectedDto = { id: expect.anything(), images: expect.any(Array), ...createMovieDto }
 
-    return fields
+    return { createMovieDto, createStorageFileDtos, expectedDto }
 }
 
-export const createMovie = async (client: HttpClient, override = {}) => {
-    const { createDto } = makeCreateMovieDto(override)
+export const createMovie = async (client: MicroserviceClient, override = {}) => {
+    const { createStorageFileDtos, createMovieDto } = makeCreateMovieDto(override)
 
-    const { body } = await client
-        .post('/movies')
-        .attachs([{ name: 'files', file: './test/fixtures/image.png' }])
-        .fields(objectToFields(createDto))
-        .created()
-
-    return body
+    const movie = await client.send('createMovie', { createStorageFileDtos, createMovieDto })
+    return movie
 }
 
-export const createMovies = async (client: HttpClient, overrides = {}) => {
+export const createMovies = async (client: MicroserviceClient, overrides = {}) => {
     const promises: Promise<MovieDto>[] = []
 
     const genres = [
