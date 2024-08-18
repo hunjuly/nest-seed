@@ -4,13 +4,17 @@ const config: Config = {
     setupFilesAfterEnv: ['./jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
-    roots: ['<rootDir>/projects/app', '<rootDir>/projects/libs/common'],
+    roots: [
+        '<rootDir>/projects/app',
+        '<rootDir>/projects/apps/services/src',
+        '<rootDir>/projects/libs/common'
+    ],
     testRegex: '.*\\.spec\\.ts$',
     moduleNameMapper: {
-        '^app/(.*)$'    : '<rootDir>/projects/app/$1',
-        '^common$'      : '<rootDir>/projects/libs/common/index',
-        '^config$'      : '<rootDir>/projects/libs/config/index',
-        '^core$'        : '<rootDir>/projects/libs/core/index'
+        '^app/(.*)$': '<rootDir>/projects/app/$1',
+        '^common$': '<rootDir>/projects/libs/common/index',
+        '^config$': '<rootDir>/projects/libs/config/index',
+        '^core$': '<rootDir>/projects/libs/core/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -26,8 +30,7 @@ const config: Config = {
         }
     },
     collectCoverageFrom: [
-        'projects/app/**/*.ts',
-        'projects/libs/common/**/*.ts',
+        'projects/**/*.ts',
         '!projects/libs/common/test/**/*',
         '!projects/**/main.ts',
         '!projects/**/index.ts',

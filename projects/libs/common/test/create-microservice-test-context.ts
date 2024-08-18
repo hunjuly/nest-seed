@@ -1,7 +1,6 @@
 import { INestMicroservice } from '@nestjs/common'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
-import { AppLoggerService } from '../logger'
 import { AllExceptionsFilter } from '../microservice'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { MicroserviceClient } from './microservice.client'

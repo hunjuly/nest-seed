@@ -1,8 +1,20 @@
-import { Controller, Injectable, Module, NotFoundException, ValidationPipe } from '@nestjs/common'
-import { APP_PIPE } from '@nestjs/core'
+import {
+    CallHandler,
+    Controller,
+    ExecutionContext,
+    Injectable,
+    Module,
+    NestInterceptor,
+    NotFoundException,
+    ValidationPipe
+} from '@nestjs/common'
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { MessagePattern } from '@nestjs/microservices'
 import { Type } from 'class-transformer'
 import { IsString, IsNotEmpty, IsEmail, IsDate } from 'class-validator'
+import { HttpErrorFilter, HttpExceptionFilter, HttpSuccessInterceptor } from '../../http'
+import { CoreModule } from 'core'
+import { Observable } from 'rxjs'
 
 export class CreateSampleDto {
     @IsString()
@@ -32,6 +44,6 @@ class SampleController {
 
 @Module({
     controllers: [SampleController],
-    providers: [{ provide: APP_PIPE, useFactory: () => new ValidationPipe({}) }]
+    providers: [{ provide: APP_PIPE, useFactory: () => new ValidationPipe() }]
 })
 export class SampleModule {}

@@ -37,22 +37,22 @@ describe('microservice/AllExceptionsFilter', () => {
 
     afterEach(async () => {
         await client?.close()
-        await app.close()
         await module.close()
+        await app.close()
     })
 
     it('should handle HttpException properly for RPC', async () => {
         const res = lastValueFrom(client.send({ cmd: 'throwHttpException' }, {}))
-        await expect(res).resolves.toMatchObject({ status: 404, message: expect.any(String) })
+        await expect(res).rejects.toMatchObject({ status: 404, message: expect.any(String) })
     })
 
     it('should handle Error properly for RPC', async () => {
         const res = lastValueFrom(client.send({ cmd: 'throwError' }, {}))
-        await expect(res).resolves.toMatchObject({ status: 500, message: expect.any(String) })
+        await expect(res).rejects.toMatchObject({ status: 500, message: expect.any(String) })
     })
 
     it('should validate input and return error for incorrect data format', async () => {
         const res = lastValueFrom(client.send({ cmd: 'createSample' }, { wrong: 'wrong field' }))
-        await expect(res).resolves.toMatchObject({ status: 400, message: expect.any(String) })
+        await expect(res).rejects.toMatchObject({ status: 400, message: expect.any(String) })
     })
 })
