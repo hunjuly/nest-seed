@@ -58,7 +58,11 @@ describe('CustomersModule', () => {
 
         it('should update a customer', async () => {
             const customerId = customer.id
-            const updateDto = { name: 'update name', email: 'new@mail.com' }
+            const updateDto = {
+                name: 'update name',
+                email: 'new@mail.com',
+                birthdate: new Date('1900-12-31')
+            }
 
             const updateCustomer = await client.send('updateCustomer', { customerId, updateDto })
             expect(updateCustomer).toEqual({ ...customer, ...updateDto })
@@ -111,11 +115,17 @@ describe('CustomersModule', () => {
 
         it('should retrieve customers by partial name', async () => {
             const partialName = 'Customer-1'
-            const res = await client.send('findCustomers', {
-                query: { name: partialName }
-            })
+            const res = await client.send('findCustomers', { query: { name: partialName } })
 
             const expected = customers.filter((customer) => customer.name.startsWith(partialName))
+            expectEqualUnsorted(res.items, expected)
+        })
+
+        it('should retrieve customers by partial email', async () => {
+            const partialEmail = 'user-1'
+            const res = await client.send('findCustomers', { query: { email: partialEmail } })
+
+            const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
             expectEqualUnsorted(res.items, expected)
         })
     })
@@ -137,7 +147,7 @@ describe('CustomersModule', () => {
         })
     })
 
-    describe('customersExist(삭제할까고민중)', () => {
+    describe('customersExist', () => {
         let customer: CustomerDto
 
         beforeEach(async () => {
@@ -186,6 +196,15 @@ describe('CustomersModule', () => {
             })
 
             expect(loginRes).not.toEqual(refreshRes)
+        })
+
+        it('should return null when incorrect credentials', async () => {
+            const getCustomer = await client.send('getCustomerByCredentials', {
+                email: 'name@mail.com',
+                password: 'wrong password'
+            })
+
+            expect(getCustomer).toBeNull()
         })
     })
 })
