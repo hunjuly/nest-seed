@@ -5,7 +5,7 @@ import { TestingModule } from '@nestjs/testing'
 import * as express from 'express'
 import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
 import { HttpClient } from './http.client'
-import { addAppLogger } from './utils'
+import { addAppLogger, getAvailablePort } from './utils'
 
 export interface HttpTestContext {
     server: any
@@ -32,7 +32,8 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
 
     const server = app.getHttpServer()
 
-    await new Promise<void>((resolve) => server.listen(() => resolve()))
+    const port = await getAvailablePort()
+    await server.listen(port)
 
     const client = new HttpClient(server)
 

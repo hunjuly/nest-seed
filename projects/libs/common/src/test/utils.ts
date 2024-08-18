@@ -2,6 +2,7 @@
 
 import { INestApplication, INestMicroservice } from '@nestjs/common'
 import * as fs from 'fs/promises'
+import * as net from 'net'
 import { AppLoggerService } from '../logger'
 
 export async function createDummyFile(filePath: string, sizeInBytes: number) {
@@ -43,4 +44,18 @@ export const addAppLogger = (app: INestApplication | INestMicroservice) => {
     } else {
         app.useLogger(false)
     }
+}
+
+export function getAvailablePort(): Promise<number> {
+    return new Promise((resolve, reject) => {
+        const server = net.createServer()
+        server.unref()
+        server.on('error', reject)
+        server.listen(0, () => {
+            const { port } = server.address() as net.AddressInfo
+            server.close(() => {
+                resolve(port)
+            })
+        })
+    })
 }

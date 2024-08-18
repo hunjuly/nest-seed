@@ -4,9 +4,9 @@ import { INestMicroservice } from '@nestjs/common'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
 import { AllExceptionsFilter } from '../microservice'
-import { ModuleMetadataEx, createTestingModule } from './create-testing-module'
+import { createTestingModule, ModuleMetadataEx } from './create-testing-module'
 import { MicroserviceClient } from './microservice.client'
-import { addAppLogger } from './utils'
+import { addAppLogger, getAvailablePort } from './utils'
 
 export interface MicroserviceTestContext {
     module: TestingModule
@@ -20,9 +20,10 @@ export async function createMicroserviceTestContext(
 ): Promise<MicroserviceTestContext> {
     const module = await createTestingModule(metadata)
 
+    const port = await getAvailablePort()
     const rpcOptions = {
         transport: Transport.TCP,
-        options: { host: '0.0.0.0', port: 3000 }
+        options: { host: '0.0.0.0', port }
     } as const
 
     const app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
