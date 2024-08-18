@@ -18,5 +18,5 @@ export class CreateStorageFileDto {
 
     @IsString()
     @IsNotEmpty()
-    path: string
+    uploadedPath: string
 }

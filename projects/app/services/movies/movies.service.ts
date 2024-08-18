@@ -13,7 +13,15 @@ export class MoviesService {
 
     @MethodLog()
     async createMovie(files: Express.Multer.File[], createDto: CreateMovieDto) {
-        const { storageFiles } = await this.storageFilesService.saveFiles(files)
+        const createDtos = files.map((file) => ({
+            originalname: file.originalname,
+            filename: file.filename,
+            mimetype: file.mimetype,
+            size: file.size,
+            uploadedPath: file.path
+        }))
+
+        const { storageFiles } = await this.storageFilesService.saveFiles(createDtos)
         const storageFileIds = storageFiles.map((file) => file.id.toString())
 
         const movie = await this.repository.createMovie(createDto, storageFileIds)

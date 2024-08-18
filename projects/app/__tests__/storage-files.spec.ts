@@ -1,5 +1,5 @@
 import { AppModule } from 'app/app.module'
-import { StorageFileDto } from 'app/services/storage-files/dto'
+import { StorageFileDto } from 'app/services/storage-files'
 import { getChecksum, nullObjectId, Path } from 'common'
 import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } from 'common'
 import { Config } from 'config'

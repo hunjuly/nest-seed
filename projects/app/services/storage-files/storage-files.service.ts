@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DocumentId, getChecksum, MethodLog, Path } from 'common'
 import { Config } from 'config'
-import { pick } from 'lodash'
 import { CreateStorageFileDto, StorageFileDto } from './dto'
 import { StorageFile } from './schemas'
 import { StorageFilesRepository } from './storage-files.repository'
@@ -10,25 +9,17 @@ import { StorageFilesRepository } from './storage-files.repository'
 export class StorageFilesService {
     constructor(private repository: StorageFilesRepository) {}
 
-    async saveFiles(files: Express.Multer.File[]) {
-        const createDtos = files.map((file) =>
-            pick(file, ['originalname', 'filename', 'mimetype', 'size', 'path'])
-        )
-
-        return this._saveFiles(createDtos)
-    }
-
     @MethodLog()
-    private async _saveFiles(createDtos: CreateStorageFileDto[]) {
+    async saveFiles(createDtos: CreateStorageFileDto[]) {
         const storageFiles = await this.repository.withTransaction(async (session) => {
             const storageFiles: StorageFile[] = []
 
             for (const createDto of createDtos) {
                 const storageFile = await this.repository.createStorageFile(
-                    { ...createDto, checksum: await getChecksum(createDto.path) },
+                    { ...createDto, checksum: await getChecksum(createDto.uploadedPath) },
                     session
                 )
-                Path.move(createDto.path, this.getStoragePath(storageFile.id))
+                Path.move(createDto.uploadedPath, this.getStoragePath(storageFile.id))
 
                 storageFiles.push(storageFile)
             }
