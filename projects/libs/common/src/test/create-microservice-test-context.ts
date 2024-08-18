@@ -33,8 +33,8 @@ export async function createMicroserviceTestContext(
 
     const close = async () => {
         await client.close()
-        await module.close()
         await app.close()
+        await module.close()
     }
 
     return { module, app, close, client }

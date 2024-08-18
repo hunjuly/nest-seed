@@ -5,7 +5,6 @@ const config: Config = {
     ...baseOption,
     rootDir:'../../../',
     roots: ['<rootDir>/projects/libs/common/src'],
-    collectCoverage: true,
     collectCoverageFrom: [
         'projects/libs/common/**/*.ts',
         '!projects/libs/common/src/test/**/*',

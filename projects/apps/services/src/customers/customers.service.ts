@@ -41,7 +41,8 @@ export class CustomersService {
 
     @MethodLog()
     async deleteCustomer(customerId: string) {
-        return this.repository.deleteCustomer(customerId)
+        await this.repository.deleteCustomer(customerId)
+        return true
     }
 
     @MethodLog({ level: 'verbose' })
@@ -57,8 +58,8 @@ export class CustomersService {
     }
 
     @MethodLog()
-    async login(customer: CustomerDto) {
-        return this.jwtAuthService.generateAuthTokens(customer.id, customer.email)
+    async login(customerId: string, email: string) {
+        return this.jwtAuthService.generateAuthTokens(customerId, email)
     }
 
     @MethodLog()

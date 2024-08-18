@@ -38,7 +38,6 @@ export async function createHttpTestContext(metadata: ModuleMetadataEx): Promise
     const close = async () => {
         await server.close()
         await module.close()
-        // await app.close()
     }
 
     return { server, module, app, client, close }
