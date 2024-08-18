@@ -1,22 +1,12 @@
-import {
-    createDummyFile,
-    createMicroserviceTestContext,
-    getChecksum,
-    MicroserviceClient,
-    MicroserviceTestContext,
-    nullObjectId,
-    Path
-} from 'common'
-import { Config } from 'config'
-import { ServicesModule } from '../services.module'
-import { CreateStorageFileDto, StorageFileDto } from '../storage-files'
-import { of } from 'rxjs'
 import { HttpStatus } from '@nestjs/common'
+import { MicroserviceClient, MicroserviceTestContext, nullObjectId, Path } from 'common'
+import { Config } from 'config'
+import { CreateStorageFileDto, StorageFileDto } from '../storage-files'
+import { createFixture } from './storage-files.fixture'
 
 describe('/storage-files', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
-
     let tempDir: string
     let file1: CreateStorageFileDto
     let file1Checksum: string
@@ -24,35 +14,15 @@ describe('/storage-files', () => {
     let file2Checksum: string
 
     beforeEach(async () => {
-        Config.fileUpload = {
-            directory: await Path.createTempDirectory(),
-            maxFileSizeBytes: 0,
-            maxFilesPerUpload: 0,
-            allowedMimeTypes: []
-        }
+        const fixture = await createFixture()
 
-        tempDir = await Path.createTempDirectory()
-
-        file1 = {
-            originalname: 'file1.txt',
-            mimetype: 'text/plain',
-            size: 1024,
-            uploadedFilePath: Path.join(tempDir, 'file1.txt')
-        }
-        await createDummyFile(file1.uploadedFilePath, file1.size)
-        file1Checksum = await getChecksum(file1.uploadedFilePath)
-
-        file2 = {
-            originalname: 'file2.txt',
-            mimetype: 'text/plain',
-            size: 2048,
-            uploadedFilePath: Path.join(tempDir, 'file2.txt')
-        }
-        await createDummyFile(file2.uploadedFilePath, file2.size)
-        file2Checksum = await getChecksum(file2.uploadedFilePath)
-
-        testContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
-        client = testContext.client
+        testContext = fixture.testContext
+        client = fixture.client
+        tempDir = fixture.tempDir
+        file1 = fixture.file1
+        file1Checksum = fixture.file1Checksum
+        file2 = fixture.file2
+        file2Checksum = fixture.file2Checksum
     })
 
     afterEach(async () => {
