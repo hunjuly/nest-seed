@@ -1,5 +1,4 @@
 import { MicroserviceClient, padNumber } from 'common'
-import { HttpClient } from 'common'
 
 export const makeTheaterDto = (overrides = {}) => {
     const createDto = {
@@ -20,7 +19,11 @@ export const createTheater = async (client: MicroserviceClient, override = {}) =
     return theater
 }
 
-export const createTheaters = async (client: MicroserviceClient, length: number = 20, overrides = {}) =>
+export const createTheaters = async (
+    client: MicroserviceClient,
+    length: number = 20,
+    overrides = {}
+) =>
     Promise.all(
         Array.from({ length }, async (_, index) =>
             createTheater(client, {

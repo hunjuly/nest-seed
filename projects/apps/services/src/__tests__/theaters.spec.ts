@@ -53,11 +53,11 @@ describe('/theaters', () => {
                 seatmap: []
             }
 
-            const updated = await client.send('updateTheater', { theaterId, updateDto })
-            expect(updated).toEqual({ ...theater, ...updateDto })
+            const updatedTheater = await client.send('updateTheater', { theaterId, updateDto })
+            expect(updatedTheater).toEqual({ ...theater, ...updateDto })
 
-            const got = await client.send('getTheater', theater.id)
-            expect(got.body).toEqual(updated.body)
+            const gotTheater = await client.send('getTheater', theater.id)
+            expect(gotTheater.body).toEqual(updatedTheater.body)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
@@ -94,8 +94,8 @@ describe('/theaters', () => {
         })
 
         it('should get a theater', async () => {
-            const got = await client.send('getTheater', theater.id)
-            expect(got).toEqual(theater)
+            const gotTheater = await client.send('getTheater', theater.id)
+            expect(gotTheater).toEqual(theater)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
@@ -139,12 +139,12 @@ describe('/theaters', () => {
 
         it('should retrieve theaters with theaterIds', async () => {
             const expectedTheaters = theaters.slice(0, 5)
-            const got = await client.send('getTheatersByIds', pickIds(expectedTheaters))
-            expectEqualUnsorted(got, expectedTheaters)
+            const gotTheaters = await client.send('getTheatersByIds', pickIds(expectedTheaters))
+            expectEqualUnsorted(gotTheaters, expectedTheaters)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            const got = await client.error('getTheatersByIds', [nullObjectId], HttpStatus.NOT_FOUND)
+            await client.error('getTheatersByIds', [nullObjectId], HttpStatus.NOT_FOUND)
         })
     })
 

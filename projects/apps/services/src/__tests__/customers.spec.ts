@@ -5,8 +5,7 @@ import {
     expectEqualUnsorted,
     MicroserviceClient,
     MicroserviceTestContext,
-    nullObjectId,
-    OrderDirection
+    nullObjectId
 } from 'common'
 import { CustomerDto } from '../customers'
 import { ServicesModule } from '../services.module'
@@ -105,8 +104,8 @@ describe('CustomersModule', () => {
         })
 
         it('should get a customer', async () => {
-            const got = await client.send('getCustomer', customer.id)
-            expect(got).toEqual(customer)
+            const gotTheaters = await client.send('getCustomer', customer.id)
+            expect(gotTheaters).toEqual(customer)
         })
 
         it('should return NOT_FOUND(404) when customer does not exist', async () => {
@@ -175,11 +174,11 @@ describe('CustomersModule', () => {
         })
 
         it('should return CREATED(201) and AuthTokens on successful login', async () => {
-            const got = await client.send('getCustomerByCredentials', {
+            const gotCustomer = await client.send('getCustomerByCredentials', {
                 email: 'name@mail.com',
                 password: 'password'
             })
-            expect(got).toEqual(customer)
+            expect(gotCustomer).toEqual(customer)
 
             const loginRes = await client.send('login', {
                 customerId: customer.id,

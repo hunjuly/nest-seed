@@ -63,11 +63,11 @@ describe('MoviesModule', () => {
                 rating: MovieRating.R
             }
 
-            const updated = await client.send('updateMovie', { movieId, updateDto })
-            expect(updated).toEqual({ ...movie, ...updateDto })
+            const updatedMovie = await client.send('updateMovie', { movieId, updateDto })
+            expect(updatedMovie).toEqual({ ...movie, ...updateDto })
 
-            const got = await client.send('getMovie', movie.id)
-            expect(got.body).toEqual(updated.body)
+            const gotMovie = await client.send('getMovie', movie.id)
+            expect(gotMovie.body).toEqual(updatedMovie.body)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
@@ -104,8 +104,8 @@ describe('MoviesModule', () => {
         })
 
         it('should get a movie', async () => {
-            const got = await client.send('getMovie', movie.id)
-            expect(got).toEqual(movie)
+            const gotMovie = await client.send('getMovie', movie.id)
+            expect(gotMovie).toEqual(movie)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
@@ -201,12 +201,12 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies with movieIds', async () => {
             const expectedMovies = movies.slice(0, 5)
-            const got = await client.send('getMoviesByIds', pickIds(expectedMovies))
-            expectEqualUnsorted(got, expectedMovies)
+            const gotMovies = await client.send('getMoviesByIds', pickIds(expectedMovies))
+            expectEqualUnsorted(gotMovies, expectedMovies)
         })
 
         it('should return NOT_FOUND(404) when movie does not exist', async () => {
-            const got = await client.error('getMoviesByIds', [nullObjectId], HttpStatus.NOT_FOUND)
+            await client.error('getMoviesByIds', [nullObjectId], HttpStatus.NOT_FOUND)
         })
     })
 
