@@ -1,21 +1,23 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
+import { HttpStatus } from '@nestjs/common'
 import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId, pickIds } from 'common'
 import {
-    HttpClient,
-    HttpTestContext,
-    createHttpTestContext,
-    expectEqualUnsorted
+    createMicroserviceTestContext,
+    expectEqualUnsorted,
+    MicroserviceClient,
+    MicroserviceTestContext,
+    nullObjectId,
+    pickIds
 } from 'common'
+import { ServicesModule } from '../services.module'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {
-    let testContext: HttpTestContext
-    let client: HttpClient
+    let testContext: MicroserviceTestContext
+    let client: MicroserviceClient
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createMicroserviceTestContext({ imports: [ServicesModule] })
         client = testContext.client
     })
 
@@ -23,21 +25,20 @@ describe('/theaters', () => {
         await testContext?.close()
     })
 
-    describe('POST /theaters', () => {
+    describe('createTheater', () => {
         it('should create a theater and return CREATED(201) status', async () => {
             const { createDto, expectedDto } = makeTheaterDto()
-
-            const { body } = await client.post('/theaters').body(createDto).created()
+            const body = await createTheater(client, createDto)
 
             expect(body).toEqual(expectedDto)
         })
 
         it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            return client.post('/theaters').body({}).badRequest()
+            await client.error('createTheater', {}, HttpStatus.BAD_REQUEST)
         })
     })
 
-    describe('PATCH /theaters/:id', () => {
+    describe('updateTheater', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
@@ -45,25 +46,30 @@ describe('/theaters', () => {
         })
 
         it('should update a theater', async () => {
+            const theaterId = theater.id
             const updateDto = {
                 name: `Update-Name`,
                 latlong: { latitude: 30.0, longitude: 120.0 },
                 seatmap: []
             }
 
-            const updated = await client.patch(`/theaters/${theater.id}`).body(updateDto).ok()
-            expect(updated.body).toEqual({ ...theater, ...updateDto })
+            const updated = await client.send('updateTheater', { theaterId, updateDto })
+            expect(updated).toEqual({ ...theater, ...updateDto })
 
-            const got = await client.get(`/theaters/${theater.id}`).ok()
+            const got = await client.send('getTheater', theater.id)
             expect(got.body).toEqual(updated.body)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.patch(`/theaters/${nullObjectId}`).body({}).notFound()
+            await client.error(
+                'updateTheater',
+                { theaterId: nullObjectId, updateDto: {} },
+                HttpStatus.NOT_FOUND
+            )
         })
     })
 
-    describe('DELETE /theaters/:id', () => {
+    describe('deleteTheater', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
@@ -71,16 +77,16 @@ describe('/theaters', () => {
         })
 
         it('should delete a theater', async () => {
-            await client.delete(`/theaters/${theater.id}`).ok()
-            await client.get(`/theaters/${theater.id}`).notFound()
+            await client.send('deleteTheater', theater.id)
+            await client.error('getTheater', theater.id, HttpStatus.NOT_FOUND)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.delete(`/theaters/${nullObjectId}`).notFound()
+            await client.error('deleteTheater', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('GET /theaters/:id', () => {
+    describe('getTheater', () => {
         let theater: TheaterDto
 
         beforeEach(async () => {
@@ -88,16 +94,16 @@ describe('/theaters', () => {
         })
 
         it('should get a theater', async () => {
-            const { body } = await client.get(`/theaters/${theater.id}`).ok()
-            expect(body).toEqual(theater)
+            const got = await client.send('getTheater', theater.id)
+            expect(got).toEqual(theater)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            return client.get(`/theaters/${nullObjectId}`).notFound()
+            await client.error('getTheater', nullObjectId, HttpStatus.NOT_FOUND)
         })
     })
 
-    describe('GET /theaters', () => {
+    describe('findTheaters', () => {
         let theaters: TheaterDto[]
 
         beforeEach(async () => {
@@ -105,8 +111,7 @@ describe('/theaters', () => {
         })
 
         it('should retrieve theaters with default pagination', async () => {
-            const { body } = await client.get('/theaters').ok()
-            const { items, ...paginated } = body
+            const { items, ...paginated } = await client.send('findTheaters', {})
 
             expect(paginated).toEqual({
                 skip: 0,
@@ -118,14 +123,14 @@ describe('/theaters', () => {
 
         it('should retrieve theaters by partial name', async () => {
             const partialName = 'Theater-'
-            const { body } = await client.get('/theaters').query({ name: partialName }).ok()
+            const { items } = await client.send('findTheaters', { query: { name: partialName } })
 
             const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
-            expectEqualUnsorted(body.items, expected)
+            expectEqualUnsorted(items, expected)
         })
     })
 
-    describe('POST /theaters/getByIds', () => {
+    describe('getTheatersByIds', () => {
         let theaters: TheaterDto[]
 
         beforeEach(async () => {
@@ -134,17 +139,30 @@ describe('/theaters', () => {
 
         it('should retrieve theaters with theaterIds', async () => {
             const expectedTheaters = theaters.slice(0, 5)
-            const queryDto = { theaterIds: pickIds(expectedTheaters) }
-
-            const { body } = await client.post('/theaters/getByIds').body(queryDto).ok()
-
-            expectEqualUnsorted(body, expectedTheaters)
+            const got = await client.send('getTheatersByIds', pickIds(expectedTheaters))
+            expectEqualUnsorted(got, expectedTheaters)
         })
 
         it('should return NOT_FOUND(404) when theater does not exist', async () => {
-            const queryDto = { theaterIds: [nullObjectId] }
+            const got = await client.error('getTheatersByIds', [nullObjectId], HttpStatus.NOT_FOUND)
+        })
+    })
 
-            return client.post('/theaters/getByIds').body(queryDto).notFound()
+    describe('theatersExist', () => {
+        let theater: TheaterDto
+
+        beforeEach(async () => {
+            theater = await createTheater(client)
+        })
+
+        it('should return true when theater does exist', async () => {
+            const exists = await client.send('theatersExist', [theater.id])
+            expect(exists).toBeTruthy()
+        })
+
+        it('should return false when theater does not exist', async () => {
+            const exists = await client.send('theatersExist', [nullObjectId])
+            expect(exists).toBeFalsy()
         })
     })
 })
