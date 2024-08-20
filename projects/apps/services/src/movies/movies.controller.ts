@@ -37,10 +37,10 @@ export class MoviesController {
 
     @MessagePattern({ cmd: 'findMovies' })
     async findMovies(
-        @Payload('query') query: QueryMoviesDto | undefined,
+        @Payload('queryDto') queryDto: QueryMoviesDto | undefined,
         @Payload('pagination') pagination: PaginationOption | undefined
     ) {
-        return this.service.findMovies(query ?? {}, pagination ?? {})
+        return this.service.findMovies(queryDto ?? {}, pagination ?? {})
     }
 
     @MessagePattern({ cmd: 'getMoviesByIds' })

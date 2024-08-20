@@ -3,12 +3,7 @@ import { AppModule } from 'app/app.module'
 import { CustomerJwtAuthGuard } from 'app/controllers'
 import { CustomerDto } from 'app/services/customers'
 import { nullObjectId } from 'common'
-import {
-    HttpClient,
-    HttpTestContext,
-    createHttpTestContext,
-    expectEqualUnsorted
-} from 'common'
+import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
 import { createCustomer, createCustomers, makeCustomerDto } from './customers.fixture'
 
 describe('/customers', () => {

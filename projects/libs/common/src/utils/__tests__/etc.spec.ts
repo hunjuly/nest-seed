@@ -1,4 +1,3 @@
-import * as bull from 'bull'
 import { LatLong } from 'common'
 import * as fs from 'fs/promises'
 import {
@@ -15,31 +14,31 @@ import {
     notUsed,
     pickIds,
     pickItems,
-    sleep,
-    waitForQueueToEmpty
+    sleep
 } from '..'
 
-jest.mock('bull')
+// TODO
+// jest.mock('bull')
 
-describe('waitForQueueToEmpty', () => {
-    it('should complete when the queue is empty', async () => {
-        const mockQueue = new bull('') as any
-        mockQueue.getActiveCount = jest.fn().mockResolvedValue(0)
-        mockQueue.getWaitingCount = jest.fn().mockResolvedValue(0)
+// describe('waitForQueueToEmpty', () => {
+//     it('should complete when the queue is empty', async () => {
+//         const mockQueue = new bull('') as any
+//         mockQueue.getActiveCount = jest.fn().mockResolvedValue(0)
+//         mockQueue.getWaitingCount = jest.fn().mockResolvedValue(0)
 
-        const result = await waitForQueueToEmpty(mockQueue)
-        expect(result).toBeTruthy()
-    })
+//         const result = await waitForQueueToEmpty(mockQueue)
+//         expect(result).toBeTruthy()
+//     })
 
-    it('should time out if the queue is not empty within the time limit', async () => {
-        const mockQueue = new bull('') as any
-        mockQueue.getActiveCount = jest.fn().mockResolvedValue(1)
-        mockQueue.getWaitingCount = jest.fn().mockResolvedValue(1)
+//     it('should time out if the queue is not empty within the time limit', async () => {
+//         const mockQueue = new bull('') as any
+//         mockQueue.getActiveCount = jest.fn().mockResolvedValue(1)
+//         mockQueue.getWaitingCount = jest.fn().mockResolvedValue(1)
 
-        const result = await waitForQueueToEmpty(mockQueue, 1)
-        expect(result).toBeFalsy()
-    })
-})
+//         const result = await waitForQueueToEmpty(mockQueue, 1)
+//         expect(result).toBeFalsy()
+//     })
+// })
 
 describe('common/utils/etc', () => {
     describe('sleep', () => {

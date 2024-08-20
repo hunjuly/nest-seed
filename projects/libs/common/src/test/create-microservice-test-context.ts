@@ -3,7 +3,7 @@
 import { INestMicroservice } from '@nestjs/common'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { TestingModule } from '@nestjs/testing'
-import { AllExceptionsFilter } from '../microservice'
+import { HttpToRpcExceptionFilter } from '../microservice'
 import { createTestingModule, ModuleMetadataEx } from './create-testing-module'
 import { MicroserviceClient } from './microservice.client'
 import { addAppLogger, getAvailablePort } from './utils'
@@ -28,7 +28,7 @@ export async function createMicroserviceTestContext(
 
     const app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
     addAppLogger(app)
-    app.useGlobalFilters(new AllExceptionsFilter())
+    app.useGlobalFilters(new HttpToRpcExceptionFilter())
 
     await app.listen()
 
@@ -37,7 +37,6 @@ export async function createMicroserviceTestContext(
     const close = async () => {
         await client.close()
         await app.close()
-        await module.close()
     }
 
     return { module, app, close, client }

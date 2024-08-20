@@ -133,7 +133,7 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies by partial title', async () => {
             const partialTitle = 'title-01'
-            const { items } = await client.send('findMovies', { query: { title: partialTitle } })
+            const { items } = await client.send('findMovies', { queryDto: { title: partialTitle } })
 
             const expected = movies.filter((movie) => movie.title.startsWith(partialTitle))
             expectEqualUnsorted(items, expected)
@@ -141,7 +141,7 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies by genre', async () => {
             const genre = MovieGenre.Drama
-            const { items } = await client.send('findMovies', { query: { genre } })
+            const { items } = await client.send('findMovies', { queryDto: { genre } })
 
             const expected = movies.filter((movie) => movie.genre.includes(genre))
             expectEqualUnsorted(items, expected)
@@ -149,7 +149,7 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies by releaseDate', async () => {
             const releaseDate = movies[0].releaseDate
-            const { items } = await client.send('findMovies', { query: { releaseDate } })
+            const { items } = await client.send('findMovies', { queryDto: { releaseDate } })
 
             const expected = movies.filter(
                 (movie) => movie.releaseDate.getTime() === releaseDate.getTime()
@@ -159,7 +159,7 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies by partial plot', async () => {
             const partialPlot = 'plot-01'
-            const { items } = await client.send('findMovies', { query: { plot: partialPlot } })
+            const { items } = await client.send('findMovies', { queryDto: { plot: partialPlot } })
 
             const expected = movies.filter((movie) => movie.plot.startsWith(partialPlot))
             expectEqualUnsorted(items, expected)
@@ -167,7 +167,7 @@ describe('MoviesModule', () => {
 
         it('should retrieve movies by durationMinutes', async () => {
             const durationMinutes = 90
-            const { items } = await client.send('findMovies', { query: { durationMinutes } })
+            const { items } = await client.send('findMovies', { queryDto: { durationMinutes } })
 
             const expected = movies.filter((movie) => movie.durationMinutes === durationMinutes)
             expectEqualUnsorted(items, expected)
@@ -176,16 +176,16 @@ describe('MoviesModule', () => {
         it('should retrieve movies by partial director', async () => {
             const partialDirector = 'James'
             const { items } = await client.send('findMovies', {
-                query: { director: partialDirector }
+                queryDto: { director: partialDirector }
             })
 
-            const expected = movies.filter((movie) => movie.director.startsWith(partialDirector))
+            const expected = movies.filter((movie) => movie.director.includes(partialDirector))
             expectEqualUnsorted(items, expected)
         })
 
         it('should retrieve movies by rating', async () => {
             const rating = MovieRating.NC17
-            const { items } = await client.send('findMovies', { query: { rating } })
+            const { items } = await client.send('findMovies', { queryDto: { rating } })
 
             const expected = movies.filter((movie) => movie.rating === rating)
             expectEqualUnsorted(items, expected)

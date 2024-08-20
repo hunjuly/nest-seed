@@ -133,7 +133,9 @@ describe('CustomersModule', () => {
 
         it('should retrieve customers by partial name', async () => {
             const partialName = 'Customer-1'
-            const { items } = await client.send('findCustomers', { query: { name: partialName } })
+            const { items } = await client.send('findCustomers', {
+                queryDto: { name: partialName }
+            })
 
             const expected = customers.filter((customer) => customer.name.startsWith(partialName))
             expectEqualUnsorted(items, expected)
@@ -141,7 +143,9 @@ describe('CustomersModule', () => {
 
         it('should retrieve customers by partial email', async () => {
             const partialEmail = 'user-1'
-            const { items } = await client.send('findCustomers', { query: { email: partialEmail } })
+            const { items } = await client.send('findCustomers', {
+                queryDto: { email: partialEmail }
+            })
 
             const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
             expectEqualUnsorted(items, expected)

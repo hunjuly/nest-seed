@@ -2,14 +2,7 @@ import { InjectQueue } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
-import {
-    Assert,
-    maps,
-    MethodLog,
-    PaginationOption,
-    PaginationResult,
-    waitForQueueToEmpty
-} from 'common'
+import { Assert, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
 import { ShowtimesCreateCompleteEvent } from '../showtimes'
 import { TicketDto, TicketsQueryDto } from './dto'
 import { TicketStatus } from './schemas'
@@ -24,7 +17,7 @@ export class TicketsService {
     ) {}
 
     async onModuleDestroy() {
-        await waitForQueueToEmpty(this.ticketsQueue)
+        await this.ticketsQueue.close()
     }
 
     @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })

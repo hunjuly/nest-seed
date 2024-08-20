@@ -123,7 +123,7 @@ describe('/theaters', () => {
 
         it('should retrieve theaters by partial name', async () => {
             const partialName = 'Theater-'
-            const { items } = await client.send('findTheaters', { query: { name: partialName } })
+            const { items } = await client.send('findTheaters', { queryDto: { name: partialName } })
 
             const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
             expectEqualUnsorted(items, expected)

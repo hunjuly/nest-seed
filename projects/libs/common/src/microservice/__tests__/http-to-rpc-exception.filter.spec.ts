@@ -7,10 +7,10 @@ import {
 } from '@nestjs/microservices'
 import { Test, TestingModule } from '@nestjs/testing'
 import { lastValueFrom } from 'rxjs'
-import { AllExceptionsFilter } from '../all-exceptions.filter'
-import { SampleModule } from './all-exceptions.filter.fixture'
+import { HttpToRpcExceptionFilter } from '../http-to-rpc-exception.filter'
+import { SampleModule } from './http-to-rpc-exception.filter.fixture'
 
-describe('microservice/AllExceptionsFilter', () => {
+describe('HttpToRpcExceptionFilter', () => {
     let client: ClientProxy
     let module: TestingModule
     let app: INestMicroservice
@@ -28,7 +28,7 @@ describe('microservice/AllExceptionsFilter', () => {
 
         app = module.createNestMicroservice<MicroserviceOptions>(rpcOptions)
 
-        app.useGlobalFilters(new AllExceptionsFilter())
+        app.useGlobalFilters(new HttpToRpcExceptionFilter())
         await app.listen()
 
         client = ClientProxyFactory.create(rpcOptions)

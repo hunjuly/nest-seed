@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import { AllExceptionsFilter, AppLoggerService } from 'common'
+import { HttpToRpcExceptionFilter, AppLoggerService } from 'common'
 import { matchesEnv } from 'config'
 import { ServicesModule } from './services.module'
 
@@ -12,7 +12,7 @@ async function bootstrap() {
 
     const logger = app.get(AppLoggerService)
     app.useLogger(logger)
-    app.useGlobalFilters(new AllExceptionsFilter())
+    app.useGlobalFilters(new HttpToRpcExceptionFilter())
 
     await app.listen()
 

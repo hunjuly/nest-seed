@@ -33,10 +33,10 @@ export class TheatersController {
 
     @MessagePattern({ cmd: 'findTheaters' })
     async findTheaters(
-        @Payload('query') query: QueryTheatersDto,
+        @Payload('queryDto') queryDto: QueryTheatersDto,
         @Payload('pagination') pagination: PaginationOption
     ) {
-        return this.service.findTheaters(query ?? {}, pagination ?? {})
+        return this.service.findTheaters(queryDto ?? {}, pagination ?? {})
     }
 
     @MessagePattern({ cmd: 'getTheatersByIds' })

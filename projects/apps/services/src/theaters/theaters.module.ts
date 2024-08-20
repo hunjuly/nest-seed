@@ -9,6 +9,6 @@ import { TheatersService } from './theaters.service'
     imports: [MongooseModule.forFeature([{ name: Theater.name, schema: TheaterSchema }])],
     providers: [TheatersService, TheatersRepository],
     exports: [TheatersService],
-    controllers:[TheatersController]
+    controllers: [TheatersController]
 })
 export class TheatersModule {}

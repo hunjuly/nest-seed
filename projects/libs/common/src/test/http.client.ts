@@ -7,10 +7,10 @@ import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
 
 export class HttpClient {
-    private client: supertest.Test
+    public client: supertest.Test
 
     constructor(
-        private server: any,
+        public server: any,
         private defaultPath: string = ''
     ) {}
 
@@ -18,6 +18,7 @@ export class HttpClient {
         return usePrefix ? posix.join(this.defaultPath, url) : url
     }
 
+    // TODO remove usePrefix
     post(url: string = '', usePrefix = true): this {
         this.client = supertest(this.server).post(this.makeUrl(url, usePrefix))
         return this
@@ -87,6 +88,31 @@ export class HttpClient {
                 callback(null, '')
             })
         })
+
+        return this
+    }
+
+    sse(handler: (data: string) => void, reject: (reason: any) => void): this {
+        this.client
+            .set('Accept', 'text/event-stream')
+            .buffer(true)
+            .parse((res, callback) => {
+                res.on('data', (chunk: any) => {
+                    const event: string = chunk.toString()
+
+                    const item = event.split('\n').filter((item) => item.startsWith('data:'))
+
+                    if (0 < item.length) {
+                        const [_key, value] = item[0].split(': ')
+
+                        handler(value)
+                        callback(null, value)
+                    }
+                })
+            })
+            .end((err) => {
+                err && reject(err)
+            })
 
         return this
     }

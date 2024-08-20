@@ -1,5 +1,5 @@
 import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
-import { MicroserviceClient, padNumber, Path } from 'common'
+import { MicroserviceClient, padNumber } from 'common'
 import * as fs from 'fs'
 
 export const makeCreateMovieDto = (overrides = {}) => {
