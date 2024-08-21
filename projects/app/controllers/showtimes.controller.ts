@@ -4,13 +4,16 @@ import {
     Get,
     HttpCode,
     HttpStatus,
+    MessageEvent,
     Param,
     Post,
     Query,
+    Sse,
     UsePipes
 } from '@nestjs/common'
 import { CreateShowtimesDto, QueryShowtimesDto, ShowtimesService } from 'app/services/showtimes'
 import { PaginationOption, PaginationPipe } from 'common'
+import { Observable } from 'rxjs'
 
 @Controller('showtimes')
 export class ShowtimesController {
@@ -20,6 +23,11 @@ export class ShowtimesController {
     @Post()
     async createShowtimes(@Body() createDto: CreateShowtimesDto) {
         return this.service.createShowtimes(createDto)
+    }
+
+    @Sse('events')
+    events(): Observable<MessageEvent> {
+        return this.service.getEventObservable()
     }
 
     @Get(':showtimeId')

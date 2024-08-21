@@ -1,14 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { AppModule } from 'app/app.module'
-import {
-    CreateShowtimesDto,
-    ShowtimeDto,
-    ShowtimesCreateCompleteEvent,
-    ShowtimesCreateEvent
-} from 'app/services/showtimes'
-import { TicketDto, TicketsCreateCompleteEvent, TicketsCreateEvent } from 'app/services/tickets'
-import { addMinutes, AppEvent, createHttpTestContext, HttpClient, pickIds } from 'common'
+import { CreateShowtimesDto, ShowtimeDto, ShowtimesCreateEvent } from 'app/services/showtimes'
+import { TicketDto, TicketsCreateEvent } from 'app/services/tickets'
+import { addMinutes, AppEvent, HttpClient, pickIds } from 'common'
 import { MovieDto } from '../services/movies'
 import { getAllSeats, TheaterDto } from '../services/theaters'
 
@@ -26,7 +20,7 @@ export class ShowtimesEventListener {
         const promise = this.promises.get(event.batchId)
 
         if (!promise) {
-            throw new Error(`${event} not found, possible sync error`)
+            throw new Error(`${JSON.stringify(event)} not found, possible sync error`)
         }
 
         if (promise.eventName === event.name) {
@@ -96,32 +90,58 @@ export const makeCreateShowtimesDto = (movie: MovieDto, theaters: TheaterDto[], 
     return { createDto, expectedShowtimes, expectedTickets }
 }
 
-export const createShowtimes = async (
-    client: HttpClient,
-    createDto: CreateShowtimesDto,
-    listener: ShowtimesEventListener
-) => {
+export const createShowtimes = async (client: HttpClient, createDto: CreateShowtimesDto) => {
     const { body } = await client.post('/showtimes').body(createDto).accepted()
 
-    const batchId = body.batchId
+    return body.batchId
 
-    await listener.awaitEvent(batchId, ShowtimesCreateCompleteEvent.eventName)
-    await listener.awaitEvent(batchId, TicketsCreateCompleteEvent.eventName)
+    // await new Promise((resolve, reject) => {
+    //     client.get('/tickets/events/' + batchId).sse((data: string) => {
+    //         const event = JSON.parse(data)
+    //         if (event.status === 'complete') {
+    //             resolve(event)
+    //         }
+    //     }, reject)
+    // })
 
-    const { body: showtimesBody } = await client.get('/showtimes').query({ batchId }).ok()
-    const { body: ticketsBody } = await client.get('/tickets').query({ batchId }).ok()
+    // await listener.awaitEvent(batchId, TicketsCreateCompleteEvent.eventName)
 
-    return { batchId, showtimes: showtimesBody.items, tickets: ticketsBody.items }
+    // const { body: showtimesBody } = await client.get('/showtimes').query({ batchId }).ok()
+    // const { body: ticketsBody } = await client.get('/tickets').query({ batchId }).ok()
+
+    // return { batchId, showtimes: [], tickets: [] }
 }
 
-export async function createFixture() {
-    const testContext = await createHttpTestContext({
-        imports: [AppModule],
-        providers: [ShowtimesEventListener]
+export async function castForShowtimes(client: HttpClient, count: number) {
+    return new Promise<Map<string, ShowtimeDto[]>>((resolve, reject) => {
+        const showtimesMap = new Map<string, ShowtimeDto[]>()
+
+        client.get('/showtimes/events/').sse(async (data: string) => {
+            const event = JSON.parse(data)
+            if (event.status === 'complete') {
+                const batchId = event.batchId
+                const { body } = await client.get('/showtimes').query({ batchId }).ok()
+                showtimesMap.set(batchId, body.items)
+
+                if (showtimesMap.size === count) resolve(showtimesMap)
+            }
+        }, reject)
     })
+}
 
-    const module = testContext.module
-    const listener = module.get(ShowtimesEventListener)
+export async function castForTickets(client: HttpClient, count: number) {
+    return new Promise<Map<string, TicketDto[]>>((resolve, reject) => {
+        const ticketsMap = new Map<string, TicketDto[]>()
 
-    return { testContext, listener }
+        client.get('/tickets/events/').sse(async (data: string) => {
+            const event = JSON.parse(data)
+            if (event.status === 'complete') {
+                const batchId = event.batchId
+                const { body } = await client.get('/tickets').query({ batchId }).ok()
+                ticketsMap.set(batchId, body.items)
+
+                if (ticketsMap.size === count) resolve(ticketsMap)
+            }
+        }, reject)
+    })
 }

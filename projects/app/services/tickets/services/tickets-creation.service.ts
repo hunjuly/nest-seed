@@ -1,17 +1,16 @@
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 import { ShowtimeDto, ShowtimesService } from 'app/services/showtimes'
 import { TheatersService, getAllSeats } from 'app/services/theaters'
 import { Job } from 'bull'
-import { AppEvent, MethodLog, SchemeBody } from 'common'
+import { EventService, MethodLog, SchemeBody } from 'common'
 import { Ticket, TicketStatus } from '../schemas'
+import { TicketsRepository } from '../tickets.repository'
 import {
     TicketsCreateCompleteEvent,
     TicketsCreateErrorEvent,
-    TicketsCreateRequestEvent
-} from '../tickets.events'
-import { TicketsRepository } from '../tickets.repository'
+    TicketsCreateProcessingEvent
+} from './tickets-events.service'
 
 type TicketsCreationData = { batchId: string }
 
@@ -19,7 +18,7 @@ type TicketsCreationData = { batchId: string }
 @Processor('tickets')
 export class TicketsCreationService {
     constructor(
-        private eventEmitter: EventEmitter2,
+        private eventService: EventService,
         private repository: TicketsRepository,
         private theatersService: TheatersService,
         private showtimesService: ShowtimesService
@@ -29,13 +28,17 @@ export class TicketsCreationService {
     @OnQueueFailed()
     @MethodLog()
     async onFailed(job: Job) {
-        await this.emitEvent(new TicketsCreateErrorEvent(job.data.batchId, job.failedReason ?? ''))
+        await this.eventService.emit(
+            new TicketsCreateErrorEvent(job.data.batchId, job.failedReason ?? '')
+        )
     }
 
-    @Process(TicketsCreateRequestEvent.eventName)
+    @Process('tickets.create')
     @MethodLog()
     async onTicketsCreateRequest(job: Job<TicketsCreationData>): Promise<void> {
         const { batchId } = job.data
+
+        await this.eventService.emit(new TicketsCreateProcessingEvent(batchId))
 
         const showtimes = await this.showtimesService.findShowtimesByBatchId(batchId)
         const theaterMap = await this.getTheaterMap(showtimes)
@@ -58,7 +61,7 @@ export class TicketsCreationService {
 
         await this.repository.createTickets(tickets)
 
-        await this.emitEvent(new TicketsCreateCompleteEvent(batchId))
+        await this.eventService.emit(new TicketsCreateCompleteEvent(batchId))
     }
 
     private async getTheaterMap(showtimes: ShowtimeDto[]) {
@@ -67,10 +70,5 @@ export class TicketsCreationService {
         )
 
         return new Map(theaters.map((theater) => [theater.id, theater]))
-    }
-
-    @MethodLog()
-    private async emitEvent(event: AppEvent) {
-        await this.eventEmitter.emitAsync(event.name, event)
     }
 }

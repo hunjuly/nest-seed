@@ -92,21 +92,19 @@ export class HttpClient {
         return this
     }
 
-    sse(handler: (data: string) => void, reject: (reason: any) => void): this {
+    sse(callback: (data: string) => void, reject: (reason: any) => void): this {
         this.client
             .set('Accept', 'text/event-stream')
             .buffer(true)
-            .parse((res, callback) => {
-                res.on('data', (chunk: any) => {
+            .parse((res, _) => {
+                res.on('data', async (chunk: any) => {
                     const event: string = chunk.toString()
 
                     const item = event.split('\n').filter((item) => item.startsWith('data:'))
 
                     if (0 < item.length) {
                         const [_key, value] = item[0].split(': ')
-
-                        handler(value)
-                        callback(null, value)
+                        await callback(value)
                     }
                 })
             })

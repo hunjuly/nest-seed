@@ -1,10 +1,11 @@
+import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
 import { TheaterDto } from 'app/services/theaters'
-import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common'
+import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
 import { createMovie } from './movies.fixture'
 import {
-    ShowtimesEventListener,
-    createFixture,
+    castForShowtimes,
+    castForTickets,
     createShowtimes,
     makeCreateShowtimesDto
 } from './showtimes-registration.fixture'
@@ -13,15 +14,12 @@ import { createTheaters } from './theaters.fixture'
 describe('showtimes-registration', () => {
     let testContext: HttpTestContext
     let client: HttpClient
-    let listener: ShowtimesEventListener
     let movie: MovieDto
     let theaters: TheaterDto[]
 
     beforeEach(async () => {
-        const fixture = await createFixture()
-        testContext = fixture.testContext
+        testContext = await createHttpTestContext({ imports: [AppModule] })
         client = testContext.client
-        listener = fixture.listener
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
     })
@@ -37,7 +35,16 @@ describe('showtimes-registration', () => {
             { startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')] }
         )
 
-        const { showtimes, tickets } = await createShowtimes(client, createDto, listener)
+        const results = await Promise.all([
+            castForShowtimes(client, 1),
+            castForTickets(client, 1),
+            createShowtimes(client, createDto)
+        ])
+
+        const showtimesMap = results[0]
+        const ticketsMap = results[1]
+        const showtimes = Array.from(showtimesMap.values()).flat()
+        const tickets = Array.from(ticketsMap.values()).flat()
 
         expectEqualUnsorted(showtimes, expectedShowtimes)
         expectEqualUnsorted(tickets, expectedTickets)
@@ -45,6 +52,9 @@ describe('showtimes-registration', () => {
 
     it('should successfully complete all requests when multiple creation requests occur simultaneously', async () => {
         const length = 100
+
+        const p1 = castForShowtimes(client, 100)
+        const p2 = castForTickets(client, 100)
 
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
@@ -54,18 +64,23 @@ describe('showtimes-registration', () => {
                     { startTimes: [new Date(1900, index)] }
                 )
 
-                const { showtimes, tickets } = await createShowtimes(client, createDto, listener)
+                await createShowtimes(client, createDto)
 
-                return { showtimes, tickets, expectedShowtimes, expectedTickets }
+                return { expectedShowtimes, expectedTickets }
             })
         )
 
+        const showtimesMap = await p1
+        const ticketsMap = await p2
+        const showtimes = Array.from(showtimesMap.values()).flat()
+        const tickets = Array.from(ticketsMap.values()).flat()
+
         expectEqualUnsorted(
-            results.flatMap((result) => result.showtimes),
+            showtimes,
             results.flatMap((result) => result.expectedShowtimes)
         )
         expectEqualUnsorted(
-            results.flatMap((result) => result.tickets),
+            tickets,
             results.flatMap((result) => result.expectedTickets)
         )
     })

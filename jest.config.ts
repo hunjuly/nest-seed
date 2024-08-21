@@ -31,7 +31,7 @@ const config: Config = {
     },
     collectCoverageFrom: [
         'projects/app/**/*.ts',
-        'projects/apps/**/*.ts',
+        // 'projects/apps/**/*.ts',
         'projects/libs/**/*.ts',
         '!projects/libs/config/**/*.ts',
         '!projects/**/jest.config.ts',

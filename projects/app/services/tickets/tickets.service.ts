@@ -1,31 +1,48 @@
 import { InjectQueue } from '@nestjs/bull'
-import { Injectable } from '@nestjs/common'
+import { Injectable, MessageEvent } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Queue } from 'bull'
-import { Assert, maps, MethodLog, PaginationOption, PaginationResult } from 'common'
+import {
+    Assert,
+    EventService,
+    maps,
+    MethodLog,
+    PaginationOption,
+    PaginationResult,
+    ServerSentEventsService
+} from 'common'
+import { Observable } from 'rxjs'
 import { ShowtimesCreateCompleteEvent } from '../showtimes'
 import { TicketDto, TicketsQueryDto } from './dto'
 import { TicketStatus } from './schemas'
-import { TicketsCreateRequestEvent } from './tickets.events'
+import { TicketsCreateRequestEvent } from './services'
 import { TicketsRepository } from './tickets.repository'
 
 @Injectable()
 export class TicketsService {
     constructor(
         @InjectQueue('tickets') private ticketsQueue: Queue,
-        private repository: TicketsRepository
+        private repository: TicketsRepository,
+        private eventService: EventService,
+        private sseService: ServerSentEventsService
     ) {}
 
     async onModuleDestroy() {
         await this.ticketsQueue.close()
     }
 
+    getEventObservable(): Observable<MessageEvent> {
+        return this.sseService.getEventObservable()
+    }
+
     @OnEvent(ShowtimesCreateCompleteEvent.eventName, { async: true })
     @MethodLog()
     async onShowtimesCreateComplete(showtimesEvent: ShowtimesCreateCompleteEvent) {
-        const ticketsEvent = new TicketsCreateRequestEvent(showtimesEvent.batchId)
+        this.eventService.emit(new TicketsCreateRequestEvent(showtimesEvent.batchId))
 
-        await this.ticketsQueue.add(ticketsEvent.name, ticketsEvent)
+        // const ticketsEvent = new TicketsCreateRequestEvent(showtimesEvent.batchId)
+
+        // await this.ticketsQueue.add(ticketsEvent.name, ticketsEvent)
     }
 
     @MethodLog()

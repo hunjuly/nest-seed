@@ -1,5 +1,5 @@
 import { createHttpTestContext, HttpClient, HttpTestContext } from '../../test'
-import { AppModule } from './sse.fixture'
+import { AppModule } from './server-sent-events.service.fixture'
 
 describe('createHttpTestContext', () => {
     let testContext: HttpTestContext

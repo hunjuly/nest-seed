@@ -1,28 +1,35 @@
-import { InjectQueue } from '@nestjs/bull'
-import { Injectable } from '@nestjs/common'
-import { Queue } from 'bull'
-import { maps, MethodLog, newObjectId, PaginationOption, PaginationResult } from 'common'
+import { Injectable, MessageEvent } from '@nestjs/common'
+import {
+    EventService,
+    maps,
+    MethodLog,
+    newObjectId,
+    PaginationOption,
+    PaginationResult,
+    ServerSentEventsService
+} from 'common'
+import { Observable } from 'rxjs'
 import { CreateShowtimesDto, CreateShowtimesResponse, QueryShowtimesDto, ShowtimeDto } from './dto'
-import { ShowtimesCreateRequestEvent } from './showtimes.events'
+import { ShowtimesCreateRequestEvent } from './services'
 import { ShowtimesRepository } from './showtimes.repository'
 
 @Injectable()
 export class ShowtimesService {
     constructor(
-        @InjectQueue('showtimes') private showtimesQueue: Queue,
+        private eventService: EventService,
+        private sseService: ServerSentEventsService,
         private repository: ShowtimesRepository
     ) {}
 
-    async onModuleDestroy() {
-        await this.showtimesQueue.close()
+    getEventObservable(): Observable<MessageEvent> {
+        return this.sseService.getEventObservable()
     }
 
     @MethodLog()
     async createShowtimes(createDto: CreateShowtimesDto) {
         const batchId = newObjectId()
 
-        const event = new ShowtimesCreateRequestEvent(batchId, createDto)
-        await this.showtimesQueue.add(event.name, event)
+        this.eventService.emit(new ShowtimesCreateRequestEvent(batchId, createDto))
 
         return { batchId } as CreateShowtimesResponse
     }

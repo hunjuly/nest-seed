@@ -8,12 +8,12 @@ export class SseController {
 
     @Sse('events')
     events(): Observable<MessageEvent> {
-        return this.eventService.getEventObservable()
+        return this.eventService.getEventObservable('id')
     }
 
     @Post('trigger-event')
     triggerEvent(@Body() body: { message: string }) {
-        this.eventService.sendEvent(body.message)
+        this.eventService.sendEvent('id', body.message)
         return { success: true }
     }
 }

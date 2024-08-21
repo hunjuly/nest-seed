@@ -16,13 +16,14 @@ import {
 } from 'common'
 import { CreateShowtimesDto, ShowtimeDto } from '../dto'
 import { Showtime } from '../schemas'
+import { ShowtimesRepository } from '../showtimes.repository'
 import {
     ShowtimesCreateCompleteEvent,
     ShowtimesCreateErrorEvent,
     ShowtimesCreateFailEvent,
+    ShowtimesCreateProcessingEvent,
     ShowtimesCreateRequestEvent
-} from '../showtimes.events'
-import { ShowtimesRepository } from '../showtimes.repository'
+} from './showtimes-event.service'
 
 type Timeslot = Map<number, Showtime>
 
@@ -45,10 +46,12 @@ export class ShowtimesCreationService {
         )
     }
 
-    @Process(ShowtimesCreateRequestEvent.eventName)
+    @Process('showtimes.create')
     @MethodLog()
     async onShowtimesCreateRequest(job: Job<ShowtimesCreateRequestEvent>) {
         const request = jsonToObject({ ...job.data })
+        // TODO ...job은 뭐지??
+        await this.eventService.emit(new ShowtimesCreateProcessingEvent(request.batchId))
 
         await this.checkMovieExists(request.createDto.movieId)
         await this.checkTheatersExist(request.createDto.theaterIds)
