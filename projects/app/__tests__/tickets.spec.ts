@@ -31,7 +31,7 @@ describe('/tickets', () => {
         jest.restoreAllMocks()
     })
 
-    describe('retrieve tickets', () => {
+    describe('GET /tickets', () => {
         let batchId: string
         let createdTickets: TicketDto[]
 
