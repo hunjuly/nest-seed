@@ -48,7 +48,7 @@ describe('/storage-files', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
         await Path.delete(Config.fileUpload.directory)
     })
 

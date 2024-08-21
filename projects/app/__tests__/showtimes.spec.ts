@@ -1,13 +1,20 @@
+import { AppModule } from 'app/app.module'
 import { MovieDto } from 'app/services/movies'
 import { ShowtimeDto } from 'app/services/showtimes'
 import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId, pickIds } from 'common'
-import { HttpClient, HttpTestContext, expectEqualUnsorted } from 'common'
+import {
+    HttpClient,
+    HttpTestContext,
+    createHttpTestContext,
+    expectEqualUnsorted,
+    nullObjectId,
+    pickIds
+} from 'common'
 import { createMovie } from './movies.fixture'
 import {
-    ShowtimesEventListener,
-    createFixture,
     createShowtimes,
+    errorShowtimes,
+    failShowtimes,
     makeCreateShowtimesDto
 } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
@@ -15,21 +22,18 @@ import { createTheaters } from './theaters.fixture'
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let client: HttpClient
-    let listener: ShowtimesEventListener
     let movie: MovieDto
     let theaters: TheaterDto[]
 
     beforeEach(async () => {
-        const fixture = await createFixture()
-        testContext = fixture.testContext
+        testContext = await createHttpTestContext({ imports: [AppModule] })
         client = testContext.client
-        listener = fixture.listener
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     describe('retrieve showtimes', () => {
@@ -38,7 +42,7 @@ describe('/showtimes', () => {
 
         beforeEach(async () => {
             const { createDto } = makeCreateShowtimesDto(movie, theaters)
-            const result = await createShowtimes(client, createDto, listener)
+            const result = await createShowtimes(client, createDto)
             batchId = result.batchId
             createdShowtimes = result.showtimes
         })
@@ -103,11 +107,7 @@ describe('/showtimes', () => {
                 ]
             })
 
-            const { showtimes: createdShowtimes } = await createShowtimes(
-                client,
-                createDto,
-                listener
-            )
+            const { showtimes: createdShowtimes } = await createShowtimes(client, createDto)
 
             const { createDto: conflictCreateDto } = makeCreateShowtimesDto(movie, theaters, {
                 durationMinutes: 30,
@@ -125,28 +125,24 @@ describe('/showtimes', () => {
                     new Date('2013-01-31T18:30').getTime()
                 ].includes(showtime.startTime.getTime())
             )
-            const promise = createShowtimes(client, conflictCreateDto, listener)
+            const { conflictShowtimes } = await failShowtimes(client, conflictCreateDto)
 
-            await expect(promise).rejects.toEqual({
-                batchId: expect.any(String),
-                name: 'showtimes.create.fail',
-                conflictShowtimes: expectedShowtimes
-            })
+            expectEqualUnsorted(conflictShowtimes, expectedShowtimes)
         })
     })
 
     describe('error handling', () => {
-        const expected = expect.objectContaining({ name: 'showtimes.create.error' })
+        const expected = { batchId: expect.any(String), status: 'error' }
 
         it('should return NOT_FOUND(404) when movieId is not found', async () => {
-            const { createDto } = makeCreateShowtimesDto(
-                { id: nullObjectId } as MovieDto,
-                theaters,
-                { startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')] }
-            )
+            const { createDto } = makeCreateShowtimesDto({ id: nullObjectId } as MovieDto, theaters)
 
-            const promise = createShowtimes(client, createDto, listener)
-            await expect(promise).rejects.toEqual(expected)
+            const error = await errorShowtimes(client, createDto)
+
+            expect(error).toEqual({
+                ...expected,
+                message: 'Movie with ID 000000000000000000000000 not found'
+            })
         })
 
         it('should return NOT_FOUND(404) when theaterId is not found', async () => {
@@ -154,8 +150,12 @@ describe('/showtimes', () => {
                 { id: nullObjectId } as TheaterDto
             ])
 
-            const promise = createShowtimes(client, createDto, listener)
-            await expect(promise).rejects.toEqual(expected)
+            const error = await errorShowtimes(client, createDto)
+
+            expect(error).toEqual({
+                ...expected,
+                message: 'Theater with IDs 000000000000000000000000 not found'
+            })
         })
 
         it('should return NOT_FOUND(404) when any theaterId in the list is not found', async () => {
@@ -164,8 +164,12 @@ describe('/showtimes', () => {
                 { id: nullObjectId } as TheaterDto
             ])
 
-            const promise = createShowtimes(client, createDto, listener)
-            await expect(promise).rejects.toEqual(expected)
+            const error = await errorShowtimes(client, createDto)
+
+            expect(error).toEqual({
+                ...expected,
+                message: expect.any(String)
+            })
         })
     })
 })

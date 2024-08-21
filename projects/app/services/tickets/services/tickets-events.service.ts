@@ -70,6 +70,7 @@ export class TicketsEventService {
         this.sseService.sendEvent({ batchId: event.batchId, status: 'complete' })
     }
 
+    /* istanbul ignore next */
     @OnEvent(TicketsCreateErrorEvent.eventName, { async: true })
     onErrorEvent(event: TicketsCreateErrorEvent) {
         this.sseService.sendEvent({

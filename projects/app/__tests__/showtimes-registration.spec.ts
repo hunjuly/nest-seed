@@ -25,7 +25,7 @@ describe('showtimes-registration', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     it('enter showtimes for the selected movie', async () => {
@@ -35,16 +35,7 @@ describe('showtimes-registration', () => {
             { startTimes: [new Date('2000-01-31T14:00'), new Date('2000-01-31T16:00')] }
         )
 
-        const results = await Promise.all([
-            castForShowtimes(client, 1),
-            castForTickets(client, 1),
-            createShowtimes(client, createDto)
-        ])
-
-        const showtimesMap = results[0]
-        const ticketsMap = results[1]
-        const showtimes = Array.from(showtimesMap.values()).flat()
-        const tickets = Array.from(ticketsMap.values()).flat()
+        const { showtimes, tickets } = await createShowtimes(client, createDto)
 
         expectEqualUnsorted(showtimes, expectedShowtimes)
         expectEqualUnsorted(tickets, expectedTickets)
@@ -53,8 +44,8 @@ describe('showtimes-registration', () => {
     it('should successfully complete all requests when multiple creation requests occur simultaneously', async () => {
         const length = 100
 
-        const p1 = castForShowtimes(client, 100)
-        const p2 = castForTickets(client, 100)
+        const p1 = castForShowtimes(client, length)
+        const p2 = castForTickets(client, length)
 
         const results = await Promise.all(
             Array.from({ length }, async (_, index) => {
@@ -64,7 +55,7 @@ describe('showtimes-registration', () => {
                     { startTimes: [new Date(1900, index)] }
                 )
 
-                await createShowtimes(client, createDto)
+                await client.post('/showtimes').body(createDto).accepted()
 
                 return { expectedShowtimes, expectedTickets }
             })
@@ -72,15 +63,13 @@ describe('showtimes-registration', () => {
 
         const showtimesMap = await p1
         const ticketsMap = await p2
-        const showtimes = Array.from(showtimesMap.values()).flat()
-        const tickets = Array.from(ticketsMap.values()).flat()
 
         expectEqualUnsorted(
-            showtimes,
+            Array.from(showtimesMap.values()).flat(),
             results.flatMap((result) => result.expectedShowtimes)
         )
         expectEqualUnsorted(
-            tickets,
+            Array.from(ticketsMap.values()).flat(),
             results.flatMap((result) => result.expectedTickets)
         )
     })

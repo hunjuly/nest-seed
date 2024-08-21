@@ -27,7 +27,7 @@ describe('StorageFilesModule', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
         await Path.delete(Config.fileUpload.directory)
         await Path.delete(tempDir)
     })

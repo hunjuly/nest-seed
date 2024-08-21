@@ -1,35 +1,33 @@
+import { MovieDto } from 'app/services/movies'
 import { TheaterDto } from 'app/services/theaters'
 import { TicketDto } from 'app/services/tickets'
-import { pickIds } from 'common'
-import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common'
-import { createMovie } from './movies.fixture'
-import { createTheaters } from './theaters.fixture'
 import {
-    ShowtimesEventListener,
-    createFixture,
-    createShowtimes,
-    makeCreateShowtimesDto
-} from './showtimes-registration.fixture'
-import { MovieDto } from 'app/services/movies'
+    createHttpTestContext,
+    expectEqualUnsorted,
+    HttpClient,
+    HttpTestContext,
+    pickIds
+} from 'common'
+import { createMovie } from './movies.fixture'
+import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
+import { createTheaters } from './theaters.fixture'
+import { AppModule } from 'app/app.module'
 
 describe('/tickets', () => {
     let testContext: HttpTestContext
     let client: HttpClient
-    let listener: ShowtimesEventListener
     let movie: MovieDto
     let theaters: TheaterDto[]
 
     beforeEach(async () => {
-        const fixture = await createFixture()
-        testContext = fixture.testContext
+        testContext = await createHttpTestContext({ imports: [AppModule] })
         client = testContext.client
-        listener = fixture.listener
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
         jest.restoreAllMocks()
     })
 
@@ -39,7 +37,7 @@ describe('/tickets', () => {
 
         beforeEach(async () => {
             const { createDto } = makeCreateShowtimesDto(movie, theaters)
-            const result = await createShowtimes(client, createDto, listener)
+            const result = await createShowtimes(client, createDto)
             batchId = result.batchId
             createdTickets = result.tickets
         })

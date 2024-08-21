@@ -6,29 +6,18 @@ import { createHttpTestContext, HttpClient } from 'common'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createPayment, makeCreatePaymentDto } from './payments.fixture'
-import {
-    createShowtimes,
-    makeCreateShowtimesDto,
-    ShowtimesEventListener
-} from './showtimes-registration.fixture'
+import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
 import { createTheater } from './theaters.fixture'
 
 export async function createFixture() {
-    const testContext = await createHttpTestContext({
-        imports: [AppModule],
-        providers: [ShowtimesEventListener]
-    })
-
-    const module = testContext.module
-    const listener = module.get(ShowtimesEventListener)
+    const testContext = await createHttpTestContext({ imports: [AppModule] })
 
     const client = testContext.client
     const customer = await createCustomer(client)
     const movies = await createMovies(client)
     const theaters = await createTheaters(client)
-    const tickets = await createTickets(client, listener, movies, theaters)
-
-    const watchedMovie = await createWatchedMovie(client, listener, customer, theaters)
+    const tickets = await createTickets(client, movies, theaters)
+    const watchedMovie = await createWatchedMovie(client, customer, theaters)
 
     return { testContext, customer, tickets, watchedMovie, movies, theaters }
 }
@@ -65,12 +54,7 @@ async function createMovies(client: HttpClient) {
     return Promise.all(promises)
 }
 
-async function createTickets(
-    client: HttpClient,
-    listener: ShowtimesEventListener,
-    movies: MovieDto[],
-    theaters: TheaterDto[]
-) {
+async function createTickets(client: HttpClient, movies: MovieDto[], theaters: TheaterDto[]) {
     const allTickets = await Promise.all(
         movies.map(async (movie, i) => {
             const { createDto } = makeCreateShowtimesDto(movie, theaters, {
@@ -83,7 +67,7 @@ async function createTickets(
                 ]
             })
 
-            const { tickets } = await createShowtimes(client, createDto, listener)
+            const { tickets } = await createShowtimes(client, createDto)
             return tickets
         })
     )
@@ -93,14 +77,13 @@ async function createTickets(
 
 async function createWatchedMovie(
     client: HttpClient,
-    listener: ShowtimesEventListener,
     customer: CustomerDto,
     theaters: TheaterDto[]
 ) {
     const movie = await createMovie(client, { genre: [MovieGenre.Drama, MovieGenre.Fantasy] })
 
     const { createDto: createShowtimesDto } = makeCreateShowtimesDto(movie, theaters)
-    const { tickets } = await createShowtimes(client, createShowtimesDto, listener)
+    const { tickets } = await createShowtimes(client, createShowtimesDto)
     const { createDto: createPaymentDto } = makeCreatePaymentDto(customer, tickets)
     await createPayment(client, createPaymentDto)
 

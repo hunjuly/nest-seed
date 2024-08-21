@@ -11,7 +11,7 @@ describe('common/http/pipes', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     describe('LatLongPipe', () => {

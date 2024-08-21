@@ -2,12 +2,7 @@ import { expect } from '@jest/globals'
 import { AppModule } from 'app/app.module'
 import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
 import { nullObjectId, pickIds } from 'common'
-import {
-    HttpClient,
-    HttpTestContext,
-    createHttpTestContext,
-    expectEqualUnsorted
-} from 'common'
+import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
 import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
 
 describe('/movies', () => {
@@ -20,7 +15,7 @@ describe('/movies', () => {
     })
 
     afterEach(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     describe('POST /movies', () => {

@@ -23,7 +23,7 @@ describe('MongoRepository', () => {
     }, 60000)
 
     afterAll(async () => {
-        await mongod?.stop()
+        await mongod.stop()
     })
 
     beforeEach(async () => {

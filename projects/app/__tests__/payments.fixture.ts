@@ -1,10 +1,6 @@
 import { AppModule } from 'app/app.module'
 import { createHttpTestContext, HttpClient } from 'common'
-import {
-    createShowtimes,
-    makeCreateShowtimesDto,
-    ShowtimesEventListener
-} from './showtimes-registration.fixture'
+import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createTheaters } from './theaters.fixture'
@@ -14,20 +10,13 @@ import { pickIds } from 'common'
 import { CreatePaymentDto } from 'app/services/payments'
 
 export async function createFixture() {
-    const testContext = await createHttpTestContext({
-        imports: [AppModule],
-        providers: [ShowtimesEventListener]
-    })
-
-    const module = testContext.module
-    const listener = module.get(ShowtimesEventListener)
-
+    const testContext = await createHttpTestContext({ imports: [AppModule] })
     const client = testContext.client
     const customer = await createCustomer(client)
     const movie = await createMovie(client)
     const theaters = await createTheaters(client, 2)
     const { createDto: createShowtimesDto } = makeCreateShowtimesDto(movie, theaters)
-    const { tickets } = await createShowtimes(client, createShowtimesDto, listener)
+    const { tickets } = await createShowtimes(client, createShowtimesDto)
 
     return { testContext, customer, tickets }
 }

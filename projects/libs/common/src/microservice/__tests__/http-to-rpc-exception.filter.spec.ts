@@ -36,7 +36,7 @@ describe('HttpToRpcExceptionFilter', () => {
     })
 
     afterEach(async () => {
-        await client?.close()
+        await client.close()
         await module.close()
         await app.close()
     })

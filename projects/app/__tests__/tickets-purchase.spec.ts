@@ -34,7 +34,7 @@ describe('tickets-purchase', () => {
     })
 
     afterAll(async () => {
-        await testContext?.close()
+        await testContext.close()
     })
 
     it('Request recommended movie list', async () => {
