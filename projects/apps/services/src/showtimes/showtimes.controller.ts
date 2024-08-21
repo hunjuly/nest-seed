@@ -1,12 +1,18 @@
-import { Controller } from '@nestjs/common'
+import { Controller, MessageEvent } from '@nestjs/common'
+import { MessagePattern, Payload } from '@nestjs/microservices'
 import { PaginationOption } from 'common'
+import { Observable } from 'rxjs'
 import { CreateShowtimesDto, QueryShowtimesDto } from './dto'
 import { ShowtimesService } from './showtimes.service'
-import { MessagePattern, Payload } from '@nestjs/microservices'
 
 @Controller()
 export class ShowtimesController {
     constructor(private readonly service: ShowtimesService) {}
+
+    @MessagePattern({ cmd: 'getEventObservable' })
+    getEventObservable(): Observable<MessageEvent> {
+        return this.service.getEventObservable()
+    }
 
     @MessagePattern({ cmd: 'createShowtimes' })
     async createShowtimes(@Payload() createDto: CreateShowtimesDto) {

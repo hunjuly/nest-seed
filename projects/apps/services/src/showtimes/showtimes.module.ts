@@ -1,14 +1,13 @@
 import { BullModule } from '@nestjs/bull'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { EventService } from 'common'
+import { EventService, ServerSentEventsService } from 'common'
 import { MoviesModule } from '../movies'
 import { TheatersModule } from '../theaters'
 import { Showtime, ShowtimeSchema } from './schemas'
-import { ShowtimesCreationService } from './services'
+import { ShowtimesCreationService, ShowtimesEventService } from './services'
 import { ShowtimesRepository } from './showtimes.repository'
 import { ShowtimesService } from './showtimes.service'
-import { ShowtimesController } from './showtimes.controller'
 
 @Module({
     imports: [
@@ -17,8 +16,14 @@ import { ShowtimesController } from './showtimes.controller'
         MoviesModule,
         TheatersModule
     ],
-    providers: [ShowtimesService, ShowtimesRepository, ShowtimesCreationService, EventService],
-    exports: [ShowtimesService],
-    controllers: [ShowtimesController]
+    providers: [
+        EventService,
+        ServerSentEventsService,
+        ShowtimesService,
+        ShowtimesRepository,
+        ShowtimesCreationService,
+        ShowtimesEventService
+    ],
+    exports: [ShowtimesService]
 })
 export class ShowtimesModule {}
