@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     MethodLog,
@@ -57,7 +57,13 @@ export class TicketsRepository extends MongooseRepository<Ticket> {
     @MethodLog({ level: 'verbose' })
     async findTickets(queryDto: TicketsQueryDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { movieId, theaterId, theaterIds, ticketIds, batchId, showtimeId } = queryDto
+            const { movieId, theaterId, theaterIds, ticketIds, batchId, showtimeId, ...rest } =
+                queryDto
+
+            if (Object.keys(rest).length > 0) {
+                const message = `Additional query parameters are not allowed. Received: ${JSON.stringify(rest)}`
+                throw new BadRequestException(message)
+            }
 
             const query: FilterQuery<Ticket> = {}
             if (theaterIds) query.theaterId = { $in: objectIds(theaterIds) }

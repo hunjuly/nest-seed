@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
     Expect,
@@ -71,7 +71,13 @@ export class MoviesRepository extends MongooseRepository<Movie> {
     @MethodLog({ level: 'verbose' })
     async findMovies(queryDto: QueryMoviesDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { title, genre, releaseDate, plot, durationMinutes, director, rating } = queryDto
+            const { title, genre, releaseDate, plot, durationMinutes, director, rating, ...rest } =
+                queryDto
+
+            if (Object.keys(rest).length > 0) {
+                const message = `Additional query parameters are not allowed. Received: ${JSON.stringify(rest)}`
+                throw new BadRequestException(message)
+            }
 
             const query: FilterQuery<Movie> = {}
             if (title) query.title = new RegExp(escapeRegExp(title), 'i')
