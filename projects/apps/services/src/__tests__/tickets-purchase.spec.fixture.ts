@@ -62,8 +62,8 @@ async function createTickets(
     movies: MovieDto[],
     theaters: TheaterDto[]
 ) {
-    const createDtos = movies.map(async (movie, i) => {
-        return makeCreateShowtimesDto(movie, theaters, {
+    const createDtos = movies.map((movie, i) => {
+        const { createDto } = makeCreateShowtimesDto(movie, theaters, {
             startTimes: [
                 new Date(2999, i, 2, 19),
                 new Date(2999, i, 2, 21),
@@ -72,11 +72,15 @@ async function createTickets(
                 new Date(2999, i, 3)
             ]
         })
+
+        return createDto
     })
 
     const ticketsPromise = castForTickets(client, createDtos.length)
 
-    await Promise.all(createDtos.map((createDto) => client.send('createShowtimes', createDto)))
+    const _batchIds = await Promise.all(
+        createDtos.map((createDto) => client.send('createShowtimes', createDto))
+    )
 
     const ticketsMap = await ticketsPromise
     const tickets = Array.from(ticketsMap.values()).flat()

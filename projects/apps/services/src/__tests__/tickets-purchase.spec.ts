@@ -19,6 +19,7 @@ describe('tickets-purchase', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
     let customer: CustomerDto
+    let movies: MovieDto[]
     let theaters: TheaterDto[]
     let watchedMovie: MovieDto
 
@@ -34,6 +35,7 @@ describe('tickets-purchase', () => {
         testContext = fixture.testContext
         client = testContext.client
         customer = fixture.customer
+        movies = fixture.movies
         theaters = fixture.theaters
         watchedMovie = fixture.watchedMovie
     })
@@ -43,19 +45,24 @@ describe('tickets-purchase', () => {
     })
 
     it('Request recommended movie list', async () => {
-        const movies: MovieDto[] = await client.send('getRecommendedMovies', customer.id)
+        const recommendedMovies: MovieDto[] = await client.send(
+            'showing.getRecommendedMovies',
+            customer.id
+        )
 
-        const similarMovies = movies.filter((movie) =>
+        const similarMovies = recommendedMovies.filter((movie) =>
             movie.genre.some((item) => watchedMovie.genre.includes(item))
         )
-        expectEqualUnsorted(movies, similarMovies)
+        expectEqualUnsorted(recommendedMovies, similarMovies)
 
+        // selectedMovie should be selected from movies.
+        // recommendedMovies is variable and will affect later tests.
         selectedMovie = movies[0]
     })
 
     it('Request list of theaters showing the movie', async () => {
-        const nearbyTheater1 = '37.6,128.6'
-        const showingTheaters = await client.send('findShowingTheaters', {
+        const nearbyTheater1 = { latitude: 37.6, longitude: 128.6 }
+        const showingTheaters = await client.send('showing.findShowingTheaters', {
             movieId: selectedMovie.id,
             userLocation: nearbyTheater1
         })
@@ -72,7 +79,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Request list of showdates', async () => {
-        const showdates = await client.send('findShowdates', {
+        const showdates = await client.send('showing.findShowdates', {
             movieId: selectedMovie.id,
             theaterId: selectedTheater.id
         })
@@ -87,7 +94,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Request list of showtimes', async () => {
-        const showtimes = await client.send('findShowtimes', {
+        const showtimes = await client.send('showing.findShowtimes', {
             movieId: selectedMovie.id,
             theaterId: selectedTheater.id,
             showdate: convertDateToString(selectedShowdate)
@@ -110,7 +117,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Request ticket information for a specific showtime', async () => {
-        const tickets = await client.send('findTickets', selectedShowtime.id)
+        const tickets = await client.send('showing.findTickets', selectedShowtime.id)
 
         const seatCount = getSeatCount(selectedTheater.seatmap)
         const expectedTickets = Array.from({ length: seatCount }, (_, index) => ({
@@ -134,7 +141,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Verify update of showtime list', async () => {
-        const showtimes = await client.send('findShowtimes', {
+        const showtimes = await client.send('showing.findShowtimes', {
             movieId: selectedMovie.id,
             theaterId: selectedTheater.id,
             showdate: convertDateToString(selectedShowdate)
@@ -150,7 +157,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Verify update of ticket information for the showtime', async () => {
-        const tickets: TicketDto[] = await client.send('findTickets', selectedShowtime.id)
+        const tickets: TicketDto[] = await client.send('showing.findTickets', selectedShowtime.id)
         const soldTickets = tickets.filter((ticket) => ticket.status === 'sold')
         expectEqualUnsorted(pickIds(soldTickets), pickIds(selectedTickets))
     })

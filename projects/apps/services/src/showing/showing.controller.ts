@@ -7,12 +7,12 @@ import { ShowingService } from './showing.service'
 export class ShowingController {
     constructor(private service: ShowingService) {}
 
-    @MessagePattern({ cmd: 'getRecommendedMovies' })
+    @MessagePattern({ cmd: 'showing.getRecommendedMovies' })
     async getRecommendedMovies(@Payload() customerId: string) {
         return this.service.getRecommendedMovies(customerId)
     }
 
-    @MessagePattern({ cmd: 'findShowingTheaters' })
+    @MessagePattern({ cmd: 'showing.findShowingTheaters' })
     async findShowingTheaters(
         @Payload('movieId') movieId: string,
         @Payload('userLocation') userLocation: LatLong
@@ -20,7 +20,7 @@ export class ShowingController {
         return this.service.findShowingTheaters(movieId, userLocation)
     }
 
-    @MessagePattern({ cmd: 'findShowdates' })
+    @MessagePattern({ cmd: 'showing.findShowdates' })
     async findShowdates(
         @Payload('movieId') movieId: string,
         @Payload('theaterId') theaterId: string
@@ -28,7 +28,7 @@ export class ShowingController {
         return this.service.findShowdates(movieId, theaterId)
     }
 
-    @MessagePattern({ cmd: 'findShowtimes' })
+    @MessagePattern({ cmd: 'showing.findShowtimes' })
     async findShowtimes(
         @Payload('movieId') movieId: string,
         @Payload('theaterId') theaterId: string,
@@ -37,7 +37,7 @@ export class ShowingController {
         return this.service.findShowtimes(movieId, theaterId, convertStringToDate(showdate))
     }
 
-    @MessagePattern({ cmd: 'findTickets' })
+    @MessagePattern({ cmd: 'showing.findTickets' })
     async findTickets(@Payload() showtimeId: string) {
         return this.service.findTickets(showtimeId)
     }
