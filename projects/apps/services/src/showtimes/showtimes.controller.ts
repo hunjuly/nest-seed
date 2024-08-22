@@ -9,8 +9,8 @@ import { ShowtimesService } from './showtimes.service'
 export class ShowtimesController {
     constructor(private readonly service: ShowtimesService) {}
 
-    @MessagePattern({ cmd: 'getEventObservable' })
-    getEventObservable(): Observable<MessageEvent> {
+    @MessagePattern({ cmd: 'monitorShowtimeEvents' })
+    monitorEvents(): Observable<MessageEvent> {
         return this.service.getEventObservable()
     }
 

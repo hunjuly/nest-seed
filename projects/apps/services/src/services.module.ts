@@ -5,6 +5,7 @@ import { MoviesModule } from './movies'
 import { StorageFilesModule } from './storage-files'
 import { TheatersModule } from './theaters'
 import { ShowtimesModule } from './showtimes'
+import { TicketsModule } from './tickets'
 
 @Module({
     imports: [
@@ -13,7 +14,8 @@ import { ShowtimesModule } from './showtimes'
         StorageFilesModule,
         MoviesModule,
         TheatersModule,
-        ShowtimesModule
+        ShowtimesModule,
+        TicketsModule
     ]
 })
 export class ServicesModule {}

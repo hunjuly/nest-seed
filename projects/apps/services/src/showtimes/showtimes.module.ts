@@ -6,6 +6,7 @@ import { MoviesModule } from '../movies'
 import { TheatersModule } from '../theaters'
 import { Showtime, ShowtimeSchema } from './schemas'
 import { ShowtimesCreationService, ShowtimesEventService } from './services'
+import { ShowtimesController } from './showtimes.controller'
 import { ShowtimesRepository } from './showtimes.repository'
 import { ShowtimesService } from './showtimes.service'
 
@@ -24,6 +25,7 @@ import { ShowtimesService } from './showtimes.service'
         ShowtimesCreationService,
         ShowtimesEventService
     ],
-    exports: [ShowtimesService]
+    exports: [ShowtimesService],
+    controllers: [ShowtimesController]
 })
 export class ShowtimesModule {}

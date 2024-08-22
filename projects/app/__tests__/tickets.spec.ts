@@ -28,7 +28,6 @@ describe('/tickets', () => {
 
     afterEach(async () => {
         await testContext.close()
-        jest.restoreAllMocks()
     })
 
     describe('GET /tickets', () => {

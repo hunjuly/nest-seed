@@ -23,6 +23,8 @@ export async function initializeLogger(config: LoggerConfiguration) {
         throw new Exception(`"${directory}" is not writable.`)
     }
 
+    const transports: any[] = []
+
     const logFileOptions = {
         dirname: directory,
         zippedArchive: false,
@@ -34,33 +36,52 @@ export async function initializeLogger(config: LoggerConfiguration) {
         )
     }
 
-    const allLogsTransport = new DailyRotateFile({
-        ...logFileOptions,
-        datePattern: 'YYYY-MM-DD',
-        maxFiles: daysToKeepLogs,
-        symlinkName: `current.log`,
-        filename: `%DATE%.log`,
-        level: fileLogLevel
-    })
+    if (fileLogLevel && fileLogLevel !== 'null') {
+        transports.push(
+            new DailyRotateFile({
+                ...logFileOptions,
+                datePattern: 'YYYY-MM-DD',
+                maxFiles: daysToKeepLogs,
+                symlinkName: `current.log`,
+                filename: `%DATE%.log`,
+                level: fileLogLevel
+            })
+        )
 
-    const errorLogsTransport = new DailyRotateFile({
+        transports.push(
+            new DailyRotateFile({
+                ...logFileOptions,
+                datePattern: 'YYYY-MM-DD',
+                maxFiles: daysToKeepLogs,
+                symlinkName: `errors.log`,
+                filename: `err-%DATE%.log`,
+                level: 'error'
+            })
+        )
+    }
+
+    if (consoleLogLevel && consoleLogLevel !== 'null') {
+        transports.push(
+            new winston.transports.Console({
+                format: consoleLogFormat,
+                level: consoleLogLevel
+            })
+        )
+    }
+
+    const exceptionHandlers = new DailyRotateFile({
         ...logFileOptions,
         datePattern: 'YYYY-MM-DD',
         maxFiles: daysToKeepLogs,
-        symlinkName: `errors.log`,
-        filename: `err-%DATE%.log`,
+        symlinkName: `exceptions.log`,
+        filename: `exception-%DATE%.log`,
         level: 'error'
-    })
-
-    const consoleTransport = new winston.transports.Console({
-        format: consoleLogFormat,
-        level: consoleLogLevel
     })
 
     const logger = winston.createLogger({
         format: winston.format.json(),
-        transports: [allLogsTransport, errorLogsTransport, consoleTransport],
-        exceptionHandlers: [errorLogsTransport]
+        transports,
+        exceptionHandlers
     })
 
     return logger

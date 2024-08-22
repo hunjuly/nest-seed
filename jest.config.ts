@@ -1,7 +1,7 @@
 import type { Config } from 'jest'
 
 const config: Config = {
-    setupFilesAfterEnv: ['./jest.setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
     roots: [
@@ -20,7 +20,6 @@ const config: Config = {
     transform: {
         '^.+\\.(t|j)s$': 'ts-jest'
     },
-    // collectCoverage: false,
     coverageThreshold: {
         global: {
             branches: 100,
@@ -31,7 +30,7 @@ const config: Config = {
     },
     collectCoverageFrom: [
         'projects/app/**/*.ts',
-        // 'projects/apps/**/*.ts',
+        'projects/apps/**/*.ts',
         'projects/libs/**/*.ts',
         '!projects/libs/config/**/*.ts',
         '!projects/**/jest.config.ts',

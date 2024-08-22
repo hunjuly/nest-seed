@@ -3,7 +3,7 @@ import baseOption from '../../../jest.config'
 
 const config: Config = {
     ...baseOption,
-    rootDir:'../../../',
+    rootDir: '../../../',
     roots: ['<rootDir>/projects/apps/services/src'],
     collectCoverageFrom: [
         'projects/apps/services/**/*.ts',
