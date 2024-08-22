@@ -34,9 +34,13 @@ export class TicketsCreationService {
     }
 
     @Process('tickets.create')
-    @MethodLog()
     async onTicketsCreateRequest(job: Job<TicketsCreationData>): Promise<void> {
-        const { batchId } = job.data
+        return this._onTicketsCreateRequest(job.data)
+    }
+
+    @MethodLog()
+    async _onTicketsCreateRequest(data: TicketsCreationData): Promise<void> {
+        const { batchId } = data
 
         await this.eventService.emit(new TicketsCreateProcessingEvent(batchId))
 

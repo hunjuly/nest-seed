@@ -47,10 +47,13 @@ export class ShowtimesCreationService {
     }
 
     @Process('showtimes.create')
-    @MethodLog()
     async onShowtimesCreateRequest(job: Job<ShowtimesCreateRequestEvent>) {
-        const request = jsonToObject({ ...job.data })
-        // TODO ...job은 뭐지??
+        return this._onShowtimesCreateRequest(job.data)
+    }
+    @MethodLog()
+    async _onShowtimesCreateRequest(data: ShowtimesCreateRequestEvent) {
+        const request = jsonToObject(data)
+
         await this.eventService.emit(new ShowtimesCreateProcessingEvent(request.batchId))
 
         await this.checkMovieExists(request.createDto.movieId)
