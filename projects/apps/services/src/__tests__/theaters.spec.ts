@@ -1,6 +1,5 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { TheaterDto } from 'app/services/theaters'
 import {
     createMicroserviceTestContext,
     expectEqualUnsorted,
@@ -10,6 +9,7 @@ import {
     pickIds
 } from 'common'
 import { ServicesModule } from '../services.module'
+import { TheaterDto } from '../theaters'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {
@@ -22,7 +22,7 @@ describe('/theaters', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('createTheater', () => {

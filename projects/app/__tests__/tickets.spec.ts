@@ -27,7 +27,7 @@ describe('/tickets', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('GET /tickets', () => {

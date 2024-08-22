@@ -1,18 +1,24 @@
 import { expect } from '@jest/globals'
-import { CustomerDto } from 'app/services/customers'
-import { MovieDto } from 'app/services/movies'
-import { ShowtimeDto } from 'app/services/showtimes'
-import { getSeatCount, TheaterDto } from 'app/services/theaters'
-import { TicketDto } from 'app/services/tickets'
-import { convertDateToString, pickIds, pickItems } from 'common'
-import { expectEqualUnsorted, HttpClient, HttpTestContext } from 'common'
-import { createFixture, filterMoviesByGenre } from './tickets-purchase.spec.fixture'
+import {
+    convertDateToString,
+    expectEqualUnsorted,
+    MicroserviceClient,
+    MicroserviceTestContext,
+    pickIds,
+    pickItems
+} from 'common'
+import { CustomerDto } from '../customers'
+import { MovieDto } from '../movies'
+import { ShowtimeDto } from '../showtimes'
+import { getSeatCount, TheaterDto } from '../theaters'
+import { TicketDto } from '../tickets'
+import { createPayment, makeCreatePaymentDto } from './payments.fixture'
+import { createFixture } from './tickets-purchase.spec.fixture'
 
 describe('tickets-purchase', () => {
-    let testContext: HttpTestContext
-    let client: HttpClient
+    let testContext: MicroserviceTestContext
+    let client: MicroserviceClient
     let customer: CustomerDto
-    let movies: MovieDto[]
     let theaters: TheaterDto[]
     let watchedMovie: MovieDto
 
@@ -28,7 +34,6 @@ describe('tickets-purchase', () => {
         testContext = fixture.testContext
         client = testContext.client
         customer = fixture.customer
-        movies = fixture.movies
         theaters = fixture.theaters
         watchedMovie = fixture.watchedMovie
     })
@@ -38,35 +43,40 @@ describe('tickets-purchase', () => {
     })
 
     it('Request recommended movie list', async () => {
-        const res = await client
-            .get('/showing/movies/recommended')
-            .query({ customerId: customer.id })
-            .ok()
+        const movies: MovieDto[] = await client.send('getRecommendedMovies', customer.id)
 
-        const similarMovies = filterMoviesByGenre(movies, watchedMovie)
-        expectEqualUnsorted(res.body, similarMovies)
+        const similarMovies = movies.filter((movie) =>
+            movie.genre.some((item) => watchedMovie.genre.includes(item))
+        )
+        expectEqualUnsorted(movies, similarMovies)
 
         selectedMovie = movies[0]
     })
 
     it('Request list of theaters showing the movie', async () => {
         const nearbyTheater1 = '37.6,128.6'
-        const res = await client
-            .get(`/showing/movies/${selectedMovie.id}/theaters`)
-            .query({ userLocation: nearbyTheater1 })
-            .ok()
+        const showingTheaters = await client.send('findShowingTheaters', {
+            movieId: selectedMovie.id,
+            userLocation: nearbyTheater1
+        })
 
-        expect(res.body).toEqual([theaters[1], theaters[2], theaters[0], theaters[3], theaters[4]])
+        expect(showingTheaters).toEqual([
+            theaters[1],
+            theaters[2],
+            theaters[0],
+            theaters[3],
+            theaters[4]
+        ])
 
-        selectedTheater = theaters[0]
+        selectedTheater = showingTheaters[0]
     })
 
     it('Request list of showdates', async () => {
-        const res = await client
-            .get(`/showing/movies/${selectedMovie.id}/theaters/${selectedTheater.id}/showdates`)
-            .ok()
+        const showdates = await client.send('findShowdates', {
+            movieId: selectedMovie.id,
+            theaterId: selectedTheater.id
+        })
 
-        const showdates = res.body
         expect(showdates).toEqual([
             new Date(2999, 0, 1),
             new Date(2999, 0, 2),
@@ -77,20 +87,18 @@ describe('tickets-purchase', () => {
     })
 
     it('Request list of showtimes', async () => {
-        const movieId = selectedMovie.id
-        const theaterId = selectedTheater.id
-        const showdate = convertDateToString(selectedShowdate)
+        const showtimes = await client.send('findShowtimes', {
+            movieId: selectedMovie.id,
+            theaterId: selectedTheater.id,
+            showdate: convertDateToString(selectedShowdate)
+        })
 
-        const { body: showtimes } = await client
-            .get(`/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`)
-            .ok()
-
-        const seatCount = getSeatCount(theaters[0].seatmap)
+        const seatCount = getSeatCount(selectedTheater.seatmap)
         const common = {
             id: expect.any(String),
             endTime: expect.any(Date),
-            theaterId,
-            movieId,
+            movieId: selectedMovie.id,
+            theaterId: selectedTheater.id,
             salesStatus: { total: seatCount, sold: 0, available: seatCount }
         }
         expect(showtimes).toEqual([
@@ -102,9 +110,7 @@ describe('tickets-purchase', () => {
     })
 
     it('Request ticket information for a specific showtime', async () => {
-        const { body: tickets } = await client
-            .get(`/showing/showtimes/${selectedShowtime.id}/tickets`)
-            .ok()
+        const tickets = await client.send('findTickets', selectedShowtime.id)
 
         const seatCount = getSeatCount(selectedTheater.seatmap)
         const expectedTickets = Array.from({ length: seatCount }, (_, index) => ({
@@ -122,22 +128,18 @@ describe('tickets-purchase', () => {
     })
 
     it('Purchase tickets', async () => {
-        return client
-            .post('/payments')
-            .body({ customerId: customer.id, ticketIds: pickIds(selectedTickets) })
-            .created()
+        const { createDto, expectedDto } = makeCreatePaymentDto(customer, selectedTickets)
+        const payment = await createPayment(client, createDto)
+        expect(payment).toEqual(expectedDto)
     })
 
-    it('Verify update of screening time list', async () => {
-        const movieId = selectedMovie.id
-        const theaterId = selectedTheater.id
-        const showdate = convertDateToString(selectedShowdate)
+    it('Verify update of showtime list', async () => {
+        const showtimes = await client.send('findShowtimes', {
+            movieId: selectedMovie.id,
+            theaterId: selectedTheater.id,
+            showdate: convertDateToString(selectedShowdate)
+        })
 
-        const { body } = await client
-            .get(`/showing/movies/${movieId}/theaters/${theaterId}/showdates/${showdate}/showtimes`)
-            .ok()
-
-        const showtimes = body as ShowtimeDto[]
         const salesStatuses = pickItems(showtimes as any[], 'salesStatus')
         const seatCount = getSeatCount(theaters[0].seatmap)
         const expectedStatuses = [
@@ -147,10 +149,8 @@ describe('tickets-purchase', () => {
         expectEqualUnsorted(salesStatuses, expectedStatuses)
     })
 
-    it('Verify update of ticket information for the screening time', async () => {
-        const { body } = await client.get(`/showing/showtimes/${selectedShowtime.id}/tickets`).ok()
-
-        const tickets = body as TicketDto[]
+    it('Verify update of ticket information for the showtime', async () => {
+        const tickets: TicketDto[] = await client.send('findTickets', selectedShowtime.id)
         const soldTickets = tickets.filter((ticket) => ticket.status === 'sold')
         expectEqualUnsorted(pickIds(soldTickets), pickIds(selectedTickets))
     })

@@ -15,9 +15,7 @@ export interface MicroserviceTestContext {
     close: () => Promise<void>
 }
 
-export async function createMicroserviceTestContext(
-    metadata: ModuleMetadataEx
-): Promise<MicroserviceTestContext> {
+export async function createMicroserviceTestContext(metadata: ModuleMetadataEx) {
     const module = await createTestingModule(metadata)
 
     const port = await getAvailablePort()
@@ -39,5 +37,5 @@ export async function createMicroserviceTestContext(
         await app.close()
     }
 
-    return { module, app, close, client }
+    return { module, app, close, client } as MicroserviceTestContext
 }

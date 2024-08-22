@@ -34,7 +34,7 @@ describe('showtimes-registration', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     it('enter showtimes for the selected movie', async () => {

@@ -25,7 +25,7 @@ describe('CustomersModule', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('createCustomer', () => {

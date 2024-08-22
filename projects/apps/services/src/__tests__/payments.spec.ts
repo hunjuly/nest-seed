@@ -1,9 +1,9 @@
 import { expect } from '@jest/globals'
 import { HttpStatus } from '@nestjs/common'
-import { CustomerDto } from 'app/services/customers'
-import { PaymentDto } from 'app/services/payments'
-import { TicketDto } from 'app/services/tickets'
 import { MicroserviceClient, MicroserviceTestContext, pickIds } from 'common'
+import { CustomerDto } from '../customers'
+import { PaymentDto } from '../payments'
+import { TicketDto } from '../tickets'
 import { createFixture, createPayment, makeCreatePaymentDto } from './payments.fixture'
 
 describe('PaymentsModule', () => {
@@ -21,7 +21,7 @@ describe('PaymentsModule', () => {
     })
 
     afterEach(async () => {
-        await testContext.close()
+        await testContext?.close()
     })
 
     describe('createPayment', () => {
@@ -30,10 +30,6 @@ describe('PaymentsModule', () => {
             const payment = await createPayment(client, createDto)
 
             expect(payment).toEqual(expectedDto)
-        })
-
-        it('should return BAD_REQUEST(400) when required fields are missing', async () => {
-            return client.error('createPayment', {}, HttpStatus.BAD_REQUEST)
         })
 
         it(`tickets should be in 'sold' status after a successful purchase`, async () => {
@@ -46,6 +42,10 @@ describe('PaymentsModule', () => {
 
             const notSoldTickets = items.filter((ticket: TicketDto) => ticket.status !== 'sold')
             expect(notSoldTickets).toHaveLength(0)
+        })
+
+        it('should return BAD_REQUEST(400) when required fields are missing', async () => {
+            return client.error('createPayment', {}, HttpStatus.BAD_REQUEST)
         })
     })
 

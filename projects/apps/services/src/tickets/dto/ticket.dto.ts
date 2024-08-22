@@ -1,4 +1,4 @@
-import { Seat } from 'app/services/theaters'
+import { Seat } from '../../theaters'
 import { Ticket } from '../schemas'
 
 export class TicketDto {

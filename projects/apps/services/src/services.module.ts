@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common'
 import { CoreModule } from './core'
 import { CustomersModule } from './customers'
 import { MoviesModule } from './movies'
+import { PaymentsModule } from './payments'
+import { ShowingModule } from './showing'
+import { ShowtimesModule } from './showtimes'
 import { StorageFilesModule } from './storage-files'
 import { TheatersModule } from './theaters'
-import { ShowtimesModule } from './showtimes'
 import { TicketsModule } from './tickets'
-import { PaymentsModule } from './payments'
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import { PaymentsModule } from './payments'
         TheatersModule,
         ShowtimesModule,
         TicketsModule,
-        PaymentsModule
+        PaymentsModule,
+        ShowingModule
     ]
 })
 export class ServicesModule {}
