@@ -15,16 +15,16 @@ import {
     UsePipes
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { generateUUID, PaginationOption, PaginationPipe } from 'common'
+import { ClientProxyService, generateUUID, PaginationOption, PaginationPipe } from 'common'
 import { Config } from 'config'
 import { diskStorage } from 'multer'
-import { CreateMovieDto, MoviesService, QueryMoviesDto, UpdateMovieDto } from 'services/movies'
+import { CreateMovieDto, QueryMoviesDto, UpdateMovieDto } from 'services/movies'
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
 @Controller('movies')
 export class MoviesController {
-    constructor(private readonly service: MoviesService) {}
+    constructor(private service: ClientProxyService) {}
 
     @Post()
     @UseInterceptors(
@@ -60,33 +60,33 @@ export class MoviesController {
             uploadedFilePath: file.path
         }))
 
-        return this.service.createMovie(createStorageFileDtos, createMovieDto)
+        return this.service.send('createMovie', { createStorageFileDtos, createMovieDto })
     }
 
     @Patch(':movieId')
     async updateMovie(@Param('movieId') movieId: string, @Body() updateDto: UpdateMovieDto) {
-        return this.service.updateMovie(movieId, updateDto)
+        return this.service.send('updateMovie', { movieId, updateDto })
     }
 
     @Get(':movieId')
     async getMovie(@Param('movieId') movieId: string) {
-        return this.service.getMovie(movieId)
+        return this.service.send('getMovie', movieId)
     }
 
     @Delete(':movieId')
     async deleteMovie(@Param('movieId') movieId: string) {
-        return this.service.deleteMovie(movieId)
+        return this.service.send('deleteMovie', movieId)
     }
 
     @UsePipes(new PaginationPipe(100))
     @Get()
     async findMovies(@Query() queryDto: QueryMoviesDto, @Query() pagination: PaginationOption) {
-        return this.service.findMovies(queryDto, pagination)
+        return this.service.send('findMovies', { queryDto, pagination })
     }
 
     @HttpCode(HttpStatus.OK)
     @Post('getByIds')
     async getByIds(@Body('movieIds') movieIds: string[]) {
-        return this.service.getMoviesByIds(movieIds)
+        return this.service.send('getMoviesByIds', movieIds)
     }
 }

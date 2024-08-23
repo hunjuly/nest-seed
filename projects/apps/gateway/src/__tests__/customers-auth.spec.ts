@@ -8,9 +8,7 @@ import {
 } from 'common'
 import { Config } from 'config'
 import { ServicesModule } from 'services/services.module'
-import { CustomersController } from '../controllers'
-import { CoreModule } from '../core'
-import { CustomerJwtStrategy, CustomerLocalStrategy } from '../strategies'
+import { GatewayModule } from '../gateway.module'
 import { createCredentials, Credentials } from './customers-auth.fixture'
 
 describe('customer authentication', () => {
@@ -25,12 +23,7 @@ describe('customer authentication', () => {
         closeInfra = close
         Config.service.port = port
 
-        // testContext = await createHttpTestContext({ imports: [GatewayModule] })
-        testContext = await createHttpTestContext({
-            imports: [CoreModule],
-            providers: [CustomerLocalStrategy, CustomerJwtStrategy],
-            controllers: [CustomersController]
-        })
+        testContext = await createHttpTestContext({ imports: [GatewayModule] })
 
         client = testContext.client
         credentials = await createCredentials(client)

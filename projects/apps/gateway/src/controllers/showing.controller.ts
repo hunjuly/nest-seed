@@ -1,14 +1,13 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
-import { convertStringToDate, LatLong, LatLongQuery } from 'common'
-import { ShowingService } from 'services/showing'
+import { ClientProxyService, convertStringToDate, LatLong, LatLongQuery } from 'common'
 
 @Controller('showing')
 export class ShowingController {
-    constructor(private service: ShowingService) {}
+    constructor(private service: ClientProxyService) {}
 
     @Get('movies/recommended')
     async getRecommendedMovies(@Query('customerId') customerId: string) {
-        return this.service.getRecommendedMovies(customerId)
+        return this.service.send('getRecommendedMovies', customerId)
     }
 
     @Get('movies/:movieId/theaters')
@@ -16,12 +15,12 @@ export class ShowingController {
         @Param('movieId') movieId: string,
         @LatLongQuery('userLocation') userLocation: LatLong
     ) {
-        return this.service.findShowingTheaters(movieId, userLocation)
+        return this.service.send('findShowingTheaters', { movieId, userLocation })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates')
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
-        return this.service.findShowdates(movieId, theaterId)
+        return this.service.send('findShowdates', { movieId, theaterId })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
@@ -30,11 +29,15 @@ export class ShowingController {
         @Param('theaterId') theaterId: string,
         @Param('showdate') showdate: string
     ) {
-        return this.service.findShowtimes(movieId, theaterId, convertStringToDate(showdate))
+        return this.service.send('findShowtimes', {
+            movieId,
+            theaterId,
+            showdate: convertStringToDate(showdate)
+        })
     }
 
     @Get('showtimes/:showtimeId/tickets')
     async findTickets(@Param('showtimeId') showtimeId: string) {
-        return this.service.findTickets(showtimeId)
+        return this.service.send('findTickets', showtimeId)
     }
 }

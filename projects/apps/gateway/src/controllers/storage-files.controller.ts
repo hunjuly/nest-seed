@@ -12,11 +12,10 @@ import {
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { IsString } from 'class-validator'
-import { generateUUID } from 'common'
+import { ClientProxyService, generateUUID } from 'common'
 import { Config } from 'config'
 import { createReadStream } from 'fs'
 import { diskStorage } from 'multer'
-import { StorageFilesService } from 'services/storage-files'
 
 class UploadFileDto {
     @IsString()
@@ -25,7 +24,7 @@ class UploadFileDto {
 
 @Controller('storage-files')
 export class StorageFilesController {
-    constructor(private service: StorageFilesService) {}
+    constructor(private service: ClientProxyService) {}
 
     @Post()
     @UseInterceptors(
@@ -58,13 +57,14 @@ export class StorageFilesController {
             uploadedFilePath: file.path
         }))
 
-        const storageFiles = await this.service.saveFiles(createDtos)
+        const storageFiles = await this.service.send('saveFiles', createDtos)
         return { storageFiles }
     }
 
     @Get(':fileId')
     async downloadFile(@Param('fileId') fileId: string) {
-        const file = await this.service.getStorageFile(fileId)
+        // TODO 스트림을 직접 읽어라
+        const file = await this.service.getValue('getStorageFile', fileId)
 
         const readStream = createReadStream(file.storedPath)
 
@@ -77,6 +77,6 @@ export class StorageFilesController {
 
     @Delete(':fileId')
     async deleteStorageFile(@Param('fileId') fileId: string) {
-        return this.service.deleteStorageFile(fileId)
+        return this.service.send('deleteStorageFile', fileId)
     }
 }

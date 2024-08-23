@@ -11,21 +11,16 @@ import {
     Query,
     UsePipes
 } from '@nestjs/common'
-import { PaginationOption, PaginationPipe } from 'common'
-import {
-    CreateTheaterDto,
-    QueryTheatersDto,
-    TheatersService,
-    UpdateTheaterDto
-} from 'services/theaters'
+import { ClientProxyService, PaginationOption, PaginationPipe } from 'common'
+import { CreateTheaterDto, QueryTheatersDto, UpdateTheaterDto } from 'services/theaters'
 
 @Controller('theaters')
 export class TheatersController {
-    constructor(private readonly service: TheatersService) {}
+    constructor(private readonly service: ClientProxyService) {}
 
     @Post()
     async createTheater(@Body() createDto: CreateTheaterDto) {
-        return this.service.createTheater(createDto)
+        return this.service.send('createTheater', createDto)
     }
 
     @Patch(':theaterId')
@@ -33,28 +28,28 @@ export class TheatersController {
         @Param('theaterId') theaterId: string,
         @Body() updateDto: UpdateTheaterDto
     ) {
-        return this.service.updateTheater(theaterId, updateDto)
+        return this.service.send('updateTheater', { theaterId, updateDto })
     }
 
     @Get(':theaterId')
     async getTheater(@Param('theaterId') theaterId: string) {
-        return this.service.getTheater(theaterId)
+        return this.service.send('getTheater', theaterId)
     }
 
     @Delete(':theaterId')
     async deleteTheater(@Param('theaterId') theaterId: string) {
-        return this.service.deleteTheater(theaterId)
+        return this.service.send('deleteTheater', theaterId)
     }
 
     @Get()
     @UsePipes(new PaginationPipe(50))
     async findTheaters(@Query() queryDto: QueryTheatersDto, @Query() pagination: PaginationOption) {
-        return this.service.findTheaters(queryDto, pagination)
+        return this.service.send('findTheaters', { queryDto, pagination })
     }
 
     @HttpCode(HttpStatus.OK)
     @Post('getByIds')
     async getByIds(@Body('theaterIds') theaterIds: string[]) {
-        return this.service.getTheatersByIds(theaterIds)
+        return this.service.send('getTheatersByIds', theaterIds)
     }
 }

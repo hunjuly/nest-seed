@@ -11,28 +11,28 @@ import {
     Sse,
     UsePipes
 } from '@nestjs/common'
-import { PaginationOption, PaginationPipe } from 'common'
+import { ClientProxyService, PaginationOption, PaginationPipe } from 'common'
 import { Observable } from 'rxjs'
-import { CreateShowtimesDto, QueryShowtimesDto, ShowtimesService } from 'services/showtimes'
+import { CreateShowtimesDto, QueryShowtimesDto } from 'services/showtimes'
 
 @Controller('showtimes')
 export class ShowtimesController {
-    constructor(private readonly service: ShowtimesService) {}
+    constructor(private service: ClientProxyService) {}
 
     @HttpCode(HttpStatus.ACCEPTED)
     @Post()
     async createShowtimes(@Body() createDto: CreateShowtimesDto) {
-        return this.service.createShowtimes(createDto)
+        return this.service.send('createShowtimes', createDto)
     }
 
     @Sse('events')
     events(): Observable<MessageEvent> {
-        return this.service.getEventObservable()
+        return this.service.send('getEventObservable', {})
     }
 
     @Get(':showtimeId')
     async getShowtime(@Param('showtimeId') showtimeId: string) {
-        return this.service.getShowtime(showtimeId)
+        return this.service.send('getShowtime', showtimeId)
     }
 
     @UsePipes(new PaginationPipe(100))
@@ -41,6 +41,6 @@ export class ShowtimesController {
         @Query() queryDto: QueryShowtimesDto,
         @Query() pagination: PaginationOption
     ) {
-        return this.service.findShowtimes(queryDto, pagination)
+        return this.service.send('findShowtimes', { queryDto, pagination })
     }
 }

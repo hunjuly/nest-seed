@@ -3,19 +3,27 @@ import {
     HttpClient,
     HttpTestContext,
     createHttpTestContext,
+    createMicroserviceTestContext,
     expectEqualUnsorted,
     nullObjectId
 } from 'common'
 import { CustomerDto } from 'services/customers'
 import { GatewayModule } from '../gateway.module'
-import { CustomerJwtAuthGuard } from '../guards'
 import { createCustomer, createCustomers, makeCustomerDto } from './customers.fixture'
+import { CustomerJwtAuthGuard } from '../controllers/guards'
+import { Config } from 'config'
+import { ServicesModule } from 'services/services.module'
 
 describe('/customers', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
 
     beforeEach(async () => {
+        const { port, close } = await createMicroserviceTestContext({ imports: [ServicesModule] })
+        closeInfra = close
+        Config.service.port = port
+
         testContext = await createHttpTestContext({
             imports: [GatewayModule],
             ignoreGuards: [CustomerJwtAuthGuard]
@@ -25,6 +33,7 @@ describe('/customers', () => {
 
     afterEach(async () => {
         await testContext?.close()
+        await closeInfra()
     })
 
     describe('POST /customers', () => {
