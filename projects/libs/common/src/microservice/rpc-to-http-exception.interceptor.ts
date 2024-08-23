@@ -13,7 +13,8 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
         return next.handle().pipe(
             catchError((err) => {
                 if (err && err.status && err.message) {
-                    return throwError(() => new HttpException(err.message, err.status))
+                    const message = err.response?.message ?? err.message
+                    return throwError(() => new HttpException(message, err.status))
                 }
                 /* istanbul ignore next */
                 return throwError(() => err)
