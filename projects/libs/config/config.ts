@@ -16,6 +16,9 @@ export const Config = {
         paginationMaxSize: getNumber('HTTP_PAGINATION_MAX_SIZE'),
         paginationDefaultSize: getNumber('HTTP_PAGINATION_DEFAULT_SIZE')
     },
+    service: {
+        port: getNumber('SERVICE_PORT')
+    },
     auth: {
         accessSecret: getString('AUTH_ACCESS_SECRET'),
         accessTokenExpiration: getString('AUTH_ACCESS_TOKEN_EXPIRATION'),

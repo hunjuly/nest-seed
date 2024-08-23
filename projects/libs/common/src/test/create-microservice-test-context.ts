@@ -13,6 +13,7 @@ export interface MicroserviceTestContext {
     app: INestMicroservice
     client: MicroserviceClient
     close: () => Promise<void>
+    port: number
 }
 
 export async function createMicroserviceTestContext(metadata: ModuleMetadataEx) {
@@ -37,5 +38,5 @@ export async function createMicroserviceTestContext(metadata: ModuleMetadataEx) 
         await app.close()
     }
 
-    return { module, app, close, client } as MicroserviceTestContext
+    return { module, app, close, client, port } as MicroserviceTestContext
 }

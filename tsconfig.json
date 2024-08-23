@@ -11,17 +11,14 @@
         "outDir": "./_output/build",
         "baseUrl": ".",
         "paths": {
-            "app/*": [
-                "projects/app/*"
+            "services/*": [
+                "projects/apps/services/src/*"
             ],
             "common": [
                 "projects/libs/common/src/index"
             ],
             "config": [
                 "projects/libs/config/index"
-            ],
-            "core": [
-                "projects/libs/core/index"
             ]
         },
         "incremental": true,

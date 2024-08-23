@@ -5,16 +5,14 @@ const config: Config = {
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
     roots: [
-        '<rootDir>/projects/app',
-        '<rootDir>/projects/apps/services/src',
+        '<rootDir>/projects/apps',
         '<rootDir>/projects/libs/common'
     ],
     testRegex: '.*\\.spec\\.ts$',
     moduleNameMapper: {
-        '^app/(.*)$': '<rootDir>/projects/app/$1',
+        '^services/(.*)$': '<rootDir>/projects/apps/services/src/$1',
         '^common$': '<rootDir>/projects/libs/common/src/index',
-        '^config$': '<rootDir>/projects/libs/config/index',
-        '^core$': '<rootDir>/projects/libs/core/index'
+        '^config$': '<rootDir>/projects/libs/config/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -29,7 +27,6 @@ const config: Config = {
         }
     },
     collectCoverageFrom: [
-        'projects/app/**/*.ts',
         'projects/apps/**/*.ts',
         'projects/libs/**/*.ts',
         '!projects/libs/config/**/*.ts',
