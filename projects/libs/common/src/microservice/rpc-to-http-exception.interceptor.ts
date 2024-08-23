@@ -15,6 +15,7 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
                 if (err && err.status && err.message) {
                     return throwError(() => new HttpException(err.message, err.status))
                 }
+                /* istanbul ignore next */
                 return throwError(() => err)
             })
         )

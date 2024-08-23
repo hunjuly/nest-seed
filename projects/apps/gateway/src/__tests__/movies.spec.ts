@@ -1,16 +1,22 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
-import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
-import { nullObjectId, pickIds } from 'common'
-import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
+import {
+    HttpClient,
+    HttpTestContext,
+    createHttpTestContext,
+    expectEqualUnsorted,
+    nullObjectId,
+    pickIds
+} from 'common'
+import { MovieDto, MovieGenre, MovieRating } from 'services/movies'
 import { createMovie, createMovies, makeCreateMovieDto, objectToFields } from './movies.fixture'
+import { GatewayModule } from '../gateway.module'
 
 describe('/movies', () => {
     let testContext: HttpTestContext
     let client: HttpClient
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
     })
 

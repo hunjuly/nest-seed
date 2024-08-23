@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
+import { ClientProxyService } from 'common'
 import { Strategy } from 'passport-local'
-import { ClientProxyService } from '../core/client-proxy.module'
 
 @Injectable()
 export class CustomerLocalStrategy extends PassportStrategy(Strategy, 'customer-local') {
@@ -13,7 +13,6 @@ export class CustomerLocalStrategy extends PassportStrategy(Strategy, 'customer-
     }
 
     async validate(email: string, password: string) {
-        /* customer is passed to the corresponding @UseGuards (LocalAuthGuard). */
-        return this.service.get('getCustomerByCredentials', { email, password })
+        return this.service.getValue('getCustomerByCredentials', { email, password })
     }
 }

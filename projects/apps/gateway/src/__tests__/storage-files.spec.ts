@@ -1,9 +1,16 @@
-import { AppModule } from 'app/app.module'
-import { StorageFileDto } from 'app/services/storage-files'
-import { getChecksum, nullObjectId, Path } from 'common'
-import { createDummyFile, createHttpTestContext, HttpClient, HttpTestContext } from 'common'
+import {
+    createDummyFile,
+    createHttpTestContext,
+    getChecksum,
+    HttpClient,
+    HttpTestContext,
+    nullObjectId,
+    Path
+} from 'common'
 import { Config } from 'config'
 import { writeFile } from 'fs/promises'
+import { StorageFileDto } from 'services/storage-files'
+import { GatewayModule } from '../gateway.module'
 
 describe('/storage-files', () => {
     let testContext: HttpTestContext
@@ -43,7 +50,7 @@ describe('/storage-files', () => {
             allowedMimeTypes: ['text/plain']
         }
 
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
     })
 

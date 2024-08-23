@@ -1,9 +1,14 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
-import { CustomerJwtAuthGuard } from 'app/controllers'
-import { CustomerDto } from 'app/services/customers'
-import { nullObjectId } from 'common'
-import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
+import {
+    HttpClient,
+    HttpTestContext,
+    createHttpTestContext,
+    expectEqualUnsorted,
+    nullObjectId
+} from 'common'
+import { CustomerDto } from 'services/customers'
+import { GatewayModule } from '../gateway.module'
+import { CustomerJwtAuthGuard } from '../guards'
 import { createCustomer, createCustomers, makeCustomerDto } from './customers.fixture'
 
 describe('/customers', () => {
@@ -12,7 +17,7 @@ describe('/customers', () => {
 
     beforeEach(async () => {
         testContext = await createHttpTestContext({
-            imports: [AppModule],
+            imports: [GatewayModule],
             ignoreGuards: [CustomerJwtAuthGuard]
         })
         client = testContext.client

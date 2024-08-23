@@ -1,4 +1,4 @@
-import { MovieDto, MovieGenre, MovieRating } from 'app/services/movies'
+import { MovieDto, MovieGenre, MovieRating } from 'services/movies'
 import { padNumber } from 'common'
 import { HttpClient } from 'common'
 

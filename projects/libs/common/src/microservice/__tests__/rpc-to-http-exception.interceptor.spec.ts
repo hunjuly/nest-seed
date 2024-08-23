@@ -41,7 +41,11 @@ describe('RpcToHttpExceptionInterceptor', () => {
         await microContext?.close()
     })
 
-    it('should return mock message', async () => {
-        await client.get('/').badRequest()
+    it('should return BAD_REQUEST(400) status', async () => {
+        await client.get('/throwHttpException').badRequest()
+    })
+
+    it('should return INTERNAL_SERVER_ERROR(500) status', async () => {
+        await client.get('/throwError').internalServerError()
     })
 })

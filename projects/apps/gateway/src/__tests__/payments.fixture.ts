@@ -1,16 +1,15 @@
-import { AppModule } from 'app/app.module'
-import { createHttpTestContext, HttpClient } from 'common'
-import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
+import { createHttpTestContext, HttpClient, pickIds } from 'common'
+import { CustomerDto } from 'services/customers'
+import { CreatePaymentDto } from 'services/payments'
+import { TicketDto } from 'services/tickets'
+import { GatewayModule } from '../gateway.module'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
+import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
-import { CustomerDto } from 'app/services/customers'
-import { TicketDto } from 'app/services/tickets'
-import { pickIds } from 'common'
-import { CreatePaymentDto } from 'app/services/payments'
 
 export async function createFixture() {
-    const testContext = await createHttpTestContext({ imports: [AppModule] })
+    const testContext = await createHttpTestContext({ imports: [GatewayModule] })
     const client = testContext.client
     const customer = await createCustomer(client)
     const movie = await createMovie(client)

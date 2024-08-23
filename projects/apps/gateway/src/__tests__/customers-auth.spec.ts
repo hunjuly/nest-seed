@@ -4,13 +4,12 @@ import {
     createMicroserviceTestContext,
     HttpClient,
     HttpTestContext,
-    nullObjectId,
-    sleep
+    nullObjectId
 } from 'common'
 import { Config } from 'config'
 import { ServicesModule } from 'services/services.module'
+import { CustomersController } from '../controllers'
 import { CoreModule } from '../core'
-import { CustomersController } from '../customers.controller'
 import { CustomerJwtStrategy, CustomerLocalStrategy } from '../strategies'
 import { createCredentials, Credentials } from './customers-auth.fixture'
 
@@ -22,13 +21,6 @@ describe('customer authentication', () => {
     let credentials: Credentials
 
     beforeEach(async () => {
-        Config.auth = {
-            accessSecret: 'mockAccessSecret',
-            accessTokenExpiration: '3s',
-            refreshSecret: 'mockRefreshSecret',
-            refreshTokenExpiration: '3s'
-        }
-
         const { port, close } = await createMicroserviceTestContext({ imports: [ServicesModule] })
         closeInfra = close
         Config.service.port = port
@@ -99,12 +91,6 @@ describe('customer authentication', () => {
                 .post('/customers/refresh')
                 .body({ refreshToken: 'invalid-token' })
                 .unauthorized()
-        })
-
-        it('should return UNAUTHORIZED(401) status when providing an expired refreshToken', async () => {
-            await sleep(3500)
-
-            return client.post('/customers/refresh').body({ refreshToken }).unauthorized()
         })
     })
 

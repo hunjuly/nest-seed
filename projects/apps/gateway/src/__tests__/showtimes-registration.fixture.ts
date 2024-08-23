@@ -1,8 +1,8 @@
 import { addMinutes, HttpClient, jsonToObject, pickIds } from 'common'
-import { MovieDto } from '../services/movies'
-import { CreateShowtimesDto, ShowtimeDto, ShowtimesCreateErrorEvent } from '../services/showtimes'
-import { getAllSeats, TheaterDto } from '../services/theaters'
-import { TicketDto } from '../services/tickets'
+import { MovieDto } from 'services/movies'
+import { CreateShowtimesDto, ShowtimeDto, ShowtimesCreateErrorEvent } from 'services/showtimes'
+import { getAllSeats, TheaterDto } from 'services/theaters'
+import { TicketDto } from 'services/tickets'
 
 export const makeCreateShowtimesDto = (movie: MovieDto, theaters: TheaterDto[], overrides = {}) => {
     const createDto = {

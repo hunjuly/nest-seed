@@ -11,15 +11,14 @@ import {
     UseGuards,
     UsePipes
 } from '@nestjs/common'
+import { Assert, ClientProxyService, PaginationOption, PaginationPipe } from 'common'
 import {
     CreateCustomerDto,
     CustomerDto,
     QueryCustomersDto,
     UpdateCustomerDto
 } from 'services/customers'
-import { ClientProxyService } from './core/client-proxy.module'
 import { CustomerJwtAuthGuard, CustomerLocalAuthGuard, Public } from './guards'
-import { PaginationPipe, PaginationOption, Assert } from 'common'
 
 @Controller('customers')
 @UseGuards(CustomerJwtAuthGuard)

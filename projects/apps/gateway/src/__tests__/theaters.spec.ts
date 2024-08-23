@@ -1,8 +1,14 @@
 import { expect } from '@jest/globals'
-import { AppModule } from 'app/app.module'
-import { TheaterDto } from 'app/services/theaters'
-import { nullObjectId, pickIds } from 'common'
-import { HttpClient, HttpTestContext, createHttpTestContext, expectEqualUnsorted } from 'common'
+import {
+    HttpClient,
+    HttpTestContext,
+    createHttpTestContext,
+    expectEqualUnsorted,
+    nullObjectId,
+    pickIds
+} from 'common'
+import { TheaterDto } from 'services/theaters'
+import { GatewayModule } from '../gateway.module'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
 describe('/theaters', () => {
@@ -10,7 +16,7 @@ describe('/theaters', () => {
     let client: HttpClient
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
     })
 

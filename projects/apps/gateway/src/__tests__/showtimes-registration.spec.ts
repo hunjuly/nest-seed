@@ -1,6 +1,3 @@
-import { AppModule } from 'app/app.module'
-import { MovieDto } from 'app/services/movies'
-import { TheaterDto } from 'app/services/theaters'
 import {
     HttpClient,
     HttpTestContext,
@@ -8,6 +5,10 @@ import {
     expectEqualUnsorted,
     nullObjectId
 } from 'common'
+import { MovieDto } from 'services/movies'
+import { ShowtimeDto } from 'services/showtimes'
+import { TheaterDto } from 'services/theaters'
+import { GatewayModule } from '../gateway.module'
 import { createMovie } from './movies.fixture'
 import {
     castForShowtimes,
@@ -18,7 +19,6 @@ import {
     makeCreateShowtimesDto
 } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
-import { ShowtimeDto } from 'app/services/showtimes'
 
 describe('showtimes-registration', () => {
     let testContext: HttpTestContext
@@ -27,7 +27,7 @@ describe('showtimes-registration', () => {
     let theaters: TheaterDto[]
 
     beforeEach(async () => {
-        testContext = await createHttpTestContext({ imports: [AppModule] })
+        testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
         movie = await createMovie(client)
         theaters = await createTheaters(client, 2)
