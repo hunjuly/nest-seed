@@ -1,9 +1,23 @@
 {
     "$schema": "https://json.schemastore.org/nest-cli",
     "collection": "@nestjs/schematics",
-    "sourceRoot": "src",
     "compilerOptions": {
-        "deleteOutDir": true
+        "deleteOutDir": true,
+        "webpack": false
     },
-    "entryFile": "app/main"
+    "monorepo": true,
+    "projects": {
+        "gateway": {
+            "type": "application",
+            "root": "projects/apps/gateway",
+            "entryFile": "main",
+            "sourceRoot": "projects/apps/gateway/src"
+        },
+        "services": {
+            "type": "application",
+            "root": "projects/apps/services",
+            "entryFile": "main",
+            "sourceRoot": "projects/apps/services/src"
+        }
+    }
 }

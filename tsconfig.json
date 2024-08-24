@@ -8,20 +8,17 @@
         "allowSyntheticDefaultImports": true,
         "target": "ES2021",
         "sourceMap": true,
-        "outDir": "./_output/dist",
-        "baseUrl": "./",
+        "outDir": "./_output/build",
+        "baseUrl": ".",
         "paths": {
-            "app/*": [
-                "src/app/*"
+            "services/*": [
+                "projects/apps/services/src/*"
             ],
             "common": [
-                "src/common/index"
-            ],
-            "common/test": [
-                "src/common/test/index"
+                "projects/libs/common/src/index"
             ],
             "config": [
-                "src/config/index"
+                "projects/config/index"
             ]
         },
         "incremental": true,
@@ -33,6 +30,6 @@
         "noFallthroughCasesInSwitch": true
     },
     "include": [
-        "src/**/*"
+        "projects/**/*"
     ]
 }

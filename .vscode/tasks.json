@@ -5,19 +5,19 @@
     "tasks": [
         {
             "label": "Run Test Suites",
-            "detail": "Run selected test suites (all, app, common).",
+            "detail": "Run selected test suites.",
             "type": "shell",
             "command": "npm run ${input:testSuite}"
         },
         {
             "label": "Watch Start",
-            "detail": "Start the Nest development server and watch for file changes (--debug 9230).",
+            "detail": "Start the Nest development server and watch for file changes.",
             "type": "shell",
             "command": "npm start"
         },
         {
             "label": "Watch Test",
-            "detail": "Run Jest tests and watch for file changes (--inspect=9231).",
+            "detail": "Run Jest tests and watch for file changes.",
             "type": "shell",
             "command": "npm test"
         },
@@ -38,10 +38,10 @@
         {
             "id": "testSuite",
             "type": "pickString",
-            "default": "test:app",
             "options": [
                 "test:all",
-                "test:app",
+                "test:services",
+                "test:gateway",
                 "test:common"
             ],
             "description": "Select a test suite to run."
