@@ -12,7 +12,7 @@ const config: Config = {
     moduleNameMapper: {
         '^services/(.*)$': '<rootDir>/projects/apps/services/src/$1',
         '^common$': '<rootDir>/projects/libs/common/src/index',
-        '^config$': '<rootDir>/projects/libs/config/index'
+        '^config$': '<rootDir>/projects/config/index'
     },
     testEnvironment: 'node',
     transform: {
@@ -29,7 +29,6 @@ const config: Config = {
     collectCoverageFrom: [
         'projects/apps/**/*.ts',
         'projects/libs/**/*.ts',
-        '!projects/libs/config/**/*.ts',
         '!projects/**/jest.config.ts',
         '!projects/**/main.ts',
         '!projects/**/index.ts',
