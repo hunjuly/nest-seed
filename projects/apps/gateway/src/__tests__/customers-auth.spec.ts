@@ -114,7 +114,7 @@ describe('customer authentication', () => {
 
             const wrongUserIdToken = jwtService.sign(
                 { userId: nullObjectId },
-                { secret: 'mockAccessSecret', expiresIn: '15m' }
+                { secret: Config.auth.accessSecret, expiresIn: '15m' }
             )
 
             return client
