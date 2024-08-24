@@ -27,7 +27,7 @@ export class ShowtimesController {
 
     @Sse('events')
     events(): Observable<MessageEvent> {
-        return this.service.send('getEventObservable', {})
+        return this.service.send('monitorShowtimeEvents', {})
     }
 
     @Get(':showtimeId')

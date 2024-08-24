@@ -1,8 +1,10 @@
-import { GatewayModule } from '../gateway.module'
+import { createHttpTestContext, createMicroserviceTestContext, HttpClient } from 'common'
+import { Config } from 'config'
 import { CustomerDto } from 'services/customers'
 import { MovieDto, MovieGenre } from 'services/movies'
+import { ServicesModule } from 'services/services.module'
 import { TheaterDto } from 'services/theaters'
-import { createHttpTestContext, HttpClient } from 'common'
+import { GatewayModule } from '../gateway.module'
 import { createCustomer } from './customers.fixture'
 import { createMovie } from './movies.fixture'
 import { createPayment, makeCreatePaymentDto } from './payments.fixture'
@@ -10,6 +12,12 @@ import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registratio
 import { createTheater } from './theaters.fixture'
 
 export async function createFixture() {
+    const { port, close: closeInfra } = await createMicroserviceTestContext({
+        imports: [ServicesModule]
+    })
+
+    Config.service.port = port
+
     const testContext = await createHttpTestContext({ imports: [GatewayModule] })
 
     const client = testContext.client
@@ -19,7 +27,7 @@ export async function createFixture() {
     const tickets = await createTickets(client, movies, theaters)
     const watchedMovie = await createWatchedMovie(client, customer, theaters)
 
-    return { testContext, customer, tickets, watchedMovie, movies, theaters }
+    return { testContext, customer, tickets, watchedMovie, movies, theaters, closeInfra }
 }
 
 async function createTheaters(client: HttpClient) {

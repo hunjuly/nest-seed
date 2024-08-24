@@ -9,6 +9,7 @@ import { createFixture, createPayment, makeCreatePaymentDto } from './payments.f
 describe('/payments', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
     let customer: CustomerDto
     let tickets: TicketDto[]
 
@@ -16,12 +17,14 @@ describe('/payments', () => {
         const fixture = await createFixture()
         testContext = fixture.testContext
         client = testContext.client
+        closeInfra = fixture.closeInfra
         customer = fixture.customer
         tickets = fixture.tickets
     })
 
     afterEach(async () => {
         await testContext?.close()
+        await closeInfra()
     })
 
     describe('POST /payments', () => {

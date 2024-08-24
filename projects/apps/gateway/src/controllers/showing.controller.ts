@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
-import { ClientProxyService, convertStringToDate, LatLong, LatLongQuery } from 'common'
+import { ClientProxyService, LatLong, LatLongQuery } from 'common'
 
 @Controller('showing')
 export class ShowingController {
@@ -7,7 +7,7 @@ export class ShowingController {
 
     @Get('movies/recommended')
     async getRecommendedMovies(@Query('customerId') customerId: string) {
-        return this.service.send('getRecommendedMovies', customerId)
+        return this.service.send('showing.getRecommendedMovies', customerId)
     }
 
     @Get('movies/:movieId/theaters')
@@ -15,12 +15,12 @@ export class ShowingController {
         @Param('movieId') movieId: string,
         @LatLongQuery('userLocation') userLocation: LatLong
     ) {
-        return this.service.send('findShowingTheaters', { movieId, userLocation })
+        return this.service.send('showing.findShowingTheaters', { movieId, userLocation })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates')
     async findShowdates(@Param('movieId') movieId: string, @Param('theaterId') theaterId: string) {
-        return this.service.send('findShowdates', { movieId, theaterId })
+        return this.service.send('showing.findShowdates', { movieId, theaterId })
     }
 
     @Get('movies/:movieId/theaters/:theaterId/showdates/:showdate/showtimes')
@@ -29,15 +29,11 @@ export class ShowingController {
         @Param('theaterId') theaterId: string,
         @Param('showdate') showdate: string
     ) {
-        return this.service.send('findShowtimes', {
-            movieId,
-            theaterId,
-            showdate: convertStringToDate(showdate)
-        })
+        return this.service.send('showing.findShowtimes', { movieId, theaterId, showdate })
     }
 
     @Get('showtimes/:showtimeId/tickets')
     async findTickets(@Param('showtimeId') showtimeId: string) {
-        return this.service.send('findTickets', showtimeId)
+        return this.service.send('showing.findTickets', showtimeId)
     }
 }

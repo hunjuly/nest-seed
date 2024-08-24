@@ -98,13 +98,11 @@ export class HttpClient {
             .buffer(true)
             .parse((res, _) => {
                 res.on('data', async (chunk: any) => {
-                    const event: string = chunk.toString()
+                    const input: string = chunk.toString()
+                    const event = parseEventData(input)
 
-                    const item = event.split('\n').filter((item) => item.startsWith('data:'))
-
-                    if (0 < item.length) {
-                        const [_key, value] = item[0].split(': ')
-                        await callback(value)
+                    if (event.event !== 'error' && event.data) {
+                        await callback(event.data)
                     }
                 })
             })
@@ -133,4 +131,34 @@ export class HttpClient {
     notFound = () => this.send(HttpStatus.NOT_FOUND)
     payloadTooLarge = () => this.send(HttpStatus.PAYLOAD_TOO_LARGE)
     internalServerError = () => this.send(HttpStatus.INTERNAL_SERVER_ERROR)
+}
+
+interface EventData {
+    event: string
+    id: number
+    data: string
+}
+
+function parseEventData(input: string): EventData {
+    const lines = input.split('\n')
+    const result: Partial<EventData> = {}
+
+    lines.forEach((line) => {
+        const [key, value] = line.split(': ')
+        if (key && value) {
+            switch (key) {
+                case 'event':
+                    result.event = value
+                    break
+                case 'id':
+                    result.id = parseInt(value, 10)
+                    break
+                case 'data':
+                    result.data = value
+                    break
+            }
+        }
+    })
+
+    return result as EventData
 }

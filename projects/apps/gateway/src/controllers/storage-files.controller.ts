@@ -57,7 +57,7 @@ export class StorageFilesController {
             uploadedFilePath: file.path
         }))
 
-        const storageFiles = await this.service.send('saveFiles', createDtos)
+        const storageFiles = await this.service.getValue('saveFiles', createDtos)
         return { storageFiles }
     }
 

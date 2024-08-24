@@ -3,6 +3,7 @@ import {
     HttpClient,
     HttpTestContext,
     createHttpTestContext,
+    createMicroserviceTestContext,
     expectEqualUnsorted,
     nullObjectId,
     pickIds
@@ -10,18 +11,26 @@ import {
 import { TheaterDto } from 'services/theaters'
 import { GatewayModule } from '../gateway.module'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
+import { Config } from 'config'
+import { ServicesModule } from 'services/services.module'
 
 describe('/theaters', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
 
     beforeEach(async () => {
+        const { port, close } = await createMicroserviceTestContext({ imports: [ServicesModule] })
+        closeInfra = close
+        Config.service.port = port
+
         testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
     })
 
     afterEach(async () => {
         await testContext?.close()
+        await closeInfra()
     })
 
     describe('POST /theaters', () => {

@@ -2,11 +2,14 @@ import {
     HttpClient,
     HttpTestContext,
     createHttpTestContext,
+    createMicroserviceTestContext,
     expectEqualUnsorted,
     nullObjectId,
     pickIds
 } from 'common'
+import { Config } from 'config'
 import { MovieDto } from 'services/movies'
+import { ServicesModule } from 'services/services.module'
 import { ShowtimeDto } from 'services/showtimes'
 import { TheaterDto } from 'services/theaters'
 import { GatewayModule } from '../gateway.module'
@@ -17,10 +20,15 @@ import { createTheaters } from './theaters.fixture'
 describe('/showtimes', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
     let movie: MovieDto
     let theaters: TheaterDto[]
 
     beforeEach(async () => {
+        const { port, close } = await createMicroserviceTestContext({ imports: [ServicesModule] })
+        closeInfra = close
+        Config.service.port = port
+
         testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
         movie = await createMovie(client)
@@ -29,6 +37,7 @@ describe('/showtimes', () => {
 
     afterEach(async () => {
         await testContext?.close()
+        await closeInfra()
     })
 
     describe('GET /showtimes', () => {

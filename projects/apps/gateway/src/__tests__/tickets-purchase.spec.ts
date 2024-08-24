@@ -11,6 +11,8 @@ import { createFixture, filterMoviesByGenre } from './tickets-purchase.spec.fixt
 describe('tickets-purchase', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
+
     let customer: CustomerDto
     let movies: MovieDto[]
     let theaters: TheaterDto[]
@@ -24,9 +26,9 @@ describe('tickets-purchase', () => {
 
     beforeAll(async () => {
         const fixture = await createFixture()
-
         testContext = fixture.testContext
         client = testContext.client
+        closeInfra = fixture.closeInfra
         customer = fixture.customer
         movies = fixture.movies
         theaters = fixture.theaters
@@ -35,6 +37,7 @@ describe('tickets-purchase', () => {
 
     afterAll(async () => {
         await testContext?.close()
+        await closeInfra()
     })
 
     it('Request recommended movie list', async () => {

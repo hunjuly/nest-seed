@@ -9,12 +9,12 @@ export class TicketsController {
 
     @Get()
     @UsePipes(new PaginationPipe(100))
-    async findTickets(@Query() filter: TicketsQueryDto, @Query() pagination: PaginationOption) {
-        return this.service.send('findTickets', { filter, pagination })
+    async findTickets(@Query() queryDto: TicketsQueryDto, @Query() pagination: PaginationOption) {
+        return this.service.send('findTickets', { queryDto, pagination })
     }
 
     @Sse('events')
     events(): Observable<MessageEvent> {
-        return this.service.send('getEventObservable', {})
+        return this.service.send('monitorTicketEvents', {})
     }
 }

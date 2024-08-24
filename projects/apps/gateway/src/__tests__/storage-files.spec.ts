@@ -1,6 +1,7 @@
 import {
     createDummyFile,
     createHttpTestContext,
+    createMicroserviceTestContext,
     getChecksum,
     HttpClient,
     HttpTestContext,
@@ -11,10 +12,12 @@ import { Config } from 'config'
 import { writeFile } from 'fs/promises'
 import { StorageFileDto } from 'services/storage-files'
 import { GatewayModule } from '../gateway.module'
+import { ServicesModule } from 'services/services.module'
 
 describe('/storage-files', () => {
     let testContext: HttpTestContext
     let client: HttpClient
+    let closeInfra: () => Promise<void>
 
     let tempDir: string
     let notAllowFile: string
@@ -50,12 +53,17 @@ describe('/storage-files', () => {
             allowedMimeTypes: ['text/plain']
         }
 
+        const { port, close } = await createMicroserviceTestContext({ imports: [ServicesModule] })
+        closeInfra = close
+        Config.service.port = port
+
         testContext = await createHttpTestContext({ imports: [GatewayModule] })
         client = testContext.client
     })
 
     afterEach(async () => {
         await testContext?.close()
+        await closeInfra()
         await Path.delete(Config.fileUpload.directory)
     })
 
