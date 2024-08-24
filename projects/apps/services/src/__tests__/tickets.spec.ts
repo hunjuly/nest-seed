@@ -12,8 +12,9 @@ import { createMovie } from './movies.fixture'
 import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
 import { TicketDto } from '../tickets'
+import { HttpStatus } from '@nestjs/common'
 
-describe('/showtimes', () => {
+describe('TicketsModule', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
     let movie: MovieDto
@@ -30,7 +31,7 @@ describe('/showtimes', () => {
         await testContext?.close()
     })
 
-    describe('GET /tickets', () => {
+    describe('findTickets', () => {
         let batchId: string
         let createdTickets: TicketDto[]
 
@@ -92,6 +93,14 @@ describe('/showtimes', () => {
             expectEqualUnsorted(
                 items,
                 createdTickets.filter((ticket) => ticket.showtimeId === showtimeId)
+            )
+        })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findTickets',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
             )
         })
     })

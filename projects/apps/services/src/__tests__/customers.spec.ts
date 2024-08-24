@@ -121,7 +121,7 @@ describe('CustomersModule', () => {
         })
 
         it('should retrieve customers with default pagination', async () => {
-            const { items, ...paginated } = await client.send('findCustomers', {})
+            const { items, ...paginated } = await client.send('findCustomers', { queryDto: {} })
 
             expect(paginated).toEqual({
                 skip: 0,
@@ -149,6 +149,14 @@ describe('CustomersModule', () => {
 
             const expected = customers.filter((customer) => customer.email.startsWith(partialEmail))
             expectEqualUnsorted(items, expected)
+        })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findCustomers',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
+            )
         })
     })
 

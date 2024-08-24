@@ -14,31 +14,11 @@ export class TicketsController {
         return this.service.getEventObservable()
     }
 
-    @MessagePattern({ cmd: 'notifyTicketsPurchased' })
-    async notifyTicketsPurchased(@Payload() ticketIds: string[]) {
-        return this.service.notifyTicketsPurchased(ticketIds)
-    }
-
     @MessagePattern({ cmd: 'findTickets' })
     async findTickets(
-        @Payload('queryDto') queryDto: TicketsQueryDto | undefined,
-        @Payload('pagination') pagination: PaginationOption | undefined
+        @Payload('queryDto') queryDto: TicketsQueryDto,
+        @Payload('pagination') pagination: PaginationOption
     ) {
-        return this.service.findTickets(queryDto ?? {}, pagination ?? {})
-    }
-
-    @MessagePattern({ cmd: 'findTicketsByShowtimeId' })
-    async findTicketsByShowtimeId(@Payload() showtimeId: string) {
-        return this.service.findTicketsByShowtimeId(showtimeId)
-    }
-
-    @MessagePattern({ cmd: 'findTicketsByIds' })
-    async findTicketsByIds(@Payload() ticketIds: string[]) {
-        return this.service.findTicketsByIds(ticketIds)
-    }
-
-    @MessagePattern({ cmd: 'getSalesStatuses' })
-    async getSalesStatuses(@Payload() showtimeIds: string[]) {
-        return this.service.getSalesStatuses(showtimeIds)
+        return this.service.findTickets(queryDto, pagination)
     }
 }

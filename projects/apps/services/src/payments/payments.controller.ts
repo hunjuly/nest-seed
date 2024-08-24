@@ -15,9 +15,9 @@ export class PaymentsController {
 
     @MessagePattern({ cmd: 'findPayments' })
     async findPayments(
-        @Payload('queryDto') queryDto: QueryPaymentsDto | undefined,
-        @Payload('pagination') pagination: PaginationOption | undefined
+        @Payload('queryDto') queryDto: QueryPaymentsDto,
+        @Payload('pagination') pagination: PaginationOption
     ) {
-        return this.service.findPayments(queryDto ?? {}, pagination ?? {})
+        return this.service.findPayments(queryDto, pagination)
     }
 }

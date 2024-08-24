@@ -72,5 +72,13 @@ describe('PaymentsModule', () => {
 
             expect(items).toEqual([payment])
         })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findPayments',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
+            )
+        })
     })
 })

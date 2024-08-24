@@ -36,7 +36,7 @@ export class TheatersController {
         @Payload('queryDto') queryDto: QueryTheatersDto,
         @Payload('pagination') pagination: PaginationOption
     ) {
-        return this.service.findTheaters(queryDto ?? {}, pagination ?? {})
+        return this.service.findTheaters(queryDto, pagination)
     }
 
     @MessagePattern({ cmd: 'getTheatersByIds' })

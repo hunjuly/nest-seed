@@ -121,7 +121,7 @@ describe('MoviesModule', () => {
         })
 
         it('should retrieve movies with default pagination', async () => {
-            const { items, ...paginated } = await client.send('findMovies', {})
+            const { items, ...paginated } = await client.send('findMovies', { queryDto: {} })
 
             expect(paginated).toEqual({
                 skip: 0,
@@ -189,6 +189,14 @@ describe('MoviesModule', () => {
 
             const expected = movies.filter((movie) => movie.rating === rating)
             expectEqualUnsorted(items, expected)
+        })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findMovies',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
+            )
         })
     })
 

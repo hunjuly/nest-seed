@@ -28,10 +28,10 @@ export class CustomersController {
 
     @MessagePattern({ cmd: 'findCustomers' })
     findCustomers(
-        @Payload('queryDto') queryDto: QueryCustomersDto | undefined,
-        @Payload('pagination') pagination: PaginationOption | undefined
+        @Payload('queryDto') queryDto: QueryCustomersDto,
+        @Payload('pagination') pagination: PaginationOption
     ) {
-        return this.service.findCustomers(queryDto ?? {}, pagination ?? {})
+        return this.service.findCustomers(queryDto, pagination)
     }
 
     @MessagePattern({ cmd: 'getCustomer' })

@@ -15,7 +15,7 @@ import { createMovie } from './movies.fixture'
 import { createShowtimes, makeCreateShowtimesDto } from './showtimes-registration.fixture'
 import { createTheaters } from './theaters.fixture'
 
-describe('/showtimes', () => {
+describe('ShowtimesModule', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
     let movie: MovieDto
@@ -32,7 +32,7 @@ describe('/showtimes', () => {
         await testContext?.close()
     })
 
-    describe('GET /showtimes', () => {
+    describe('findShowtimes', () => {
         let batchId: string
         let createdShowtimes: ShowtimeDto[]
 
@@ -76,9 +76,17 @@ describe('/showtimes', () => {
 
             expectEqualUnsorted(items, findingShowtimes)
         })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findShowtimes',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
+            )
+        })
     })
 
-    describe('GET /showtimes/:id', () => {
+    describe('getShowtime', () => {
         let createdShowtime: ShowtimeDto
 
         beforeEach(async () => {

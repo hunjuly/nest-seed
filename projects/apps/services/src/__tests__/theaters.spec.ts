@@ -12,7 +12,7 @@ import { ServicesModule } from '../services.module'
 import { TheaterDto } from '../theaters'
 import { createTheater, createTheaters, makeTheaterDto } from './theaters.fixture'
 
-describe('/theaters', () => {
+describe('TheatersModule', () => {
     let testContext: MicroserviceTestContext
     let client: MicroserviceClient
 
@@ -111,7 +111,7 @@ describe('/theaters', () => {
         })
 
         it('should retrieve theaters with default pagination', async () => {
-            const { items, ...paginated } = await client.send('findTheaters', {})
+            const { items, ...paginated } = await client.send('findTheaters', { queryDto: {} })
 
             expect(paginated).toEqual({
                 skip: 0,
@@ -127,6 +127,14 @@ describe('/theaters', () => {
 
             const expected = theaters.filter((theater) => theater.name.startsWith(partialName))
             expectEqualUnsorted(items, expected)
+        })
+
+        it('should return BAD_REQUEST(400) when using not allowed parameters', async () => {
+            await client.error(
+                'findTheaters',
+                { queryDto: { wrong: 'value' } },
+                HttpStatus.BAD_REQUEST
+            )
         })
     })
 

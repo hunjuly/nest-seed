@@ -13,7 +13,7 @@ export class PaymentsController {
 
     @UsePipes(new PaginationPipe(50))
     @Get()
-    async findPayments(@Query() filter: QueryPaymentsDto, @Query() pagination: PaginationOption) {
-        return this.service.send('findPayments', { filter, pagination })
+    async findPayments(@Query() queryDto: QueryPaymentsDto, @Query() pagination: PaginationOption) {
+        return this.service.send('findPayments', { queryDto, pagination })
     }
 }

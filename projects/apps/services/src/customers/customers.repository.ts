@@ -1,9 +1,4 @@
-import {
-    BadRequestException,
-    ConflictException,
-    Injectable,
-    NotFoundException
-} from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { MethodLog, MongooseRepository, PaginationOption, PaginationResult } from 'common'
 import { escapeRegExp } from 'lodash'
@@ -64,12 +59,7 @@ export class CustomersRepository extends MongooseRepository<Customer> {
     @MethodLog({ level: 'verbose' })
     async findCustomers(queryDto: QueryCustomersDto, pagination: PaginationOption) {
         const paginated = await this.findWithPagination((helpers) => {
-            const { name, email, ...rest } = queryDto
-
-            if (Object.keys(rest).length > 0) {
-                const message = `Additional query parameters are not allowed. Received: ${JSON.stringify(rest)}`
-                throw new BadRequestException(message)
-            }
+            const { name, email } = queryDto
 
             const query: FilterQuery<Customer> = {}
             if (name) query.name = new RegExp(escapeRegExp(name), 'i')
