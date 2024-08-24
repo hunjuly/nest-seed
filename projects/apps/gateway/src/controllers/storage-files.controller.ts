@@ -63,7 +63,6 @@ export class StorageFilesController {
 
     @Get(':fileId')
     async downloadFile(@Param('fileId') fileId: string) {
-        // TODO 스트림을 직접 읽어라
         const file = await this.service.getValue('getStorageFile', fileId)
 
         const readStream = createReadStream(file.storedPath)

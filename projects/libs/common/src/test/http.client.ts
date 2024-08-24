@@ -2,40 +2,31 @@
 
 import { HttpStatus } from '@nestjs/common'
 import { createWriteStream } from 'fs'
-import { posix } from 'path'
 import * as supertest from 'supertest'
 import { jsonToObject } from '../utils'
 
 export class HttpClient {
     public client: supertest.Test
 
-    constructor(
-        public server: any,
-        private defaultPath: string = ''
-    ) {}
+    constructor(public server: any) {}
 
-    private makeUrl(url: string, usePrefix = true) {
-        return usePrefix ? posix.join(this.defaultPath, url) : url
-    }
-
-    // TODO remove usePrefix
-    post(url: string = '', usePrefix = true): this {
-        this.client = supertest(this.server).post(this.makeUrl(url, usePrefix))
+    post(url: string): this {
+        this.client = supertest(this.server).post(url)
         return this
     }
 
-    patch(url: string = '', usePrefix = true): this {
-        this.client = supertest(this.server).patch(this.makeUrl(url, usePrefix))
+    patch(url: string): this {
+        this.client = supertest(this.server).patch(url)
         return this
     }
 
-    get(url: string = '', usePrefix = true): this {
-        this.client = supertest(this.server).get(this.makeUrl(url, usePrefix))
+    get(url: string): this {
+        this.client = supertest(this.server).get(url)
         return this
     }
 
-    delete(url: string = '', usePrefix = true): this {
-        this.client = supertest(this.server).delete(this.makeUrl(url, usePrefix))
+    delete(url: string): this {
+        this.client = supertest(this.server).delete(url)
         return this
     }
 
