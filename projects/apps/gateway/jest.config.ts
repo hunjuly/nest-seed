@@ -4,9 +4,9 @@ import baseOption from '../../../jest.config'
 const config: Config = {
     ...baseOption,
     rootDir: '../../../',
-    roots: ['<rootDir>/projects/libs/common/src'],
+    roots: ['<rootDir>/projects/apps/gateway/src'],
     collectCoverageFrom: [
-        'projects/libs/common/src/**/*.ts',
+        'projects/apps/gateway/src/**/*.ts',
         '!**/main.ts',
         '!**/index.ts',
         '!**/*.module.ts'

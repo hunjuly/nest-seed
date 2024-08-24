@@ -6,10 +6,10 @@ const config: Config = {
     rootDir: '../../../',
     roots: ['<rootDir>/projects/apps/services/src'],
     collectCoverageFrom: [
-        'projects/apps/services/**/*.ts',
-        '!projects/**/main.ts',
-        '!projects/**/index.ts',
-        '!projects/**/*.module.ts'
+        'projects/apps/services/src/**/*.ts',
+        '!**/main.ts',
+        '!**/index.ts',
+        '!**/*.module.ts'
     ]
 }
 

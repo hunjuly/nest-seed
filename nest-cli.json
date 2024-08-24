@@ -9,18 +9,15 @@
     "projects": {
         "gateway": {
             "type": "application",
-            "root": "projects/app",
+            "root": "projects/apps/gateway",
             "entryFile": "main",
-            "sourceRoot": "projects/app"
+            "sourceRoot": "projects/apps/gateway/src"
         },
         "services": {
             "type": "application",
             "root": "projects/apps/services",
             "entryFile": "main",
-            "sourceRoot": "projects/apps/services/src",
-            "compilerOptions": {
-                "tsConfigPath": "projects/apps/services/tsconfig.build.json"
-            }
+            "sourceRoot": "projects/apps/services/src"
         }
     }
 }

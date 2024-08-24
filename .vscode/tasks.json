@@ -42,7 +42,7 @@
             "options": [
                 "test:services",
                 "test:all",
-                "test:app",
+                "test:gateway",
                 "test:common"
             ],
             "description": "Select a test suite to run."
